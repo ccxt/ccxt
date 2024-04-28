@@ -119,8 +119,10 @@ class binance extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
@@ -1091,7 +1093,7 @@ class binance extends Exchange {
                         'feeSide' => 'quote',
                         'tierBased' => true,
                         'percentage' => true,
-                        'taker' => $this->parse_number('0.000400'),
+                        'taker' => $this->parse_number('0.000500'),
                         'maker' => $this->parse_number('0.000200'),
                         'tiers' => array(
                             'taker' => array(
@@ -8388,7 +8390,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
@@ -10966,7 +10968,7 @@ class binance extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
          * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
@@ -10979,7 +10981,7 @@ class binance extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
          * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
@@ -10992,7 +10994,7 @@ class binance extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): array {
         /**
          * fetch the $rate of interest to borrow a $currency for margin trading
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-$rate-history-user_data
@@ -12563,7 +12565,7 @@ class binance extends Exchange {
             //
         }
         $rows = $this->safe_list($response, $responseQuery, array());
-        return $this->parse_conversions($rows, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
+        return $this->parse_conversions($rows, $code, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
     }
 
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {

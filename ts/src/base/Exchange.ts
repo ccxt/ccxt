@@ -146,10 +146,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest } from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate } from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere.
@@ -615,6 +615,8 @@ export default class Exchange {
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionHistory': undefined,
+                'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
@@ -2335,11 +2337,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
-    async fetchCrossBorrowRates (params = {}): Promise<{}> {
+    async fetchCrossBorrowRates (params = {}): Promise<CrossBorrowRates> {
         throw new NotSupported (this.id + ' fetchCrossBorrowRates() is not supported yet');
     }
 
-    async fetchIsolatedBorrowRates (params = {}): Promise<{}> {
+    async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
         throw new NotSupported (this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
 
@@ -2361,6 +2363,10 @@ export default class Exchange {
 
     parseBorrowInterest (info, market: Market = undefined): BorrowInterest {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
+    }
+
+    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
+        throw new NotSupported (this.id + ' parseIsolatedBorrowRate() is not supported yet');
     }
 
     parseWsTrade (trade, market: Market = undefined): Trade {
@@ -4453,7 +4459,7 @@ export default class Exchange {
         }
     }
 
-    async fetchCrossBorrowRate (code: string, params = {}): Promise<{}> {
+    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
         await this.loadMarkets ();
         if (!this.has['fetchBorrowRates']) {
             throw new NotSupported (this.id + ' fetchCrossBorrowRate() is not supported yet');
@@ -4466,13 +4472,13 @@ export default class Exchange {
         return rate;
     }
 
-    async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<{}> {
+    async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<IsolatedBorrowRate> {
         await this.loadMarkets ();
         if (!this.has['fetchBorrowRates']) {
             throw new NotSupported (this.id + ' fetchIsolatedBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchIsolatedBorrowRates (params);
-        const rate = this.safeDict (borrowRates, symbol);
+        const rate = this.safeDict (borrowRates, symbol) as IsolatedBorrowRate;
         if (rate === undefined) {
             throw new ExchangeError (this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
@@ -5832,6 +5838,17 @@ export default class Exchange {
         return interests;
     }
 
+    parseIsolatedBorrowRates (info: any): IsolatedBorrowRates {
+        const result = {};
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const borrowRate = this.parseIsolatedBorrowRate (item);
+            const symbol = this.safeString (borrowRate, 'symbol');
+            result[symbol] = borrowRate;
+        }
+        return result as any;
+    }
+
     parseFundingRateHistories (response, market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
@@ -6676,7 +6693,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
-    parseConversions (conversions: any[], fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
+    parseConversions (conversions: any[], code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
         conversions = this.toArray (conversions);
         const result = [];
         let fromCurrency = undefined;
@@ -6686,17 +6703,27 @@ export default class Exchange {
             const fromId = this.safeString (entry, fromCurrencyKey);
             const toId = this.safeString (entry, toCurrencyKey);
             if (fromId !== undefined) {
-                fromCurrency = this.currency (fromId);
+                fromCurrency = this.safeCurrency (fromId);
             }
             if (toId !== undefined) {
-                toCurrency = this.currency (toId);
+                toCurrency = this.safeCurrency (toId);
             }
             const conversion = this.extend (this.parseConversion (entry, fromCurrency, toCurrency), params);
             result.push (conversion);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        const code = (fromCurrency !== undefined) ? fromCurrency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.safeCurrency (code);
+            code = currency['code'];
+        }
+        if (code === undefined) {
+            return this.filterBySinceLimit (sorted, since, limit);
+        }
+        const fromConversion = this.filterBy (sorted, 'fromCurrency', code);
+        const toConversion = this.filterBy (sorted, 'toCurrency', code);
+        const both = this.arrayConcat (fromConversion, toConversion);
+        return this.filterBySinceLimit (both, since, limit);
     }
 
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
@@ -6773,6 +6800,39 @@ export default class Exchange {
         const day = date.slice (5, 7);
         const reconstructedDate = day + month + year;
         return reconstructedDate;
+    }
+
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position> {
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        if (this.has['fetchPositionsHistory']) {
+            const positions = await this.fetchPositionsHistory ([ symbol ], since, limit, params);
+            return this.safeDict (positions, 0) as Position;
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionHistory () is not supported yet');
+        }
+    }
+
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
 
     parseMarginModification (data, market: Market = undefined): MarginModification {

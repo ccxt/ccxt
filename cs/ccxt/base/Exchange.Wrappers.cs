@@ -128,15 +128,15 @@ public partial class Exchange
         var res = await this.fetchTradingLimits(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRates> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRates(parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRates(res);
     }
-    public async Task<Dictionary<string, object>> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRates(parameters);
-        return ((Dictionary<string, object>)res);
+        return new IsolatedBorrowRates(res);
     }
     public async Task<Dictionary<string, LeverageTier[]>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -458,15 +458,15 @@ public partial class Exchange
         var res = await this.fetchDepositWithdrawFee(code, parameters);
         return new DepositWithdrawFeeNetwork(res);
     }
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
     }
-    public async Task<Dictionary<string, object>> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new IsolatedBorrowRate(res);
     }
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
@@ -1084,6 +1084,20 @@ public partial class Exchange
     {
         var res = await this.fetchPaginatedCallIncremental(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
+    }
+    public async Task<Position> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
+        return new Position(res);
+    }
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
 }
 // class wrappers

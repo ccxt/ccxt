@@ -3713,12 +3713,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue(response, 'data', {});
         const symbols = this.safeValue(data, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = this.safeValue(symbols, i);
-            result.push(this.parseIsolatedBorrowRate(symbol));
-        }
-        return result;
+        return this.parseIsolatedBorrowRates(symbols);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**

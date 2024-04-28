@@ -72,8 +72,10 @@ class bingx extends bingx$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -287,7 +289,6 @@ class bingx extends bingx$1 {
                             'get': {
                                 'list': 3,
                                 'assets': 3,
-                                'apiKey/query': 1,
                             },
                             'post': {
                                 'create': 3,
@@ -304,6 +305,7 @@ class bingx extends bingx$1 {
                         'private': {
                             'get': {
                                 'uid': 1,
+                                'apiKey/query': 1,
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 3,
@@ -1833,6 +1835,12 @@ class bingx extends bingx$1 {
         };
         const isMarketOrder = type === 'MARKET';
         const isSpot = marketType === 'spot';
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
+        const isTriggerOrder = triggerPrice !== undefined;
+        const isStopLossPriceOrder = stopLossPrice !== undefined;
+        const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
         const exchangeClientOrderId = isSpot ? 'newClientOrderId' : 'clientOrderID';
         const clientOrderId = this.safeString2(params, exchangeClientOrderId, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1849,7 +1857,6 @@ class bingx extends bingx$1 {
         else if (timeInForce === 'GTC') {
             request['timeInForce'] = 'GTC';
         }
-        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         if (isSpot) {
             const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
             params = this.omit(params, 'cost');
@@ -1881,19 +1888,24 @@ class bingx extends bingx$1 {
                     request['type'] = 'TRIGGER_MARKET';
                 }
             }
+            else if ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined)) {
+                const stopTakePrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
+                if (type === 'LIMIT') {
+                    request['type'] = 'TAKE_STOP_LIMIT';
+                }
+                else if (type === 'MARKET') {
+                    request['type'] = 'TAKE_STOP_MARKET';
+                }
+                request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, stopTakePrice));
+            }
         }
         else {
             if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
-            const stopLossPrice = this.safeString(params, 'stopLossPrice');
-            const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
             const trailingAmount = this.safeString(params, 'trailingAmount');
             const trailingPercent = this.safeString2(params, 'trailingPercent', 'priceRate');
             const trailingType = this.safeString(params, 'trailingType', 'TRAILING_STOP_MARKET');
-            const isTriggerOrder = triggerPrice !== undefined;
-            const isStopLossPriceOrder = stopLossPrice !== undefined;
-            const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
@@ -1992,8 +2004,8 @@ class bingx extends bingx$1 {
             }
             request['positionSide'] = positionSide;
             request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         }
+        params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         return this.extend(request, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2013,9 +2025,9 @@ class bingx extends bingx$1 {
          * @param {bool} [params.postOnly] true to place a post only order
          * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
          * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
-         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
-         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
-         * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
+         * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [params.stopLossPrice] stop loss trigger price
+         * @param {float} [params.takeProfitPrice] take profit trigger price
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
          * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
          * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
@@ -2461,7 +2473,7 @@ class bingx extends bingx$1 {
         return this.safeOrder({
             'info': info,
             'id': this.safeString2(order, 'orderId', 'i'),
-            'clientOrderId': this.safeStringN(order, ['clientOrderID', 'origClientOrderId', 'c']),
+            'clientOrderId': this.safeStringN(order, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': this.safeSymbol(marketId, market, '-', marketType),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

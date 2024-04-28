@@ -194,6 +194,8 @@ class Transpiler {
             [ /\.fetchOrders\s/g, '.fetch_orders'],
             [ /\.fetchOrderTrades\s/g, '.fetch_order_trades'],
             [ /\.fetchOrder\s/g, '.fetch_order'],
+            [ /\.fetchPositionHistory\s/g, '.fetch_position_history'],
+            [ /\.fetchPositionsHistory\s/g, '.fetch_positions_history'],
             [ /\.fetchBalance\s/g, '.fetch_balance'],
             [ /\.fetchTotalBalance\s/g, '.fetch_total_balance'],
             [ /\.fetchUsedBalance\s/g, '.fetch_used_balance'],
@@ -992,13 +994,16 @@ class Transpiler {
             'Balances': /-> Balances:/,
             'Bool': /: Bool =/,
             'Conversion': /-> Conversion:/,
+            'CrossBorrowRate': /-> CrossBorrowRate:/,
+            'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'Int': /: Int =/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
+            'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
+            'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
@@ -1681,7 +1686,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {

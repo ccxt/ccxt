@@ -84,6 +84,10 @@ build_and_test_all () {
     npm run test-base-ws
     node test-commonjs.cjs
     npm run package-test
+    if [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      echo "Travis built all files and static/base tests passed, will push to master before running live tests"
+      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=false ./build/push.sh;
+    fi
     last_commit_message=$(git log -1 --pretty=%B)
     echo "Last commit: $last_commit_message" # for debugging
     if [[ "$last_commit_message" == *"skip-tests"* ]]; then
@@ -157,7 +161,7 @@ PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run eslint "ts/src/$exchange.ts"
   node build/transpile.js $exchange --force --child
-  node --loader ts-node/esm build/csharpTranspiler.ts $exchange
+  npm run transpileCsSingle -- $exchange
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
@@ -165,7 +169,7 @@ echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   npm run eslint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
-  node --loader ts-node/esm build/csharpTranspiler.ts $exchange --ws
+  npm run transpileCsSingle -- $exchange --ws
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile

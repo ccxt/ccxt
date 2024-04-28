@@ -485,19 +485,19 @@ public partial class bingx
     /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+    /// float : triggerPrice at which the attached take profit / stop loss order will be triggered
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.stopLossPrice</term>
     /// <description>
-    /// float : *swap only* stop loss trigger price
+    /// float : stop loss trigger price
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.takeProfitPrice</term>
     /// <description>
-    /// float : *swap only* take profit trigger price
+    /// float : take profit trigger price
     /// </description>
     /// </item>
     /// <item>
@@ -1184,7 +1184,7 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

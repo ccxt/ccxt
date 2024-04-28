@@ -686,7 +686,7 @@ public partial class digifinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -713,10 +713,10 @@ public partial class digifinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
     }
     /// <summary>
     /// fetch the borrow interest rates of all currencies
@@ -733,10 +733,10 @@ public partial class digifinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRates> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRates(parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRates(res);
     }
     /// <summary>
     /// fetch the current funding rate

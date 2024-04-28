@@ -505,6 +505,8 @@ class Exchange {
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionHistory': undefined,
+                'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
@@ -2025,6 +2027,9 @@ class Exchange {
     }
     parseBorrowInterest(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseBorrowInterest() is not supported yet');
+    }
+    parseIsolatedBorrowRate(info, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseIsolatedBorrowRate() is not supported yet');
     }
     parseWsTrade(trade, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseWsTrade() is not supported yet');
@@ -5289,6 +5294,16 @@ class Exchange {
         }
         return interests;
     }
+    parseIsolatedBorrowRates(info) {
+        const result = {};
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const borrowRate = this.parseIsolatedBorrowRate(item);
+            const symbol = this.safeString(borrowRate, 'symbol');
+            result[symbol] = borrowRate;
+        }
+        return result;
+    }
     parseFundingRateHistories(response, market = undefined, since = undefined, limit = undefined) {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
@@ -6102,7 +6117,7 @@ class Exchange {
     parseLeverage(leverage, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLeverage () is not supported yet');
     }
-    parseConversions(conversions, fromCurrencyKey = undefined, toCurrencyKey = undefined, since = undefined, limit = undefined, params = {}) {
+    parseConversions(conversions, code = undefined, fromCurrencyKey = undefined, toCurrencyKey = undefined, since = undefined, limit = undefined, params = {}) {
         conversions = this.toArray(conversions);
         const result = [];
         let fromCurrency = undefined;
@@ -6112,17 +6127,27 @@ class Exchange {
             const fromId = this.safeString(entry, fromCurrencyKey);
             const toId = this.safeString(entry, toCurrencyKey);
             if (fromId !== undefined) {
-                fromCurrency = this.currency(fromId);
+                fromCurrency = this.safeCurrency(fromId);
             }
             if (toId !== undefined) {
-                toCurrency = this.currency(toId);
+                toCurrency = this.safeCurrency(toId);
             }
             const conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), params);
             result.push(conversion);
         }
         const sorted = this.sortBy(result, 'timestamp');
-        const code = (fromCurrency !== undefined) ? fromCurrency['code'] : undefined;
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.safeCurrency(code);
+            code = currency['code'];
+        }
+        if (code === undefined) {
+            return this.filterBySinceLimit(sorted, since, limit);
+        }
+        const fromConversion = this.filterBy(sorted, 'fromCurrency', code);
+        const toConversion = this.filterBy(sorted, 'toCurrency', code);
+        const both = this.arrayConcat(fromConversion, toConversion);
+        return this.filterBySinceLimit(both, since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         throw new errors.NotSupported(this.id + ' parseConversion () is not supported yet');
@@ -6206,6 +6231,38 @@ class Exchange {
         const day = date.slice(5, 7);
         const reconstructedDate = day + month + year;
         return reconstructedDate;
+    }
+    async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        if (this.has['fetchPositionsHistory']) {
+            const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
+            return this.safeDict(positions, 0);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
+        }
+    }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsHistory () is not supported yet');
     }
     parseMarginModification(data, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseMarginModification() is not supported yet');

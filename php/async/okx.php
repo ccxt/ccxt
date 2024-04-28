@@ -118,8 +118,10 @@ class okx extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPermissions' => null,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
@@ -2646,6 +2648,8 @@ class okx extends Exchange {
         $takeProfitDefined = ($takeProfit !== null);
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
+        $trigger = ($triggerPrice !== null) || ($type === 'trigger');
+        $isReduceOnly = $this->safe_value($params, 'reduceOnly', false);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
         $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so be extended into the $request
         $margin = false;
@@ -2669,6 +2673,23 @@ class okx extends Exchange {
                 list($positionSide, $params) = $this->handle_option_and_params($params, 'createOrder', 'positionSide');
                 if ($positionSide !== null) {
                     $request['posSide'] = $positionSide;
+                } else {
+                    $hedged = null;
+                    list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged');
+                    if ($hedged) {
+                        $isBuy = ($side === 'buy');
+                        $isProtective = ($takeProfitPrice !== null) || ($stopLossPrice !== null) || $isReduceOnly;
+                        if ($isProtective) {
+                            // in case of protective orders, the posSide should be opposite of position $side
+                            // reduceOnly is emulated and not natively supported by the exchange
+                            $request['posSide'] = $isBuy ? 'short' : 'long';
+                            if ($isReduceOnly) {
+                                $params = $this->omit($params, 'reduceOnly');
+                            }
+                        } else {
+                            $request['posSide'] = $isBuy ? 'long' : 'short';
+                        }
+                    }
                 }
             }
             $request['tdMode'] = $marginMode;
@@ -2679,7 +2700,6 @@ class okx extends Exchange {
         $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');
-        $trigger = ($triggerPrice !== null) || ($type === 'trigger');
         $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
@@ -2870,6 +2890,7 @@ class okx extends Exchange {
              * @param {string} [$params->positionSide] if position mode is one-way => set to 'net', if position mode is hedge-mode => set to 'long' or 'short'
              * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
+             * @param {string} [$params->hedged] true/false, to automatically set exchange-specific $params needed when trading in hedge mode
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -4789,7 +4810,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6257,6 +6278,41 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+             * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [param.accountId] if you have multiple $accounts, you must specify the account id to fetch the position mode
+             * @return {array} an object detailing whether the market is in hedged or one-way mode
+             */
+            $accounts = Async\await($this->fetch_accounts());
+            $length = count($accounts);
+            $selectedAccount = null;
+            if ($length > 1) {
+                $accountId = $this->safe_string($params, 'accountId');
+                if ($accountId === null) {
+                    $accountIds = $this->get_list_from_object_values($accounts, 'id');
+                    throw new ExchangeError($this->id . ' fetchPositionMode() can not detect position mode, because you have multiple $accounts-> Set $params["accountId"] to desired id from => ' . implode(', ', $accountIds));
+                } else {
+                    $accountsById = $this->index_by($accounts, 'id');
+                    $selectedAccount = $this->safe_dict($accountsById, $accountId);
+                }
+            } else {
+                $selectedAccount = $accounts[0];
+            }
+            $mainAccount = $selectedAccount['info'];
+            $posMode = $this->safe_string($mainAccount, 'posMode'); // long_short_mode, net_mode
+            $isHedged = $posMode === 'long_short_mode';
+            return array(
+                'info' => $mainAccount,
+                'hedged' => $isHedged,
+            );
+        }) ();
+    }
+
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
@@ -6343,7 +6399,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_cross_borrow_rates($params = array ()) {
+    public function fetch_cross_borrow_rates($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest $rates of all currencies
@@ -6374,7 +6430,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the $rate of interest to borrow a $currency for margin trading
@@ -6672,7 +6728,7 @@ class okx extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -6686,7 +6742,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -7951,7 +8007,7 @@ class okx extends Exchange {
             //     }
             //
             $rows = $this->safe_list($response, 'data', array());
-            return $this->parse_conversions($rows, 'baseCcy', 'quoteCcy', $since, $limit);
+            return $this->parse_conversions($rows, $code, 'baseCcy', 'quoteCcy', $since, $limit);
         }) ();
     }
 
@@ -8227,6 +8283,88 @@ class okx extends Exchange {
             $data = $this->safe_list($response, 'data');
             $modifications = $this->parse_margin_modifications($data);
             return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * fetches historical $positions
+             * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-$positions-history
+             * @param {string} [$symbols] unified $market $symbols
+             * @param {int} [$since] timestamp in ms of the earliest position to fetch
+             * @param {int} [$limit] the maximum amount of records to fetch, default=100, max=100
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {string} [$params->marginMode] "cross" or "isolated"
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->instType] margin, swap, futures or option
+             * @param {string} [$params->type] the type of latest close position 1 => close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+             * @param {string} [$params->posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+             * @param {string} [$params->before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+             * @param {string} [$params->after] timestamp in ms of the latest position to fetch based on the last update time of the position
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $marginMode = $this->safe_string($params, 'marginMode');
+            $instType = $this->safe_string_upper($params, 'instType');
+            $params = $this->omit($params, array( 'until', 'marginMode', 'instType' ));
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request = array(
+                'limit' => $limit,
+            );
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength === 1) {
+                    $market = $this->market($symbols[0]);
+                    $request['instId'] = $market['id'];
+                }
+            }
+            if ($marginMode !== null) {
+                $request['mgnMode'] = $marginMode;
+            }
+            if ($instType !== null) {
+                $request['instType'] = $instType;
+            }
+            $response = Async\await($this->privateGetAccountPositionsHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        code => '0',
+            //        $data => array(
+            //            array(
+            //                cTime => '1708735940395',
+            //                ccy => 'USDT',
+            //                closeAvgPx => '0.6330444444444444',
+            //                closeTotalPos => '27',
+            //                direction => 'long',
+            //                fee => '-1.69566',
+            //                fundingFee => '-11.870404179341788',
+            //                instId => 'XRP-USDT-SWAP',
+            //                $instType => 'SWAP',
+            //                lever => '3.0',
+            //                liqPenalty => '0',
+            //                mgnMode => 'cross',
+            //                openAvgPx => '0.623',
+            //                openMaxPos => '15',
+            //                pnl => '27.11999999999988',
+            //                pnlRatio => '0.0241732402722634',
+            //                posId => '681423155054862336',
+            //                realizedPnl => '13.553935820658092',
+            //                triggerPx => '',
+            //                type => '2',
+            //                uTime => '1711088748170',
+            //                uly => 'XRP-USDT'
+            //            ),
+            //            ...
+            //        ),
+            //        msg => ''
+            //    }
+            //
+            $data = $this->safe_list($response, 'data');
+            $positions = $this->parse_positions($data, $symbols, $params);
+            return $this->filter_by_since_limit($positions, $since, $limit);
         }) ();
     }
 }

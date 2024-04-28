@@ -94,7 +94,9 @@ public partial class bybit : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
                 { "fetchTicker", true },
@@ -4259,50 +4261,10 @@ public partial class bybit : Exchange
         return this.parseOrder(result, market);
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bybit#editOrder
-        * @description edit a trade order
-        * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
-        * @see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
-        * @see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
-        * @param {string} id cancel order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
-        * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
-        * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
-        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
-        * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
-        * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
-        }
-        await this.loadMarkets();
         object market = this.market(symbol);
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
-        object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
-        if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.editUsdcOrder(id, symbol, type, side, amount, price, parameters);
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "orderId", id },
@@ -4377,6 +4339,54 @@ public partial class bybit : Exchange
             ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "stopLossPrice", "takeProfitPrice", "triggerPrice", "clientOrderId", "stopLoss", "takeProfit"});
+        return request;
+    }
+
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#editOrder
+        * @description edit a trade order
+        * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+        * @see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+        * @see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+        * @param {string} id cancel order id
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
+        * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
+        * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
+        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+        * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+        * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+        * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
+        }
+        object market = this.market(symbol);
+        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
+        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
+        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
+        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
+        object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
+        if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
+        {
+            return await this.editUsdcOrder(id, symbol, type, side, amount, price, parameters);
+        }
+        object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = await this.privatePostV5OrderAmend(this.extend(request, parameters));
         //
         //     {
@@ -4441,6 +4451,40 @@ public partial class bybit : Exchange
         return this.parseOrder(result, market);
     }
 
+    public virtual object cancelOrderRequest(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(getValue(market, "spot")))
+        {
+            // only works for spot market
+            object isStop = this.safeBool2(parameters, "stop", "trigger", false);
+            parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+            ((IDictionary<string,object>)request)["orderFilter"] = ((bool) isTrue(isStop)) ? "StopOrder" : "Order";
+        }
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        }
+        if (isTrue(getValue(market, "spot")))
+        {
+            ((IDictionary<string,object>)request)["category"] = "spot";
+        } else if (isTrue(getValue(market, "linear")))
+        {
+            ((IDictionary<string,object>)request)["category"] = "linear";
+        } else if (isTrue(getValue(market, "inverse")))
+        {
+            ((IDictionary<string,object>)request)["category"] = "inverse";
+        } else if (isTrue(getValue(market, "option")))
+        {
+            ((IDictionary<string,object>)request)["category"] = "option";
+        }
+        return this.extend(request, parameters);
+    }
+
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         /**
@@ -4471,34 +4515,8 @@ public partial class bybit : Exchange
         {
             return await this.cancelUsdcOrder(id, symbol, parameters);
         }
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
-        if (isTrue(getValue(market, "spot")))
-        {
-            // only works for spot market
-            object isStop = this.safeValue2(parameters, "stop", "trigger", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-            ((IDictionary<string,object>)request)["orderFilter"] = ((bool) isTrue(isStop)) ? "StopOrder" : "Order";
-        }
-        if (isTrue(!isEqual(id, null)))
-        {
-            ((IDictionary<string,object>)request)["orderId"] = id;
-        }
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(getValue(market, "linear")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "inverse";
-        } else if (isTrue(getValue(market, "option")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "option";
-        }
-        object response = await this.privatePostV5OrderCancel(this.extend(request, parameters));
+        object requestExtended = this.cancelOrderRequest(id, symbol, parameters);
+        object response = await this.privatePostV5OrderCancel(requestExtended);
         //
         //     {
         //         "retCode": 0,
@@ -6882,41 +6900,69 @@ public partial class bybit : Exchange
         //         "tradeMode": 0
         //     }
         //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        symbol: 'XRPUSDT',
+        //        orderType: 'Market',
+        //        leverage: '10',
+        //        updatedTime: '1712717265572',
+        //        side: 'Sell',
+        //        orderId: '071749f3-a9fa-427b-b5ca-27b2f52b81de',
+        //        closedPnl: '-0.00049568',
+        //        avgEntryPrice: '0.6045',
+        //        qty: '3',
+        //        cumEntryValue: '1.8135',
+        //        createdTime: '1712717265566',
+        //        orderPrice: '0.5744',
+        //        closedSize: '3',
+        //        avgExitPrice: '0.605',
+        //        execType: 'Trade',
+        //        fillCount: '1',
+        //        cumExitValue: '1.815'
+        //    }
+        //
+        object closedSize = this.safeString(position, "closedSize");
+        object isHistory = (!isEqual(closedSize, null));
         object contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market, null, "contract");
-        object size = Precise.stringAbs(this.safeString(position, "size"));
+        object size = Precise.stringAbs(this.safeString2(position, "size", "qty"));
         object side = this.safeString(position, "side");
         if (isTrue(!isEqual(side, null)))
         {
             if (isTrue(isEqual(side, "Buy")))
             {
-                side = "long";
+                side = ((bool) isTrue(isHistory)) ? "short" : "long";
             } else if (isTrue(isEqual(side, "Sell")))
             {
-                side = "short";
+                side = ((bool) isTrue(isHistory)) ? "long" : "short";
             } else
             {
                 side = null;
             }
         }
-        object notional = this.safeString(position, "positionValue");
+        object notional = this.safeString2(position, "positionValue", "cumExitValue");
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
-        object initialMarginString = this.safeString(position, "positionIM");
+        object initialMarginString = this.safeStringN(position, new List<object>() {"positionIM", "cumEntryValue"});
         object maintenanceMarginString = this.safeString(position, "positionMM");
-        object timestamp = this.parse8601(this.safeString(position, "updated_at"));
-        if (isTrue(isEqual(timestamp, null)))
+        object timestamp = this.safeIntegerN(position, new List<object>() {"createdTime", "createdAt"});
+        object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
+        if (isTrue(isEqual(lastUpdateTimestamp, null)))
         {
-            timestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt"});
+            lastUpdateTimestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt", "updatedTime"});
         }
         object tradeMode = this.safeInteger(position, "tradeMode", 0);
         object marginMode = null;
         if (isTrue(isTrue((!isTrue(getValue(this.options, "enableUnifiedAccount")))) || isTrue((isTrue(getValue(this.options, "enableUnifiedAccount")) && isTrue(getValue(market, "inverse"))))))
         {
             // tradeMode would work for classic and UTA(inverse)
-            marginMode = ((bool) isTrue((isEqual(tradeMode, 1)))) ? "isolated" : "cross";
+            if (!isTrue(isHistory))
+            {
+                marginMode = ((bool) isTrue((isEqual(tradeMode, 1)))) ? "isolated" : "cross";
+            }
         }
         object collateralString = this.safeString(position, "positionBalance");
-        object entryPrice = this.omitZero(this.safeString2(position, "entryPrice", "avgPrice"));
+        object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
         object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         object leverage = this.safeString(position, "leverage");
         if (isTrue(!isEqual(liquidationPrice, null)))
@@ -6967,7 +7013,7 @@ public partial class bybit : Exchange
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional)) },
             { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
@@ -6976,12 +7022,13 @@ public partial class bybit : Exchange
             { "notional", this.parseNumber(notional) },
             { "leverage", this.parseNumber(leverage) },
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
+            { "realizedPnl", this.safeNumber(position, "closedPnl") },
             { "contracts", this.parseNumber(size) },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", this.parseNumber(marginRatio) },
             { "liquidationPrice", this.parseNumber(liquidationPrice) },
             { "markPrice", this.safeNumber(position, "markPrice") },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(position, "avgExitPrice") },
             { "collateral", this.parseNumber(collateralString) },
             { "marginMode", marginMode },
             { "side", side },
@@ -9126,6 +9173,98 @@ public partial class bybit : Exchange
             { "baseVolume", this.safeNumber(chain, "totalVolume") },
             { "quoteVolume", null },
         };
+    }
+
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://bybit-exchange.github.io/docs/v5/position/close-pnl
+        * @param {string} [symbol] unified market symbols, symbols must have the same subType (must all be linear or all be inverse)
+        * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
+        * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
+        * @param {string} [params.subType] 'linear' or 'inverse'
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        object subType = null;
+        object symbolsLength = 0;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                market = this.market(getValue(symbols, 0));
+            }
+        }
+        object until = this.safeInteger(parameters, "until");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        parameters = this.omit(parameters, "until");
+        object request = new Dictionary<string, object>() {
+            { "category", subType },
+        };
+        if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue((isEqual(symbolsLength, 1)))))
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = await this.privateGetV5PositionClosedPnl(this.extend(request, parameters));
+        //
+        //    {
+        //        retCode: '0',
+        //        retMsg: 'OK',
+        //        result: {
+        //            nextPageCursor: '071749f3-a9fa-427b-b5ca-27b2f52b81de%3A1712717265566520788%2C071749f3-a9fa-427b-b5ca-27b2f52b81de%3A1712717265566520788',
+        //            category: 'linear',
+        //            list: [
+        //                {
+        //                    symbol: 'XRPUSDT',
+        //                    orderType: 'Market',
+        //                    leverage: '10',
+        //                    updatedTime: '1712717265572',
+        //                    side: 'Sell',
+        //                    orderId: '071749f3-a9fa-427b-b5ca-27b2f52b81de',
+        //                    closedPnl: '-0.00049568',
+        //                    avgEntryPrice: '0.6045',
+        //                    qty: '3',
+        //                    cumEntryValue: '1.8135',
+        //                    createdTime: '1712717265566',
+        //                    orderPrice: '0.5744',
+        //                    closedSize: '3',
+        //                    avgExitPrice: '0.605',
+        //                    execType: 'Trade',
+        //                    fillCount: '1',
+        //                    cumExitValue: '1.815'
+        //                }
+        //            ]
+        //        },
+        //        retExtInfo: {},
+        //        time: '1712717286073'
+        //    }
+        //
+        object result = this.safeDict(response, "result");
+        object rawPositions = this.safeList(result, "list");
+        object positions = this.parsePositions(rawPositions, symbols, parameters);
+        return this.filterBySinceLimit(positions, since, limit);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

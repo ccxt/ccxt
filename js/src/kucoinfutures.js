@@ -81,14 +81,17 @@ export default class kucoinfutures extends kucoin {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTransactionFee': false,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
@@ -165,6 +168,8 @@ export default class kucoinfutures extends kucoin {
                         'funding-history': 4.44,
                         'sub/api-key': 1,
                         'trade-statistics': 1,
+                        'trade-fees': 1,
+                        'history-positions': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -1138,6 +1143,76 @@ export default class kucoinfutures extends kucoin {
         const data = this.safeList(response, 'data');
         return this.parsePositions(data, symbols);
     }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchPositionsHistory
+         * @description fetches historical positions
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] closing end time
+         * @param {int} [params.pageId] page id
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        if (limit === undefined) {
+            limit = 200;
+        }
+        const request = {
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['to'] = until;
+        }
+        const response = await this.futuresPrivateGetHistoryPositions(this.extend(request, params));
+        //
+        // {
+        //     "success": true,
+        //     "code": "200",
+        //     "msg": "success",
+        //     "retry": false,
+        //     "data": {
+        //         "currentPage": 1,
+        //         "pageSize": 10,
+        //         "totalNum": 25,
+        //         "totalPage": 3,
+        //         "items": [
+        //             {
+        //                 "closeId": "300000000000000030",
+        //                 "positionId": "300000000000000009",
+        //                 "uid": 99996908309485,
+        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        //                 "symbol": "XBTUSDM",
+        //                 "settleCurrency": "XBT",
+        //                 "leverage": "0.0",
+        //                 "type": "LIQUID_LONG",
+        //                 "side": null,
+        //                 "closeSize": null,
+        //                 "pnl": "-1.0000003793999999",
+        //                 "realisedGrossCost": "0.9993849748999999",
+        //                 "withdrawPnl": "0.0",
+        //                 "roe": null,
+        //                 "tradeFee": "0.0006154045",
+        //                 "fundingFee": "0.0",
+        //                 "openTime": 1713785751181,
+        //                 "closeTime": 1713785752784,
+        //                 "openPrice": null,
+        //                 "closePrice": null
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data');
+        const items = this.safeList(data, 'items', []);
+        return this.parsePositions(items, symbols);
+    }
     parsePosition(position, market = undefined) {
         //
         //    {
@@ -1184,17 +1259,51 @@ export default class kucoinfutures extends kucoin {
         //            }
         //        ]
         //    }
+        // position history
+        //             {
+        //                 "closeId": "300000000000000030",
+        //                 "positionId": "300000000000000009",
+        //                 "uid": 99996908309485,
+        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        //                 "symbol": "XBTUSDM",
+        //                 "settleCurrency": "XBT",
+        //                 "leverage": "0.0",
+        //                 "type": "LIQUID_LONG",
+        //                 "side": null,
+        //                 "closeSize": null,
+        //                 "pnl": "-1.0000003793999999",
+        //                 "realisedGrossCost": "0.9993849748999999",
+        //                 "withdrawPnl": "0.0",
+        //                 "roe": null,
+        //                 "tradeFee": "0.0006154045",
+        //                 "fundingFee": "0.0",
+        //                 "openTime": 1713785751181,
+        //                 "closeTime": 1713785752784,
+        //                 "openPrice": null,
+        //                 "closePrice": null
+        //             }
         //
         const symbol = this.safeString(position, 'symbol');
         market = this.safeMarket(symbol, market);
         const timestamp = this.safeInteger(position, 'currentTimestamp');
         const size = this.safeString(position, 'currentQty');
         let side = undefined;
-        if (Precise.stringGt(size, '0')) {
-            side = 'long';
+        const type = this.safeStringLower(position, 'type');
+        if (size !== undefined) {
+            if (Precise.stringGt(size, '0')) {
+                side = 'long';
+            }
+            else if (Precise.stringLt(size, '0')) {
+                side = 'short';
+            }
         }
-        else if (Precise.stringLt(size, '0')) {
-            side = 'short';
+        else if (type !== undefined) {
+            if (type.indexOf('long') > -1) {
+                side = 'long';
+            }
+            else {
+                side = 'short';
+            }
         }
         const notional = Precise.stringAbs(this.safeString(position, 'posCost'));
         const initialMargin = this.safeString(position, 'posInit');
@@ -1203,25 +1312,28 @@ export default class kucoinfutures extends kucoin {
         const unrealisedPnl = this.safeString(position, 'unrealisedPnl');
         const crossMode = this.safeValue(position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
-        const marginMode = crossMode ? 'cross' : 'isolated';
+        let marginMode = undefined;
+        if (crossMode !== undefined) {
+            marginMode = crossMode ? 'cross' : 'isolated';
+        }
         return this.safePosition({
             'info': position,
-            'id': this.safeString(position, 'id'),
+            'id': this.safeString2(position, 'id', 'positionId'),
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(position, 'closeTime'),
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'maintenanceMargin': this.safeNumber(position, 'posMaint'),
             'maintenanceMarginPercentage': this.safeNumber(position, 'maintMarginReq'),
-            'entryPrice': this.safeNumber(position, 'avgEntryPrice'),
+            'entryPrice': this.safeNumber2(position, 'avgEntryPrice', 'openPrice'),
             'notional': this.parseNumber(notional),
-            'leverage': this.safeNumber(position, 'realLeverage'),
+            'leverage': this.safeNumber2(position, 'realLeverage', 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
             'contracts': this.parseNumber(Precise.stringAbs(size)),
             'contractSize': this.safeValue(market, 'contractSize'),
-            'realizedPnl': this.safeNumber(position, 'realisedPnl'),
+            'realizedPnl': this.safeNumber2(position, 'realisedPnl', 'pnl'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': this.safeNumber(position, 'markPrice'),
@@ -2701,5 +2813,43 @@ export default class kucoinfutures extends kucoin {
             response = await this.futuresPrivatePostOrders(this.extend(request, params));
         }
         return this.parseOrder(response, market);
+    }
+    async fetchTradingFee(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbols': market['id'],
+        };
+        const response = await this.privateGetTradeFees(this.extend(request, params));
+        //
+        //  {
+        //      "code": "200000",
+        //      "data": {
+        //        "symbol": "XBTUSDTM",
+        //        "takerFeeRate": "0.0006",
+        //        "makerFeeRate": "0.0002"
+        //      }
+        //  }
+        //
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0);
+        const marketId = this.safeString(first, 'symbol');
+        return {
+            'info': response,
+            'symbol': this.safeSymbol(marketId, market),
+            'maker': this.safeNumber(first, 'makerFeeRate'),
+            'taker': this.safeNumber(first, 'takerFeeRate'),
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 }

@@ -171,6 +171,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 'private': {
                     'get': {
                         'users/balances': 1,
+                        'users/wallets': 1,
                         'users/wallets/history/{since}': 1.67,
                         'exchange/orders/status/{orderID}': 1,
                         'exchange/orders/active': 1,
@@ -910,49 +911,48 @@ class coinmetro(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.privateGetUsersBalances(params)
-        return self.parse_balance(response)
+        response = self.privateGetUsersWallets(params)
+        list = self.safe_list(response, 'list', [])
+        return self.parse_balance(list)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, balances) -> Balances:
         #
-        #     {
-        #         "USDC": {
-        #             "USDC": 99,
-        #             "EUR": 91.16,
-        #             "BTC": 0.002334
+        #     [
+        #         {
+        #             "xcmLocks": [],
+        #             "xcmLockAmounts": [],
+        #             "refList": [],
+        #             "balanceHistory": [],
+        #             "_id": "5fecd3c998e75c2e4d63f7c3",
+        #             "currency": "BTC",
+        #             "label": "BTC",
+        #             "userId": "5fecd3c97fbfed1521db23bd",
+        #             "__v": 0,
+        #             "balance": 0.5,
+        #             "createdAt": "2020-12-30T19:23:53.646Z",
+        #             "disabled": False,
+        #             "updatedAt": "2020-12-30T19:23:53.653Z",
+        #             "reserved": 0,
+        #             "id": "5fecd3c998e75c2e4d63f7c3"
         #         },
-        #         "XCM": {
-        #             "XCM": 0,
-        #             "EUR": 0,
-        #             "BTC": 0
-        #         },
-        #         "TOTAL": {
-        #             "EUR": 91.16,
-        #             "BTC": 0.002334
-        #         },
-        #         "REF": {
-        #             "XCM": 0,
-        #             "EUR": 0,
-        #             "BTC": 0
-        #         }
-        #     }
+        #         ...
+        #     ]
         #
         result = {
-            'info': response,
+            'info': balances,
         }
-        balances = self.omit(response, ['TOTAL', 'REF'])
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+        for i in range(0, len(balances)):
+            balanceEntry = self.safe_dict(balances, i, {})
+            currencyId = self.safe_string(balanceEntry, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            currency = self.safe_value(balances, currencyId, {})
-            account['total'] = self.safe_string(currency, currencyId)
+            account['total'] = self.safe_string(balanceEntry, 'balance')
+            account['used'] = self.safe_string(balanceEntry, 'reserved')
             result[code] = account
         return self.safe_balance(result)
 
