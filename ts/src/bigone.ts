@@ -757,8 +757,8 @@ export default class bigone extends Exchange {
         const marketId = this.safeString2 (ticker, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-', marketType);
         const close = this.safeString2 (ticker, 'close', 'latestPrice');
-        const bid = this.safeValue (ticker, 'bid', {});
-        const ask = this.safeValue (ticker, 'ask', {});
+        const bid = this.safeDict (ticker, 'bid', {});
+        const ask = this.safeDict (ticker, 'ask', {});
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
