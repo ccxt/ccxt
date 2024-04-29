@@ -4614,6 +4614,9 @@ export default class bitget extends Exchange {
         params = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent']);
         let response = undefined;
         if (market['spot']) {
+            if (triggerPrice === undefined) {
+                throw new NotSupported(this.id + 'editOrder() only supports plan/trigger spot orders');
+            }
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {

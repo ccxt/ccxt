@@ -4570,6 +4570,9 @@ class bitget extends Exchange {
             $params = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ));
             $response = null;
             if ($market['spot']) {
+                if ($triggerPrice === null) {
+                    throw new NotSupported($this->id . 'editOrder() only supports plan/trigger spot orders');
+                }
                 $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
                 if ($editMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
                     if ($price === null) {
