@@ -1574,7 +1574,7 @@ export default class woofipro extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name woo#cancelAllOrders
+         * @name woofipro#cancelAllOrders
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
          * @description cancel all open orders in a market
