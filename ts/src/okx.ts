@@ -4004,10 +4004,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2 (query, 'till', 'until');
+            const until = this.safeInteger (query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit (query, [ 'until', 'till' ]);
+                query = this.omit (query, [ 'until' ]);
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'trigger', 'trailing' ]);
@@ -4191,10 +4191,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2 (query, 'till', 'until');
+            const until = this.safeInteger (query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit (query, [ 'until', 'till' ]);
+                query = this.omit (query, [ 'until' ]);
             }
             request['state'] = 'filled';
         }
@@ -7125,10 +7125,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2 (params, 'till', 'until');
+            const until = this.safeInteger (params, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                params = this.omit (params, [ 'until', 'till' ]);
+                params = this.omit (params, [ 'until' ]);
             }
             response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
         }

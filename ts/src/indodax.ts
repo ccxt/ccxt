@@ -604,8 +604,8 @@ export default class indodax extends Exchange {
         const timeframes = this.options['timeframes'];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
         const now = this.seconds ();
-        const until = this.safeInteger2 (params, 'until', 'till', now);
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until', now);
+        params = this.omit (params, [ 'until' ]);
         const request = {
             'to': until,
             'tf': selectedTimeframe,
