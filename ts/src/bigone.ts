@@ -1875,14 +1875,14 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const dataLength = data.length;
         if (dataLength < 1) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
         }
         const chainsIndexedById = this.indexBy (data, 'chain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString (addressObject, 'value');
         const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
