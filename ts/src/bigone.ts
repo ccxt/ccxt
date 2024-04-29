@@ -583,12 +583,12 @@ export default class bigone extends Exchange {
         //        ...
         //    ]
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseAsset = this.safeValue (market, 'base_asset', {});
-            const quoteAsset = this.safeValue (market, 'quote_asset', {});
+            const baseAsset = this.safeDict (market, 'base_asset', {});
+            const quoteAsset = this.safeDict (market, 'quote_asset', {});
             const baseId = this.safeString (baseAsset, 'symbol');
             const quoteId = this.safeString (quoteAsset, 'symbol');
             const base = this.safeCurrencyCode (baseId);
@@ -653,7 +653,7 @@ export default class bigone extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            const inverse = this.safeValue (market, 'isInverse');
+            const inverse = this.safeBool (market, 'isInverse');
             result.push (this.safeMarketStructure ({
                 'id': marketId,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -669,7 +669,7 @@ export default class bigone extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': this.safeValue (market, 'enable'),
+                'active': this.safeBool (market, 'enable'),
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
