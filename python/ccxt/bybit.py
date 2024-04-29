@@ -2417,9 +2417,9 @@ class bybit(Exchange, ImplicitAPI):
         request['category'] = type
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         else:
@@ -4484,9 +4484,9 @@ class bybit(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = self.privateGetV5OrderHistory(self.extend(request, params))
@@ -4642,9 +4642,9 @@ class bybit(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = self.privateGetV5OrderHistory(self.extend(request, params))
@@ -5389,7 +5389,7 @@ class bybit(Exchange, ImplicitAPI):
             # 'coin': currency['id'],
             # 'currency': currency['id'],  # alias
             # 'start_date': self.iso8601(since),
-            # 'end_date': self.iso8601(till),
+            # 'end_date': self.iso8601(until),
             # 'wallet_fund_type': 'Deposit',  # Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
             # 'page': 1,
             # 'limit': 20,  # max 50
@@ -6348,8 +6348,8 @@ class bybit(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        params = self.omit(params, ['till', 'until'])
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
+        params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = until
         if limit is not None:

@@ -8597,8 +8597,8 @@ class htx extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             $market = $this->market($symbol);
             $request = array();
             if ($market['future']) {

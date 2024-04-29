@@ -2510,9 +2510,9 @@ export default class bybit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'till', 'until']);
+        params = this.omit(params, ['endTime', 'until']);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -4828,9 +4828,9 @@ export default class bybit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'till', 'until']);
+        params = this.omit(params, ['endTime', 'until']);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -5003,9 +5003,9 @@ export default class bybit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'till', 'until']);
+        params = this.omit(params, ['endTime', 'until']);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -5797,7 +5797,7 @@ export default class bybit extends Exchange {
         // 'coin': currency['id'],
         // 'currency': currency['id'], // alias
         // 'start_date': this.iso8601 (since),
-        // 'end_date': this.iso8601 (till),
+        // 'end_date': this.iso8601 (until),
         // 'wallet_fund_type': 'Deposit', // Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
         // 'page': 1,
         // 'limit': 20, // max 50
@@ -6852,8 +6852,8 @@ export default class bybit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
-        params = this.omit(params, ['till', 'until']);
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['endTime'] = until;
         }

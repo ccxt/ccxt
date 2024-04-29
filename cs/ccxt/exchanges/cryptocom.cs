@@ -669,8 +669,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = until;
@@ -757,8 +757,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
@@ -829,8 +829,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
@@ -1703,8 +1703,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = until;
@@ -1960,8 +1960,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
@@ -2026,8 +2026,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
@@ -2591,8 +2591,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = until;
@@ -2947,8 +2947,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;

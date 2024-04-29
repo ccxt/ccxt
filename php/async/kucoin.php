@@ -2436,10 +2436,10 @@ class kucoin extends Exchange {
              */
             Async\await($this->load_markets());
             $lowercaseStatus = strtolower($status);
-            $until = $this->safe_integer_2($params, 'until', 'till');
+            $until = $this->safe_integer($params, 'until');
             $stop = $this->safe_bool($params, 'stop', false);
             $hf = $this->safe_bool($params, 'hf', false);
-            $params = $this->omit($params, array( 'stop', 'hf', 'till', 'until' ));
+            $params = $this->omit($params, array( 'stop', 'hf', 'until' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
             if ($lowercaseStatus === 'open') {
                 $lowercaseStatus = 'active';
@@ -2541,7 +2541,7 @@ class kucoin extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->till] end time in ms
+             * @param {int} [$params->until] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, market, limit_stop or market_stop
              * @param {string} [$params->tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
@@ -2572,7 +2572,7 @@ class kucoin extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->till] end time in ms
+             * @param {int} [$params->until] end time in ms
              * @param {bool} [$params->stop] true if fetching stop orders
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, market, limit_stop or market_stop

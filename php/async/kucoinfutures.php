@@ -1779,8 +1779,8 @@ class kucoinfutures extends kucoin {
                 return Async\await($this->fetch_paginated_call_dynamic('fetchOrdersByStatus', $symbol, $since, $limit, $params));
             }
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'stop', 'until', 'till', 'trigger' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'stop', 'until', 'trigger' ));
             if ($status === 'closed') {
                 $status = 'done';
             } elseif ($status === 'open') {
@@ -1875,7 +1875,7 @@ class kucoinfutures extends kucoin {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->till] end time in ms
+             * @param {int} [$params->until] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -1901,7 +1901,7 @@ class kucoinfutures extends kucoin {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->till] end time in ms
+             * @param {int} [$params->until] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
              * @param {boolean} [$params->trigger] set to true to retrieve untriggered stop orders
@@ -2759,8 +2759,8 @@ class kucoinfutures extends kucoin {
                 'from' => 0,
                 'to' => $this->milliseconds(),
             );
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($since !== null) {
                 $request['from'] = $since;
                 if ($until === null) {

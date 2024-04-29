@@ -9411,9 +9411,9 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
@@ -12550,9 +12550,9 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "until", "till"});
+        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         if (isTrue(endTime))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;

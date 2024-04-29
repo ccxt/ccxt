@@ -9042,9 +9042,9 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'till', 'until']);
+        params = this.omit(params, ['endTime', 'until']);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -11797,9 +11797,9 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'until', 'till']);
+        params = this.omit(params, ['endTime', 'until']);
         if (endTime) {
             request['endTime'] = endTime;
         }

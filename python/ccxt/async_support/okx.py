@@ -3774,10 +3774,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(query, 'till', 'until')
+            until = self.safe_integer(query, 'until')
             if until is not None:
                 request['end'] = until
-                query = self.omit(query, ['until', 'till'])
+                query = self.omit(query, ['until'])
         send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
         response = None
         if method == 'privateGetTradeOrdersAlgoHistory':
@@ -3949,10 +3949,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(query, 'till', 'until')
+            until = self.safe_integer(query, 'until')
             if until is not None:
                 request['end'] = until
-                query = self.omit(query, ['until', 'till'])
+                query = self.omit(query, ['until'])
             request['state'] = 'filled'
         send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
         response = None
@@ -6637,10 +6637,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(params, 'till', 'until')
+            until = self.safe_integer(params, 'until')
             if until is not None:
                 request['end'] = until
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
             response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {

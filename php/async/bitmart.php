@@ -3895,9 +3895,9 @@ class bitmart extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'time_end', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             if ($endTime !== null) {
                 $request['time_end'] = $endTime;
             }

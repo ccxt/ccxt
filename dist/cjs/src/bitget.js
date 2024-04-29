@@ -3361,11 +3361,11 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
             'granularity': this.safeString(timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger2(params, 'until', 'till');
+        const until = this.safeInteger(params, 'until');
         const limitDefined = limit !== undefined;
         const sinceDefined = since !== undefined;
         const untilDefined = until !== undefined;
-        params = this.omit(params, ['until', 'till']);
+        params = this.omit(params, ['until']);
         let response = undefined;
         const now = this.milliseconds();
         // retrievable periods listed here:
@@ -5646,8 +5646,8 @@ class bitget extends bitget$1 {
                     if (symbol === undefined) {
                         throw new errors.ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                     }
-                    const endTime = this.safeIntegerN(params, ['endTime', 'until', 'till']);
-                    params = this.omit(params, ['until', 'till']);
+                    const endTime = this.safeIntegerN(params, ['endTime', 'until']);
+                    params = this.omit(params, ['until']);
                     if (since === undefined) {
                         since = now - 7776000000;
                         request['startTime'] = since;

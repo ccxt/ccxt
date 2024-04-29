@@ -8411,9 +8411,9 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         if limit is not None:
@@ -10851,9 +10851,9 @@ class binance(Exchange, ImplicitAPI):
             request['contractType'] = self.safe_string(params, 'contractType', 'CURRENT_QUARTER')
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'until', 'till'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime:
             request['endTime'] = endTime
         elif since:

@@ -3240,11 +3240,11 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'granularity': self.safe_string(timeframes, timeframe, timeframe),
         }
-        until = self.safe_integer_2(params, 'until', 'till')
+        until = self.safe_integer(params, 'until')
         limitDefined = limit is not None
         sinceDefined = since is not None
         untilDefined = until is not None
-        params = self.omit(params, ['until', 'till'])
+        params = self.omit(params, ['until'])
         response = None
         now = self.milliseconds()
         # retrievable periods listed here:
@@ -5256,8 +5256,8 @@ class bitget(Exchange, ImplicitAPI):
                 if stop:
                     if symbol is None:
                         raise ArgumentsRequired(self.id + ' fetchCanceledAndClosedOrders() requires a symbol argument')
-                    endTime = self.safe_integer_n(params, ['endTime', 'until', 'till'])
-                    params = self.omit(params, ['until', 'till'])
+                    endTime = self.safe_integer_n(params, ['endTime', 'until'])
+                    params = self.omit(params, ['until'])
                     if since is None:
                         since = now - 7776000000
                         request['startTime'] = since

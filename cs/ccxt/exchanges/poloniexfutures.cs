@@ -1357,8 +1357,8 @@ public partial class poloniexfutures : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object stop = this.safeValue2(parameters, "stop", "trigger");
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"triger", "stop", "until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"trigger", "stop", "until"});
         if (isTrue(isEqual(status, "closed")))
         {
             status = "done";
@@ -1468,7 +1468,7 @@ public partial class poloniexfutures : Exchange
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1489,7 +1489,7 @@ public partial class poloniexfutures : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

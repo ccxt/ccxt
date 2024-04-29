@@ -3503,11 +3503,11 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
             { "granularity", this.safeString(timeframes, timeframe, timeframe) },
         };
-        object until = this.safeInteger2(parameters, "until", "till");
+        object until = this.safeInteger(parameters, "until");
         object limitDefined = !isEqual(limit, null);
         object sinceDefined = !isEqual(since, null);
         object untilDefined = !isEqual(until, null);
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object response = null;
         object now = this.milliseconds();
         // retrievable periods listed here:
@@ -6043,8 +6043,8 @@ public partial class bitget : Exchange
                     {
                         throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                     }
-                    object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until", "till"});
-                    parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                    object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
+                    parameters = this.omit(parameters, new List<object>() {"until"});
                     if (isTrue(isEqual(since, null)))
                     {
                         since = subtract(now, 7776000000);

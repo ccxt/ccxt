@@ -2569,8 +2569,8 @@ class bitmex extends bitmex$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['endTime'] = this.iso8601(until);
         }

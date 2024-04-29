@@ -2482,9 +2482,9 @@ class bybit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
         $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+        $params = $this->omit($params, array( 'endTime', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
         } else {
@@ -4738,9 +4738,9 @@ class bybit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
         $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+        $params = $this->omit($params, array( 'endTime', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
         }
@@ -4910,9 +4910,9 @@ class bybit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
         $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+        $params = $this->omit($params, array( 'endTime', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
         }
@@ -5697,7 +5697,7 @@ class bybit extends Exchange {
             // 'coin' => $currency['id'],
             // 'currency' => $currency['id'], // alias
             // 'start_date' => $this->iso8601($since),
-            // 'end_date' => $this->iso8601(till),
+            // 'end_date' => $this->iso8601(until),
             // 'wallet_fund_type' => 'Deposit', // Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
             // 'page' => 1,
             // 'limit' => 20, // max 50
@@ -6724,8 +6724,8 @@ class bybit extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
-        $params = $this->omit($params, array( 'till', 'until' ));
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['endTime'] = $until;
         }

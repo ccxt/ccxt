@@ -3357,11 +3357,11 @@ class bitget extends Exchange {
                 'symbol' => $market['id'],
                 'granularity' => $this->safe_string($timeframes, $timeframe, $timeframe),
             );
-            $until = $this->safe_integer_2($params, 'until', 'till');
+            $until = $this->safe_integer($params, 'until');
             $limitDefined = $limit !== null;
             $sinceDefined = $since !== null;
             $untilDefined = $until !== null;
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $response = null;
             $now = $this->milliseconds();
             // retrievable periods listed here:
@@ -5569,8 +5569,8 @@ class bitget extends Exchange {
                         if ($symbol === null) {
                             throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
                         }
-                        $endTime = $this->safe_integer_n($params, array( 'endTime', 'until', 'till' ));
-                        $params = $this->omit($params, array( 'until', 'till' ));
+                        $endTime = $this->safe_integer_n($params, array( 'endTime', 'until' ));
+                        $params = $this->omit($params, array( 'until' ));
                         if ($since === null) {
                             $since = $now - 7776000000;
                             $request['startTime'] = $since;

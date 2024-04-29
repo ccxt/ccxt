@@ -8806,9 +8806,9 @@ class binance extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
         $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+        $params = $this->omit($params, array( 'endTime', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
         }
@@ -11469,9 +11469,9 @@ class binance extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
         $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'until', 'till' ));
+        $params = $this->omit($params, array( 'endTime', 'until' ));
         if ($endTime) {
             $request['endTime'] = $endTime;
         } elseif ($since) {

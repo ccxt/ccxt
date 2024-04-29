@@ -3637,9 +3637,9 @@ class bitmart(Exchange, ImplicitAPI):
             request['time_start'] = since
         if limit is not None:
             request['limit'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'time_end', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['till', 'until'])
+        params = self.omit(params, ['until'])
         if endTime is not None:
             request['time_end'] = endTime
         response = self.privatePostAccountV1TransferContractList(self.extend(request, params))

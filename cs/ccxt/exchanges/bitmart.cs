@@ -4115,9 +4115,9 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "time_end", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["time_end"] = endTime;

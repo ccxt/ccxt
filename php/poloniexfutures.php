@@ -1254,8 +1254,8 @@ class poloniexfutures extends Exchange {
          */
         $this->load_markets();
         $stop = $this->safe_value_2($params, 'stop', 'trigger');
-        $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'triger', 'stop', 'until', 'till' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'trigger', 'stop', 'until' ));
         if ($status === 'closed') {
             $status = 'done';
         }
@@ -1352,7 +1352,7 @@ class poloniexfutures extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->till] end time in ms
+         * @param {int} [$params->until] end time in ms
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit, or market
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1369,7 +1369,7 @@ class poloniexfutures extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->till] end time in ms
+         * @param {int} [$params->until] end time in ms
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit, or market
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
