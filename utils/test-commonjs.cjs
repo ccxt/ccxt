@@ -1,4 +1,4 @@
-const ccxt = require ('./dist/ccxt.cjs');
+const ccxt = require ('../dist/ccxt.cjs');
 const log = require ('ololog');
 const ansi = require ('ansicolor').nice;
 const assert = require ('assert');
