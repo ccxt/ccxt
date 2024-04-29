@@ -82,7 +82,7 @@ build_and_test_all () {
     fi
     npm run test-base
     npm run test-base-ws
-    node test-commonjs.cjs
+    node ./utils/test-commonjs.cjs
     npm run package-test
     if [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
       echo "Travis built all files and static/base tests passed, will push to master before running live tests"
