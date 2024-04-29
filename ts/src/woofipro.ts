@@ -2254,13 +2254,13 @@ export default class woofipro extends Exchange {
         };
         const messageTypes = {
             'Withdraw': [
-                {"name": "brokerId", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "receiver", "type": "address"},
-                {"name": "token", "type": "string"},
-                {"name": "amount", "type": "uint256"},
-                {"name": "withdrawNonce", "type": "uint64"},
-                {"name": "timestamp", "type": "uint64"},
+                { 'name': 'brokerId', 'type': 'string' },
+                { 'name': 'chainId', 'type': 'uint256' },
+                { 'name': 'receiver', 'type': 'address' },
+                { 'name': 'token', 'type': 'string' },
+                { 'name': 'amount', 'type': 'uint256' },
+                { 'name': 'withdrawNonce', 'type': 'uint64' },
+                { 'name': 'timestamp', 'type': 'uint64' },
             ],
         };
         const withdrawRequest = {
@@ -2548,7 +2548,7 @@ export default class woofipro extends Exchange {
     }
 
     recoverPrivateKey () {
-        let privateKey = this.privateKey;
+        const privateKey = this.privateKey;
         if (privateKey !== undefined) {
             return this.base58ToBinary (privateKey);
         }
