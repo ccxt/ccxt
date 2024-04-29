@@ -1,6 +1,10 @@
 import log from 'ololog'
 import ansi from 'ansicolor'
 import fs from 'fs';
+
+let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+const exchangeIds = exchanges.ids
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
@@ -43,6 +47,9 @@ function assertGeneratedFilesAreRecent() {
             if (!(extensions.includes(fileExtension[1]))) {
                 continue;
             }
+            if (!exchangeIds.includes(fileExtension[0])) {
+                continue;
+            }
             var stats = fs.statSync(folder + file);
             var mtime = stats.mtimeMs;
             const diffInSeconds = (now - mtime) / 1000;
@@ -51,7 +58,7 @@ function assertGeneratedFilesAreRecent() {
                 log.bright.red('[Freshness][OUT-OF-SYNC] File is outdaded: ' + folder + file);
                 process.exit (1);
             }
-            log.yellow("checking", folder+file)
+            // log.yellow("checking", folder+file)
         }
     }
     log.bright.green('[Freshness] Files are updated');

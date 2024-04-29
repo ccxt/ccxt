@@ -1522,7 +1522,8 @@ class Transpiler {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
                         overwriteFile (qualifiedPath, code)
-                        fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // this line makes it impossible to detect if the files were properly transpiled or not (to avoid stale files)
                     }
                 })
 
