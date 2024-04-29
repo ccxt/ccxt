@@ -1216,7 +1216,7 @@ class Exchange(object):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                string = ''.join([Exchange.add_zero_prefix_to_date(str(value)) for value in parsedate(timestamp)[:6]]) + '.000Z'
                 dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
                 return calendar.timegm(dt.utctimetuple()) * 1000
             except (TypeError, OverflowError, OSError):

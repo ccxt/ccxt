@@ -5374,6 +5374,15 @@ export default class Exchange {
         }
     }
 
+    addZeroPrefixToDate (date: string): string {
+        if (date.length === 0) {
+            return '00';
+        } else if (date.length === 1) {
+            return '0' + date;
+        }
+        return date;
+    }
+
     account (): BalanceAccount {
         return {
             'free': undefined,
