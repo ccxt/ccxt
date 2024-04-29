@@ -441,16 +441,16 @@ export default class bigone extends Exchange {
         //     ],
         // }
         //
-        const currenciesData = this.safeValue (data, 'data', []);
+        const currenciesData = this.safeList (data, 'data', []);
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const currency = currenciesData[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
-            const type = this.safeValue (currency, 'is_fiat') ? 'fiat' : 'crypto';
+            const type = this.safeBool (currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks = {};
-            const chains = this.safeValue (currency, 'binding_gateways', []);
+            const chains = this.safeList (currency, 'binding_gateways', []);
             let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
             let currencyDepositEnabled: Bool = undefined;
             let currencyWithdrawEnabled: Bool = undefined;
@@ -458,8 +458,8 @@ export default class bigone extends Exchange {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'gateway_name');
                 const networkCode = this.networkIdToCode (networkId);
-                const deposit = this.safeValue (chain, 'is_deposit_enabled');
-                const withdraw = this.safeValue (chain, 'is_withdrawal_enabled');
+                const deposit = this.safeBool (chain, 'is_deposit_enabled');
+                const withdraw = this.safeBool (chain, 'is_withdrawal_enabled');
                 const isActive = (deposit && withdraw);
                 const minDepositAmount = this.safeString (chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
