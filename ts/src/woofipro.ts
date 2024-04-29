@@ -2,11 +2,13 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/woofipro.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { eddsa } from './base/functions/crypto.js';
+import { ecdsa, eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import type { Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees } from './base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -296,6 +298,7 @@ export default class woofipro extends Exchange {
             'options': {
                 'sandboxMode': false,
                 'brokerId': '',
+                'verifyingContractAddress': '0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -319,6 +322,7 @@ export default class woofipro extends Exchange {
                     '-1105': InvalidOrder, // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
                     '-1201': BadRequest, // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
                     '-1202': BadRequest, // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
+                    '29': BadRequest, // {"success":false,"code":29,"message":"Verify contract is invalid"}
                 },
                 'broad': {
                 },
@@ -2181,6 +2185,127 @@ export default class woofipro extends Exchange {
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
+    async getWithdrawNonce (params = {}) {
+        const response = await this.v1PrivateGetWithdrawNonce (params);
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "withdraw_nonce": 1
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.safeNumber (data, 'withdraw_nonce');
+    }
+
+    hashMessage (message) {
+        return '0x' + this.hash (message, keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + signature['r'] + signature['s'] + v;
+    }
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#withdraw
+         * @description make a withdrawal
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        if (code !== undefined) {
+            code = code.toUpperCase ();
+            if (code !== 'USDC') {
+                throw new NotSupported (this.id + 'withdraw() only support USDC');
+            }
+        }
+        const currency = this.currency (code);
+        const verifyingContractAddress = this.safeString (this.options, 'verifyingContractAddress');
+        const chainId = this.safeString (params, 'chainId');
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
+        const coinNetwork = this.safeDict (currencyNetworks, chainId, {});
+        const coinNetworkId = this.safeNumber (coinNetwork, 'id');
+        if (coinNetworkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() require chainId parameter');
+        }
+        const withdrawNonce = await this.getWithdrawNonce (params);
+        const nonce = this.nonce ();
+        const domain = {
+            'chainId': chainId,
+            'name': 'Withdraw',
+            'verifyingContract': verifyingContractAddress,
+            'version': '1',
+        };
+        const messageTypes = {
+            'Withdraw': [
+                {"name": "brokerId", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "receiver", "type": "address"},
+                {"name": "token", "type": "string"},
+                {"name": "amount", "type": "uint256"},
+                {"name": "withdrawNonce", "type": "uint64"},
+                {"name": "timestamp", "type": "uint64"},
+            ],
+        };
+        const withdrawRequest = {
+            'brokerId': 'woofi_dex',
+            'chainId': chainId,
+            'receiver': address,
+            'token': code,
+            'amount': amount,
+            'withdrawNonce': withdrawNonce,
+            'timestamp': nonce,
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, withdrawRequest);
+        const privateKey = this.recoverPrivateKey ();
+        const signature = this.signMessage (msg, this.binaryToBase16 (privateKey));
+        const request = {
+            'signature': signature,
+            'userAddress': address,
+            'verifyingContract': verifyingContractAddress,
+            'message': withdrawRequest,
+        };
+        const response = await this.v1PrivatePostWithdrawRequest (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "withdraw_id": 123
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTransaction (data, currency);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const leverageValue = this.safeInteger (leverage, 'max_leverage');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
+    }
+
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
@@ -2223,17 +2348,6 @@ export default class woofipro extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseLeverage (data, market);
-    }
-
-    parseLeverage (leverage, market = undefined): Leverage {
-        const leverageValue = this.safeInteger (leverage, 'max_leverage');
-        return {
-            'info': leverage,
-            'symbol': market['symbol'],
-            'marginMode': undefined,
-            'longLeverage': leverageValue,
-            'shortLeverage': leverageValue,
-        } as Leverage;
     }
 
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
@@ -2433,6 +2547,20 @@ export default class woofipro extends Exchange {
         return this.milliseconds ();
     }
 
+    recoverPrivateKey () {
+        let privateKey = this.privateKey;
+        if (privateKey !== undefined) {
+            return this.base58ToBinary (privateKey);
+        }
+        let secret = this.secret;
+        if (secret.indexOf ('ed25519:') >= 0) {
+            const parts = secret.split ('ed25519:');
+            secret = parts[1];
+        }
+        this.privateKey = secret;
+        return this.base58ToBinary (secret);
+    }
+
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
         const access = section[1];
@@ -2483,12 +2611,8 @@ export default class woofipro extends Exchange {
                 }
                 headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            let secret = this.secret;
-            if (secret.indexOf ('ed25519:') >= 0) {
-                const parts = secret.split ('ed25519:');
-                secret = parts[1];
-            }
-            const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
+            const privateKey = this.recoverPrivateKey ();
+            const signature = eddsa (this.encode (auth), privateKey, ed25519);
             headers['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
