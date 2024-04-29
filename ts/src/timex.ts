@@ -635,7 +635,7 @@ export default class timex extends Exchange {
             // 'page': 0, // results page you want to retrieve 0 .. N
             // 'size': limit, // number of records per page, 100 by default
             'sort': sort, // array[string], sorting criteria in the format "property,asc" or "property,desc", default is ascending
-            // 'until': this.iso8601 (this.milliseconds ()),
+            // 'till': this.iso8601 (this.milliseconds ()),
         };
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
@@ -684,10 +684,10 @@ export default class timex extends Exchange {
         }
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
-            request['until'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
+            request['till'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
         } else {
             const now = this.milliseconds ();
-            request['until'] = this.iso8601 (now);
+            request['till'] = this.iso8601 (now);
             request['from'] = this.iso8601 (now - limit * duration * 1000 - 1);
         }
         const response = await this.publicGetCandles (this.extend (request, params));
@@ -1065,7 +1065,7 @@ export default class timex extends Exchange {
             // page: 0, // results page you want to retrieve (0 .. N)
             'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
             'side': 'BUY', // or 'SELL'
-            // 'until': this.iso8601 (this.milliseconds ()),
+            // 'till': this.iso8601 (this.milliseconds ()),
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1132,7 +1132,7 @@ export default class timex extends Exchange {
             'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
             // 'symbol': market['id'],
             // 'takerOrderId': '1234',
-            // 'until': this.iso8601 (this.milliseconds ()),
+            // 'till': this.iso8601 (this.milliseconds ()),
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
