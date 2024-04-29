@@ -61,7 +61,7 @@ function assertGeneratedFilesAreRecent() {
             // log.yellow("checking", folder+file)
         }
     }
-    log.bright.green('[Freshness] Files are updated');
+    log.bright.green('[Freshness] Transpiled files are updated');
 }
 
 async function main() {
