@@ -28,7 +28,7 @@ export default class coinmetro extends Exchange {
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(balances: any): Balances;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: Currency): {
         id: string;

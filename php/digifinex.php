@@ -2994,7 +2994,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): array {
         /**
          * fetch the rate of interest to borrow a $currency for margin trading
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
@@ -3034,7 +3034,7 @@ class digifinex extends Exchange {
         return $this->parse_borrow_rate($result, $currency);
     }
 
-    public function fetch_cross_borrow_rates($params = array ()) {
+    public function fetch_cross_borrow_rates($params = array ()): CrossBorrowRates {
         /**
          * fetch the borrow interest rates of all currencies
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets

@@ -553,6 +553,8 @@ export default class Exchange {
                 'fetchClosedOrdersWs': undefined,
                 'fetchConvertCurrencies': undefined,
                 'fetchConvertQuote': undefined,
+                'fetchConvertTrade': undefined,
+                'fetchConvertTradeHistory': undefined,
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
@@ -6693,7 +6695,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
-    parseConversions (conversions: any[], fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
+    parseConversions (conversions: any[], code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
         conversions = this.toArray (conversions);
         const result = [];
         let fromCurrency = undefined;
@@ -6703,17 +6705,27 @@ export default class Exchange {
             const fromId = this.safeString (entry, fromCurrencyKey);
             const toId = this.safeString (entry, toCurrencyKey);
             if (fromId !== undefined) {
-                fromCurrency = this.currency (fromId);
+                fromCurrency = this.safeCurrency (fromId);
             }
             if (toId !== undefined) {
-                toCurrency = this.currency (toId);
+                toCurrency = this.safeCurrency (toId);
             }
             const conversion = this.extend (this.parseConversion (entry, fromCurrency, toCurrency), params);
             result.push (conversion);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        const code = (fromCurrency !== undefined) ? fromCurrency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.safeCurrency (code);
+            code = currency['code'];
+        }
+        if (code === undefined) {
+            return this.filterBySinceLimit (sorted, since, limit);
+        }
+        const fromConversion = this.filterBy (sorted, 'fromCurrency', code);
+        const toConversion = this.filterBy (sorted, 'toCurrency', code);
+        const both = this.arrayConcat (fromConversion, toConversion);
+        return this.filterBySinceLimit (both, since, limit);
     }
 
     parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {

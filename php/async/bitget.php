@@ -4570,6 +4570,9 @@ class bitget extends Exchange {
             $params = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ));
             $response = null;
             if ($market['spot']) {
+                if ($triggerPrice === null) {
+                    throw new NotSupported($this->id . 'editOrder() only supports plan/trigger spot orders');
+                }
                 $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
                 if ($editMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
                     if ($price === null) {
@@ -7870,7 +7873,7 @@ class bitget extends Exchange {
         ));
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
@@ -7934,7 +7937,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -7987,7 +7990,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading
@@ -8387,7 +8390,7 @@ class bitget extends Exchange {
             /**
              * fetches historical $positions
              * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-             * @param {string} [symbol] unified contract $symbols
+             * @param {string[]} [$symbols] unified contract $symbols
              * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
              * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
              * @param {array} $params extra parameters specific to the exchange api endpoint
@@ -8605,7 +8608,7 @@ class bitget extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             $dataList = $this->safe_list($data, 'dataList', array());
-            return $this->parse_conversions($dataList, 'fromCoin', 'toCoin', $since, $limit);
+            return $this->parse_conversions($dataList, $code, 'fromCoin', 'toCoin', $since, $limit);
         }) ();
     }
 

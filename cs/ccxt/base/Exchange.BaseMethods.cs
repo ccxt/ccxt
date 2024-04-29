@@ -717,6 +717,11 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseBorrowInterest() is not supported yet")) ;
     }
 
+    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseIsolatedBorrowRate() is not supported yet")) ;
+    }
+
     public virtual object parseWsTrade(object trade, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseWsTrade() is not supported yet")) ;
@@ -5087,6 +5092,19 @@ public partial class Exchange
         return interests;
     }
 
+    public virtual object parseIsolatedBorrowRates(object info)
+    {
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        {
+            object item = getValue(info, i);
+            object borrowRate = this.parseIsolatedBorrowRate(item);
+            object symbol = this.safeString(borrowRate, "symbol");
+            ((IDictionary<string,object>)result)[(string)symbol] = borrowRate;
+        }
+        return ((object)result);
+    }
+
     public virtual object parseFundingRateHistories(object response, object market = null, object since = null, object limit = null)
     {
         object rates = new List<object>() {};
@@ -6151,7 +6169,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseLeverage () is not supported yet")) ;
     }
 
-    public virtual object parseConversions(object conversions, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
+    public virtual object parseConversions(object conversions, object code = null, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         conversions = this.toArray(conversions);
@@ -6165,18 +6183,30 @@ public partial class Exchange
             object toId = this.safeString(entry, toCurrencyKey);
             if (isTrue(!isEqual(fromId, null)))
             {
-                fromCurrency = this.currency(fromId);
+                fromCurrency = this.safeCurrency(fromId);
             }
             if (isTrue(!isEqual(toId, null)))
             {
-                toCurrency = this.currency(toId);
+                toCurrency = this.safeCurrency(toId);
             }
             object conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
             ((IList<object>)result).Add(conversion);
         }
         object sorted = this.sortBy(result, "timestamp");
-        object code = ((bool) isTrue((!isEqual(fromCurrency, null)))) ? getValue(fromCurrency, "code") : null;
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.safeCurrency(code);
+            code = getValue(currency, "code");
+        }
+        if (isTrue(isEqual(code, null)))
+        {
+            return this.filterBySinceLimit(sorted, since, limit);
+        }
+        object fromConversion = this.filterBy(sorted, "fromCurrency", code);
+        object toConversion = this.filterBy(sorted, "toCurrency", code);
+        object both = this.arrayConcat(fromConversion, toConversion);
+        return this.filterBySinceLimit(both, since, limit);
     }
 
     public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

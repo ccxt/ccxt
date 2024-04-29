@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.7'
+__version__ = '4.3.11'
 
 # -----------------------------------------------------------------------------
 
@@ -2211,6 +2211,9 @@ class Exchange(object):
 
     def parse_borrow_interest(self, info, market: Market = None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
+
+    def parse_isolated_borrow_rate(self, info, market: Market = None):
+        raise NotSupported(self.id + ' parseIsolatedBorrowRate() is not supported yet')
 
     def parse_ws_trade(self, trade, market: Market = None):
         raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
@@ -5002,6 +5005,15 @@ class Exchange(object):
             interests.append(self.parse_borrow_interest(row, market))
         return interests
 
+    def parse_isolated_borrow_rates(self, info: Any):
+        result = {}
+        for i in range(0, len(info)):
+            item = info[i]
+            borrowRate = self.parseIsolatedBorrowRate(item)
+            symbol = self.safe_string(borrowRate, 'symbol')
+            result[symbol] = borrowRate
+        return result
+
     def parse_funding_rate_histories(self, response, market=None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
@@ -5683,7 +5695,7 @@ class Exchange(object):
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
-    def parse_conversions(self, conversions: List[Any], fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
+    def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
         conversions = self.to_array(conversions)
         result = []
         fromCurrency = None
@@ -5693,14 +5705,22 @@ class Exchange(object):
             fromId = self.safe_string(entry, fromCurrencyKey)
             toId = self.safe_string(entry, toCurrencyKey)
             if fromId is not None:
-                fromCurrency = self.currency(fromId)
+                fromCurrency = self.safe_currency(fromId)
             if toId is not None:
-                toCurrency = self.currency(toId)
+                toCurrency = self.safe_currency(toId)
             conversion = self.extend(self.parseConversion(entry, fromCurrency, toCurrency), params)
             result.append(conversion)
         sorted = self.sort_by(result, 'timestamp')
-        code = fromCurrency['code'] if (fromCurrency is not None) else None
-        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.safe_currency(code)
+            code = currency['code']
+        if code is None:
+            return self.filter_by_since_limit(sorted, since, limit)
+        fromConversion = self.filter_by(sorted, 'fromCurrency', code)
+        toConversion = self.filter_by(sorted, 'toCurrency', code)
+        both = self.array_concat(fromConversion, toConversion)
+        return self.filter_by_since_limit(both, since, limit)
 
     def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
         raise NotSupported(self.id + ' parseConversion() is not supported yet')

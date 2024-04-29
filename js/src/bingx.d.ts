@@ -97,7 +97,7 @@ export default class bingx extends Exchange {
         toAccount: string;
         status: string;
     };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     fetchDepositAddress(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
@@ -133,7 +133,7 @@ export default class bingx extends Exchange {
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    parseParams(params: any): {};
+    parseParams(params: any): import("./base/types.js").Dictionary<any>;
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;

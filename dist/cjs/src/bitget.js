@@ -4611,6 +4611,9 @@ class bitget extends bitget$1 {
         params = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent']);
         let response = undefined;
         if (market['spot']) {
+            if (triggerPrice === undefined) {
+                throw new errors.NotSupported(this.id + 'editOrder() only supports plan/trigger spot orders');
+            }
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {
@@ -8455,7 +8458,7 @@ class bitget extends bitget$1 {
          * @name bitget#fetchPositionsHistory
          * @description fetches historical positions
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-         * @param {string} [symbol] unified contract symbols
+         * @param {string[]} [symbols] unified contract symbols
          * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
          * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
          * @param {object} params extra parameters specific to the exchange api endpoint
@@ -8672,7 +8675,7 @@ class bitget extends bitget$1 {
         //
         const data = this.safeDict(response, 'data', {});
         const dataList = this.safeList(data, 'dataList', []);
-        return this.parseConversions(dataList, 'fromCoin', 'toCoin', since, limit);
+        return this.parseConversions(dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //

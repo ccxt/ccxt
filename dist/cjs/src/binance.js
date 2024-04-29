@@ -1099,7 +1099,7 @@ class binance extends binance$1 {
                         'feeSide': 'quote',
                         'tierBased': true,
                         'percentage': true,
-                        'taker': this.parseNumber('0.000400'),
+                        'taker': this.parseNumber('0.000500'),
                         'maker': this.parseNumber('0.000200'),
                         'tiers': {
                             'taker': [
@@ -12919,7 +12919,7 @@ class binance extends binance$1 {
             //
         }
         const rows = this.safeList(response, responseQuery, []);
-        return this.parseConversions(rows, fromCurrencyKey, toCurrencyKey, since, limit);
+        return this.parseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //

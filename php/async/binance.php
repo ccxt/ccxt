@@ -1106,7 +1106,7 @@ class binance extends Exchange {
                         'feeSide' => 'quote',
                         'tierBased' => true,
                         'percentage' => true,
-                        'taker' => $this->parse_number('0.000400'),
+                        'taker' => $this->parse_number('0.000500'),
                         'maker' => $this->parse_number('0.000200'),
                         'tiers' => array(
                             'taker' => array(
@@ -11141,7 +11141,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the $rate of interest to borrow a $currency for margin trading
@@ -12759,7 +12759,7 @@ class binance extends Exchange {
                 //
             }
             $rows = $this->safe_list($response, $responseQuery, array());
-            return $this->parse_conversions($rows, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
+            return $this->parse_conversions($rows, $code, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
         }) ();
     }
 

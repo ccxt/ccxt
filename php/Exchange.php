@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.7';
+$version = '4.3.11';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.7';
+    const VERSION = '4.3.11';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2785,6 +2785,10 @@ class Exchange {
 
     public function parse_borrow_interest($info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseIsolatedBorrowRate() is not supported yet');
     }
 
     public function parse_ws_trade($trade, ?array $market = null) {
@@ -6205,6 +6209,17 @@ class Exchange {
         return $interests;
     }
 
+    public function parse_isolated_borrow_rates(mixed $info) {
+        $result = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $item = $info[$i];
+            $borrowRate = $this->parseIsolatedBorrowRate ($item);
+            $symbol = $this->safe_string($borrowRate, 'symbol');
+            $result[$symbol] = $borrowRate;
+        }
+        return $result;
+    }
+
     public function parse_funding_rate_histories($response, $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -7029,7 +7044,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
     }
 
-    public function parse_conversions(array $conversions, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_conversions(array $conversions, ?string $code = null, ?string $fromCurrencyKey = null, ?string $toCurrencyKey = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $conversions = $this->to_array($conversions);
         $result = array();
         $fromCurrency = null;
@@ -7039,17 +7054,27 @@ class Exchange {
             $fromId = $this->safe_string($entry, $fromCurrencyKey);
             $toId = $this->safe_string($entry, $toCurrencyKey);
             if ($fromId !== null) {
-                $fromCurrency = $this->currency ($fromId);
+                $fromCurrency = $this->safe_currency($fromId);
             }
             if ($toId !== null) {
-                $toCurrency = $this->currency ($toId);
+                $toCurrency = $this->safe_currency($toId);
             }
             $conversion = array_merge($this->parseConversion ($entry, $fromCurrency, $toCurrency), $params);
             $result[] = $conversion;
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        $code = ($fromCurrency !== null) ? $fromCurrency['code'] : null;
-        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->safe_currency($code);
+            $code = $currency['code'];
+        }
+        if ($code === null) {
+            return $this->filter_by_since_limit($sorted, $since, $limit);
+        }
+        $fromConversion = $this->filter_by($sorted, 'fromCurrency', $code);
+        $toConversion = $this->filter_by($sorted, 'toCurrency', $code);
+        $both = $this->array_concat($fromConversion, $toConversion);
+        return $this->filter_by_since_limit($both, $since, $limit);
     }
 
     public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {

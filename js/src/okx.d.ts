@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Position, CrossBorrowRate, CrossBorrowRates } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -85,7 +85,7 @@ export default class okx extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -171,17 +171,14 @@ export default class okx extends Exchange {
     }>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
+        info: any;
+        hedged: boolean;
+    }>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
-    fetchCrossBorrowRates(params?: {}): Promise<any>;
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
-        currency: string;
-        rate: number;
-        period: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
+    fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
         rate: number;

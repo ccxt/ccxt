@@ -281,7 +281,6 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "list", 3 },
                                 { "assets", 3 },
-                                { "apiKey/query", 1 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "create", 3 },
@@ -298,6 +297,7 @@ public partial class bingx : Exchange
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "uid", 1 },
+                                { "apiKey/query", 1 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "innerTransfer/authorizeSubAccount", 3 },
@@ -1959,6 +1959,12 @@ public partial class bingx : Exchange
         };
         object isMarketOrder = isEqual(type, "MARKET");
         object isSpot = isEqual(marketType, "spot");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
+        object isTriggerOrder = !isEqual(triggerPrice, null);
+        object isStopLossPriceOrder = !isEqual(stopLossPrice, null);
+        object isTakeProfitPriceOrder = !isEqual(takeProfitPrice, null);
         object exchangeClientOrderId = ((bool) isTrue(isSpot)) ? "newClientOrderId" : "clientOrderID";
         object clientOrderId = this.safeString2(parameters, exchangeClientOrderId, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -1979,7 +1985,6 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "GTC";
         }
-        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         if (isTrue(isSpot))
         {
             object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
@@ -2017,6 +2022,17 @@ public partial class bingx : Exchange
                 {
                     ((IDictionary<string,object>)request)["type"] = "TRIGGER_MARKET";
                 }
+            } else if (isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))))
+            {
+                object stopTakePrice = ((bool) isTrue((!isEqual(stopLossPrice, null)))) ? stopLossPrice : takeProfitPrice;
+                if (isTrue(isEqual(type, "LIMIT")))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "TAKE_STOP_LIMIT";
+                } else if (isTrue(isEqual(type, "MARKET")))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "TAKE_STOP_MARKET";
+                }
+                ((IDictionary<string,object>)request)["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, stopTakePrice));
             }
         } else
         {
@@ -2024,14 +2040,9 @@ public partial class bingx : Exchange
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "FOK";
             }
-            object stopLossPrice = this.safeString(parameters, "stopLossPrice");
-            object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             object trailingAmount = this.safeString(parameters, "trailingAmount");
             object trailingPercent = this.safeString2(parameters, "trailingPercent", "priceRate");
             object trailingType = this.safeString(parameters, "trailingType", "TRAILING_STOP_MARKET");
-            object isTriggerOrder = !isEqual(triggerPrice, null);
-            object isStopLossPriceOrder = !isEqual(stopLossPrice, null);
-            object isTakeProfitPriceOrder = !isEqual(takeProfitPrice, null);
             object isTrailingAmountOrder = !isEqual(trailingAmount, null);
             object isTrailingPercentOrder = !isEqual(trailingPercent, null);
             object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
@@ -2143,8 +2154,8 @@ public partial class bingx : Exchange
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
             ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         }
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
     }
 
@@ -2166,9 +2177,9 @@ public partial class bingx : Exchange
         * @param {bool} [params.postOnly] true to place a post only order
         * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
-        * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
-        * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
-        * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
+        * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
+        * @param {float} [params.stopLossPrice] stop loss trigger price
+        * @param {float} [params.takeProfitPrice] take profit trigger price
         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
         * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
         * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price

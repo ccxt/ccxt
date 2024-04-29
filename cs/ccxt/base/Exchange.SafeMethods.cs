@@ -435,4 +435,14 @@ public partial class Exchange
         return defaultValue;
     }
 
+    public static bool? SafeBool(object obj, object key1, bool? defaultValue = null)
+    {
+        var value = SafeValue(obj, key1);
+
+        if (value is bool)
+        {
+            return (bool)value;
+        }
+        return defaultValue;
+    }
 }

@@ -17,7 +17,7 @@ export default class idex extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseSide(book: any, side: any): any;
+    parseSide(book: any, side: any): any[];
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

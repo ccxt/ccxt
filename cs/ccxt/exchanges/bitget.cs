@@ -4876,6 +4876,10 @@ public partial class bitget : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
+            if (isTrue(isEqual(triggerPrice, null)))
+            {
+                throw new NotSupported ((string)add(this.id, "editOrder() only supports plan/trigger spot orders")) ;
+            }
             object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue(editMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
             {
@@ -8659,7 +8663,7 @@ public partial class bitget : Exchange
         return this.parseIsolatedBorrowRate(first, market);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -9152,7 +9156,7 @@ public partial class bitget : Exchange
         * @name bitget#fetchPositionsHistory
         * @description fetches historical positions
         * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-        * @param {string} [symbol] unified contract symbols
+        * @param {string[]} [symbols] unified contract symbols
         * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
         * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
         * @param {object} params extra parameters specific to the exchange api endpoint
@@ -9389,7 +9393,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object dataList = this.safeList(data, "dataList", new List<object>() {});
-        return this.parseConversions(dataList, "fromCoin", "toCoin", since, limit);
+        return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
     }
 
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)

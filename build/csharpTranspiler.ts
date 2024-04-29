@@ -979,7 +979,7 @@ class NewTranspiler {
 
         if (csharpFolder) {
             overwriteFile (csharpFolder + csharpFilename, csharp)
-            fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
+            // fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
         }
     }
 

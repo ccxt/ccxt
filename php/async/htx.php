@@ -6578,10 +6578,10 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetch the borrow interest $rates of all currencies
+             * fetch the borrow interest rates of all currencies
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure isolated borrow rate structures~
              */
@@ -6617,15 +6617,11 @@ class htx extends Exchange {
             // }
             //
             $data = $this->safe_value($response, 'data', array());
-            $rates = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $rates[] = $this->parse_isolated_borrow_rate($data[$i]);
-            }
-            return $rates;
+            return $this->parse_isolated_borrow_rates($data);
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "1inchusdt",

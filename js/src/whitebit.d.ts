@@ -103,7 +103,8 @@ export default class whitebit extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    isFiat(currency: any): any;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    isFiat(currency: any): boolean;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

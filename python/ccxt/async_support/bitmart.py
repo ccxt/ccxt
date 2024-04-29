@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, IsolatedBorrowRates, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3342,7 +3342,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_isolated_borrow_rate(self, symbol: str, params={}):
+    async def fetch_isolated_borrow_rate(self, symbol: str, params={}) -> IsolatedBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3393,7 +3393,7 @@ class bitmart(Exchange, ImplicitAPI):
         borrowRate = self.safe_value(symbols, 0)
         return self.parse_isolated_borrow_rate(borrowRate, market)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None):
+    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -3435,7 +3435,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_isolated_borrow_rates(self, params={}):
+    async def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """
         fetch the borrow interest rates of all currencies, currently only works for isolated margin
         :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3478,11 +3478,7 @@ class bitmart(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         symbols = self.safe_value(data, 'symbols', [])
-        result = []
-        for i in range(0, len(symbols)):
-            symbol = self.safe_value(symbols, i)
-            result.append(self.parse_isolated_borrow_rate(symbol))
-        return result
+        return self.parse_isolated_borrow_rates(symbols)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """

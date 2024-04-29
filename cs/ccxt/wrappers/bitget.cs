@@ -1725,10 +1725,10 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new IsolatedBorrowRate(res);
     }
     /// <summary>
     /// fetch the rate of interest to borrow a currency for margin trading
@@ -1751,10 +1751,10 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
     }
     /// <summary>
     /// fetch the interest owed by the user for borrowing currency for margin trading
@@ -1835,12 +1835,6 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified contract symbols
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
