@@ -1970,7 +1970,7 @@ export default class bigone extends Exchange {
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
         const type = ('customer_id' in transaction) ? 'withdrawal' : 'deposit';
-        const internal = this.safeValue (transaction, 'is_internal');
+        const internal = this.safeBool (transaction, 'is_internal');
         return {
             'info': transaction,
             'id': id,
@@ -2116,7 +2116,7 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const guid = this.safeString (params, 'guid', this.uuid ());
@@ -2137,7 +2137,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
