@@ -323,6 +323,9 @@ export default class woofipro extends Exchange {
                     '-1201': BadRequest, // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
                     '-1202': BadRequest, // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
                     '29': BadRequest, // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9': AuthenticationError, // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3': AuthenticationError, // {"success":false,"code":3,"message":"Signature error"}
+                    '2': BadRequest, // {"success":false,"code":2,"message":"Timestamp expired"}
                 },
                 'broad': {
                 },
@@ -2248,7 +2251,7 @@ export default class woofipro extends Exchange {
         const nonce = this.nonce ();
         const domain = {
             'chainId': chainId,
-            'name': 'Withdraw',
+            'name': 'Orderly',
             'verifyingContract': verifyingContractAddress,
             'version': '1',
         };
@@ -2264,23 +2267,23 @@ export default class woofipro extends Exchange {
             ],
         };
         const withdrawRequest = {
-            'brokerId': 'woofi_dex',
-            'chainId': chainId,
+            'brokerId': 'woofi_pro',
+            'chainId': this.parseToInt (chainId),
             'receiver': address,
             'token': code,
-            'amount': amount,
+            'amount': amount.toString (),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         };
         const msg = this.ethEncodeStructuredData (domain, messageTypes, withdrawRequest);
-        const privateKey = this.recoverPrivateKey ();
-        const signature = this.signMessage (msg, this.binaryToBase16 (privateKey));
+        const signature = this.signMessage (msg, this.privateKey);
         const request = {
             'signature': signature,
             'userAddress': address,
             'verifyingContract': verifyingContractAddress,
             'message': withdrawRequest,
         };
+        params = this.omit (params, 'chainId');
         const response = await this.v1PrivatePostWithdrawRequest (this.extend (request, params));
         //
         //     {
@@ -2547,20 +2550,6 @@ export default class woofipro extends Exchange {
         return this.milliseconds ();
     }
 
-    recoverPrivateKey () {
-        const privateKey = this.privateKey;
-        if (privateKey !== undefined) {
-            return this.base58ToBinary (privateKey);
-        }
-        let secret = this.secret;
-        if (secret.indexOf ('ed25519:') >= 0) {
-            const parts = secret.split ('ed25519:');
-            secret = parts[1];
-        }
-        this.privateKey = secret;
-        return this.base58ToBinary (secret);
-    }
-
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
         const access = section[1];
@@ -2611,8 +2600,12 @@ export default class woofipro extends Exchange {
                 }
                 headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            const privateKey = this.recoverPrivateKey ();
-            const signature = eddsa (this.encode (auth), privateKey, ed25519);
+            let secret = this.secret;
+            if (secret.indexOf ('ed25519:') >= 0) {
+                const parts = secret.split ('ed25519:');
+                secret = parts[1];
+            }
+            const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
             headers['orderly-signature'] = this.urlencodeBase64 (this.base64ToBinary (signature));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
