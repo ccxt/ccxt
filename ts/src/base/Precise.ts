@@ -29,13 +29,13 @@ class Precise {
         }
     }
 
-    mul (other) {
+    mul (other: Precise) {
         // other must be another instance of Precise
         const integerResult = this.integer * other.integer;
         return new Precise (integerResult, this.decimals + other.decimals);
     }
 
-    div (other, precision = 18) {
+    div (other: Precise, precision = 18) {
         const distance = precision - this.decimals + other.decimals;
         let numerator: bigint;
         if (distance === 0) {
@@ -51,7 +51,7 @@ class Precise {
         return new Precise (result, precision);
     }
 
-    add (other) {
+    add (other: Precise) {
         if (this.decimals === other.decimals) {
             const integerResult = this.integer + other.integer;
             return new Precise (integerResult, this.decimals);
@@ -64,7 +64,7 @@ class Precise {
         }
     }
 
-    mod (other) {
+    mod (other: Precise) {
         const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0);
         const numerator = this.integer * (base ** BigInt (rationizerNumerator));
         const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0);
@@ -73,7 +73,7 @@ class Precise {
         return new Precise (result, rationizerDenominator + other.decimals);
     }
 
-    sub (other) {
+    sub (other: Precise) {
         const negative = new Precise (-other.integer, other.decimals);
         return this.add (negative);
     }
@@ -86,29 +86,29 @@ class Precise {
         return new Precise (-this.integer, this.decimals);
     }
 
-    min (other) {
+    min (other: Precise) {
         return this.lt (other) ? this : other;
     }
 
-    max (other) {
+    max (other: Precise) {
         return this.gt (other) ? this : other;
     }
 
-    gt (other) {
+    gt (other: Precise) {
         const sum = this.sub (other);
         return sum.integer > 0;
     }
 
-    ge (other) {
+    ge (other: Precise) {
         const sum = this.sub (other);
         return sum.integer >= 0;
     }
 
-    lt (other) {
+    lt (other: Precise) {
         return other.gt (this);
     }
 
-    le (other) {
+    le (other: Precise) {
         return other.ge (this);
     }
 
@@ -176,7 +176,7 @@ class Precise {
         return (new Precise (string1)).mul (new Precise (string2)).toString ();
     }
 
-    static stringDiv (string1, string2, precision = 18) {
+    static stringDiv (string1: Str, string2: Str, precision = 18) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
@@ -206,14 +206,14 @@ class Precise {
         return (new Precise (string1)).sub (new Precise (string2)).toString ();
     }
 
-    static stringAbs (string) {
+    static stringAbs (string: Str) {
         if (string === undefined) {
             return undefined;
         }
         return (new Precise (string)).abs ().toString ();
     }
 
-    static stringNeg (string) {
+    static stringNeg (string: Str) {
         if (string === undefined) {
             return undefined;
         }

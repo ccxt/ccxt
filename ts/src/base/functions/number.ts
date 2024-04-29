@@ -37,7 +37,7 @@ const precisionConstants = {
 
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
-function numberToString (x) { // avoids scientific notation for too large and too small numbers
+function numberToString (x: any): string | undefined { // avoids scientific notation for too large and too small numbers
     if (x === undefined) return undefined;
     if (typeof x !== 'number') return x.toString ();
     const s = x.toString ();
@@ -70,8 +70,8 @@ function numberToString (x) { // avoids scientific notation for too large and to
 // expects non-scientific notation
 
 const truncate_regExpCache = [];
-const truncate_to_string = (num, precision = 0) => {
-    num = numberToString (num);
+const truncate_to_string = (num: number | string, precision = 0) => {
+    num = numberToString (num) as string;
     if (precision > 0) {
         const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp ('([-]*\\d+\\.\\d{' + precision + '})(\\d)'));
         const [ , result ] = num.toString ().match (re) || [ null, num ];
@@ -79,9 +79,9 @@ const truncate_to_string = (num, precision = 0) => {
     }
     return parseInt (num).toString ();
 };
-const truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision));
+const truncate = (num: number | string, precision = 0): number => parseFloat (truncate_to_string (num, precision));
 
-function precisionFromString (str) {
+function precisionFromString (str: string) {
     // support string formats like '1e-4'
     if (str.indexOf ('e') > -1) {
         const numStr = str.replace (/\de/, '')
@@ -99,12 +99,12 @@ function precisionFromString (str) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x,
-    roundingMode,
-    numPrecisionDigits,
+    x: number,
+    roundingMode: number,
+    numPrecisionDigits: number,
     countingMode = DECIMAL_PLACES,
     paddingMode = NO_PADDING
-) => {
+): string => {
     if (countingMode === TICK_SIZE) {
         if (typeof numPrecisionDigits === 'string') {
             numPrecisionDigits = parseFloat(numPrecisionDigits)
@@ -116,7 +116,7 @@ const decimalToPrecision = (
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * parseFloat (decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();
@@ -154,7 +154,7 @@ const decimalToPrecision = (
 
     /*  Convert to a string (if needed), skip leading minus sign (if any)   */
 
-    const str = numberToString (x);
+    const str = numberToString (x) as string;
     const isNegative = str[0] === '-';
     const strStart = isNegative ? 1 : 0;
     const strEnd = str.length;
@@ -285,7 +285,7 @@ const decimalToPrecision = (
     return String.fromCharCode (...out);
 };
 
-function omitZero (stringNumber) {
+function omitZero (stringNumber: string) {
     if (stringNumber === undefined || stringNumber === '') {
         return undefined;
     }

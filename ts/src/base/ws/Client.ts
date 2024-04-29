@@ -9,23 +9,28 @@ import {
     milliseconds,
 } from '../../base/functions.js';
 import { utf8 } from '../../static_dependencies/scure-base/index.js';
+import { Dictionary } from '../types.js';
 
 export default class Client {
     connected: Promise<any>
 
+    // @ts-ignore: 2564
     disconnected: ReturnType<typeof Future>
 
-    futures: {}
+    // @ts-ignore: 2564
+    futures: Dictionary<any>
 
-    rejections: {}
+    // @ts-ignore: 2564
+    rejections: Dictionary<any>
 
+    // @ts-ignore: 2564
     keepAlive: number
 
     connection: any
 
     connectionTimeout: any
 
-    verbose: boolean
+    verbose: boolean = false
 
     connectionTimer: any
 
@@ -43,6 +48,7 @@ export default class Client {
 
     inflate: any
 
+    // @ts-ignore: 2564
     url: string
 
     isConnected: any
@@ -57,11 +63,12 @@ export default class Client {
 
     ping: any
 
-    subscriptions: {}
+    // @ts-ignore: 2564
+    subscriptions: Dictionary<any>
 
     throttle: any
 
-    constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
+    constructor (url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config = {}) {
         const defaults = {
             url,
             onMessageCallback,
@@ -97,7 +104,7 @@ export default class Client {
         this.connected = Future ()
     }
 
-    future (messageHash) {
+    future (messageHash: string) {
         if (!(messageHash in this.futures)) {
             this.futures[messageHash] = Future ()
         }
@@ -109,11 +116,11 @@ export default class Client {
         return future
     }
 
-    resolve (result, messageHash) {
+    resolve (result: any, messageHash: string | undefined) {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
-        if (messageHash in this.futures) {
+        if ((messageHash !== undefined) && (messageHash in this.futures)) {
             const promise = this.futures[messageHash]
             promise.resolve (result)
             delete this.futures[messageHash]
@@ -121,7 +128,7 @@ export default class Client {
         return result
     }
 
-    reject (result, messageHash = undefined) {
+    reject (result: any, messageHash?: string | undefined) {
         if (messageHash) {
             if (messageHash in this.futures) {
                 const promise = this.futures[messageHash]
@@ -144,7 +151,7 @@ export default class Client {
         return result
     }
 
-    log (... args) {
+    log (... args: any[]) {
         console.log (... args)
         // console.dir (args, { depth: null })
     }
@@ -157,7 +164,7 @@ export default class Client {
         throw new NotSupported ('isOpen() not implemented yet');
     }
 
-    reset (error) {
+    reset (error: any) {
         this.clearConnectionTimeout ()
         this.clearPingInterval ()
         this.reject (error)
@@ -256,7 +263,7 @@ export default class Client {
         }
     }
 
-    onError (error) {
+    onError (error: any) {
         if (this.verbose) {
             this.log (new Date (), 'onError', error.message)
         }
@@ -295,7 +302,7 @@ export default class Client {
         }
     }
 
-    async send (message) {
+    async send (message: any) {
         if (this.verbose) {
             this.log (new Date (), 'sending', message)
         }
@@ -304,7 +311,7 @@ export default class Client {
         if (isNode) {
             /* eslint-disable no-inner-declarations */
             /* eslint-disable jsdoc/require-jsdoc */
-            function onSendComplete (error) {
+            function onSendComplete (error: any) {
                 if (error) {
                     future.reject (error)
                 } else {

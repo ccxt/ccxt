@@ -323,7 +323,7 @@ const exchanges = {
     'zonda':                  zonda,
 }
 
-const pro = {
+const pro: Dictionary<any> = {
     'alpaca':                 alpacaPro,
     'ascendex':               ascendexPro,
     'bequant':                bequantPro,

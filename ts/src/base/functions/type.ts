@@ -1,21 +1,21 @@
 /*  ------------------------------------------------------------------------ */
 
-import { implicitReturnType, Int, Str, IndexType } from '../types.js';
+import { implicitReturnType, Int, Str, IndexType, Num } from '../types.js';
 
 const isNumber = Number.isFinite;
 const isInteger = Number.isInteger;
 const isArray = Array.isArray;
 const hasProps = (o) => ((o !== undefined) && (o !== null));
-const isString = (s) => (typeof s === 'string');
-const isObject = (o) => ((o !== null) && (typeof o === 'object'));
-const isRegExp = (o) => (o instanceof RegExp);
-const isDictionary = (o) => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o));
+const isString = (s: any) => (typeof s === 'string');
+const isObject = (o: any) => ((o !== null) && (typeof o === 'object'));
+const isRegExp = (o: any) => (o instanceof RegExp);
+const isDictionary = (o: any) => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o));
 const isStringCoercible = (x) => ((hasProps (x) && x.toString) || isNumber (x));
 
 /*  .............................................   */
 
-const prop = (o, k) => (isObject (o) && o[k] !== '' && o[k] !== null ? o[k] : undefined);
-const prop2 = (o, k1, k2) => (
+const prop = (o: any, k: IndexType) => (isObject (o) && o[k] !== '' && o[k] !== null ? o[k] : undefined);
+const prop2 = (o: any, k1: IndexType, k2: IndexType) => (
     !isObject (o)
         ? undefined
         : (
@@ -28,13 +28,13 @@ const prop2 = (o, k1, k2) => (
                 )
         )
 );
-const getValueFromKeysInArray = (object, array) => object[array.find ((k) => prop (object, k) !== undefined)];
+const getValueFromKeysInArray = (object, array) => object[array.find ((k: IndexType) => prop (object, k) !== undefined)];
 /*  .............................................   */
-const asFloat = (x) => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN);
-const asInteger = (x) => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
+const asFloat = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN);
+const asInteger = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
 /*  .............................................   */
 
-const safeFloat = (o: implicitReturnType, k: IndexType, $default?: number): number => {
+const safeFloat = (o: implicitReturnType, k: IndexType, $default?: number): Num => {
     const n = asFloat (prop (o, k));
     return isNumber (n) ? n : $default;
 };
@@ -49,12 +49,12 @@ const safeIntegerProduct = (o: implicitReturnType, k: IndexType, $factor: number
     return isNumber (n) ? parseInt (n * $factor as any) : $default
 };
 
-const safeTimestamp = (o: implicitReturnType, k: IndexType, $default?: number) => {
+const safeTimestamp = (o: implicitReturnType, k: IndexType, $default?: number): Int => {
     const n = asFloat (prop (o, k));
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
 };
 
-const safeValue = (o: implicitReturnType, k: IndexType, $default?) => {
+const safeValue = (o: implicitReturnType, k: IndexType, $default?: any) => {
     const x = prop (o, k);
     return hasProps (x) ? x : $default;
 }
@@ -75,7 +75,7 @@ const safeStringUpper = (o: implicitReturnType, k: IndexType, $default?: string)
 };
 /*  .............................................   */
 
-const safeFloat2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: number): number => {
+const safeFloat2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: number): Num => {
     const n = asFloat (prop2 (o, k1, k2));
     return isNumber (n) ? n : $default;
 };
@@ -90,12 +90,12 @@ const safeIntegerProduct2 = (o: implicitReturnType, k1: IndexType, k2: IndexType
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
 };
 
-const safeTimestamp2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?): Int => {
+const safeTimestamp2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: Int): Int => {
     const n = asFloat (prop2 (o, k1, k2));
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
 };
 
-const safeValue2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?) => {
+const safeValue2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: any) => {
     const x = prop2 (o, k1, k2);
     return hasProps (x) ? x : $default;
 };
@@ -115,7 +115,7 @@ const safeStringUpper2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $
     return isStringCoercible (x) ? String (x).toUpperCase () : $default;
 };
 
-const safeFloatN = (o: implicitReturnType, k: (IndexType)[], $default?: number): number => {
+const safeFloatN = (o: implicitReturnType, k: (IndexType)[], $default?: number): Num => {
     const n = asFloat (getValueFromKeysInArray (o, k));
     return isNumber (n) ? n : $default;
 };
@@ -138,7 +138,7 @@ const safeTimestampN = (o: implicitReturnType, k: (IndexType)[], $default?: numb
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
 };
 
-const safeValueN = (o: implicitReturnType, k: (IndexType)[], $default?) => {
+const safeValueN = (o: implicitReturnType, k: (IndexType)[], $default?: any) => {
     if (o === undefined) {
         return $default;
     }

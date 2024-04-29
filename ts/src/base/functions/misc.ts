@@ -2,7 +2,7 @@
 import { ROUND_UP, ROUND_DOWN } from './number.js'
 import { asFloat } from './type.js'
 import { NotSupported } from '../errors.js'
-import { Num, OHLCVC, Trade } from '../types.js'
+import { Dictionary, Num } from '../types.js'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
@@ -33,14 +33,14 @@ const parseTimeframe = (timeframe: string): number => {
     return amount * scale;
 };
 
-const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
+const roundTimeframe = (timeframe: string, timestamp: number, direction = ROUND_DOWN) => {
     const ms = parseTimeframe (timeframe) * 1000;
     // Get offset based on timeframe in milliseconds
     const offset = timestamp % ms;
     return timestamp - offset + ((direction === ROUND_UP) ? ms : 0);
 };
 
-const extractParams = (string) => {
+const extractParams = (string: string): string[] => {
     /**
      * @ignore
      * @method
@@ -57,7 +57,7 @@ const extractParams = (string) => {
     return matches;
 };
 
-const implodeParams = (string, params) => {
+const implodeParams = (string: string, params: Dictionary<any> | any[]): string => {
     if (!Array.isArray (params)) {
         const keys = Object.keys (params);
         for (let i = 0; i < keys.length; i++) {
@@ -70,7 +70,7 @@ const implodeParams = (string, params) => {
     return string;
 };
 
-function vwap (baseVolume, quoteVolume) {
+function vwap (baseVolume: number, quoteVolume: number): Num {
     return ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) ? (quoteVolume / baseVolume) : undefined;
 }
 

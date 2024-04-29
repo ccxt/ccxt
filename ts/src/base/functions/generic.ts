@@ -129,7 +129,7 @@ const flatten = function flatten (x: any[], out: any[] = []) {
 
 const pluck = (x: Dictionary<any>, k: any) => values (x).filter ((v) => k in v).map ((v) => v[k]);
 
-const omit = (x: Dictionary<any>, ...args) => {
+const omit = (x: Dictionary<any>, ...args: any[]) => {
 
     if (!Array.isArray (x)) {
 
@@ -158,7 +158,7 @@ const sum = (...xs: any[]) => {
     return (ns.length > 0) ? ns.reduce ((a, b) => a + b, 0) : undefined;
 };
 
-const deepExtend = function deepExtend (...xs: any) {
+const deepExtend = function deepExtend (...xs: any[]) {
     let out = undefined;
     for (const x of xs) {
         if (isDictionary (x)) {
@@ -175,7 +175,7 @@ const deepExtend = function deepExtend (...xs: any) {
     return out;
 };
 
-const merge = (target: Dictionary<any>, ...args: any) => {
+const merge = (target: Dictionary<any>, ...args: any[]) => {
     // doesn't overwrite defined keys with undefined
     const overwrite: Dictionary<any> = {};
     const merged = Object.assign ({}, ...args);
