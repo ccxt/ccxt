@@ -881,7 +881,7 @@ export default class bigone extends Exchange {
             //        ]
             //    }
             //
-            data = this.safeValue (response, 'data', []);
+            data = this.safeList (response, 'data', []);
         } else {
             data = await this.contractPublicGetInstruments (params);
             //
@@ -931,7 +931,7 @@ export default class bigone extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'Timestamp');
         return this.parseToInt (timestamp / 1000000);
     }
