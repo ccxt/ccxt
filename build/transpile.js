@@ -2941,17 +2941,17 @@ function parallelizeTranspiling (exchanges, processes = undefined, force = false
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
+    const args = [];
+    if (force) {
+        args.push ('--force')
+    }
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
-        const args = [];
+        fork (process.argv[1], toProcess.concat (args))
         if (isFirst) {
             args.push ('--child');
-        } 
-        if (force) {
-            args.push = ('--force')
+            isFirst = false
         }
-        isFirst = false
-        fork (process.argv[1], toProcess.concat (args))
     }
 }
 
