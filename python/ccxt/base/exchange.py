@@ -1207,14 +1207,6 @@ class Exchange(object):
     def ymdhms(timestamp, infix=' '):
         utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
-
-    @staticmethod
-    def add_zero_to_short_date(date: str):
-        if len(date) == 0:
-            return '00'
-        elif len(date) == 1:
-            return '0' + date
-        return date
     
     @staticmethod
     def parse_date(timestamp=None):
@@ -1224,7 +1216,7 @@ class Exchange(object):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([Exchange.add_zero_to_short_date(str(value)) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                string = ''.join([str(value).zfill(2) for value in parsedate(timestamp)[:6]]) + '.000Z'
                 dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
                 return calendar.timegm(dt.utctimetuple()) * 1000
             except (TypeError, OverflowError, OSError):
