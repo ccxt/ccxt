@@ -370,6 +370,8 @@ export default class Exchange {
             fetchClosedOrdersWs: any;
             fetchConvertCurrencies: any;
             fetchConvertQuote: any;
+            fetchConvertTrade: any;
+            fetchConvertTradeHistory: any;
             fetchCrossBorrowRate: any;
             fetchCrossBorrowRates: any;
             fetchCurrencies: string;
