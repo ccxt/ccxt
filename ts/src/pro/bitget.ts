@@ -1406,10 +1406,10 @@ export default class bitget extends bitgetRest {
         }
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
-        const subscriptionHash = 'fill';
+        const subscriptionHash = 'fill:' + instType;
         const args = {
             'instType': instType,
-            'channel': subscriptionHash,
+            'channel': 'fill',
             'instId': 'default',
         };
         const trades = await this.watchPrivate (messageHash, subscriptionHash, args, params);
