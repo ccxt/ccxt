@@ -869,33 +869,21 @@
         ],
         "fetchOrder": [
             {
-                "description": "Spot fetch order",
+                "description": "Spot fetch order by the id and symbol",
                 "method": "fetchOrder",
-                "url": "https://api.coinex.com/v1/order/status?market=BTCUSDT&id=420291&access_id=key&tonce=1702016708915",
+                "url": "https://api.coinex.com/v2/spot/order-status?market=BTCUSDT&order_id=117492012985",
                 "input": [
-                    "420291",
-                    "BTC/USDT"
+                  117492012985,
+                  "BTC/USDT"
                 ]
             },
             {
-                "description": "Swap fetch order",
+                "description": "Swap fetch order by the id and symbol",
                 "method": "fetchOrder",
-                "url": "https://api.coinex.com/perpetual/v1/order/status?market=BTCUSDT&order_id=420291&access_id=key&tonce=1702016708915",
+                "url": "https://api.coinex.com/v2/futures/order-status?market=BTCUSDT&order_id=137319868771",
                 "input": [
-                    "420291",
-                    "BTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "Swap fetch stop order",
-                "method": "fetchOrder",
-                "url": "https://api.coinex.com/perpetual/v1/order/stop_status?market=BTCUSDT&order_id=420291&access_id=key&tonce=1702016708915",
-                "input": [
-                    "420291",
-                    "BTC/USDT:USDT",
-                    {
-                        "stop": true
-                    }
+                  137319868771,
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
