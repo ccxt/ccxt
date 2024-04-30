@@ -1498,7 +1498,8 @@ export default class bitget extends bitgetRest {
         const length = data.length;
         const messageHash = 'myTrades';
         for (let i = 0; i < length; i++) {
-            const parsed = this.parseWsTrade (message);
+            const trade = data[i];
+            const parsed = this.parseWsTrade (trade);
             stored.append (parsed);
             const symbol = parsed['symbol'];
             const symbolSpecificMessageHash = 'myTrades:' + symbol;
