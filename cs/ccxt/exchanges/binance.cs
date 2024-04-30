@@ -1146,7 +1146,7 @@ public partial class binance : Exchange
                         { "feeSide", "quote" },
                         { "tierBased", true },
                         { "percentage", true },
-                        { "taker", this.parseNumber("0.000400") },
+                        { "taker", this.parseNumber("0.000500") },
                         { "maker", this.parseNumber("0.000200") },
                         { "tiers", new Dictionary<string, object>() {
                             { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.000350")}, new List<object> {this.parseNumber("7500"), this.parseNumber("0.000320")}, new List<object> {this.parseNumber("22500"), this.parseNumber("0.000300")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.000270")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.000250")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.000220")}, new List<object> {this.parseNumber("400000"), this.parseNumber("0.000200")}, new List<object> {this.parseNumber("750000"), this.parseNumber("0.000170")}} },
@@ -9411,9 +9411,9 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
@@ -12550,9 +12550,9 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "until", "till"});
+        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         if (isTrue(endTime))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;

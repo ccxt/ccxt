@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.9';
+$version = '4.3.11';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.9';
+    const VERSION = '4.3.11';
 
     public $browser;
     public $marketsLoading = null;
@@ -884,6 +884,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_borrow_interest($info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseIsolatedBorrowRate() is not supported yet');
     }
 
     public function parse_ws_trade($trade, ?array $market = null) {
@@ -4444,6 +4448,17 @@ class Exchange extends \ccxt\Exchange {
             $interests[] = $this->parse_borrow_interest($row, $market);
         }
         return $interests;
+    }
+
+    public function parse_isolated_borrow_rates(mixed $info) {
+        $result = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $item = $info[$i];
+            $borrowRate = $this->parseIsolatedBorrowRate ($item);
+            $symbol = $this->safe_string($borrowRate, 'symbol');
+            $result[$symbol] = $borrowRate;
+        }
+        return $result;
     }
 
     public function parse_funding_rate_histories($response, $market = null, ?int $since = null, ?int $limit = null) {

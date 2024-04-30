@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.9'
+__version__ = '4.3.11'
 
 # -----------------------------------------------------------------------------
 
@@ -2211,6 +2211,9 @@ class Exchange(object):
 
     def parse_borrow_interest(self, info, market: Market = None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
+
+    def parse_isolated_borrow_rate(self, info, market: Market = None):
+        raise NotSupported(self.id + ' parseIsolatedBorrowRate() is not supported yet')
 
     def parse_ws_trade(self, trade, market: Market = None):
         raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
@@ -5001,6 +5004,15 @@ class Exchange(object):
             row = response[i]
             interests.append(self.parse_borrow_interest(row, market))
         return interests
+
+    def parse_isolated_borrow_rates(self, info: Any):
+        result = {}
+        for i in range(0, len(info)):
+            item = info[i]
+            borrowRate = self.parseIsolatedBorrowRate(item)
+            symbol = self.safe_string(borrowRate, 'symbol')
+            result[symbol] = borrowRate
+        return result
 
     def parse_funding_rate_histories(self, response, market=None, since: Int = None, limit: Int = None):
         rates = []

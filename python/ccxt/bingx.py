@@ -2734,9 +2734,9 @@ class bingx(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = self.swapV1PrivateGetTradeFullOrder(self.extend(request, params))

@@ -580,8 +580,8 @@ class indodax(Exchange, ImplicitAPI):
         timeframes = self.options['timeframes']
         selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
         now = self.seconds()
-        until = self.safe_integer_2(params, 'until', 'till', now)
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until', now)
+        params = self.omit(params, ['until'])
         request = {
             'to': until,
             'tf': selectedTimeframe,

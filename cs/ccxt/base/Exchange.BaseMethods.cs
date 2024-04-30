@@ -717,6 +717,11 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseBorrowInterest() is not supported yet")) ;
     }
 
+    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseIsolatedBorrowRate() is not supported yet")) ;
+    }
+
     public virtual object parseWsTrade(object trade, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseWsTrade() is not supported yet")) ;
@@ -5085,6 +5090,19 @@ public partial class Exchange
             ((IList<object>)interests).Add(this.parseBorrowInterest(row, market));
         }
         return interests;
+    }
+
+    public virtual object parseIsolatedBorrowRates(object info)
+    {
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        {
+            object item = getValue(info, i);
+            object borrowRate = this.parseIsolatedBorrowRate(item);
+            object symbol = this.safeString(borrowRate, "symbol");
+            ((IDictionary<string,object>)result)[(string)symbol] = borrowRate;
+        }
+        return ((object)result);
     }
 
     public virtual object parseFundingRateHistories(object response, object market = null, object since = null, object limit = null)

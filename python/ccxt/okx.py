@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -3773,10 +3773,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(query, 'till', 'until')
+            until = self.safe_integer(query, 'until')
             if until is not None:
                 request['end'] = until
-                query = self.omit(query, ['until', 'till'])
+                query = self.omit(query, ['until'])
         send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
         response = None
         if method == 'privateGetTradeOrdersAlgoHistory':
@@ -3948,10 +3948,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(query, 'till', 'until')
+            until = self.safe_integer(query, 'until')
             if until is not None:
                 request['end'] = until
-                query = self.omit(query, ['until', 'till'])
+                query = self.omit(query, ['until'])
             request['state'] = 'filled'
         send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
         response = None
@@ -5973,7 +5973,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_cross_borrow_rates(self, params={}):
+    def fetch_cross_borrow_rates(self, params={}) -> CrossBorrowRates:
         """
         fetch the borrow interest rates of all currencies
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
@@ -6000,7 +6000,7 @@ class okx(Exchange, ImplicitAPI):
             rates.append(self.parse_borrow_rate(data[i]))
         return rates
 
-    def fetch_cross_borrow_rate(self, code: str, params={}):
+    def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
@@ -6636,10 +6636,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(params, 'till', 'until')
+            until = self.safe_integer(params, 'until')
             if until is not None:
                 request['end'] = until
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
             response = self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {

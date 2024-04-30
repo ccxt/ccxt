@@ -3252,8 +3252,8 @@ class gate extends gate$1 {
         let marginMode = undefined;
         let request = {};
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         if (contract) {

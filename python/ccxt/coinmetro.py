@@ -499,9 +499,9 @@ class coinmetro(Exchange, ImplicitAPI):
                 until = self.sum(since, duration * (limit))
         else:
             request['from'] = ':from'  # self endpoint doesn't accept empty from and to params(setting them into the value described in the documentation)
-        until = self.safe_integer_2(params, 'till', 'until', until)
+        until = self.safe_integer(params, 'until', until)
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['to'] = until
         else:
             request['to'] = ':to'

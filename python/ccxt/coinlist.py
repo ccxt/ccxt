@@ -683,9 +683,9 @@ class coinlist(Exchange, ImplicitAPI):
                 request['end_time'] = self.iso8601(self.sum(since, duration * (limit)))
             else:
                 request['end_time'] = self.iso8601(self.milliseconds())
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.publicGetV1SymbolsSymbolCandles(self.extend(request, params))
         #
@@ -756,9 +756,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = min(limit, 500)
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.publicGetV1SymbolsSymbolAuctions(self.extend(request, params))
         #
@@ -1134,9 +1134,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Fills(self.extend(request, params))
         #
@@ -1213,9 +1213,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Orders(self.extend(request, params))
         #
@@ -1706,9 +1706,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Transfers(self.extend(request, params))
         #
@@ -1988,9 +1988,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         params = self.omit(params, ['trader_id', 'traderId'])
         response = self.privateGetV1AccountsTraderIdLedger(self.extend(request, params))

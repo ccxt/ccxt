@@ -3090,8 +3090,8 @@ class gate(Exchange, ImplicitAPI):
         marginMode = None
         request = {}
         market = self.market(symbol) if (symbol is not None) else None
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         contract = (type == 'swap') or (type == 'future') or (type == 'option')
         if contract:

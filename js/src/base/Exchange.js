@@ -428,6 +428,8 @@ export default class Exchange {
                 'fetchClosedOrdersWs': undefined,
                 'fetchConvertCurrencies': undefined,
                 'fetchConvertQuote': undefined,
+                'fetchConvertTrade': undefined,
+                'fetchConvertTradeHistory': undefined,
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
@@ -2014,6 +2016,9 @@ export default class Exchange {
     }
     parseBorrowInterest(info, market = undefined) {
         throw new NotSupported(this.id + ' parseBorrowInterest() is not supported yet');
+    }
+    parseIsolatedBorrowRate(info, market = undefined) {
+        throw new NotSupported(this.id + ' parseIsolatedBorrowRate() is not supported yet');
     }
     parseWsTrade(trade, market = undefined) {
         throw new NotSupported(this.id + ' parseWsTrade() is not supported yet');
@@ -5277,6 +5282,16 @@ export default class Exchange {
             interests.push(this.parseBorrowInterest(row, market));
         }
         return interests;
+    }
+    parseIsolatedBorrowRates(info) {
+        const result = {};
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const borrowRate = this.parseIsolatedBorrowRate(item);
+            const symbol = this.safeString(borrowRate, 'symbol');
+            result[symbol] = borrowRate;
+        }
+        return result;
     }
     parseFundingRateHistories(response, market = undefined, since = undefined, limit = undefined) {
         const rates = [];

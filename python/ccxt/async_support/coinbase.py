@@ -3110,9 +3110,9 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until', 'till'])
+        until = self.safe_integer_n(params, ['until'])
         if until is not None:
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
             request['end_date'] = self.iso8601(until)
         response = await self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
         #
@@ -3180,9 +3180,9 @@ class coinbase(Exchange, ImplicitAPI):
         request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until', 'till'])
+        until = self.safe_integer_n(params, ['until'])
         if until is not None:
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
             request['end_date'] = self.iso8601(until)
         response = await self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
         #
@@ -3310,8 +3310,8 @@ class coinbase(Exchange, ImplicitAPI):
             'product_id': market['id'],
             'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        until = self.safe_integer_n(params, ['until', 'till', 'end'])
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer_n(params, ['until', 'end'])
+        params = self.omit(params, ['until'])
         duration = self.parse_timeframe(timeframe)
         requestedDuration = limit * duration
         sinceString = None
@@ -3438,9 +3438,9 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['start_sequence_timestamp'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until', 'till'])
+        until = self.safe_integer_n(params, ['until'])
         if until is not None:
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
             request['end_sequence_timestamp'] = self.iso8601(until)
         response = await self.v3PrivateGetBrokerageOrdersHistoricalFills(self.extend(request, params))
         #

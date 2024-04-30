@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, Currencies, Currency, FundingHistory, Int, Liquidation, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, Leverage, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3240,11 +3240,11 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'granularity': self.safe_string(timeframes, timeframe, timeframe),
         }
-        until = self.safe_integer_2(params, 'until', 'till')
+        until = self.safe_integer(params, 'until')
         limitDefined = limit is not None
         sinceDefined = since is not None
         untilDefined = until is not None
-        params = self.omit(params, ['until', 'till'])
+        params = self.omit(params, ['until'])
         response = None
         now = self.milliseconds()
         # retrievable periods listed here:
@@ -4357,6 +4357,8 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
         response = None
         if market['spot']:
+            if triggerPrice is None:
+                raise NotSupported(self.id + 'editOrder() only supports plan/trigger spot orders')
             editMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'editMarketBuyOrderRequiresPrice', True)
             if editMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
                 if price is None:
@@ -5254,8 +5256,8 @@ class bitget(Exchange, ImplicitAPI):
                 if stop:
                     if symbol is None:
                         raise ArgumentsRequired(self.id + ' fetchCanceledAndClosedOrders() requires a symbol argument')
-                    endTime = self.safe_integer_n(params, ['endTime', 'until', 'till'])
-                    params = self.omit(params, ['until', 'till'])
+                    endTime = self.safe_integer_n(params, ['endTime', 'until'])
+                    params = self.omit(params, ['until'])
                     if since is None:
                         since = now - 7776000000
                         request['startTime'] = since
@@ -7379,7 +7381,7 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def fetch_isolated_borrow_rate(self, symbol: str, params={}):
+    def fetch_isolated_borrow_rate(self, symbol: str, params={}) -> IsolatedBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
@@ -7440,7 +7442,7 @@ class bitget(Exchange, ImplicitAPI):
         first['timestamp'] = timestamp
         return self.parse_isolated_borrow_rate(first, market)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None):
+    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -7492,7 +7494,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_cross_borrow_rate(self, code: str, params={}):
+    def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable

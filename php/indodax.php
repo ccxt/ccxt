@@ -584,8 +584,8 @@ class indodax extends Exchange {
         $timeframes = $this->options['timeframes'];
         $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
         $now = $this->seconds();
-        $until = $this->safe_integer_2($params, 'until', 'till', $now);
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer($params, 'until', $now);
+        $params = $this->omit($params, array( 'until' ));
         $request = array(
             'to' => $until,
             'tf' => $selectedTimeframe,
