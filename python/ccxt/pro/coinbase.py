@@ -31,10 +31,12 @@ class coinbase(ccxt.async_support.coinbase):
                 'watchMyTrades': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
             },
             'urls': {
                 'api': {
@@ -76,7 +78,6 @@ class coinbase(ccxt.async_support.coinbase):
             messageHash = name + '::' + market['id']
             productIds = [market['id']]
         url = self.urls['api']['ws']
-        timestamp = self.number_to_string(self.seconds())
         subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
@@ -86,26 +87,62 @@ class coinbase(ccxt.async_support.coinbase):
             # 'signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
         }
         if isPrivate:
-            self.check_required_credentials()
-            isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
-            auth = timestamp + name + ','.join(productIds)
-            if not isCloudAPiKey:
-                subscribe['api_key'] = self.apiKey
-                subscribe['timestamp'] = timestamp
-                subscribe['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            else:
-                if self.apiKey.startswith('-----BEGIN'):
-                    raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
-                currentToken = self.safe_string(self.options, 'wsToken')
-                tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
-                seconds = self.seconds()
-                if currentToken is None or tokenTimestamp + 120 < seconds:
-                    # we should generate new token
-                    token = self.create_auth_token(seconds)
-                    self.options['wsToken'] = token
-                    self.options['wsTokenTimestamp'] = seconds
-                subscribe['jwt'] = self.safe_string(self.options, 'wsToken')
+            subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch(url, messageHash, subscribe, messageHash)
+
+    async def subscribe_multiple(self, name: str, isPrivate: bool, symbols: Strings = None, params={}):
+        """
+         * @ignore
+        subscribes to a websocket channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+        :param str name: the name of the channel
+        :param str[] [symbols]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: subscription to a websocket channel
+        """
+        await self.load_markets()
+        productIds = []
+        messageHashes = []
+        symbols = self.market_symbols(symbols, None, False)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            marketId = market['id']
+            productIds.append(marketId)
+            messageHashes.append(name + '::' + marketId)
+        url = self.urls['api']['ws']
+        subscribe = {
+            'type': 'subscribe',
+            'product_ids': productIds,
+            'channel': name,
+        }
+        if isPrivate:
+            subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
+        return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
+
+    def create_ws_auth(self, name: str, productIds: List[str]):
+        subscribe = {}
+        timestamp = self.number_to_string(self.seconds())
+        self.check_required_credentials()
+        isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
+        auth = timestamp + name + ','.join(productIds)
+        if not isCloudAPiKey:
+            subscribe['api_key'] = self.apiKey
+            subscribe['timestamp'] = timestamp
+            subscribe['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+        else:
+            if self.apiKey.startswith('-----BEGIN'):
+                raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
+            currentToken = self.safe_string(self.options, 'wsToken')
+            tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
+            seconds = self.seconds()
+            if currentToken is None or tokenTimestamp + 120 < seconds:
+                # we should generate new token
+                token = self.create_auth_token(seconds)
+                self.options['wsToken'] = token
+                self.options['wsTokenTimestamp'] = seconds
+            subscribe['jwt'] = self.safe_string(self.options, 'wsToken')
+        return subscribe
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -289,6 +326,25 @@ class coinbase(ccxt.async_support.coinbase):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        name = 'market_trades'
+        trades = await self.subscribe_multiple(name, False, symbols, params)
+        if self.newUpdates:
+            first = self.safe_dict(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
@@ -320,6 +376,20 @@ class coinbase(ccxt.async_support.coinbase):
         market = self.market(symbol)
         symbol = market['symbol']
         orderbook = await self.subscribe(name, False, symbol, params)
+        return orderbook.limit()
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        name = 'level2'
+        orderbook = await self.subscribe_multiple(name, False, symbols, params)
         return orderbook.limit()
 
     def handle_trade(self, client, message):
