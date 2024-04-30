@@ -3329,12 +3329,11 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#cancelAllOrders
          * @description cancel all open orders in a market
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http024_cancel_stop_all
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http022_cancel_all
+         * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+         * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' for canceling spot margin orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -3342,40 +3341,29 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'];
-        const accountId = this.safeInteger (params, 'account_id', 0);
         const request = {
-            'market': marketId,
-            // 'account_id': accountId, // SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
-            // 'side': 0, // SWAP, 0: All, 1: Sell, 2: Buy
+            'market': market['id'],
         };
-        const swap = market['swap'];
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, [ 'stop', 'account_id' ]);
         let response = undefined;
-        if (swap) {
-            if (stop) {
-                response = await this.v1PerpetualPrivatePostOrderCancelStopAll (this.extend (request, params));
-            } else {
-                response = await this.v1PerpetualPrivatePostOrderCancelAll (this.extend (request, params));
-            }
+        if (market['swap']) {
+            request['market_type'] = 'FUTURES';
+            response = await this.v2PrivatePostFuturesCancelAllOrder (this.extend (request, params));
+            //
+            // {"code":0,"data":{},"message":"OK"}
+            //
         } else {
-            request['account_id'] = accountId;
-            if (stop) {
-                response = await this.v1PrivateDeleteOrderStopPending (this.extend (request, params));
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
+            if (marginMode !== undefined) {
+                request['market_type'] = 'MARGIN';
             } else {
-                response = await this.v1PrivateDeleteOrderPending (this.extend (request, params));
+                request['market_type'] = 'SPOT';
             }
+            response = await this.v2PrivatePostSpotCancelAllOrder (this.extend (request, params));
+            //
+            // {"code":0,"data":{},"message":"OK"}
+            //
         }
-        //
-        // Spot and Margin
-        //
-        //     {"code": 0, "data": null, "message": "Success"}
-        //
-        // Swap
-        //
-        //     {"code": 0, "data": {"status":"success"}, "message": "OK"}
-        //
         return response;
     }
 
