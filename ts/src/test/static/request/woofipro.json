@@ -1,0 +1,344 @@
+{
+    "exchange": "woofipro",
+    "skipKeys": [
+        "signature"
+    ],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://api-evm.orderly.org/v1/order",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "output": "{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"\"}"
+            },
+            {
+                "description": "Swap market sell with reduceOnly",
+                "method": "createOrder",
+                "url": "https://api-evm.orderly.org/v1/order",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"\",\"reduce_only\":true}"
+            },
+            {
+                "description": "Swap stop reduceOnly order",
+                "method": "createOrder",
+                "url": "https://api-evm.orderly.org/v1/algo/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "triggerPrice": "50000"
+                    }
+                ],
+                "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\"}"
+            },
+            {
+                "description": "Swap stop reduceOnly order",
+                "method": "createOrder",
+                "url": "https://api-evm.orderly.org/v1/algo/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "triggerPrice": "50000",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\",\"reduce_only\":true}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Swap orders",
+                "method": "fetchOrders",
+                "url": "https://api-evm.orderly.org/v1/orders?symbol=PERP_LTC_USDC&size=500",
+                "input": [
+                    "LTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Swap private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api-evm.orderly.org/v1/trades?start_t=1699457638000&symbol=PERP_LTC_USDC&size=5",
+                "input": [
+                    "LTC/USDC:USDC",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel swap orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-evm.orderly.org/v1/orders?symbol=PERP_LTC_USDC",
+                "input": [
+                    "LTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api-evm.orderly.org/v1/client/holding",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPositions",
+                "url": "https://api-evm.orderly.org/v1/positions",
+                "input": [
+                    [
+                        "LTC/USDC:USDC"
+                    ]
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set linear leverage",
+                "method": "setLeverage",
+                "url": "https://api-evm.orderly.org/v1/client/leverage",
+                "input": [
+                    5,
+                    "LTC/USDC:USDC"
+                ],
+                "output": "{\"leverage\":5}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api-evm.orderly.org/v1/asset/history?side=DEPOSIT",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api-evm.orderly.org/v1/asset/history?side=WITHDRAW",
+                "input": []
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://api-evm.orderly.org/v1/asset/history?balance_token=USDC",
+                "input": [
+                    "USDC"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Swap edit order",
+                "method": "editOrder",
+                "url": "https://api-evm.orderly.org/v1/algo/order",
+                "input": [
+                    "1111779",
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "triggerPrice": 1
+                    }
+                ],
+                "output": "{\"order_id\":\"1111779\",\"quantity\":\"0.0001\",\"triggerPrice\":\"1\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-evm.orderly.org/v1/kline?symbol=PERP_BTC_USDC&type=1m",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://api-evm.orderly.org/v1/public/market_trades?symbol=PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api-evm.orderly.org/v1/public/market_trades?symbol=PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api-evm.orderly.org/v1/order?order_id=1111779&symbol=PERP_LTC_USDC",
+                "input": [
+                    "1111779",
+                    "LTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "cancelOrder - algo",
+                "method": "cancelOrder",
+                "url": "https://api-evm.orderly.org/v1/algo/order?order_id=1111779&symbol=PERP_LTC_USDC",
+                "input": [
+                    "1111779",
+                    "LTC/USDC:USDC",
+                    {
+                        "stop": true
+                    }
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api-evm.orderly.org/v1/public/system_info",
+                "input": []
+            },
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api-evm.orderly.org/v1/public/system_info",
+                "input": []
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://api-evm.orderly.org/v1/public/system_info",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api-evm.orderly.org/v1/public/info",
+                "input": []
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api-evm.orderly.org/v1/client/info",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api-evm.orderly.org/v1/public/token",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api-evm.orderly.org/v1/orderbook/PERP_LTC_USDC?max_level=5",
+                "input": [
+                    "LTC/USDC:USDC",
+                    5
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api-evm.orderly.org/v1/orderbook/PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades",
+                "method": "fetchOrderTrades",
+                "url": "https://api-evm.orderly.org/v1/order/1034475822/trades",
+                "input": [
+                    "1034475822",
+                    "LTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-evm.orderly.org/v1/public/funding_rate_history?symbol=PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api-evm.orderly.org/v1/public/funding_rate/PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-evm.orderly.org/v1/orders?size=500&status=INCOMPLETE",
+                "input": []
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-evm.orderly.org/v1/orders?size=500&status=COMPLETED",
+                "input": []
+            }
+        ]
+    }
+}

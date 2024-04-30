@@ -505,7 +505,7 @@ export default class woofipro extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': this.safeTimestamp (market, 'created_time'),
+            'created': this.safeInteger (market, 'created_time'),
             'info': market,
         };
     }
@@ -690,7 +690,7 @@ export default class woofipro extends Exchange {
         //         "symbol": "SPOT_WOO_USDT",
         //         "fee": "0.0024",
         //         "side": "BUY",
-        //         "executed_timestamp": "1641481113.084",
+        //         "executed_timestamp": "1641481113084",
         //         "order_id": "87001234",
         //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
         //         "executed_price": "1",
@@ -866,8 +866,7 @@ export default class woofipro extends Exchange {
         //     "success": true,
         //     "timestamp": 1702989203989,
         //     "data": {
-        //       "rows": [
-        //         {
+        //       "rows": [{
         //         "symbol": "PERP_ETH_USDC",
         //         "est_funding_rate": 123,
         //         "est_funding_rate_timestamp": 1683880020000,
@@ -875,8 +874,7 @@ export default class woofipro extends Exchange {
         //         "last_funding_rate_timestamp": 1683878400000,
         //         "next_funding_time": 1683907200000,
         //         "sum_unitary_funding": 521.367
-        //         }
-        //       ]
+        //       }]
         //     }
         // }
         //
@@ -971,25 +969,25 @@ export default class woofipro extends Exchange {
         //     "success": true,
         //     "timestamp": 1702989203989,
         //     "data": {
-        //     "account_id": "<string>",
-        //     "email": "test@test.com",
-        //     "account_mode": "FUTURES",
-        //     "max_leverage": 20,
-        //     "taker_fee_rate": 123,
-        //     "maker_fee_rate": 123,
-        //     "futures_taker_fee_rate": 123,
-        //     "futures_maker_fee_rate": 123,
-        //     "maintenance_cancel_orders": true,
-        //     "imr_factor": {
-        //         "PERP_BTC_USDC": 123,
-        //         "PERP_ETH_USDC": 123,
-        //         "PERP_NEAR_USDC": 123
-        //     },
-        //     "max_notional": {
-        //         "PERP_BTC_USDC": 123,
-        //         "PERP_ETH_USDC": 123,
-        //         "PERP_NEAR_USDC": 123
-        //     }
+        //         "account_id": "<string>",
+        //         "email": "test@test.com",
+        //         "account_mode": "FUTURES",
+        //         "max_leverage": 20,
+        //         "taker_fee_rate": 123,
+        //         "maker_fee_rate": 123,
+        //         "futures_taker_fee_rate": 123,
+        //         "futures_maker_fee_rate": 123,
+        //         "maintenance_cancel_orders": true,
+        //         "imr_factor": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         },
+        //         "max_notional": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         }
         //     }
         // }
         //
@@ -1392,6 +1390,7 @@ export default class woofipro extends Exchange {
             //
         }
         const data = this.safeDict (response, 'data');
+        data['timestamp'] = this.safeInteger (response, 'timestamp');
         const order = this.parseOrder (data, market);
         order['type'] = type;
         return order;
@@ -1458,6 +1457,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
+        data['timestamp'] = this.safeInteger (response, 'timestamp');
         return this.parseOrder (data, market);
     }
 
@@ -1571,7 +1571,7 @@ export default class woofipro extends Exchange {
         //     "success": true,
         //     "timestamp": 1702989203989,
         //     "data": {
-        //     "status": "CANCEL_ALL_SENT"
+        //         "status": "CANCEL_ALL_SENT"
         //     }
         // }
         //
@@ -1666,25 +1666,25 @@ export default class woofipro extends Exchange {
         //     "success": true,
         //     "timestamp": 1702989203989,
         //     "data": {
-        //     "order_id": 78151,
-        //     "user_id": 12345,
-        //     "price": 0.67772,
-        //     "type": "LIMIT",
-        //     "quantity": 20,
-        //     "amount": 10,
-        //     "executed_quantity": 20,
-        //     "total_executed_quantity": 20,
-        //     "visible_quantity": 1,
-        //     "symbol": "PERP_WOO_USDC",
-        //     "side": "BUY",
-        //     "status": "FILLED",
-        //     "total_fee": 0.5,
-        //     "fee_asset": "WOO",
-        //     "client_order_id": 1,
-        //     "average_executed_price": 0.67772,
-        //     "created_time": 1653563963000,
-        //     "updated_time": 1653564213000,
-        //     "realized_pnl": 123
+        //         "order_id": 78151,
+        //         "user_id": 12345,
+        //         "price": 0.67772,
+        //         "type": "LIMIT",
+        //         "quantity": 20,
+        //         "amount": 10,
+        //         "executed_quantity": 20,
+        //         "total_executed_quantity": 20,
+        //         "visible_quantity": 1,
+        //         "symbol": "PERP_WOO_USDC",
+        //         "side": "BUY",
+        //         "status": "FILLED",
+        //         "total_fee": 0.5,
+        //         "fee_asset": "WOO",
+        //         "client_order_id": 1,
+        //         "average_executed_price": 0.67772,
+        //         "created_time": 1653563963000,
+        //         "updated_time": 1653564213000,
+        //         "realized_pnl": 123
         //     }
         // }
         //
@@ -1742,33 +1742,36 @@ export default class woofipro extends Exchange {
         }
         //
         //     {
-        //         "success":true,
-        //         "meta":{
-        //             "total":1,
-        //             "records_per_page":100,
-        //             "current_page":1
-        //         },
-        //         "rows":[
-        //             {
-        //                 "symbol":"PERP_BTC_USDT",
-        //                 "status":"FILLED",
-        //                 "side":"SELL",
-        //                 "created_time":"1611617776.000",
-        //                 "updated_time":"1611617776.000",
-        //                 "order_id":52121167,
-        //                 "order_tag":"default",
-        //                 "price":null,
-        //                 "type":"MARKET",
-        //                 "quantity":0.002,
-        //                 "amount":null,
-        //                 "visible":0,
-        //                 "executed":0.002,
-        //                 "total_fee":0.01732885,
-        //                 "fee_asset":"USDT",
-        //                 "client_order_id":null,
-        //                 "average_executed_price":28881.41
-        //             }
-        //         ]
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "meta": {
+        //                 "total": 9,
+        //                 "records_per_page": 25,
+        //                 "current_page": 1
+        //             },
+        //             "rows": [{
+        //                 "order_id": 78151,
+        //                 "user_id": 12345,
+        //                 "price": 0.67772,
+        //                 "type": "LIMIT",
+        //                 "quantity": 20,
+        //                 "amount": 10,
+        //                 "executed_quantity": 20,
+        //                 "total_executed_quantity": 20,
+        //                 "visible_quantity": 1,
+        //                 "symbol": "PERP_WOO_USDC",
+        //                 "side": "BUY",
+        //                 "status": "FILLED",
+        //                 "total_fee": 0.5,
+        //                 "fee_asset": "WOO",
+        //                 "client_order_id": 1,
+        //                 "average_executed_price": 0.67772,
+        //                 "created_time": 1653563963000,
+        //                 "updated_time": 1653564213000,
+        //                 "realized_pnl": 123
+        //             }]
+        //         }
         //     }
         //
         const data = this.safeValue (response, 'data', response);
@@ -2327,25 +2330,25 @@ export default class woofipro extends Exchange {
         //     "success": true,
         //     "timestamp": 1702989203989,
         //     "data": {
-        //     "account_id": "<string>",
-        //     "email": "test@test.com",
-        //     "account_mode": "FUTURES",
-        //     "max_leverage": 20,
-        //     "taker_fee_rate": 123,
-        //     "maker_fee_rate": 123,
-        //     "futures_taker_fee_rate": 123,
-        //     "futures_maker_fee_rate": 123,
-        //     "maintenance_cancel_orders": true,
-        //     "imr_factor": {
-        //         "PERP_BTC_USDC": 123,
-        //         "PERP_ETH_USDC": 123,
-        //         "PERP_NEAR_USDC": 123
-        //     },
-        //     "max_notional": {
-        //         "PERP_BTC_USDC": 123,
-        //         "PERP_ETH_USDC": 123,
-        //         "PERP_NEAR_USDC": 123
-        //     }
+        //         "account_id": "<string>",
+        //         "email": "test@test.com",
+        //         "account_mode": "FUTURES",
+        //         "max_leverage": 20,
+        //         "taker_fee_rate": 123,
+        //         "maker_fee_rate": 123,
+        //         "futures_taker_fee_rate": 123,
+        //         "futures_maker_fee_rate": 123,
+        //         "maintenance_cancel_orders": true,
+        //         "imr_factor": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         },
+        //         "max_notional": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         }
         //     }
         // }
         //
@@ -2465,24 +2468,24 @@ export default class woofipro extends Exchange {
         //     "success": true,
         //     "timestamp": 1702989203989,
         //     "data": {
-        //     "IMR_withdraw_orders": 0.1,
-        //     "MMR_with_orders": 0.05,
-        //     "average_open_price": 27908.14386047,
-        //     "cost_position": -139329.358492,
-        //     "est_liq_price": 117335.92899428,
-        //     "fee_24_h": 123,
-        //     "imr": 0.1,
-        //     "last_sum_unitary_funding": 70.38,
-        //     "mark_price": 27794.9,
-        //     "mmr": 0.05,
-        //     "pending_long_qty": 123,
-        //     "pending_short_qty": 123,
-        //     "pnl_24_h": 123,
-        //     "position_qty": -5,
-        //     "settle_price": 27865.8716984,
-        //     "symbol": "PERP_BTC_USDC",
-        //     "timestamp": 1685429350571,
-        //     "unsettled_pnl": 354.858492
+        //         "IMR_withdraw_orders": 0.1,
+        //         "MMR_with_orders": 0.05,
+        //         "average_open_price": 27908.14386047,
+        //         "cost_position": -139329.358492,
+        //         "est_liq_price": 117335.92899428,
+        //         "fee_24_h": 123,
+        //         "imr": 0.1,
+        //         "last_sum_unitary_funding": 70.38,
+        //         "mark_price": 27794.9,
+        //         "mmr": 0.05,
+        //         "pending_long_qty": 123,
+        //         "pending_short_qty": 123,
+        //         "pnl_24_h": 123,
+        //         "position_qty": -5,
+        //         "settle_price": 27865.8716984,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "timestamp": 1685429350571,
+        //         "unsettled_pnl": 354.858492
         //     }
         // }
         //
