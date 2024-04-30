@@ -1207,7 +1207,7 @@ class Exchange(object):
     def ymdhms(timestamp, infix=' '):
         utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
-    
+
     @staticmethod
     def parse_date(timestamp=None):
         if timestamp is None:
