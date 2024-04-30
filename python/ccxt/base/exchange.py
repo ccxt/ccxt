@@ -1216,7 +1216,7 @@ class Exchange(object):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                string = ''.join([str(value).zfill(2) for value in parsedate(timestamp)[:6]]) + '.000Z'
                 dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
                 return calendar.timegm(dt.utctimetuple()) * 1000
             except (TypeError, OverflowError, OSError):
@@ -4638,6 +4638,13 @@ class Exchange(object):
                 return self.safe_dict(addressStructures, key)
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
+
+    def add_zero_prefix_to_date(self, date: str):
+        if len(date) == 0:
+            return '00'
+        elif len(date) == 1:
+            return '0' + date
+        return date
 
     def account(self) -> BalanceAccount:
         return {
