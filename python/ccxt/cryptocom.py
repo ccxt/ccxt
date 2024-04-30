@@ -671,8 +671,8 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_time'] = until
         response = self.v1PrivatePostPrivateGetOrderHistory(self.extend(request, params))
@@ -744,8 +744,8 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_ts'] = since
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_ts'] = until
         response = self.v1PublicGetPublicGetTrades(self.extend(request, params))
@@ -800,8 +800,8 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_ts'] = since
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_ts'] = until
         response = self.v1PublicGetPublicGetCandlestick(self.extend(request, params))
@@ -1468,8 +1468,8 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_time'] = until
         response = self.v1PrivatePostPrivateGetTrades(self.extend(request, params))
@@ -1671,8 +1671,8 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_ts'] = until
         response = self.v1PrivatePostPrivateGetDepositHistory(self.extend(request, params))
@@ -1724,8 +1724,8 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_ts'] = until
         response = self.v1PrivatePostPrivateGetWithdrawalHistory(self.extend(request, params))
@@ -2215,8 +2215,8 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_time'] = until
         response = self.v1PrivatePostPrivateGetTransactions(self.extend(request, params))
@@ -2521,8 +2521,8 @@ class cryptocom(Exchange, ImplicitAPI):
             request['start_ts'] = since
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_ts'] = until
         response = self.v1PublicGetPublicGetValuations(self.extend(request, params))

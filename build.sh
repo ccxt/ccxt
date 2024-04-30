@@ -82,8 +82,13 @@ build_and_test_all () {
     fi
     npm run test-base
     npm run test-base-ws
-    node test-commonjs.cjs
+    node ./utils/test-commonjs.cjs
     npm run package-test
+    npm run test-freshness
+    if [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      echo "Travis built all files and static/base tests passed, will push to master before running live tests"
+      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=false ./build/push.sh;
+    fi
     last_commit_message=$(git log -1 --pretty=%B)
     echo "Last commit: $last_commit_message" # for debugging
     if [[ "$last_commit_message" == *"skip-tests"* ]]; then

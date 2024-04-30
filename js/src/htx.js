@@ -6757,11 +6757,7 @@ export default class htx extends Exchange {
         // }
         //
         const data = this.safeValue(response, 'data', []);
-        const rates = [];
-        for (let i = 0; i < data.length; i++) {
-            rates.push(this.parseIsolatedBorrowRate(data[i]));
-        }
-        return rates;
+        return this.parseIsolatedBorrowRates(data);
     }
     parseIsolatedBorrowRate(info, market = undefined) {
         //
@@ -8752,8 +8748,8 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         const market = this.market(symbol);
         const request = {};
         if (market['future']) {

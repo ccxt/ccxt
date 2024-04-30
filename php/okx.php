@@ -3948,10 +3948,10 @@ class okx extends Exchange {
             if ($since !== null) {
                 $request['begin'] = $since;
             }
-            $until = $this->safe_integer_2($query, 'till', 'until');
+            $until = $this->safe_integer($query, 'until');
             if ($until !== null) {
                 $request['end'] = $until;
-                $query = $this->omit($query, array( 'until', 'till' ));
+                $query = $this->omit($query, array( 'until' ));
             }
         }
         $send = $this->omit($query, array( 'method', 'stop', 'trigger', 'trailing' ));
@@ -4133,10 +4133,10 @@ class okx extends Exchange {
             if ($since !== null) {
                 $request['begin'] = $since;
             }
-            $until = $this->safe_integer_2($query, 'till', 'until');
+            $until = $this->safe_integer($query, 'until');
             if ($until !== null) {
                 $request['end'] = $until;
-                $query = $this->omit($query, array( 'until', 'till' ));
+                $query = $this->omit($query, array( 'until' ));
             }
             $request['state'] = 'filled';
         }
@@ -6289,7 +6289,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function fetch_cross_borrow_rates($params = array ()) {
+    public function fetch_cross_borrow_rates($params = array ()): CrossBorrowRates {
         /**
          * fetch the borrow interest $rates of all currencies
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
@@ -6318,7 +6318,7 @@ class okx extends Exchange {
         return $rates;
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): array {
         /**
          * fetch the $rate of interest to borrow a $currency for margin trading
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-$rate
@@ -6998,10 +6998,10 @@ class okx extends Exchange {
             if ($since !== null) {
                 $request['begin'] = $since;
             }
-            $until = $this->safe_integer_2($params, 'till', 'until');
+            $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
                 $request['end'] = $until;
-                $params = $this->omit($params, array( 'until', 'till' ));
+                $params = $this->omit($params, array( 'until' ));
             }
             $response = $this->publicGetRubikStatContractsOpenInterestVolume (array_merge($request, $params));
         }

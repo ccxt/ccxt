@@ -782,7 +782,7 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.till</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
     /// </description>
@@ -861,7 +861,7 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.till</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
     /// </description>

@@ -1660,7 +1660,7 @@ public partial class hitbtc : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
@@ -2840,7 +2840,7 @@ public partial class hitbtc : Exchange
         }
         object market = null;
         object request = new Dictionary<string, object>() {};
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(symbol, null)))
