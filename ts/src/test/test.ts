@@ -118,8 +118,11 @@ function ioFileExists (path) {
 }
 
 function ioFileRead (path, decode = true) {
-    const content = fs.readFileSync (path, 'utf8');
-    return decode ? JSON.parse (content) : content;
+    if (fs.existsSync (path)) {
+        const content = fs.readFileSync (path, 'utf8');
+        return decode ? JSON.parse (content) : content;
+    }
+    return undefined;
 }
 
 function ioDirRead (path) {
@@ -1050,6 +1053,12 @@ export default class testMainClass extends baseMainTestClass {
         return content;
     }
 
+    loadCredentialsFromFile (id: string) {
+        const filename = this.rootDir + './ts/src/test/static/credentials/' + id + '.json';
+        const content = ioFileRead (filename);
+        return content;
+    }
+
     loadStaticData (folder: string, targetExchange: Str = undefined) {
         const result = {};
         if (targetExchange) {
@@ -1320,8 +1329,17 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
+        const credentials = this.loadCredentialsFromFile (exchangeName);
         const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
+        if (credentials !== undefined) {
+            const keys = Object.keys (credentials);
+            for (let i=0; i<keys.length; i++) {
+                const credential = keys[i];
+                const credentialValue = credentials[credential];
+                setExchangeProp (exchange, credential, credentialValue);
+            }
+        }
         return exchange;
     }
 
