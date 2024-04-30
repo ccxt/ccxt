@@ -4639,13 +4639,6 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 
-    def add_zero_prefix_to_date(self, date: str):
-        if len(date) == 0:
-            return '00'
-        elif len(date) == 1:
-            return '0' + date
-        return date
-
     def account(self) -> BalanceAccount:
         return {
             'free': None,
