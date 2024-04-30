@@ -5788,9 +5788,21 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        first = self.safe_value(data, 0, {})
-        return self.parse_position(first, market)
+        positions = self.safe_value(response, 'data', [])
+        if len(positions) == 0:
+            positions.append({})
+        elif len(positions) == 1:
+            pos = positions[0]
+            if pos['posMode'] == 'hedge_mode':
+                positions.append({
+                    'holdSide': 'short' if pos['holdSide'] == 'long' else 'long',
+                    'marginMode': pos['marginMode'],
+                    'posMode': pos['posMode'],
+                })
+        result = []
+        for position in positions:
+            result.append(self.parse_position(position, market))
+        return result
 
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
