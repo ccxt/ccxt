@@ -1797,9 +1797,13 @@ class kraken(Exchange, ImplicitAPI):
         if since is not None:
             request['start'] = since
         if limit is not None:
-            request['count'] = limit
-        response = await self.privatePostGetOpenOrders(self.extend(request, params))
-        return self.parse_orders(response['result']['closed'], market, since, limit)
+            request['count'] = limit    
+        request['trades'] = True
+        open_orders_response = await self.privatePostOpenOrders(self.extend(request, params))
+        closed_orders_response = await self.privatePostClosedOrders(self.extend(request, params))
+        open_orders = self.parse_orders(open_orders_response['result']['open'], market, since, limit)
+        closed_orders = self.parse_orders(closed_orders_response['result']['closed'], market, since, limit)
+        return open_orders + closed_orders
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

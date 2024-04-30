@@ -14,6 +14,7 @@ class ImplicitAPI:
     public_get_time = publicGetTime = Entry('Time', 'public', 'GET', {'cost': 1})
     public_get_trades = publicGetTrades = Entry('Trades', 'public', 'GET', {'cost': 1.2})
     private_post_open_orders = privatePostGetOpenOrders = Entry('OpenOrders', 'private', 'POST', {'cost': 1})
+    private_post_closed_orders = privatePostClosedOrders = Entry('ClosedOrders', 'private', 'POST', {'cost': 1})
     private_post_addorder = privatePostAddOrder = Entry('AddOrder', 'private', 'POST', {'cost': 0})
     private_post_addorderbatch = privatePostAddOrderBatch = Entry('AddOrderBatch', 'private', 'POST', {'cost': 0})
     private_post_addexport = privatePostAddExport = Entry('AddExport', 'private', 'POST', {'cost': 3})
