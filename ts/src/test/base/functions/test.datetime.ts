@@ -51,9 +51,9 @@ assert (exchange.parseDate ('1986-13-13 00:00:00') === undefined);
 // GMT formats
 assert (exchange.parseDate ('Mon, 29 Apr 2024 14:00:17 GMT') === 1714399217000);
 assert (exchange.parseDate ('Mon, 29 Apr 2024 14:09:17 GMT') === 1714399757000);
-assert (exchange.parseDate ('Mon, 29 Dec 2024 01:01:10 GMT') === 1735434070000);
-assert (exchange.parseDate ('Mon, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
-assert (exchange.parseDate ('Mon, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
+assert (exchange.parseDate ('Sun, 29 Dec 2024 01:01:10 GMT') === 1735434070000);
+assert (exchange.parseDate ('Sun, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
+assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
 
 
 assert (exchange.roundTimeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
