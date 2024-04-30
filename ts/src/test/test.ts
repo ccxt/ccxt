@@ -118,11 +118,8 @@ function ioFileExists (path) {
 }
 
 function ioFileRead (path, decode = true) {
-    if (fs.existsSync (path)) {
-        const content = fs.readFileSync (path, 'utf8');
-        return decode ? JSON.parse (content) : content;
-    }
-    return undefined;
+    const content = fs.readFileSync (path, 'utf8');
+    return decode ? JSON.parse (content) : content;
 }
 
 function ioDirRead (path) {
@@ -1055,8 +1052,9 @@ export default class testMainClass extends baseMainTestClass {
 
     loadCredentialsFromFile (id: string) {
         const filename = this.rootDir + './ts/src/test/static/credentials/' + id + '.json';
+        if (!ioFileExists (filename)) return undefined;
         const content = ioFileRead (filename);
-        return content;
+        return content;        
     }
 
     loadStaticData (folder: string, targetExchange: Str = undefined) {
