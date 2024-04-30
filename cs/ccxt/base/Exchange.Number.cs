@@ -301,7 +301,7 @@ public partial class Exchange
         if (number == null)
             return null;
         if (number.GetType() == typeof(string))
-            return number;
+            return number as string;
         if (number.GetType() == typeof(Int32) || number.GetType() == typeof(Int64))
             return number.ToString();
 
