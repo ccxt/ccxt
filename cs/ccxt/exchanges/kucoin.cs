@@ -2434,10 +2434,10 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object lowercaseStatus = ((string)status).ToLower();
-        object until = this.safeInteger2(parameters, "until", "till");
+        object until = this.safeInteger(parameters, "until");
         object stop = this.safeBool(parameters, "stop", false);
         object hf = this.safeBool(parameters, "hf", false);
-        parameters = this.omit(parameters, new List<object>() {"stop", "hf", "till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "hf", "until"});
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
@@ -2554,7 +2554,7 @@ public partial class kucoin : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, market, limit_stop or market_stop
         * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
@@ -2590,7 +2590,7 @@ public partial class kucoin : Exchange
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {bool} [params.stop] true if fetching stop orders
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, market, limit_stop or market_stop

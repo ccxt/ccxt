@@ -389,13 +389,25 @@ export interface TransferEntry {
     status?: Str;
 }
 
-export interface BorrowRate {
+export interface CrossBorrowRate {
+    info: any;
     currency?: Str;
-    rate?: number;
+    rate: number;
     period?: number;
     timestamp?: number;
     datetime?: Str;
-    info: any;
+}
+
+export interface IsolatedBorrowRate {
+    info: any,
+    symbol: string,
+    base: string,
+    baseRate: number,
+    quote: string,
+    quoteRate: number,
+    period?: Int,
+    timestamp?: Int,
+    datetime?: Str,
 }
 
 export interface FundingRateHistory {
@@ -558,6 +570,12 @@ export interface MarginModes extends Dictionary<MarginMode> {
 }
 
 export interface OptionChain extends Dictionary<Option> {
+}
+
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+}
+
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

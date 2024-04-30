@@ -3274,9 +3274,9 @@ class coinbase extends coinbase$1 {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until', 'till']);
+        const until = this.safeIntegerN(params, ['until']);
         if (until !== undefined) {
-            params = this.omit(params, ['until', 'till']);
+            params = this.omit(params, ['until']);
             request['end_date'] = this.iso8601(until);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, params));
@@ -3350,9 +3350,9 @@ class coinbase extends coinbase$1 {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until', 'till']);
+        const until = this.safeIntegerN(params, ['until']);
         if (until !== undefined) {
-            params = this.omit(params, ['until', 'till']);
+            params = this.omit(params, ['until']);
             request['end_date'] = this.iso8601(until);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, params));
@@ -3493,8 +3493,8 @@ class coinbase extends coinbase$1 {
             'product_id': market['id'],
             'granularity': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const until = this.safeIntegerN(params, ['until', 'till', 'end']);
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeIntegerN(params, ['until', 'end']);
+        params = this.omit(params, ['until']);
         const duration = this.parseTimeframe(timeframe);
         const requestedDuration = limit * duration;
         let sinceString = undefined;
@@ -3638,9 +3638,9 @@ class coinbase extends coinbase$1 {
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until', 'till']);
+        const until = this.safeIntegerN(params, ['until']);
         if (until !== undefined) {
-            params = this.omit(params, ['until', 'till']);
+            params = this.omit(params, ['until']);
             request['end_sequence_timestamp'] = this.iso8601(until);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills(this.extend(request, params));

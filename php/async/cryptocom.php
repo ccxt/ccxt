@@ -683,8 +683,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_time'] = $until;
             }
@@ -763,8 +763,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
@@ -826,8 +826,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
@@ -1578,8 +1578,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_time'] = $until;
             }
@@ -1805,8 +1805,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
@@ -1865,8 +1865,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
@@ -2389,8 +2389,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_time'] = $until;
             }
@@ -2719,8 +2719,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }

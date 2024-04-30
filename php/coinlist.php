@@ -680,9 +680,9 @@ class coinlist extends Exchange {
                 $request['end_time'] = $this->iso8601($this->milliseconds());
             }
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->publicGetV1SymbolsSymbolCandles (array_merge($request, $params));
@@ -758,9 +758,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = min ($limit, 500);
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->publicGetV1SymbolsSymbolAuctions (array_merge($request, $params));
@@ -1158,9 +1158,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->privateGetV1Fills (array_merge($request, $params));
@@ -1244,9 +1244,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->privateGetV1Orders (array_merge($request, $params));
@@ -1767,9 +1767,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->privateGetV1Transfers (array_merge($request, $params));
@@ -2068,9 +2068,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $params = $this->omit($params, array( 'trader_id', 'traderId' ));

@@ -410,13 +410,21 @@ public partial class coinex
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade016_batch_cancel_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021-0_cancel_order_batch"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-stop-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for canceling stop orders
     /// </description>
     /// </item>
     /// </list>
@@ -427,6 +435,36 @@ public partial class coinex
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
+    /// <summary>
+    /// edit a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/edit-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/edit-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : the price to trigger stop orders
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -438,14 +476,14 @@ public partial class coinex
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade024_cancel_order_by_client_id"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade025_cancel_stop_order_by_client_id"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http042_cancel_order_by_client_id"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http043_cancel_stop_order_by_client_id"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-order-by-client-id"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order-by-client-id"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-order-by-client-id"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order-by-client-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -460,14 +498,14 @@ public partial class coinex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : if stop order = true, default = false
+    /// boolean : set to true for canceling a trigger order
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
@@ -1077,10 +1115,10 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new IsolatedBorrowRate(res);
     }
     /// <summary>
     /// fetch the borrow interest rates of all currencies
@@ -1097,10 +1135,10 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRates(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return new IsolatedBorrowRates(res);
     }
     public async Task<Dictionary<string, object>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {

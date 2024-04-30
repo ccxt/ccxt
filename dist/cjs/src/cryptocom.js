@@ -677,8 +677,8 @@ class cryptocom extends cryptocom$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -756,8 +756,8 @@ class cryptocom extends cryptocom$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -818,8 +818,8 @@ class cryptocom extends cryptocom$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -1591,8 +1591,8 @@ class cryptocom extends cryptocom$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -1814,8 +1814,8 @@ class cryptocom extends cryptocom$1 {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -1873,8 +1873,8 @@ class cryptocom extends cryptocom$1 {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -2387,8 +2387,8 @@ class cryptocom extends cryptocom$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -2710,8 +2710,8 @@ class cryptocom extends cryptocom$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }

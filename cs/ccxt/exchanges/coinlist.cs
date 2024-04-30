@@ -690,10 +690,10 @@ public partial class coinlist : Exchange
                 ((IDictionary<string,object>)request)["end_time"] = this.iso8601(this.milliseconds());
             }
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.publicGetV1SymbolsSymbolCandles(this.extend(request, parameters));
@@ -769,10 +769,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 500);
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.publicGetV1SymbolsSymbolAuctions(this.extend(request, parameters));
@@ -1206,10 +1206,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Fills(this.extend(request, parameters));
@@ -1305,10 +1305,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Orders(this.extend(request, parameters));
@@ -1898,10 +1898,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Transfers(this.extend(request, parameters));
@@ -2229,10 +2229,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         parameters = this.omit(parameters, new List<object>() {"trader_id", "traderId"});

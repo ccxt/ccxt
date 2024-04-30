@@ -3357,11 +3357,11 @@ class bitget extends Exchange {
                 'symbol' => $market['id'],
                 'granularity' => $this->safe_string($timeframes, $timeframe, $timeframe),
             );
-            $until = $this->safe_integer_2($params, 'until', 'till');
+            $until = $this->safe_integer($params, 'until');
             $limitDefined = $limit !== null;
             $sinceDefined = $since !== null;
             $untilDefined = $until !== null;
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $response = null;
             $now = $this->milliseconds();
             // retrievable periods listed here:
@@ -4570,6 +4570,9 @@ class bitget extends Exchange {
             $params = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ));
             $response = null;
             if ($market['spot']) {
+                if ($triggerPrice === null) {
+                    throw new NotSupported($this->id . 'editOrder() only supports plan/trigger spot orders');
+                }
                 $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
                 if ($editMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
                     if ($price === null) {
@@ -5566,8 +5569,8 @@ class bitget extends Exchange {
                         if ($symbol === null) {
                             throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
                         }
-                        $endTime = $this->safe_integer_n($params, array( 'endTime', 'until', 'till' ));
-                        $params = $this->omit($params, array( 'until', 'till' ));
+                        $endTime = $this->safe_integer_n($params, array( 'endTime', 'until' ));
+                        $params = $this->omit($params, array( 'until' ));
                         if ($since === null) {
                             $since = $now - 7776000000;
                             $request['startTime'] = $since;
@@ -7870,7 +7873,7 @@ class bitget extends Exchange {
         ));
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
@@ -7934,7 +7937,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -7987,7 +7990,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading
@@ -8387,7 +8390,7 @@ class bitget extends Exchange {
             /**
              * fetches historical $positions
              * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-             * @param {string} [symbol] unified contract $symbols
+             * @param {string[]} [$symbols] unified contract $symbols
              * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
              * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
              * @param {array} $params extra parameters specific to the exchange api endpoint

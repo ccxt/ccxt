@@ -3244,9 +3244,9 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params));
@@ -3321,9 +3321,9 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params));
@@ -3460,8 +3460,8 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $until = $this->safe_integer_n($params, array( 'until', 'till', 'end' ));
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until', 'end' ));
+        $params = $this->omit($params, array( 'until' ));
         $duration = $this->parse_timeframe($timeframe);
         $requestedDuration = $limit * $duration;
         $sinceString = null;
@@ -3601,9 +3601,9 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_sequence_timestamp'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_sequence_timestamp'] = $this->iso8601($until);
         }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalFills (array_merge($request, $params));

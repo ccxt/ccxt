@@ -121,6 +121,16 @@ public partial class blofin : Exchange
         return await this.callAsync ("privateGetTradeOrdersTpslHistory",parameters);
     }
 
+    public async Task<object> privateGetUserQueryApikey (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUserQueryApikey",parameters);
+    }
+
+    public async Task<object> privateGetAffiliateBasic (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAffiliateBasic",parameters);
+    }
+
     public async Task<object> privatePostTradeOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostTradeOrder",parameters);

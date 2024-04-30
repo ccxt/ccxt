@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3353,11 +3353,11 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'granularity': this.safeString (timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger2 (params, 'until', 'till');
+        const until = this.safeInteger (params, 'until');
         const limitDefined = limit !== undefined;
         const sinceDefined = since !== undefined;
         const untilDefined = until !== undefined;
-        params = this.omit (params, [ 'until', 'till' ]);
+        params = this.omit (params, [ 'until' ]);
         let response = undefined;
         const now = this.milliseconds ();
         // retrievable periods listed here:
@@ -4566,6 +4566,9 @@ export default class bitget extends Exchange {
         params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ]);
         let response = undefined;
         if (market['spot']) {
+            if (triggerPrice === undefined) {
+                throw new NotSupported (this.id + 'editOrder() only supports plan/trigger spot orders');
+            }
             const editMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {
@@ -5562,8 +5565,8 @@ export default class bitget extends Exchange {
                     if (symbol === undefined) {
                         throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                     }
-                    const endTime = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
-                    params = this.omit (params, [ 'until', 'till' ]);
+                    const endTime = this.safeIntegerN (params, [ 'endTime', 'until' ]);
+                    params = this.omit (params, [ 'until' ]);
                     if (since === undefined) {
                         since = now - 7776000000;
                         request['startTime'] = since;
@@ -7863,7 +7866,7 @@ export default class bitget extends Exchange {
         });
     }
 
-    async fetchIsolatedBorrowRate (symbol: string, params = {}) {
+    async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<IsolatedBorrowRate> {
         /**
          * @method
          * @name bitget#fetchIsolatedBorrowRate
@@ -7927,7 +7930,7 @@ export default class bitget extends Exchange {
         return this.parseIsolatedBorrowRate (first, market);
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined) {
+    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -7980,7 +7983,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    async fetchCrossBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
         /**
          * @method
          * @name bitget#fetchCrossBorrowRate
