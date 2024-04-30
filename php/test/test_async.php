@@ -1108,6 +1108,13 @@ class testMainClass extends baseMainTestClass {
         return $content;
     }
 
+    public function load_credentials_from_file($id) {
+        $filename = $this->root_dir . './ts/src/test/static/credentials/' . $id . '.json';
+        if (!io_file_exists($filename)) return null;
+        $content = io_file_read($filename);
+        return $content;
+    }
+
     public function load_static_data($folder, $target_exchange = null) {
         $result = array();
         if ($target_exchange) {
@@ -1374,6 +1381,7 @@ class testMainClass extends baseMainTestClass {
     public function init_offline_exchange($exchange_name) {
         $markets = $this->load_markets_from_file($exchange_name);
         $currencies = $this->load_currencies_from_file($exchange_name);
+        $credentials = $this->load_credentials_from_file($exchange_name);
         $exchange = init_exchange($exchange_name, array(
             'markets' => $markets,
             'currencies' => $currencies,
@@ -1404,6 +1412,14 @@ class testMainClass extends baseMainTestClass {
             ),
         ));
         $exchange->currencies = $currencies; // not working in python if assigned  in the config dict
+        if (is_array($credentials)) {
+            $objkeys = array_keys($credentials);
+            for ($i = 0; $i < count($objkeys); $i++) {
+                $credential = $objkeys[$i];
+                $credential_value = $credentials[$credential];
+                set_exchange_prop($exchange, $credential, $credential_value);
+            }
+        }
         return $exchange;
     }
 
