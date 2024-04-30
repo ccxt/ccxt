@@ -515,15 +515,19 @@ public partial class coinex
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http024_cancel_stop_all"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http022_cancel_all"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' for canceling spot margin orders
     /// </description>
     /// </item>
     /// </list>
@@ -538,9 +542,8 @@ public partial class coinex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http028_stop_status"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http026_order_status"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade007_order_status"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/get-order-status"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/get-order-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
