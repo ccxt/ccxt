@@ -1664,121 +1664,6 @@ class coinex(Exchange, ImplicitAPI):
 
     def parse_order(self, order, market: Market = None) -> Order:
         #
-        # fetchOrder
-        #
-        #     {
-        #         "amount": "0.1",
-        #         "asset_fee": "0.22736197736197736197",
-        #         "avg_price": "196.85000000000000000000",
-        #         "create_time": 1537270135,
-        #         "deal_amount": "0.1",
-        #         "deal_fee": "0",
-        #         "deal_money": "19.685",
-        #         "fee_asset": "CET",
-        #         "fee_discount": "0.5",
-        #         "id": 1788259447,
-        #         "left": "0",
-        #         "maker_fee_rate": "0",
-        #         "market": "ETHUSDT",
-        #         "order_type": "limit",
-        #         "price": "170.00000000",
-        #         "status": "done",
-        #         "taker_fee_rate": "0.0005",
-        #         "type": "sell",
-        #         "client_id": "",
-        #     }
-        #
-        # Spot and Margin cancelOrder, fetchOrder
-        #
-        #      {
-        #          "amount":"1.5",
-        #          "asset_fee":"0",
-        #          "avg_price":"0.14208538",
-        #          "client_id":"",
-        #          "create_time":1650993819,
-        #          "deal_amount":"10.55703267",
-        #          "deal_fee":"0.0029999999971787292",
-        #          "deal_money":"1.4999999985893646",
-        #          "fee_asset":null,
-        #          "fee_discount":"1",
-        #          "finished_time":null,
-        #          "id":74556296907,
-        #          "left":"0.0000000014106354",
-        #          "maker_fee_rate":"0",
-        #          "market":"DOGEUSDT",
-        #          "money_fee":"0.0029999999971787292",
-        #          "order_type":"market",
-        #          "price":"0",
-        #          "status":"done",
-        #          "stock_fee":"0",
-        #          "taker_fee_rate":"0.002",
-        #          "type":"buy"
-        #          "client_id": "",
-        #      }
-        #
-        # Swap cancelOrder, fetchOrder
-        #
-        #     {
-        #         "amount": "0.0005",
-        #         "client_id": "",
-        #         "create_time": 1651004578.618224,
-        #         "deal_asset_fee": "0.00000000000000000000",
-        #         "deal_fee": "0.00000000000000000000",
-        #         "deal_profit": "0.00000000000000000000",
-        #         "deal_stock": "0.00000000000000000000",
-        #         "effect_type": 1,
-        #         "fee_asset": "",
-        #         "fee_discount": "0.00000000000000000000",
-        #         "last_deal_amount": "0.00000000000000000000",
-        #         "last_deal_id": 0,
-        #         "last_deal_price": "0.00000000000000000000",
-        #         "last_deal_role": 0,
-        #         "last_deal_time": 0,
-        #         "last_deal_type": 0,
-        #         "left": "0.0005",
-        #         "leverage": "3",
-        #         "maker_fee": "0.00030",
-        #         "market": "BTCUSDT",
-        #         "order_id": 18221659097,
-        #         "position_id": 0,
-        #         "position_type": 1,
-        #         "price": "30000.00",
-        #         "side": 2,
-        #         "source": "api.v1",
-        #         "stop_id": 0,
-        #         "taker_fee": "0.00050",
-        #         "target": 0,
-        #         "type": 1,
-        #         "update_time": 1651004578.618224,
-        #         "user_id": 3620173
-        #     }
-        #
-        # Swap Stop cancelOrder, fetchOrder
-        #
-        #     {
-        #         "amount": "0.0005",
-        #         "client_id": "",
-        #         "create_time": 1651034023.008771,
-        #         "effect_type": 1,
-        #         "fee_asset": "",
-        #         "fee_discount": "0.00000000000000000000",
-        #         "maker_fee": "0.00030",
-        #         "market": "BTCUSDT",
-        #         "order_id": 18256915101,
-        #         "price": "31000.00",
-        #         "side": 2,
-        #         "source": "api.v1",
-        #         "state": 1,
-        #         "stop_price": "31500.00",
-        #         "stop_type": 1,
-        #         "taker_fee": "0.00050",
-        #         "target": 0,
-        #         "type": 1,
-        #         "update_time": 1651034397.193624,
-        #         "user_id": 3620173
-        #     }
-        #
-        #
         # Spot and Margin fetchOpenOrders, fetchClosedOrders
         #
         #     {
@@ -1991,6 +1876,59 @@ class coinex(Exchange, ImplicitAPI):
         #         "trigger_price_type": "latest_price",
         #         "type": "limit",
         #         "updated_at": 1714187974363
+        #     }
+        #
+        # Swap fetchOrder v2
+        #
+        #     {
+        #         "amount": "0.0001",
+        #         "client_id": "x-167673045-da5f31dcd478a829",
+        #         "created_at": 1714460987164,
+        #         "fee": "0",
+        #         "fee_ccy": "USDT",
+        #         "filled_amount": "0",
+        #         "filled_value": "0",
+        #         "last_filled_amount": "0",
+        #         "last_filled_price": "0",
+        #         "maker_fee_rate": "0.0003",
+        #         "market": "BTCUSDT",
+        #         "market_type": "FUTURES",
+        #         "order_id": 137319868771,
+        #         "price": "61000",
+        #         "realized_pnl": "0",
+        #         "side": "buy",
+        #         "status": "open",
+        #         "taker_fee_rate": "0.0005",
+        #         "type": "limit",
+        #         "unfilled_amount": "0.0001",
+        #         "updated_at": 1714460987164
+        #     }
+        #
+        # Spot and Margin fetchOrder v2
+        #
+        #     {
+        #         "amount": "0.0001",
+        #         "base_fee": "0",
+        #         "ccy": "BTC",
+        #         "client_id": "x-167673045-da918d6724e3af81",
+        #         "created_at": 1714461638958,
+        #         "discount_fee": "0",
+        #         "filled_amount": "0",
+        #         "filled_value": "0",
+        #         "last_fill_amount": "0",
+        #         "last_fill_price": "0",
+        #         "maker_fee_rate": "0.002",
+        #         "market": "BTCUSDT",
+        #         "market_type": "SPOT",
+        #         "order_id": 117492012985,
+        #         "price": "61000",
+        #         "quote_fee": "0",
+        #         "side": "buy",
+        #         "status": "open",
+        #         "taker_fee_rate": "0.002",
+        #         "type": "limit",
+        #         "unfilled_amount": "0.0001",
+        #         "updated_at": 1714461638958
         #     }
         #
         rawStatus = self.safe_string(order, 'status')
@@ -3176,57 +3114,45 @@ class coinex(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http024_cancel_stop_all
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http022_cancel_all
+        :see: https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' for canceling spot margin orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
-        accountId = self.safe_integer(params, 'account_id', 0)
         request = {
-            'market': marketId,
-            # 'account_id': accountId,  # SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
-            # 'side': 0,  # SWAP, 0: All, 1: Sell, 2: Buy
+            'market': market['id'],
         }
-        swap = market['swap']
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, ['stop', 'account_id'])
         response = None
-        if swap:
-            if stop:
-                response = self.v1PerpetualPrivatePostOrderCancelStopAll(self.extend(request, params))
-            else:
-                response = self.v1PerpetualPrivatePostOrderCancelAll(self.extend(request, params))
+        if market['swap']:
+            request['market_type'] = 'FUTURES'
+            response = self.v2PrivatePostFuturesCancelAllOrder(self.extend(request, params))
+            #
+            # {"code":0,"data":{},"message":"OK"}
+            #
         else:
-            request['account_id'] = accountId
-            if stop:
-                response = self.v1PrivateDeleteOrderStopPending(self.extend(request, params))
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
+            if marginMode is not None:
+                request['market_type'] = 'MARGIN'
             else:
-                response = self.v1PrivateDeleteOrderPending(self.extend(request, params))
-        #
-        # Spot and Margin
-        #
-        #     {"code": 0, "data": null, "message": "Success"}
-        #
-        # Swap
-        #
-        #     {"code": 0, "data": {"status":"success"}, "message": "OK"}
-        #
+                request['market_type'] = 'SPOT'
+            response = self.v2PrivatePostSpotCancelAllOrder(self.extend(request, params))
+            #
+            # {"code":0,"data":{},"message":"OK"}
+            #
         return response
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http028_stop_status
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http026_order_status
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade007_order_status
+        :see: https://docs.coinex.com/api/v2/spot/order/http/get-order-status
+        :see: https://docs.coinex.com/api/v2/futures/order/http/get-order-status
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -3235,123 +3161,75 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        swap = market['swap']
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
         request = {
             'market': market['id'],
-            # 'id': id,  # SPOT
-            # 'order_id': id,  # SWAP
+            'order_id': self.parse_to_numeric(id),
         }
-        idRequest = 'order_id' if swap else 'id'
-        request[idRequest] = id
         response = None
-        if swap:
-            if stop:
-                response = self.v1PerpetualPrivateGetOrderStopStatus(self.extend(request, params))
-            else:
-                response = self.v1PerpetualPrivateGetOrderStatus(self.extend(request, params))
+        if market['swap']:
+            response = self.v2PrivateGetFuturesOrderStatus(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "amount": "0.0001",
+            #             "client_id": "x-167673045-da5f31dcd478a829",
+            #             "created_at": 1714460987164,
+            #             "fee": "0",
+            #             "fee_ccy": "USDT",
+            #             "filled_amount": "0",
+            #             "filled_value": "0",
+            #             "last_filled_amount": "0",
+            #             "last_filled_price": "0",
+            #             "maker_fee_rate": "0.0003",
+            #             "market": "BTCUSDT",
+            #             "market_type": "FUTURES",
+            #             "order_id": 137319868771,
+            #             "price": "61000",
+            #             "realized_pnl": "0",
+            #             "side": "buy",
+            #             "status": "open",
+            #             "taker_fee_rate": "0.0005",
+            #             "type": "limit",
+            #             "unfilled_amount": "0.0001",
+            #             "updated_at": 1714460987164
+            #         },
+            #         "message": "OK"
+            #     }
+            #
         else:
-            response = self.v1PrivateGetOrderStatus(self.extend(request, params))
-        #
-        # Spot
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.1",
-        #             "asset_fee": "0.22736197736197736197",
-        #             "avg_price": "196.85000000000000000000",
-        #             "create_time": 1537270135,
-        #             "deal_amount": "0.1",
-        #             "deal_fee": "0",
-        #             "deal_money": "19.685",
-        #             "fee_asset": "CET",
-        #             "fee_discount": "0.5",
-        #             "id": 1788259447,
-        #             "left": "0",
-        #             "maker_fee_rate": "0",
-        #             "market": "ETHUSDT",
-        #             "order_type": "limit",
-        #             "price": "170.00000000",
-        #             "status": "done",
-        #             "taker_fee_rate": "0.0005",
-        #             "type": "sell",
-        #         },
-        #         "message": "Ok"
-        #     }
-        #
-        # Swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "client_id": "",
-        #             "create_time": 1651004578.618224,
-        #             "deal_asset_fee": "0.00000000000000000000",
-        #             "deal_fee": "0.00000000000000000000",
-        #             "deal_profit": "0.00000000000000000000",
-        #             "deal_stock": "0.00000000000000000000",
-        #             "effect_type": 1,
-        #             "fee_asset": "",
-        #             "fee_discount": "0.00000000000000000000",
-        #             "last_deal_amount": "0.00000000000000000000",
-        #             "last_deal_id": 0,
-        #             "last_deal_price": "0.00000000000000000000",
-        #             "last_deal_role": 0,
-        #             "last_deal_time": 0,
-        #             "last_deal_type": 0,
-        #             "left": "0.0005",
-        #             "leverage": "3",
-        #             "maker_fee": "0.00030",
-        #             "market": "BTCUSDT",
-        #             "order_id": 18221659097,
-        #             "position_id": 0,
-        #             "position_type": 1,
-        #             "price": "30000.00",
-        #             "side": 2,
-        #             "source": "api.v1",
-        #             "stop_id": 0,
-        #             "taker_fee": "0.00050",
-        #             "target": 0,
-        #             "type": 1,
-        #             "update_time": 1651004578.618224,
-        #             "user_id": 3620173
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        # Swap Stop
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "client_id": "",
-        #             "create_time": 1651034023.008771,
-        #             "effect_type": 1,
-        #             "fee_asset": "",
-        #             "fee_discount": "0.00000000000000000000",
-        #             "maker_fee": "0.00030",
-        #             "market": "BTCUSDT",
-        #             "order_id": 18256915101,
-        #             "price": "31000.00",
-        #             "side": 2,
-        #             "source": "api.v1",
-        #             "state": 1,
-        #             "stop_price": "31500.00",
-        #             "stop_type": 1,
-        #             "taker_fee": "0.00050",
-        #             "target": 0,
-        #             "type": 1,
-        #             "update_time": 1651034397.193624,
-        #             "user_id": 3620173
-        #         },
-        #         "message":"OK"
-        #     }
-        #
-        data = self.safe_dict(response, 'data')
+            response = self.v2PrivateGetSpotOrderStatus(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "amount": "0.0001",
+            #             "base_fee": "0",
+            #             "ccy": "BTC",
+            #             "client_id": "x-167673045-da918d6724e3af81",
+            #             "created_at": 1714461638958,
+            #             "discount_fee": "0",
+            #             "filled_amount": "0",
+            #             "filled_value": "0",
+            #             "last_fill_amount": "0",
+            #             "last_fill_price": "0",
+            #             "maker_fee_rate": "0.002",
+            #             "market": "BTCUSDT",
+            #             "market_type": "SPOT",
+            #             "order_id": 117492012985,
+            #             "price": "61000",
+            #             "quote_fee": "0",
+            #             "side": "buy",
+            #             "status": "open",
+            #             "taker_fee_rate": "0.002",
+            #             "type": "limit",
+            #             "unfilled_amount": "0.0001",
+            #             "updated_at": 1714461638958
+            #         },
+            #         "message": "OK"
+            #     }
+            #
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
