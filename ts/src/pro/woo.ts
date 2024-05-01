@@ -16,7 +16,7 @@ export default class woo extends wooRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
