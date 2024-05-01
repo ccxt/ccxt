@@ -1498,7 +1498,7 @@ class mexc extends Exchange {
             }
             $trades = null;
             if ($market['spot']) {
-                $until = $this->safe_integer_n($params, array( 'endTime', 'until', 'till' ));
+                $until = $this->safe_integer_n($params, array( 'endTime', 'until' ));
                 if ($since !== null) {
                     $request['startTime'] = $since;
                     if ($until === null) {
@@ -1780,7 +1780,7 @@ class mexc extends Exchange {
             );
             $candles = null;
             if ($market['spot']) {
-                $until = $this->safe_integer_n($params, array( 'until', 'endTime', 'till' ));
+                $until = $this->safe_integer_n($params, array( 'until', 'endTime' ));
                 if ($since !== null) {
                     $request['startTime'] = $since;
                     if ($until === null) {
@@ -1794,7 +1794,7 @@ class mexc extends Exchange {
                     $request['limit'] = $limit;
                 }
                 if ($until !== null) {
-                    $params = $this->omit($params, array( 'until', 'till' ));
+                    $params = $this->omit($params, array( 'until' ));
                     $request['endTime'] = $until;
                 }
                 $response = Async\await($this->spotPublicGetKlines (array_merge($request, $params)));
@@ -1814,12 +1814,12 @@ class mexc extends Exchange {
                 //
                 $candles = $response;
             } elseif ($market['swap']) {
-                $until = $this->safe_integer_product_n($params, array( 'until', 'endTime', 'till' ), 0.001);
+                $until = $this->safe_integer_product_n($params, array( 'until', 'endTime' ), 0.001);
                 if ($since !== null) {
                     $request['start'] = $this->parse_to_int($since / 1000);
                 }
                 if ($until !== null) {
-                    $params = $this->omit($params, array( 'until', 'till' ));
+                    $params = $this->omit($params, array( 'until' ));
                     $request['end'] = $until;
                 }
                 $priceType = $this->safe_string($params, 'price', 'default');

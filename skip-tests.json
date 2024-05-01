@@ -1365,7 +1365,8 @@
     "poloniex": {
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "some currencies does not exist in currencies"
+                "currencyIdAndCode": "some currencies does not exist in currencies",
+                "created": "buggy timestamps https://app.travis-ci.com/github/ccxt/ccxt/builds/270243654#L5259"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269956260#L4357",

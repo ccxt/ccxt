@@ -295,7 +295,6 @@ class bingx extends Exchange {
                             'get' => array(
                                 'list' => 3,
                                 'assets' => 3,
-                                'apiKey/query' => 1,
                             ),
                             'post' => array(
                                 'create' => 3,
@@ -312,6 +311,7 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'uid' => 1,
+                                'apiKey/query' => 1,
                             ),
                             'post' => array(
                                 'innerTransfer/authorizeSubAccount' => 3,
@@ -1861,6 +1861,12 @@ class bingx extends Exchange {
         );
         $isMarketOrder = $type === 'MARKET';
         $isSpot = $marketType === 'spot';
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $isTriggerOrder = $triggerPrice !== null;
+        $isStopLossPriceOrder = $stopLossPrice !== null;
+        $isTakeProfitPriceOrder = $takeProfitPrice !== null;
         $exchangeClientOrderId = $isSpot ? 'newClientOrderId' : 'clientOrderID';
         $clientOrderId = $this->safe_string_2($params, $exchangeClientOrderId, 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -1875,7 +1881,6 @@ class bingx extends Exchange {
         } elseif ($timeInForce === 'GTC') {
             $request['timeInForce'] = 'GTC';
         }
-        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         if ($isSpot) {
             $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
             $params = $this->omit($params, 'cost');
@@ -1903,19 +1908,22 @@ class bingx extends Exchange {
                 } elseif ($type === 'MARKET') {
                     $request['type'] = 'TRIGGER_MARKET';
                 }
+            } elseif (($stopLossPrice !== null) || ($takeProfitPrice !== null)) {
+                $stopTakePrice = ($stopLossPrice !== null) ? $stopLossPrice : $takeProfitPrice;
+                if ($type === 'LIMIT') {
+                    $request['type'] = 'TAKE_STOP_LIMIT';
+                } elseif ($type === 'MARKET') {
+                    $request['type'] = 'TAKE_STOP_MARKET';
+                }
+                $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopTakePrice));
             }
         } else {
             if ($timeInForce === 'FOK') {
                 $request['timeInForce'] = 'FOK';
             }
-            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
             $trailingAmount = $this->safe_string($params, 'trailingAmount');
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'priceRate');
             $trailingType = $this->safe_string($params, 'trailingType', 'TRAILING_STOP_MARKET');
-            $isTriggerOrder = $triggerPrice !== null;
-            $isStopLossPriceOrder = $stopLossPrice !== null;
-            $isTakeProfitPriceOrder = $takeProfitPrice !== null;
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
@@ -2006,8 +2014,8 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
-            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         }
+        $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return array_merge($request, $params);
     }
 
@@ -2027,9 +2035,9 @@ class bingx extends Exchange {
              * @param {bool} [$params->postOnly] true to place a post only $order
              * @param {string} [$params->timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
              * @param {bool} [$params->reduceOnly] *swap only* true or false whether the $order is reduce only
-             * @param {float} [$params->triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss $order will be triggered
-             * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
-             * @param {float} [$params->takeProfitPrice] *swap only* take profit trigger $price
+             * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss $order will be triggered
+             * @param {float} [$params->stopLossPrice] stop loss trigger $price
+             * @param {float} [$params->takeProfitPrice] take profit trigger $price
              * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
              * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
              * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
@@ -2918,9 +2926,9 @@ class bingx extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+            $params = $this->omit($params, array( 'endTime', 'until' ));
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             }

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.8'
+__version__ = '4.3.12'
 
 # -----------------------------------------------------------------------------
 
@@ -1216,7 +1216,7 @@ class Exchange(object):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                string = ''.join([str(value).zfill(2) for value in parsedate(timestamp)[:6]]) + '.000Z'
                 dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
                 return calendar.timegm(dt.utctimetuple()) * 1000
             except (TypeError, OverflowError, OSError):
@@ -2213,6 +2213,9 @@ class Exchange(object):
 
     def parse_borrow_interest(self, info, market: Market = None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
+
+    def parse_isolated_borrow_rate(self, info, market: Market = None):
+        raise NotSupported(self.id + ' parseIsolatedBorrowRate() is not supported yet')
 
     def parse_ws_trade(self, trade, market: Market = None):
         raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
@@ -5004,6 +5007,15 @@ class Exchange(object):
             interests.append(self.parse_borrow_interest(row, market))
         return interests
 
+    def parse_isolated_borrow_rates(self, info: Any):
+        result = {}
+        for i in range(0, len(info)):
+            item = info[i]
+            borrowRate = self.parseIsolatedBorrowRate(item)
+            symbol = self.safe_string(borrowRate, 'symbol')
+            result[symbol] = borrowRate
+        return result
+
     def parse_funding_rate_histories(self, response, market=None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
@@ -5695,15 +5707,15 @@ class Exchange(object):
             fromId = self.safe_string(entry, fromCurrencyKey)
             toId = self.safe_string(entry, toCurrencyKey)
             if fromId is not None:
-                fromCurrency = self.currency(fromId)
+                fromCurrency = self.safe_currency(fromId)
             if toId is not None:
-                toCurrency = self.currency(toId)
+                toCurrency = self.safe_currency(toId)
             conversion = self.extend(self.parseConversion(entry, fromCurrency, toCurrency), params)
             result.append(conversion)
         sorted = self.sort_by(result, 'timestamp')
         currency = None
         if code is not None:
-            currency = self.currency(code)
+            currency = self.safe_currency(code)
             code = currency['code']
         if code is None:
             return self.filter_by_since_limit(sorted, since, limit)

@@ -485,19 +485,19 @@ public partial class bingx
     /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+    /// float : triggerPrice at which the attached take profit / stop loss order will be triggered
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.stopLossPrice</term>
     /// <description>
-    /// float : *swap only* stop loss trigger price
+    /// float : stop loss trigger price
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.takeProfitPrice</term>
     /// <description>
-    /// float : *swap only* take profit trigger price
+    /// float : take profit trigger price
     /// </description>
     /// </item>
     /// <item>

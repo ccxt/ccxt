@@ -728,6 +728,21 @@ class mexc extends \ccxt\async\mexc {
         //        "v" => "5"
         //    }
         //
+        //
+        //   d => {
+        //       p => '1.0005',
+        //       v => '5.71',
+        //       a => '5.712855',
+        //       S => 1,
+        //       T => 1714325698237,
+        //       t => 'edafcd9fdc2f426e82443d114691f724',
+        //       c => '',
+        //       i => 'C02__413321238354677760043',
+        //       m => 0,
+        //       st => 0,
+        //       n => '0.005712855',
+        //       N => 'USDT'
+        //   }
         $timestamp = $this->safe_integer($trade, 'T');
         $tradeId = $this->safe_string($trade, 't');
         if ($timestamp === null) {
@@ -739,6 +754,8 @@ class mexc extends \ccxt\async\mexc {
         $rawSide = $this->safe_string($trade, 'S');
         $side = ($rawSide === '1') ? 'buy' : 'sell';
         $isMaker = $this->safe_integer($trade, 'm');
+        $feeAmount = $this->safe_number($trade, 'n');
+        $feeCurrencyId = $this->safe_string($trade, 'N');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $tradeId,
@@ -752,7 +769,10 @@ class mexc extends \ccxt\async\mexc {
             'price' => $priceString,
             'amount' => $amountString,
             'cost' => null,
-            'fee' => null,
+            'fee' => array(
+                'cost' => $feeAmount,
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            ),
         ), $market);
     }
 

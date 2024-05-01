@@ -1464,7 +1464,7 @@ class mexc(Exchange, ImplicitAPI):
             request['limit'] = limit
         trades = None
         if market['spot']:
-            until = self.safe_integer_n(params, ['endTime', 'until', 'till'])
+            until = self.safe_integer_n(params, ['endTime', 'until'])
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1721,7 +1721,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         candles = None
         if market['spot']:
-            until = self.safe_integer_n(params, ['until', 'endTime', 'till'])
+            until = self.safe_integer_n(params, ['until', 'endTime'])
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1732,7 +1732,7 @@ class mexc(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             if until is not None:
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
                 request['endTime'] = until
             response = await self.spotPublicGetKlines(self.extend(request, params))
             #
@@ -1751,11 +1751,11 @@ class mexc(Exchange, ImplicitAPI):
             #
             candles = response
         elif market['swap']:
-            until = self.safe_integer_product_n(params, ['until', 'endTime', 'till'], 0.001)
+            until = self.safe_integer_product_n(params, ['until', 'endTime'], 0.001)
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
             if until is not None:
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
                 request['end'] = until
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
