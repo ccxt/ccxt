@@ -326,6 +326,7 @@ export default class woofipro extends Exchange {
                     '9': AuthenticationError, // {"success":false,"code":9,"message":"Address and signature do not match"}
                     '3': AuthenticationError, // {"success":false,"code":3,"message":"Signature error"}
                     '2': BadRequest, // {"success":false,"code":2,"message":"Timestamp expired"}
+                    '15': BadRequest, // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 },
                 'broad': {
                 },
@@ -2213,7 +2214,7 @@ export default class woofipro extends Exchange {
     signHash (hash, privateKey) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const v = this.intToBase16 (this.sum (27, signature['v']));
-        return '0x' + signature['r'] + signature['s'] + v;
+        return '0x' + signature['r'].padStart (64, '0') + signature['s'].padStart (64, '0') + v;
     }
 
     signMessage (message, privateKey) {
@@ -2270,7 +2271,7 @@ export default class woofipro extends Exchange {
             ],
         };
         const withdrawRequest = {
-            'brokerId': 'woofi_pro',
+            'brokerId': this.safeString (this.options, 'keyBrokerId', 'woofi_pro'),
             'chainId': this.parseToInt (chainId),
             'receiver': address,
             'token': code,
@@ -2628,6 +2629,7 @@ export default class woofipro extends Exchange {
             const feedback = this.id + ' ' + this.json (response);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
