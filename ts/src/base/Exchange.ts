@@ -2500,7 +2500,7 @@ export default class Exchange {
         const validate = this.safeBool2 (this.options, 'validateOrderBookSequences', 'checksum', true);
         if (validate) {
             const msg = this.orderBookSequenceErrorMessage (symbol, storedNonceOrChecksum, incomingNonceOrChecksum);
-            throw new InvalidNonce (msg.toString ());
+            throw new InvalidNonce ('' + msg.toString ()); // transpiler trick
         }
     }
 
