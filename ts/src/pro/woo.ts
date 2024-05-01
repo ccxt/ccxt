@@ -742,7 +742,7 @@ export default class woo extends wooRest {
         //
         const order = this.safeDict (message, 'data');
         const tradeId = this.safeString (order, 'tradeId');
-        if (tradeId !== undefined) {
+        if ((tradeId !== undefined) && (tradeId !== '0')) {
             this.handleMyTrade (client, order);
         }
         this.handleOrder (client, order);
