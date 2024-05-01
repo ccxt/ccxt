@@ -5843,7 +5843,7 @@ public partial class okx : Exchange
         //    }
         //
         object marketId = this.safeString(position, "instId");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "contract");
         object symbol = getValue(market, "symbol");
         object pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         object contractsAbs = Precise.stringAbs(pos);
