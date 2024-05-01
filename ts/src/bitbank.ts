@@ -804,10 +804,10 @@ export default class bitbank extends Exchange {
             'asset': currency['id'],
         };
         const response = await this.privateGetUserWithdrawalAccount (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         // Not sure about this if there could be more than one account...
-        const accounts = this.safeValue (data, 'accounts', []);
-        const firstAccount = this.safeValue (accounts, 0, {});
+        const accounts = this.safeList (data, 'accounts', []);
+        const firstAccount = this.safeDict (accounts, 0, {});
         const address = this.safeString (firstAccount, 'address');
         return {
             'currency': currency,
