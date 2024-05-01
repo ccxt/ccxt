@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6550,7 +6550,7 @@ export default class htx extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async fetchIsolatedBorrowRates (params = {}) {
+    async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
         /**
          * @method
          * @name htx#fetchIsolatedBorrowRates
@@ -6590,14 +6590,10 @@ export default class htx extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'data', []);
-        const rates = [];
-        for (let i = 0; i < data.length; i++) {
-            rates.push (this.parseIsolatedBorrowRate (data[i]));
-        }
-        return rates as BorrowRate[];
+        return this.parseIsolatedBorrowRates (data);
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined) {
+    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "1inchusdt",
@@ -8574,8 +8570,8 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
         const market = this.market (symbol);
         const request = {};
         if (market['future']) {

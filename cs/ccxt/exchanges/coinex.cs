@@ -1665,121 +1665,6 @@ public partial class coinex : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // fetchOrder
-        //
-        //     {
-        //         "amount": "0.1",
-        //         "asset_fee": "0.22736197736197736197",
-        //         "avg_price": "196.85000000000000000000",
-        //         "create_time": 1537270135,
-        //         "deal_amount": "0.1",
-        //         "deal_fee": "0",
-        //         "deal_money": "19.685",
-        //         "fee_asset": "CET",
-        //         "fee_discount": "0.5",
-        //         "id": 1788259447,
-        //         "left": "0",
-        //         "maker_fee_rate": "0",
-        //         "market": "ETHUSDT",
-        //         "order_type": "limit",
-        //         "price": "170.00000000",
-        //         "status": "done",
-        //         "taker_fee_rate": "0.0005",
-        //         "type": "sell",
-        //         "client_id": "",
-        //     }
-        //
-        // Spot and Margin cancelOrder, cancelOrders, fetchOrder
-        //
-        //      {
-        //          "amount":"1.5",
-        //          "asset_fee":"0",
-        //          "avg_price":"0.14208538",
-        //          "client_id":"",
-        //          "create_time":1650993819,
-        //          "deal_amount":"10.55703267",
-        //          "deal_fee":"0.0029999999971787292",
-        //          "deal_money":"1.4999999985893646",
-        //          "fee_asset":null,
-        //          "fee_discount":"1",
-        //          "finished_time":null,
-        //          "id":74556296907,
-        //          "left":"0.0000000014106354",
-        //          "maker_fee_rate":"0",
-        //          "market":"DOGEUSDT",
-        //          "money_fee":"0.0029999999971787292",
-        //          "order_type":"market",
-        //          "price":"0",
-        //          "status":"done",
-        //          "stock_fee":"0",
-        //          "taker_fee_rate":"0.002",
-        //          "type":"buy"
-        //          "client_id": "",
-        //      }
-        //
-        // Swap cancelOrder, fetchOrder
-        //
-        //     {
-        //         "amount": "0.0005",
-        //         "client_id": "",
-        //         "create_time": 1651004578.618224,
-        //         "deal_asset_fee": "0.00000000000000000000",
-        //         "deal_fee": "0.00000000000000000000",
-        //         "deal_profit": "0.00000000000000000000",
-        //         "deal_stock": "0.00000000000000000000",
-        //         "effect_type": 1,
-        //         "fee_asset": "",
-        //         "fee_discount": "0.00000000000000000000",
-        //         "last_deal_amount": "0.00000000000000000000",
-        //         "last_deal_id": 0,
-        //         "last_deal_price": "0.00000000000000000000",
-        //         "last_deal_role": 0,
-        //         "last_deal_time": 0,
-        //         "last_deal_type": 0,
-        //         "left": "0.0005",
-        //         "leverage": "3",
-        //         "maker_fee": "0.00030",
-        //         "market": "BTCUSDT",
-        //         "order_id": 18221659097,
-        //         "position_id": 0,
-        //         "position_type": 1,
-        //         "price": "30000.00",
-        //         "side": 2,
-        //         "source": "api.v1",
-        //         "stop_id": 0,
-        //         "taker_fee": "0.00050",
-        //         "target": 0,
-        //         "type": 1,
-        //         "update_time": 1651004578.618224,
-        //         "user_id": 3620173
-        //     }
-        //
-        // Swap Stop cancelOrder, fetchOrder
-        //
-        //     {
-        //         "amount": "0.0005",
-        //         "client_id": "",
-        //         "create_time": 1651034023.008771,
-        //         "effect_type": 1,
-        //         "fee_asset": "",
-        //         "fee_discount": "0.00000000000000000000",
-        //         "maker_fee": "0.00030",
-        //         "market": "BTCUSDT",
-        //         "order_id": 18256915101,
-        //         "price": "31000.00",
-        //         "side": 2,
-        //         "source": "api.v1",
-        //         "state": 1,
-        //         "stop_price": "31500.00",
-        //         "stop_type": 1,
-        //         "taker_fee": "0.00050",
-        //         "target": 0,
-        //         "type": 1,
-        //         "update_time": 1651034397.193624,
-        //         "user_id": 3620173
-        //     }
-        //
-        //
         // Spot and Margin fetchOpenOrders, fetchClosedOrders
         //
         //     {
@@ -1884,49 +1769,7 @@ public partial class coinex : Exchange
         //         "user_id": 3620173
         //     }
         //
-        // swap: cancelOrders
-        //
-        //     {
-        //         "amount": "0.0005",
-        //         "client_id": "x-167673045-b0cee0c584718b65",
-        //         "create_time": 1701233683.294231,
-        //         "deal_asset_fee": "0.00000000000000000000",
-        //         "deal_fee": "0.00000000000000000000",
-        //         "deal_profit": "0.00000000000000000000",
-        //         "deal_stock": "0.00000000000000000000",
-        //         "effect_type": 1,
-        //         "fee_asset": "",
-        //         "fee_discount": "0.00000000000000000000",
-        //         "last_deal_amount": "0.00000000000000000000",
-        //         "last_deal_id": 0,
-        //         "last_deal_price": "0.00000000000000000000",
-        //         "last_deal_role": 0,
-        //         "last_deal_time": 0,
-        //         "last_deal_type": 0,
-        //         "left": "0.0005",
-        //         "leverage": "3",
-        //         "maker_fee": "0.00030",
-        //         "market": "BTCUSDT",
-        //         "option": 0,
-        //         "order_id": 115940476323,
-        //         "position_id": 0,
-        //         "position_type": 2,
-        //         "price": "25000.00",
-        //         "side": 2,
-        //         "source": "api.v1",
-        //         "stop_id": 0,
-        //         "stop_loss_price": "0.00000000000000000000",
-        //         "stop_loss_type": 0,
-        //         "take_profit_price": "0.00000000000000000000",
-        //         "take_profit_type": 0,
-        //         "taker_fee": "0.00050",
-        //         "target": 0,
-        //         "type": 1,
-        //         "update_time": 1701233721.718884,
-        //         "user_id": 3620173
-        //     }
-        //
-        // Spot and Margin createOrder, createOrders v2
+        // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder v2
         //
         //     {
         //         "amount": "0.0001",
@@ -1952,13 +1795,13 @@ public partial class coinex : Exchange
         //         "updated_at": 1714114386250
         //     }
         //
-        // Spot, Margin and Swap trigger createOrder, createOrders v2
+        // Spot, Margin and Swap trigger createOrder, createOrders, editOrder v2
         //
         //     {
         //         "stop_id": 117180138153
         //     }
         //
-        // Swap createOrder, createOrders v2
+        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder v2
         //
         //     {
         //         "amount": "0.0001",
@@ -2016,6 +1859,77 @@ public partial class coinex : Exchange
         //         "take_profit_type": "",
         //         "unrealized_pnl": "0",
         //         "updated_at": 1714119054559
+        //     }
+        //
+        // Swap and Spot stop cancelOrders, cancelOrder v2
+        //
+        //     {
+        //         "amount": "0.0001",
+        //         "client_id": "x-167673045-a7d7714c6478acf6",
+        //         "created_at": 1714187923820,
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "price": "61000",
+        //         "side": "buy",
+        //         "stop_id": 136984426097,
+        //         "trigger_direction": "higher",
+        //         "trigger_price": "62000",
+        //         "trigger_price_type": "latest_price",
+        //         "type": "limit",
+        //         "updated_at": 1714187974363
+        //     }
+        //
+        // Swap fetchOrder v2
+        //
+        //     {
+        //         "amount": "0.0001",
+        //         "client_id": "x-167673045-da5f31dcd478a829",
+        //         "created_at": 1714460987164,
+        //         "fee": "0",
+        //         "fee_ccy": "USDT",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "last_filled_amount": "0",
+        //         "last_filled_price": "0",
+        //         "maker_fee_rate": "0.0003",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "order_id": 137319868771,
+        //         "price": "61000",
+        //         "realized_pnl": "0",
+        //         "side": "buy",
+        //         "status": "open",
+        //         "taker_fee_rate": "0.0005",
+        //         "type": "limit",
+        //         "unfilled_amount": "0.0001",
+        //         "updated_at": 1714460987164
+        //     }
+        //
+        // Spot and Margin fetchOrder v2
+        //
+        //     {
+        //         "amount": "0.0001",
+        //         "base_fee": "0",
+        //         "ccy": "BTC",
+        //         "client_id": "x-167673045-da918d6724e3af81",
+        //         "created_at": 1714461638958,
+        //         "discount_fee": "0",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "last_fill_amount": "0",
+        //         "last_fill_price": "0",
+        //         "maker_fee_rate": "0.002",
+        //         "market": "BTCUSDT",
+        //         "market_type": "SPOT",
+        //         "order_id": 117492012985,
+        //         "price": "61000",
+        //         "quote_fee": "0",
+        //         "side": "buy",
+        //         "status": "open",
+        //         "taker_fee_rate": "0.002",
+        //         "type": "limit",
+        //         "unfilled_amount": "0.0001",
+        //         "updated_at": 1714461638958
         //     }
         //
         object rawStatus = this.safeString(order, "status");
@@ -2097,8 +2011,8 @@ public partial class coinex : Exchange
             { "reduceOnly", null },
             { "side", side },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "stop_price") },
-            { "triggerPrice", this.safeString(order, "stop_price") },
+            { "stopPrice", this.safeString2(order, "stop_price", "trigger_price") },
+            { "triggerPrice", this.safeString2(order, "stop_price", "trigger_price") },
             { "takeProfitPrice", this.safeNumber(order, "take_profit_price") },
             { "stopLossPrice", this.safeNumber(order, "stop_loss_price") },
             { "cost", this.safeString2(order, "deal_money", "filled_value") },
@@ -2478,11 +2392,14 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#cancelOrders
         * @description cancel multiple orders
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade016_batch_cancel_order
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021-0_cancel_order_batch
+        * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-order
+        * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-stop-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-stop-order
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.trigger] set to true for canceling stop orders
         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2495,115 +2412,42 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object idsString = String.Join(",", ((IList<object>)ids).ToArray());
+        object stop = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(stop))
         {
-            ((IDictionary<string,object>)request)["batch_ids"] = idsString;
-            response = await this.v1PrivateDeleteOrderPendingBatch(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["stop_ids"] = ids;
         } else
         {
-            ((IDictionary<string,object>)request)["order_ids"] = idsString;
-            response = await this.v1PerpetualPrivatePostOrderCancelBatch(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["order_ids"] = ids;
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "code": 0,
-        //                 "data": {
-        //                     "account_id": 0,
-        //                     "amount": "0.0005",
-        //                     "asset_fee": "0",
-        //                     "avg_price": "0.00",
-        //                     "client_id": "x-167673045-d4e03c38f4d19b4e",
-        //                     "create_time": 1701229157,
-        //                     "deal_amount": "0",
-        //                     "deal_fee": "0",
-        //                     "deal_money": "0",
-        //                     "fee_asset": null,
-        //                     "fee_discount": "1",
-        //                     "finished_time": 0,
-        //                     "id": 107745856682,
-        //                     "left": "0",
-        //                     "maker_fee_rate": "0.002",
-        //                     "market": "BTCUSDT",
-        //                     "money_fee": "0",
-        //                     "order_type": "limit",
-        //                     "price": "22000",
-        //                     "status": "not_deal",
-        //                     "stock_fee": "0",
-        //                     "taker_fee_rate": "0.002",
-        //                     "type": "buy"
-        //                 },
-        //                 "message": ""
-        //             },
-        //         ],
-        //         "message": "Success"
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "code": 0,
-        //                 "message": "",
-        //                 "order": {
-        //                     "amount": "0.0005",
-        //                     "client_id": "x-167673045-b0cee0c584718b65",
-        //                     "create_time": 1701233683.294231,
-        //                     "deal_asset_fee": "0.00000000000000000000",
-        //                     "deal_fee": "0.00000000000000000000",
-        //                     "deal_profit": "0.00000000000000000000",
-        //                     "deal_stock": "0.00000000000000000000",
-        //                     "effect_type": 1,
-        //                     "fee_asset": "",
-        //                     "fee_discount": "0.00000000000000000000",
-        //                     "last_deal_amount": "0.00000000000000000000",
-        //                     "last_deal_id": 0,
-        //                     "last_deal_price": "0.00000000000000000000",
-        //                     "last_deal_role": 0,
-        //                     "last_deal_time": 0,
-        //                     "last_deal_type": 0,
-        //                     "left": "0.0005",
-        //                     "leverage": "3",
-        //                     "maker_fee": "0.00030",
-        //                     "market": "BTCUSDT",
-        //                     "option": 0,
-        //                     "order_id": 115940476323,
-        //                     "position_id": 0,
-        //                     "position_type": 2,
-        //                     "price": "25000.00",
-        //                     "side": 2,
-        //                     "source": "api.v1",
-        //                     "stop_id": 0,
-        //                     "stop_loss_price": "0.00000000000000000000",
-        //                     "stop_loss_type": 0,
-        //                     "take_profit_price": "0.00000000000000000000",
-        //                     "take_profit_type": 0,
-        //                     "taker_fee": "0.00050",
-        //                     "target": 0,
-        //                     "type": 1,
-        //                     "update_time": 1701233721.718884,
-        //                     "user_id": 3620173
-        //                 }
-        //             },
-        //         ],
-        //         "message": "OK"
-        //     }
-        //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        if (isTrue(getValue(market, "spot")))
+        {
+            if (isTrue(stop))
+            {
+                response = await this.v2PrivatePostSpotCancelBatchStopOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.v2PrivatePostSpotCancelBatchOrder(this.extend(request, parameters));
+            }
+        } else
+        {
+            ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
+            if (isTrue(stop))
+            {
+                response = await this.v2PrivatePostFuturesCancelBatchStopOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.v2PrivatePostFuturesCancelBatchOrder(this.extend(request, parameters));
+            }
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
         object results = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
-            object dataRequest = ((bool) isTrue(getValue(market, "spot"))) ? "data" : "order";
-            object item = this.safeValue(entry, dataRequest, new Dictionary<string, object>() {});
+            object item = this.safeDict(entry, "data", new Dictionary<string, object>() {});
             object order = this.parseOrder(item, market);
             ((IList<object>)results).Add(order);
         }
@@ -2614,9 +2458,12 @@ public partial class coinex : Exchange
     {
         /**
         * @method
-        * @name okx#editOrder
+        * @name coinex#editOrder
         * @description edit a trade order
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
+        * @see https://docs.coinex.com/api/v2/spot/order/http/edit-order
+        * @see https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/edit-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
@@ -2624,6 +2471,7 @@ public partial class coinex : Exchange
         * @param {float} amount how much of the currency you want to trade in units of the base currency
         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {float} [params.triggerPrice] the price to trigger stop orders
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2633,13 +2481,8 @@ public partial class coinex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "spot")))
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "id", parseInt(id) },
         };
         if (isTrue(!isEqual(amount, null)))
         {
@@ -2649,38 +2492,49 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object response = await this.v1PrivatePostOrderModify(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "id": 35436205,
-        //             "create_time": 1636080705,
-        //             "finished_time": null,
-        //             "amount": "0.30000000",
-        //             "price": " 56000",
-        //             "deal_amount": "0.24721428",
-        //             "deal_money": "13843.9996800000000000",
-        //             "deal_fee": "0",
-        //             "stock_fee": "0",
-        //             "money_fee": "0",
-        //             " asset_fee": "8.721719798400000000000000",
-        //             "fee_asset": "CET",
-        //             "fee_discount": "0.70",
-        //             "avg_price": "56000",
-        //             "market": "BTCUSDT",
-        //             "left": "0.05278572 ",
-        //             "maker_fee_rate": "0.0018",
-        //             "taker_fee_rate": "0.0018",
-        //             "order_type": "limit",
-        //             "type": "buy",
-        //             "status": "cancel",
-        //             "client_id ": "abcd222",
-        //             "source_id": "1234"
-        //     },
-        //         "message": "Success"
-        //     }
-        //
+        object response = null;
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "trigger_price"});
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice"});
+        object isTriggerOrder = !isEqual(triggerPrice, null);
+        if (isTrue(isTriggerOrder))
+        {
+            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
+            ((IDictionary<string,object>)request)["stop_id"] = this.parseToNumeric(id);
+        } else
+        {
+            ((IDictionary<string,object>)request)["order_id"] = this.parseToNumeric(id);
+        }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("editOrder", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(getValue(market, "spot")))
+        {
+            if (isTrue(!isEqual(marginMode, null)))
+            {
+                ((IDictionary<string,object>)request)["market_type"] = "MARGIN";
+            } else
+            {
+                ((IDictionary<string,object>)request)["market_type"] = "SPOT";
+            }
+            if (isTrue(isTriggerOrder))
+            {
+                response = await this.v2PrivatePostSpotModifyStopOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.v2PrivatePostSpotModifyOrder(this.extend(request, parameters));
+            }
+        } else
+        {
+            ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
+            if (isTrue(isTriggerOrder))
+            {
+                response = await this.v2PrivatePostFuturesModifyStopOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.v2PrivatePostFuturesModifyOrder(this.extend(request, parameters));
+            }
+        }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
@@ -2691,20 +2545,20 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#cancelOrder
         * @description cancels an open order
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade024_cancel_order_by_client_id
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade025_cancel_stop_order_by_client_id
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http042_cancel_order_by_client_id
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http043_cancel_stop_order_by_client_id
+        * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-order
+        * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order
+        * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-order-by-client-id
+        * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order-by-client-id
+        * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-order-by-client-id
+        * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order-by-client-id
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
-        * @param {boolean} [params.stop] if stop order = true, default = false
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @param {boolean} [params.trigger] set to true for canceling a trigger order
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2713,180 +2567,86 @@ public partial class coinex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object stop = this.safeValue(parameters, "stop");
+        object isTriggerOrder = this.safeBool2(parameters, "stop", "trigger");
         object swap = getValue(market, "swap");
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object accountId = this.safeInteger(parameters, "account_id");
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
-        if (isTrue(!isEqual(marginMode, null)))
+        if (isTrue(swap))
         {
-            if (isTrue(isEqual(accountId, null)))
+            ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
+        } else
+        {
+            if (isTrue(!isEqual(marginMode, null)))
             {
-                throw new BadRequest ((string)add(this.id, " cancelOrder() requires an account_id parameter for margin orders")) ;
+                ((IDictionary<string,object>)request)["market_type"] = "MARGIN";
+            } else
+            {
+                ((IDictionary<string,object>)request)["market_type"] = "SPOT";
             }
-            ((IDictionary<string,object>)request)["account_id"] = accountId;
         }
-        object query = this.omit(parameters, new List<object>() {"stop", "account_id", "clientOrderId"});
+        object clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "clientOrderId"});
         object response = null;
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
-            if (isTrue(stop))
+            if (isTrue(isTriggerOrder))
             {
                 if (isTrue(swap))
                 {
-                    response = await this.v1PerpetualPrivatePostOrderCancelStopByClientId(this.extend(request, query));
+                    response = await this.v2PrivatePostFuturesCancelStopOrderByClientId(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.v1PrivateDeleteOrderStopPendingByClientId(this.extend(request, query));
+                    response = await this.v2PrivatePostSpotCancelStopOrderByClientId(this.extend(request, parameters));
                 }
             } else
             {
                 if (isTrue(swap))
                 {
-                    response = await this.v1PerpetualPrivatePostOrderCancelByClientId(this.extend(request, query));
+                    response = await this.v2PrivatePostFuturesCancelOrderByClientId(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.v1PrivateDeleteOrderPendingByClientId(this.extend(request, query));
+                    response = await this.v2PrivatePostSpotCancelOrderByClientId(this.extend(request, parameters));
                 }
             }
         } else
         {
-            object idRequest = ((bool) isTrue(swap)) ? "order_id" : "id";
-            ((IDictionary<string,object>)request)[(string)idRequest] = id;
-            if (isTrue(stop))
+            if (isTrue(isTriggerOrder))
             {
+                ((IDictionary<string,object>)request)["stop_id"] = this.parseToNumeric(id);
                 if (isTrue(swap))
                 {
-                    response = await this.v1PerpetualPrivatePostOrderCancelStop(this.extend(request, query));
+                    response = await this.v2PrivatePostFuturesCancelStopOrder(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.v1PrivateDeleteOrderStopPendingId(this.extend(request, query));
+                    response = await this.v2PrivatePostSpotCancelStopOrder(this.extend(request, parameters));
                 }
             } else
             {
+                ((IDictionary<string,object>)request)["order_id"] = this.parseToNumeric(id);
                 if (isTrue(swap))
                 {
-                    response = await this.v1PerpetualPrivatePostOrderCancel(this.extend(request, query));
+                    response = await this.v2PrivatePostFuturesCancelOrder(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.v1PrivateDeleteOrderPending(this.extend(request, query));
+                    response = await this.v2PrivatePostSpotCancelOrder(this.extend(request, parameters));
                 }
             }
         }
-        //
-        // Spot and Margin
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "amount": "0.0005",
-        //             "asset_fee": "0",
-        //             "avg_price": "0.00",
-        //             "client_id": "",
-        //             "create_time": 1650951627,
-        //             "deal_amount": "0",
-        //             "deal_fee": "0",
-        //             "deal_money": "0",
-        //             "fee_asset": null,
-        //             "fee_discount": "1",
-        //             "finished_time": null,
-        //             "id": 74510932594,
-        //             "left": "0.0005",
-        //             "maker_fee_rate": "0.002",
-        //             "market": "BTCUSDT",
-        //             "money_fee": "0",
-        //             "order_type": "limit",
-        //             "price": "30000",
-        //             "status": "not_deal",
-        //             "stock_fee": "0",
-        //             "taker_fee_rate": "0.002",
-        //             "type": "buy"
-        //         },
-        //         "message": "Success"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "amount": "0.0005",
-        //             "client_id": "",
-        //             "create_time": 1651004578.618224,
-        //             "deal_asset_fee": "0.00000000000000000000",
-        //             "deal_fee": "0.00000000000000000000",
-        //             "deal_profit": "0.00000000000000000000",
-        //             "deal_stock": "0.00000000000000000000",
-        //             "effect_type": 1,
-        //             "fee_asset": "",
-        //             "fee_discount": "0.00000000000000000000",
-        //             "last_deal_amount": "0.00000000000000000000",
-        //             "last_deal_id": 0,
-        //             "last_deal_price": "0.00000000000000000000",
-        //             "last_deal_role": 0,
-        //             "last_deal_time": 0,
-        //             "last_deal_type": 0,
-        //             "left": "0.0005",
-        //             "leverage": "3",
-        //             "maker_fee": "0.00030",
-        //             "market": "BTCUSDT",
-        //             "order_id": 18221659097,
-        //             "position_id": 0,
-        //             "position_type": 1,
-        //             "price": "30000.00",
-        //             "side": 2,
-        //             "source": "api.v1",
-        //             "stop_id": 0,
-        //             "taker_fee": "0.00050",
-        //             "target": 0,
-        //             "type": 1,
-        //             "update_time": 1651004578.618224,
-        //             "user_id": 3620173
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        // Swap Stop
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "amount": "0.0005",
-        //             "client_id": "",
-        //             "create_time": 1651034023.008771,
-        //             "effect_type": 1,
-        //             "fee_asset": "",
-        //             "fee_discount": "0.00000000000000000000",
-        //             "maker_fee": "0.00030",
-        //             "market": "BTCUSDT",
-        //             "order_id": 18256915101,
-        //             "price": "31000.00",
-        //             "side": 2,
-        //             "source": "api.v1",
-        //             "state": 1,
-        //             "stop_price": "31500.00",
-        //             "stop_type": 1,
-        //             "taker_fee": "0.00050",
-        //             "target": 0,
-        //             "type": 1,
-        //             "update_time": 1651034397.193624,
-        //             "user_id": 3620173
-        //         },
-        //         "message":"OK"
-        //     }
-        //
-        // Spot and Margin Stop
-        //
-        //     {"code":0,"data":{},"message":"Success"}
-        //
-        object data = this.safeDict(response, "data");
+        object data = null;
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            object rows = this.safeList(response, "data", new List<object>() {});
+            data = this.safeDict(getValue(rows, 0), "data", new Dictionary<string, object>() {});
+        } else
+        {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        }
         return this.parseOrder(data, market);
     }
 
@@ -2896,12 +2656,11 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#cancelAllOrders
         * @description cancel all open orders in a market
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http024_cancel_stop_all
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http022_cancel_all
+        * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+        * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
         * @param {string} symbol unified market symbol of the market to cancel orders in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] 'cross' or 'isolated' for canceling spot margin orders
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2911,44 +2670,29 @@ public partial class coinex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object marketId = getValue(market, "id");
-        object accountId = this.safeInteger(parameters, "account_id", 0);
         object request = new Dictionary<string, object>() {
-            { "market", marketId },
+            { "market", getValue(market, "id") },
         };
-        object swap = getValue(market, "swap");
-        object stop = this.safeValue(parameters, "stop");
-        parameters = this.omit(parameters, new List<object>() {"stop", "account_id"});
         object response = null;
-        if (isTrue(swap))
+        if (isTrue(getValue(market, "swap")))
         {
-            if (isTrue(stop))
-            {
-                response = await this.v1PerpetualPrivatePostOrderCancelStopAll(this.extend(request, parameters));
-            } else
-            {
-                response = await this.v1PerpetualPrivatePostOrderCancelAll(this.extend(request, parameters));
-            }
+            ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
+            response = await this.v2PrivatePostFuturesCancelAllOrder(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["account_id"] = accountId;
-            if (isTrue(stop))
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            if (isTrue(!isEqual(marginMode, null)))
             {
-                response = await this.v1PrivateDeleteOrderStopPending(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["market_type"] = "MARGIN";
             } else
             {
-                response = await this.v1PrivateDeleteOrderPending(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["market_type"] = "SPOT";
             }
+            response = await this.v2PrivatePostSpotCancelAllOrder(this.extend(request, parameters));
         }
-        //
-        // Spot and Margin
-        //
-        //     {"code": 0, "data": null, "message": "Success"}
-        //
-        // Swap
-        //
-        //     {"code": 0, "data": {"status":"success"}, "message": "OK"}
-        //
         return response;
     }
 
@@ -2958,9 +2702,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchOrder
         * @description fetches information on an order made by the user
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http028_stop_status
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http026_order_status
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade007_order_status
+        * @see https://docs.coinex.com/api/v2/spot/order/http/get-order-status
+        * @see https://docs.coinex.com/api/v2/futures/order/http/get-order-status
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2972,127 +2715,19 @@ public partial class coinex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object swap = getValue(market, "swap");
-        object stop = this.safeValue(parameters, "stop");
-        parameters = this.omit(parameters, "stop");
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
+            { "order_id", this.parseToNumeric(id) },
         };
-        object idRequest = ((bool) isTrue(swap)) ? "order_id" : "id";
-        ((IDictionary<string,object>)request)[(string)idRequest] = id;
         object response = null;
-        if (isTrue(swap))
+        if (isTrue(getValue(market, "swap")))
         {
-            if (isTrue(stop))
-            {
-                response = await this.v1PerpetualPrivateGetOrderStopStatus(this.extend(request, parameters));
-            } else
-            {
-                response = await this.v1PerpetualPrivateGetOrderStatus(this.extend(request, parameters));
-            }
+            response = await this.v2PrivateGetFuturesOrderStatus(this.extend(request, parameters));
         } else
         {
-            response = await this.v1PrivateGetOrderStatus(this.extend(request, parameters));
+            response = await this.v2PrivateGetSpotOrderStatus(this.extend(request, parameters));
         }
-        //
-        // Spot
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "amount": "0.1",
-        //             "asset_fee": "0.22736197736197736197",
-        //             "avg_price": "196.85000000000000000000",
-        //             "create_time": 1537270135,
-        //             "deal_amount": "0.1",
-        //             "deal_fee": "0",
-        //             "deal_money": "19.685",
-        //             "fee_asset": "CET",
-        //             "fee_discount": "0.5",
-        //             "id": 1788259447,
-        //             "left": "0",
-        //             "maker_fee_rate": "0",
-        //             "market": "ETHUSDT",
-        //             "order_type": "limit",
-        //             "price": "170.00000000",
-        //             "status": "done",
-        //             "taker_fee_rate": "0.0005",
-        //             "type": "sell",
-        //         },
-        //         "message": "Ok"
-        //     }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "amount": "0.0005",
-        //             "client_id": "",
-        //             "create_time": 1651004578.618224,
-        //             "deal_asset_fee": "0.00000000000000000000",
-        //             "deal_fee": "0.00000000000000000000",
-        //             "deal_profit": "0.00000000000000000000",
-        //             "deal_stock": "0.00000000000000000000",
-        //             "effect_type": 1,
-        //             "fee_asset": "",
-        //             "fee_discount": "0.00000000000000000000",
-        //             "last_deal_amount": "0.00000000000000000000",
-        //             "last_deal_id": 0,
-        //             "last_deal_price": "0.00000000000000000000",
-        //             "last_deal_role": 0,
-        //             "last_deal_time": 0,
-        //             "last_deal_type": 0,
-        //             "left": "0.0005",
-        //             "leverage": "3",
-        //             "maker_fee": "0.00030",
-        //             "market": "BTCUSDT",
-        //             "order_id": 18221659097,
-        //             "position_id": 0,
-        //             "position_type": 1,
-        //             "price": "30000.00",
-        //             "side": 2,
-        //             "source": "api.v1",
-        //             "stop_id": 0,
-        //             "taker_fee": "0.00050",
-        //             "target": 0,
-        //             "type": 1,
-        //             "update_time": 1651004578.618224,
-        //             "user_id": 3620173
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        // Swap Stop
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "amount": "0.0005",
-        //             "client_id": "",
-        //             "create_time": 1651034023.008771,
-        //             "effect_type": 1,
-        //             "fee_asset": "",
-        //             "fee_discount": "0.00000000000000000000",
-        //             "maker_fee": "0.00030",
-        //             "market": "BTCUSDT",
-        //             "order_id": 18256915101,
-        //             "price": "31000.00",
-        //             "side": 2,
-        //             "source": "api.v1",
-        //             "state": 1,
-        //             "stop_price": "31500.00",
-        //             "stop_type": 1,
-        //             "taker_fee": "0.00050",
-        //             "target": 0,
-        //             "type": 1,
-        //             "update_time": 1651034397.193624,
-        //             "user_id": 3620173
-        //         },
-        //         "message":"OK"
-        //     }
-        //
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -5317,7 +4952,7 @@ public partial class coinex : Exchange
         return this.parseTransactions(data, currency, since, limit);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -5430,12 +5065,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-        {
-            ((IList<object>)rates).Add(this.parseIsolatedBorrowRate(getValue(data, i)));
-        }
-        return rates;
+        return this.parseIsolatedBorrowRates(data);
     }
 
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)

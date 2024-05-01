@@ -512,9 +512,9 @@ export default class coinmetro extends Exchange {
         } else {
             request['from'] = ':from'; // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         }
-        until = this.safeInteger2 (params, 'till', 'until', until);
+        until = this.safeInteger (params, 'until', until);
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, [ 'until' ]);
             request['to'] = until;
         } else {
             request['to'] = ':to';

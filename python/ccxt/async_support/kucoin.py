@@ -2315,10 +2315,10 @@ class kucoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         lowercaseStatus = status.lower()
-        until = self.safe_integer_2(params, 'until', 'till')
+        until = self.safe_integer(params, 'until')
         stop = self.safe_bool(params, 'stop', False)
         hf = self.safe_bool(params, 'hf', False)
-        params = self.omit(params, ['stop', 'hf', 'till', 'until'])
+        params = self.omit(params, ['stop', 'hf', 'until'])
         marginMode, query = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
         if lowercaseStatus == 'open':
             lowercaseStatus = 'active'
@@ -2409,7 +2409,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
@@ -2436,7 +2436,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param bool [params.stop]: True if fetching stop orders
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop

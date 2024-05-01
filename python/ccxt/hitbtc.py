@@ -1658,7 +1658,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['from'] = self.iso8601(since)
-        request, params = self.handle_until_option('till', request, params)
+        request, params = self.handle_until_option('until', request, params)
         if limit is not None:
             request['limit'] = min(limit, 1000)
         price = self.safe_string(params, 'price')
@@ -2604,11 +2604,11 @@ class hitbtc(Exchange, ImplicitAPI):
             # 'symbols': Comma separated list of symbol codes,
             # 'sort': 'DESC' or 'ASC'
             # 'from': 'Datetime or Number',
-            # 'till': 'Datetime or Number',
+            # 'until': 'Datetime or Number',
             # 'limit': 100,
             # 'offset': 0,
         }
-        request, params = self.handle_until_option('till', request, params)
+        request, params = self.handle_until_option('until', request, params)
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']

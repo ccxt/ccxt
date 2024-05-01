@@ -40,6 +40,7 @@ class coinbase extends Exchange {
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
+                'createConvertTrade' => true,
                 'createDepositAddress' => true,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
@@ -63,6 +64,9 @@ class coinbase extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchConvertQuote' => true,
+                'fetchConvertTrade' => true,
+                'fetchConvertTradeHistory' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -3244,9 +3248,9 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params));
@@ -3321,9 +3325,9 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params));
@@ -3460,8 +3464,8 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $until = $this->safe_integer_n($params, array( 'until', 'till', 'end' ));
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until', 'end' ));
+        $params = $this->omit($params, array( 'until' ));
         $duration = $this->parse_timeframe($timeframe);
         $requestedDuration = $limit * $duration;
         $sinceString = null;
@@ -3601,9 +3605,9 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_sequence_timestamp'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_sequence_timestamp'] = $this->iso8601($until);
         }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalFills (array_merge($request, $params));
@@ -4087,6 +4091,103 @@ class coinbase extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data);
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+        /**
+         * fetch a quote for converting from one currency to another
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
+         * @param {string} $fromCode the currency that you want to sell and convert from
+         * @param {string} $toCode the currency that you want to buy and convert into
+         * @param {float} [$amount] how much you want to trade in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->trade_incentive_metadata] an object to fill in user incentive $data
+         * @param {string} [$params->trade_incentive_metadata.user_incentive_id] the id of the incentive
+         * @param {string} [$params->trade_incentive_metadata.code_val] the code value of the incentive
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'from_account' => $fromCode,
+            'to_account' => $toCode,
+            'amount' => $this->number_to_string($amount),
+        );
+        $response = $this->v3PrivatePostBrokerageConvertQuote (array_merge($request, $params));
+        $data = $this->safe_dict($response, 'trade', array());
+        return $this->parse_conversion($data);
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+        /**
+         * convert from one currency to another
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
+         * @param {string} $id the $id of the trade that you want to make
+         * @param {string} $fromCode the currency that you want to sell and convert from
+         * @param {string} $toCode the currency that you want to buy and convert into
+         * @param {float} [$amount] how much you want to trade in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'trade_id' => $id,
+            'from_account' => $fromCode,
+            'to_account' => $toCode,
+        );
+        $response = $this->v3PrivatePostBrokerageConvertTradeTradeId (array_merge($request, $params));
+        $data = $this->safe_dict($response, 'trade', array());
+        return $this->parse_conversion($data);
+    }
+
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): Conversion {
+        /**
+         * fetch the $data for a conversion trade
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
+         * @param {string} $id the $id of the trade that you want to commit
+         * @param {string} $code the unified currency $code that was converted from
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {strng} $params->toCode the unified currency $code that was converted into
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a $code argument');
+        }
+        $toCode = $this->safe_string($params, 'toCode');
+        if ($toCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a $toCode parameter');
+        }
+        $params = $this->omit($params, 'toCode');
+        $request = array(
+            'trade_id' => $id,
+            'from_account' => $code,
+            'to_account' => $toCode,
+        );
+        $response = $this->v3PrivateGetBrokerageConvertTradeTradeId (array_merge($request, $params));
+        $data = $this->safe_dict($response, 'trade', array());
+        return $this->parse_conversion($data);
+    }
+
+    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+        $fromCoin = $this->safe_string($conversion, 'source_currency');
+        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
+        $to = $this->safe_string($conversion, 'target_currency');
+        $toCode = $this->safe_currency_code($to, $toCurrency);
+        $fromAmountStructure = $this->safe_dict($conversion, 'user_entered_amount');
+        $feeStructure = $this->safe_dict($conversion, 'total_fee');
+        $feeAmountStructure = $this->safe_dict($feeStructure, 'amount');
+        return array(
+            'info' => $conversion,
+            'timestamp' => null,
+            'datetime' => null,
+            'id' => $this->safe_string($conversion, 'id'),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->safe_number($fromAmountStructure, 'value'),
+            'toCurrency' => $toCode,
+            'toAmount' => null,
+            'price' => null,
+            'fee' => $this->safe_number($feeAmountStructure, 'value'),
+        );
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array ()): array {

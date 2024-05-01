@@ -328,6 +328,7 @@ class bybit extends Exchange {
                         'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info' => 5,
                         'v5/account/transaction-log' => 1,
+                        'v5/account/contract-transaction-log' => 1,
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
                         // asset
@@ -2517,9 +2518,9 @@ class bybit extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+            $params = $this->omit($params, array( 'endTime', 'until' ));
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             } else {
@@ -4049,6 +4050,81 @@ class bybit extends Exchange {
         }) ();
     }
 
+    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'orderId' => $id,
+            // 'orderLinkId' => 'string', // unique client order $id, max 36 characters
+            // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
+            // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
+            // 'triggerPrice' => 123.45, // trigger $price, required for conditional orders
+            // 'triggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'tpTriggerby' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'slTriggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // Valid for option only.
+            // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
+        );
+        if ($market['spot']) {
+            $request['category'] = 'spot';
+        } elseif ($market['linear']) {
+            $request['category'] = 'linear';
+        } elseif ($market['inverse']) {
+            $request['category'] = 'inverse';
+        } elseif ($market['option']) {
+            $request['category'] = 'option';
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_value($params, 'stopLoss');
+        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+        }
+        if ($triggerPrice !== null) {
+            $triggerPriceRequest = ($triggerPrice === '0') ? $triggerPrice : $this->price_to_precision($symbol, $triggerPrice);
+            $request['triggerPrice'] = $triggerPriceRequest;
+            $triggerBy = $this->safe_string($params, 'triggerBy', 'LastPrice');
+            $request['triggerBy'] = $triggerBy;
+        }
+        if ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                $stopLossRequest = ($slTriggerPrice === '0') ? $slTriggerPrice : $this->price_to_precision($symbol, $slTriggerPrice);
+                $request['stopLoss'] = $stopLossRequest;
+                $slTriggerBy = $this->safe_string($params, 'slTriggerBy', 'LastPrice');
+                $request['slTriggerBy'] = $slTriggerBy;
+            }
+            if ($isTakeProfit) {
+                $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                $takeProfitRequest = ($tpTriggerPrice === '0') ? $tpTriggerPrice : $this->price_to_precision($symbol, $tpTriggerPrice);
+                $request['takeProfit'] = $takeProfitRequest;
+                $tpTriggerBy = $this->safe_string($params, 'tpTriggerBy', 'LastPrice');
+                $request['tpTriggerBy'] = $tpTriggerBy;
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['orderLinkId'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ));
+        return $request;
+    }
+
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -4066,19 +4142,19 @@ class bybit extends Exchange {
              * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] The $price that a take profit order is triggered at
-             * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice that the attached take profit order will be triggered
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice that the attached take profit order will be triggered
              * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-             * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice that the attached stop loss order will be triggered
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice that the attached stop loss order will be triggered
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-             * @param {string} [$params->triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for $triggerPrice
-             * @param {string} [$params->slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for $stopLoss
-             * @param {string} [$params->tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for $takeProfit
+             * @param {string} [$params->triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+             * @param {string} [$params->slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+             * @param {string} [$params->tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
+            Async\await($this->load_markets());
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
@@ -4086,76 +4162,7 @@ class bybit extends Exchange {
             if ($isUsdcSettled && !$isUnifiedAccount) {
                 return Async\await($this->edit_usdc_order($id, $symbol, $type, $side, $amount, $price, $params));
             }
-            $request = array(
-                'symbol' => $market['id'],
-                'orderId' => $id,
-                // 'orderLinkId' => 'string', // unique client order $id, max 36 characters
-                // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
-                // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
-                // 'triggerPrice' => 123.45, // trigger $price, required for conditional orders
-                // 'triggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // 'tpTriggerby' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // 'slTriggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // Valid for option only.
-                // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
-            );
-            if ($market['spot']) {
-                $request['category'] = 'spot';
-            } elseif ($market['linear']) {
-                $request['category'] = 'linear';
-            } elseif ($market['inverse']) {
-                $request['category'] = 'inverse';
-            } elseif ($market['option']) {
-                $request['category'] = 'option';
-            }
-            if ($amount !== null) {
-                $request['qty'] = $this->amount_to_precision($symbol, $amount);
-            }
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            if ($amount !== null) {
-                $request['qty'] = $this->amount_to_precision($symbol, $amount);
-            }
-            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
-            $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_value($params, 'stopLoss');
-            $takeProfit = $this->safe_value($params, 'takeProfit');
-            $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
-            $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-            $isStopLoss = $stopLoss !== null;
-            $isTakeProfit = $takeProfit !== null;
-            if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
-            }
-            if ($triggerPrice !== null) {
-                $triggerPriceRequest = ($triggerPrice === '0') ? $triggerPrice : $this->price_to_precision($symbol, $triggerPrice);
-                $request['triggerPrice'] = $triggerPriceRequest;
-                $triggerBy = $this->safe_string($params, 'triggerBy', 'LastPrice');
-                $request['triggerBy'] = $triggerBy;
-            }
-            if ($isStopLoss || $isTakeProfit) {
-                if ($isStopLoss) {
-                    $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $stopLossRequest = ($slTriggerPrice === '0') ? $slTriggerPrice : $this->price_to_precision($symbol, $slTriggerPrice);
-                    $request['stopLoss'] = $stopLossRequest;
-                    $slTriggerBy = $this->safe_string($params, 'slTriggerBy', 'LastPrice');
-                    $request['slTriggerBy'] = $slTriggerBy;
-                }
-                if ($isTakeProfit) {
-                    $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $takeProfitRequest = ($tpTriggerPrice === '0') ? $tpTriggerPrice : $this->price_to_precision($symbol, $tpTriggerPrice);
-                    $request['takeProfit'] = $takeProfitRequest;
-                    $tpTriggerBy = $this->safe_string($params, 'tpTriggerBy', 'LastPrice');
-                    $request['tpTriggerBy'] = $tpTriggerBy;
-                }
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['orderLinkId'] = $clientOrderId;
-            }
-            $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ));
+            $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = Async\await($this->privatePostV5OrderAmend (array_merge($request, $params)));
             //
             //     {
@@ -4219,6 +4226,36 @@ class bybit extends Exchange {
         }) ();
     }
 
+    public function cancel_order_request(string $id, ?string $symbol = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            // 'orderLinkId' => 'string',
+            // 'orderId' => $id,
+            // conditional orders
+            // 'orderFilter' => '', // Valid for spot only. Order,tpslOrder. If not passed, Order by default
+        );
+        if ($market['spot']) {
+            // only works for spot $market
+            $isStop = $this->safe_bool_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            $request['orderFilter'] = $isStop ? 'StopOrder' : 'Order';
+        }
+        if ($id !== null) { // The user can also use argument $params["orderLinkId"]
+            $request['orderId'] = $id;
+        }
+        if ($market['spot']) {
+            $request['category'] = 'spot';
+        } elseif ($market['linear']) {
+            $request['category'] = 'linear';
+        } elseif ($market['inverse']) {
+            $request['category'] = 'inverse';
+        } elseif ($market['option']) {
+            $request['category'] = 'option';
+        }
+        return array_merge($request, $params);
+    }
+
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
@@ -4242,32 +4279,8 @@ class bybit extends Exchange {
             if ($isUsdcSettled && !$isUnifiedAccount) {
                 return Async\await($this->cancel_usdc_order($id, $symbol, $params));
             }
-            $request = array(
-                'symbol' => $market['id'],
-                // 'orderLinkId' => 'string',
-                // 'orderId' => $id,
-                // conditional orders
-                // 'orderFilter' => '', // Valid for spot only. Order,tpslOrder. If not passed, Order by default
-            );
-            if ($market['spot']) {
-                // only works for spot $market
-                $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
-                $params = $this->omit($params, array( 'stop', 'trigger' ));
-                $request['orderFilter'] = $isStop ? 'StopOrder' : 'Order';
-            }
-            if ($id !== null) { // The user can also use argument $params["orderLinkId"]
-                $request['orderId'] = $id;
-            }
-            if ($market['spot']) {
-                $request['category'] = 'spot';
-            } elseif ($market['linear']) {
-                $request['category'] = 'linear';
-            } elseif ($market['inverse']) {
-                $request['category'] = 'inverse';
-            } elseif ($market['option']) {
-                $request['category'] = 'option';
-            }
-            $response = Async\await($this->privatePostV5OrderCancel (array_merge($request, $params)));
+            $requestExtended = $this->cancel_order_request($id, $symbol, $params);
+            $response = Async\await($this->privatePostV5OrderCancel ($requestExtended));
             //
             //     {
             //         "retCode" => 0,
@@ -4803,9 +4816,9 @@ class bybit extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+            $params = $this->omit($params, array( 'endTime', 'until' ));
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             }
@@ -4981,9 +4994,9 @@ class bybit extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+            $params = $this->omit($params, array( 'endTime', 'until' ));
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             }
@@ -5792,7 +5805,7 @@ class bybit extends Exchange {
                 // 'coin' => $currency['id'],
                 // 'currency' => $currency['id'], // alias
                 // 'start_date' => $this->iso8601($since),
-                // 'end_date' => $this->iso8601(till),
+                // 'end_date' => $this->iso8601(until),
                 // 'wallet_fund_type' => 'Deposit', // Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
                 // 'page' => 1,
                 // 'limit' => 20, // max 50
@@ -6837,8 +6850,8 @@ class bybit extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
@@ -6993,7 +7006,7 @@ class bybit extends Exchange {
         ), $market);
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading

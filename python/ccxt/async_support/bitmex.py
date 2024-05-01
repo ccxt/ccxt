@@ -2409,8 +2409,8 @@ class bitmex(Exchange, ImplicitAPI):
             request['startTime'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = self.iso8601(until)
         if (since is None) and (until is None):

@@ -686,9 +686,9 @@ class coinlist extends coinlist$1 {
                 request['end_time'] = this.iso8601(this.milliseconds());
             }
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.publicGetV1SymbolsSymbolCandles(this.extend(request, params));
@@ -764,9 +764,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = Math.min(limit, 500);
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.publicGetV1SymbolsSymbolAuctions(this.extend(request, params));
@@ -1167,9 +1167,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Fills(this.extend(request, params));
@@ -1255,9 +1255,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Orders(this.extend(request, params));
@@ -1791,9 +1791,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         const response = await this.privateGetV1Transfers(this.extend(request, params));
@@ -2093,9 +2093,9 @@ class coinlist extends coinlist$1 {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['end_time'] = this.iso8601(until);
         }
         params = this.omit(params, ['trader_id', 'traderId']);

@@ -1428,10 +1428,10 @@ class probit(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         else:
             request['start_time'] = self.iso8601(1)
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
             request['end_time'] = self.iso8601(until)
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
         else:
             request['end_time'] = self.iso8601(self.milliseconds())
         if limit is not None:

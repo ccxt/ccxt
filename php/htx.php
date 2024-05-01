@@ -6477,9 +6477,9 @@ class htx extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): IsolatedBorrowRates {
         /**
-         * fetch the borrow interest $rates of all currencies
+         * fetch the borrow interest rates of all currencies
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure isolated borrow rate structures~
          */
@@ -6515,14 +6515,10 @@ class htx extends Exchange {
         // }
         //
         $data = $this->safe_value($response, 'data', array());
-        $rates = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $rates[] = $this->parse_isolated_borrow_rate($data[$i]);
-        }
-        return $rates;
+        return $this->parse_isolated_borrow_rates($data);
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "1inchusdt",
@@ -8463,8 +8459,8 @@ class htx extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
         }
-        $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
         $market = $this->market($symbol);
         $request = array();
         if ($market['future']) {

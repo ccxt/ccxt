@@ -545,6 +545,8 @@ class kraken extends Exchange {
                 $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
                 $leverageBuyLength = count($leverageBuy);
                 $precisionPrice = $this->parse_number($this->parse_precision($this->safe_string($market, 'pair_decimals')));
+                $status = $this->safe_string($market, 'status');
+                $isActive = $status === 'online';
                 $result[] = array(
                     'id' => $id,
                     'wsId' => $this->safe_string($market, 'wsname'),
@@ -563,7 +565,7 @@ class kraken extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => true,
+                    'active' => $isActive,
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
