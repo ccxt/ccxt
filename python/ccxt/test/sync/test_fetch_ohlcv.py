@@ -12,14 +12,13 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_ohlcv  # noqa E402
-
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     method = 'fetchOHLCV'
     timeframe_keys = list(exchange.timeframes.keys())
-    assert len(timeframe_keys) > 0, exchange.id + ' ' + method + ' - no timeframes found'
+    assert len(timeframe_keys), exchange.id + ' ' + method + ' - no timeframes found'
     # prefer 1m timeframe if available, otherwise return the first one
     chosen_timeframe_key = '1m'
     if not exchange.in_array(chosen_timeframe_key, timeframe_keys):
@@ -28,7 +27,7 @@ def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     duration = exchange.parse_timeframe(chosen_timeframe_key)
     since = exchange.milliseconds() - duration * limit * 1000 - 1000
     ohlcvs = exchange.fetch_ohlcv(symbol, chosen_timeframe_key, since, limit)
-    assert isinstance(ohlcvs, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(ohlcvs)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, ohlcvs, symbol)
     now = exchange.milliseconds()
     for i in range(0, len(ohlcvs)):
         test_ohlcv(exchange, skipped_properties, method, ohlcvs[i], symbol, now)

@@ -22,17 +22,38 @@ abstract class bitmart extends \ccxt\Exchange {
     public function public_get_spot_v1_symbols_details($params = array()) {
         return $this->request('spot/v1/symbols/details', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_spot_quotation_v3_tickers($params = array()) {
+        return $this->request('spot/quotation/v3/tickers', 'public', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function public_get_spot_quotation_v3_ticker($params = array()) {
+        return $this->request('spot/quotation/v3/ticker', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_spot_quotation_v3_lite_klines($params = array()) {
+        return $this->request('spot/quotation/v3/lite-klines', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_spot_quotation_v3_klines($params = array()) {
+        return $this->request('spot/quotation/v3/klines', 'public', 'GET', $params, null, null, array("cost" => 7));
+    }
+    public function public_get_spot_quotation_v3_books($params = array()) {
+        return $this->request('spot/quotation/v3/books', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_spot_quotation_v3_trades($params = array()) {
+        return $this->request('spot/quotation/v3/trades', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function public_get_spot_v1_ticker($params = array()) {
         return $this->request('spot/v1/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_spot_v2_ticker($params = array()) {
-        return $this->request('spot/v2/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('spot/v2/ticker', 'public', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function public_get_spot_v1_ticker_detail($params = array()) {
+        return $this->request('spot/v1/ticker_detail', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_spot_v1_steps($params = array()) {
         return $this->request('spot/v1/steps', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function public_get_spot_v1_symbols_kline($params = array()) {
-        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params, null, null, array("cost" => 6));
     }
     public function public_get_spot_v1_symbols_book($params = array()) {
         return $this->request('spot/v1/symbols/book', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -56,7 +77,7 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('contract/public/funding-rate', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function public_get_contract_public_kline($params = array()) {
-        return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 6));
     }
     public function public_get_account_v1_currencies($params = array()) {
         return $this->request('account/v1/currencies', 'public', 'GET', $params, null, null, array("cost" => 30));
@@ -72,6 +93,15 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function private_get_account_sub_account_main_v1_subaccount_list($params = array()) {
         return $this->request('account/sub-account/main/v1/subaccount-list', 'private', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function private_get_account_contract_sub_account_main_v1_wallet($params = array()) {
+        return $this->request('account/contract/sub-account/main/v1/wallet', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_account_contract_sub_account_main_v1_transfer_list($params = array()) {
+        return $this->request('account/contract/sub-account/main/v1/transfer-list', 'private', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function private_get_account_contract_sub_account_v1_transfer_history($params = array()) {
+        return $this->request('account/contract/sub-account/v1/transfer-history', 'private', 'GET', $params, null, null, array("cost" => 7.5));
     }
     public function private_get_account_v1_wallet($params = array()) {
         return $this->request('account/v1/wallet', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -119,28 +149,40 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/v1/margin/isolated/repay_record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_spot_v1_margin_isolated_pairs($params = array()) {
-        return $this->request('spot/v1/margin/isolated/pairs', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('spot/v1/margin/isolated/pairs', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_spot_v1_margin_isolated_account($params = array()) {
-        return $this->request('spot/v1/margin/isolated/account', 'private', 'GET', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/margin/isolated/account', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_spot_v1_trade_fee($params = array()) {
-        return $this->request('spot/v1/trade_fee', 'private', 'GET', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/trade_fee', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_spot_v1_user_fee($params = array()) {
-        return $this->request('spot/v1/user_fee', 'private', 'GET', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/user_fee', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function private_get_spot_v1_broker_rebate($params = array()) {
+        return $this->request('spot/v1/broker/rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_contract_private_assets_detail($params = array()) {
         return $this->request('contract/private/assets-detail', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_contract_private_order($params = array()) {
-        return $this->request('contract/private/order', 'private', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('contract/private/order', 'private', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function private_get_contract_private_order_history($params = array()) {
         return $this->request('contract/private/order-history', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function private_get_contract_private_position($params = array()) {
         return $this->request('contract/private/position', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_contract_private_get_open_orders($params = array()) {
+        return $this->request('contract/private/get-open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.2));
+    }
+    public function private_get_contract_private_current_plan_order($params = array()) {
+        return $this->request('contract/private/current-plan-order', 'private', 'GET', $params, null, null, array("cost" => 1.2));
+    }
+    public function private_get_contract_private_trades($params = array()) {
+        return $this->request('contract/private/trades', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function private_post_account_sub_account_main_v1_sub_to_main($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 30));
@@ -157,6 +199,15 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_post_account_sub_account_main_v1_sub_to_sub($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-sub', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
+    public function private_post_account_contract_sub_account_main_v1_sub_to_main($params = array()) {
+        return $this->request('account/contract/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 7.5));
+    }
+    public function private_post_account_contract_sub_account_main_v1_main_to_sub($params = array()) {
+        return $this->request('account/contract/sub-account/main/v1/main-to-sub', 'private', 'POST', $params, null, null, array("cost" => 7.5));
+    }
+    public function private_post_account_contract_sub_account_sub_v1_sub_to_main($params = array()) {
+        return $this->request('account/contract/sub-account/sub/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 7.5));
+    }
     public function private_post_account_v1_withdraw_apply($params = array()) {
         return $this->request('account/v1/withdraw/apply', 'private', 'POST', $params, null, null, array("cost" => 7.5));
     }
@@ -172,6 +223,24 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_post_spot_v1_cancel_orders($params = array()) {
         return $this->request('spot/v1/cancel_orders', 'private', 'POST', $params, null, null, array("cost" => 15));
     }
+    public function private_post_spot_v4_query_order($params = array()) {
+        return $this->request('spot/v4/query/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_spot_v4_query_client_order($params = array()) {
+        return $this->request('spot/v4/query/client-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_spot_v4_query_open_orders($params = array()) {
+        return $this->request('spot/v4/query/open-orders', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_spot_v4_query_history_orders($params = array()) {
+        return $this->request('spot/v4/query/history-orders', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_spot_v4_query_trades($params = array()) {
+        return $this->request('spot/v4/query/trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_spot_v4_query_order_trades($params = array()) {
+        return $this->request('spot/v4/query/order-trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_spot_v3_cancel_order($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -185,16 +254,37 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/v1/margin/submit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_spot_v1_margin_isolated_borrow($params = array()) {
-        return $this->request('spot/v1/margin/isolated/borrow', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/margin/isolated/borrow', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function private_post_spot_v1_margin_isolated_repay($params = array()) {
-        return $this->request('spot/v1/margin/isolated/repay', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/margin/isolated/repay', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function private_post_spot_v1_margin_isolated_transfer($params = array()) {
-        return $this->request('spot/v1/margin/isolated/transfer', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/margin/isolated/transfer', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
-    public function private_post_contract_private_trades($params = array()) {
-        return $this->request('contract/private/trades', 'private', 'POST', $params, null, null, array("cost" => 10));
+    public function private_post_account_v1_transfer_contract_list($params = array()) {
+        return $this->request('account/v1/transfer-contract-list', 'private', 'POST', $params, null, null, array("cost" => 60));
+    }
+    public function private_post_account_v1_transfer_contract($params = array()) {
+        return $this->request('account/v1/transfer-contract', 'private', 'POST', $params, null, null, array("cost" => 60));
+    }
+    public function private_post_contract_private_submit_order($params = array()) {
+        return $this->request('contract/private/submit-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_contract_private_cancel_order($params = array()) {
+        return $this->request('contract/private/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_post_contract_private_cancel_orders($params = array()) {
+        return $this->request('contract/private/cancel-orders', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function private_post_contract_private_submit_plan_order($params = array()) {
+        return $this->request('contract/private/submit-plan-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_contract_private_cancel_plan_order($params = array()) {
+        return $this->request('contract/private/cancel-plan-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_post_contract_private_submit_leverage($params = array()) {
+        return $this->request('contract/private/submit-leverage', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
     public function publicGetSystemTime($params = array()) {
         return $this->request('system/time', 'public', 'GET', $params, null, null, array("cost" => 3));
@@ -211,17 +301,38 @@ abstract class bitmart extends \ccxt\Exchange {
     public function publicGetSpotV1SymbolsDetails($params = array()) {
         return $this->request('spot/v1/symbols/details', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function publicGetSpotQuotationV3Tickers($params = array()) {
+        return $this->request('spot/quotation/v3/tickers', 'public', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function publicGetSpotQuotationV3Ticker($params = array()) {
+        return $this->request('spot/quotation/v3/ticker', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetSpotQuotationV3LiteKlines($params = array()) {
+        return $this->request('spot/quotation/v3/lite-klines', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetSpotQuotationV3Klines($params = array()) {
+        return $this->request('spot/quotation/v3/klines', 'public', 'GET', $params, null, null, array("cost" => 7));
+    }
+    public function publicGetSpotQuotationV3Books($params = array()) {
+        return $this->request('spot/quotation/v3/books', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetSpotQuotationV3Trades($params = array()) {
+        return $this->request('spot/quotation/v3/trades', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function publicGetSpotV1Ticker($params = array()) {
         return $this->request('spot/v1/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetSpotV2Ticker($params = array()) {
-        return $this->request('spot/v2/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('spot/v2/ticker', 'public', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function publicGetSpotV1TickerDetail($params = array()) {
+        return $this->request('spot/v1/ticker_detail', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetSpotV1Steps($params = array()) {
         return $this->request('spot/v1/steps', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function publicGetSpotV1SymbolsKline($params = array()) {
-        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params, null, null, array("cost" => 6));
     }
     public function publicGetSpotV1SymbolsBook($params = array()) {
         return $this->request('spot/v1/symbols/book', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -245,7 +356,7 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('contract/public/funding-rate', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function publicGetContractPublicKline($params = array()) {
-        return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 6));
     }
     public function publicGetAccountV1Currencies($params = array()) {
         return $this->request('account/v1/currencies', 'public', 'GET', $params, null, null, array("cost" => 30));
@@ -261,6 +372,15 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privateGetAccountSubAccountMainV1SubaccountList($params = array()) {
         return $this->request('account/sub-account/main/v1/subaccount-list', 'private', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function privateGetAccountContractSubAccountMainV1Wallet($params = array()) {
+        return $this->request('account/contract/sub-account/main/v1/wallet', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetAccountContractSubAccountMainV1TransferList($params = array()) {
+        return $this->request('account/contract/sub-account/main/v1/transfer-list', 'private', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function privateGetAccountContractSubAccountV1TransferHistory($params = array()) {
+        return $this->request('account/contract/sub-account/v1/transfer-history', 'private', 'GET', $params, null, null, array("cost" => 7.5));
     }
     public function privateGetAccountV1Wallet($params = array()) {
         return $this->request('account/v1/wallet', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -308,28 +428,40 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/v1/margin/isolated/repay_record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetSpotV1MarginIsolatedPairs($params = array()) {
-        return $this->request('spot/v1/margin/isolated/pairs', 'private', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('spot/v1/margin/isolated/pairs', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetSpotV1MarginIsolatedAccount($params = array()) {
-        return $this->request('spot/v1/margin/isolated/account', 'private', 'GET', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/margin/isolated/account', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetSpotV1TradeFee($params = array()) {
-        return $this->request('spot/v1/trade_fee', 'private', 'GET', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/trade_fee', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetSpotV1UserFee($params = array()) {
-        return $this->request('spot/v1/user_fee', 'private', 'GET', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/user_fee', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function privateGetSpotV1BrokerRebate($params = array()) {
+        return $this->request('spot/v1/broker/rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetContractPrivateAssetsDetail($params = array()) {
         return $this->request('contract/private/assets-detail', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetContractPrivateOrder($params = array()) {
-        return $this->request('contract/private/order', 'private', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('contract/private/order', 'private', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function privateGetContractPrivateOrderHistory($params = array()) {
         return $this->request('contract/private/order-history', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetContractPrivatePosition($params = array()) {
         return $this->request('contract/private/position', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetContractPrivateGetOpenOrders($params = array()) {
+        return $this->request('contract/private/get-open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.2));
+    }
+    public function privateGetContractPrivateCurrentPlanOrder($params = array()) {
+        return $this->request('contract/private/current-plan-order', 'private', 'GET', $params, null, null, array("cost" => 1.2));
+    }
+    public function privateGetContractPrivateTrades($params = array()) {
+        return $this->request('contract/private/trades', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privatePostAccountSubAccountMainV1SubToMain($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 30));
@@ -346,6 +478,15 @@ abstract class bitmart extends \ccxt\Exchange {
     public function privatePostAccountSubAccountMainV1SubToSub($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-sub', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
+    public function privatePostAccountContractSubAccountMainV1SubToMain($params = array()) {
+        return $this->request('account/contract/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 7.5));
+    }
+    public function privatePostAccountContractSubAccountMainV1MainToSub($params = array()) {
+        return $this->request('account/contract/sub-account/main/v1/main-to-sub', 'private', 'POST', $params, null, null, array("cost" => 7.5));
+    }
+    public function privatePostAccountContractSubAccountSubV1SubToMain($params = array()) {
+        return $this->request('account/contract/sub-account/sub/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 7.5));
+    }
     public function privatePostAccountV1WithdrawApply($params = array()) {
         return $this->request('account/v1/withdraw/apply', 'private', 'POST', $params, null, null, array("cost" => 7.5));
     }
@@ -361,6 +502,24 @@ abstract class bitmart extends \ccxt\Exchange {
     public function privatePostSpotV1CancelOrders($params = array()) {
         return $this->request('spot/v1/cancel_orders', 'private', 'POST', $params, null, null, array("cost" => 15));
     }
+    public function privatePostSpotV4QueryOrder($params = array()) {
+        return $this->request('spot/v4/query/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSpotV4QueryClientOrder($params = array()) {
+        return $this->request('spot/v4/query/client-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSpotV4QueryOpenOrders($params = array()) {
+        return $this->request('spot/v4/query/open-orders', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostSpotV4QueryHistoryOrders($params = array()) {
+        return $this->request('spot/v4/query/history-orders', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostSpotV4QueryTrades($params = array()) {
+        return $this->request('spot/v4/query/trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostSpotV4QueryOrderTrades($params = array()) {
+        return $this->request('spot/v4/query/order-trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function privatePostSpotV3CancelOrder($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -374,15 +533,36 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/v1/margin/submit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostSpotV1MarginIsolatedBorrow($params = array()) {
-        return $this->request('spot/v1/margin/isolated/borrow', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/margin/isolated/borrow', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function privatePostSpotV1MarginIsolatedRepay($params = array()) {
-        return $this->request('spot/v1/margin/isolated/repay', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/margin/isolated/repay', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function privatePostSpotV1MarginIsolatedTransfer($params = array()) {
-        return $this->request('spot/v1/margin/isolated/transfer', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('spot/v1/margin/isolated/transfer', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
-    public function privatePostContractPrivateTrades($params = array()) {
-        return $this->request('contract/private/trades', 'private', 'POST', $params, null, null, array("cost" => 10));
+    public function privatePostAccountV1TransferContractList($params = array()) {
+        return $this->request('account/v1/transfer-contract-list', 'private', 'POST', $params, null, null, array("cost" => 60));
+    }
+    public function privatePostAccountV1TransferContract($params = array()) {
+        return $this->request('account/v1/transfer-contract', 'private', 'POST', $params, null, null, array("cost" => 60));
+    }
+    public function privatePostContractPrivateSubmitOrder($params = array()) {
+        return $this->request('contract/private/submit-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostContractPrivateCancelOrder($params = array()) {
+        return $this->request('contract/private/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostContractPrivateCancelOrders($params = array()) {
+        return $this->request('contract/private/cancel-orders', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function privatePostContractPrivateSubmitPlanOrder($params = array()) {
+        return $this->request('contract/private/submit-plan-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostContractPrivateCancelPlanOrder($params = array()) {
+        return $this->request('contract/private/cancel-plan-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostContractPrivateSubmitLeverage($params = array()) {
+        return $this->request('contract/private/submit-leverage', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
 }

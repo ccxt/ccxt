@@ -7,7 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\NotSupported;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class gemini extends \ccxt\async\gemini {
 
@@ -18,10 +20,13 @@ class gemini extends \ccxt\async\gemini {
                 'watchBalance' => false,
                 'watchTicker' => false,
                 'watchTickers' => false,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchMyTrades' => false,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchOHLCV' => true,
             ),
             'hostname' => 'api.gemini.com',
@@ -36,16 +41,16 @@ class gemini extends \ccxt\async\gemini {
         ));
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watch the list of most recent $trades for a particular $symbol
              * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -72,23 +77,65 @@ class gemini extends \ccxt\async\gemini {
         }) ();
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://docs.gemini.com/websocket-api/#multi-market-data
+             * get the list of most recent $trades for a list of $symbols
+             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             */
+            $trades = Async\await($this->helper_for_watch_multiple_construct('trades', $symbols, $params));
+            if ($this->newUpdates) {
+                $first = $this->safe_list($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function parse_ws_trade($trade, $market = null): array {
+        //
+        // regular v2 $trade
         //
         //     {
-        //         type => 'trade',
-        //         $symbol => 'BTCUSD',
-        //         event_id => 122258166738,
-        //         $timestamp => 1655330221424,
-        //         price => '22269.14',
-        //         quantity => '0.00004473',
-        //         $side => 'buy'
+        //         "type" => "trade",
+        //         "symbol" => "BTCUSD",
+        //         "event_id" => 122258166738,
+        //         "timestamp" => 1655330221424,
+        //         "price" => "22269.14",
+        //         "quantity" => "0.00004473",
+        //         "side" => "buy"
         //     }
         //
+        // multi data $trade
+        //
+        //    {
+        //        "type" => "trade",
+        //        "symbol" => "ETHUSD",
+        //        "tid" => "1683002242170204", // this is not TS, but somewhat ID
+        //        "price" => "2299.24",
+        //        "amount" => "0.002662",
+        //        "makerSide" => "bid"
+        //    }
+        //
         $timestamp = $this->safe_integer($trade, 'timestamp');
-        $id = $this->safe_string($trade, 'event_id');
+        $id = $this->safe_string_2($trade, 'event_id', 'tid');
         $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'quantity');
+        $amountString = $this->safe_string_2($trade, 'quantity', 'amount');
         $side = $this->safe_string_lower($trade, 'side');
+        if ($side === null) {
+            $marketSide = $this->safe_string_lower($trade, 'makerSide');
+            if ($marketSide === 'bid') {
+                $side = 'sell';
+            } elseif ($marketSide === 'ask') {
+                $side = 'buy';
+            }
+        }
         $marketId = $this->safe_string_lower($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         return $this->safe_trade(array(
@@ -111,13 +158,13 @@ class gemini extends \ccxt\async\gemini {
     public function handle_trade(Client $client, $message) {
         //
         //     {
-        //         type => 'trade',
-        //         $symbol => 'BTCUSD',
-        //         event_id => 122278173770,
-        //         timestamp => 1655335880981,
-        //         price => '22530.80',
-        //         quantity => '0.04',
-        //         side => 'buy'
+        //         "type" => "trade",
+        //         "symbol" => "BTCUSD",
+        //         "event_id" => 122278173770,
+        //         "timestamp" => 1655335880981,
+        //         "price" => "22530.80",
+        //         "quantity" => "0.04",
+        //         "side" => "buy"
         //     }
         //
         $trade = $this->parse_ws_trade($message);
@@ -136,37 +183,37 @@ class gemini extends \ccxt\async\gemini {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         type => 'l2_updates',
-        //         $symbol => 'BTCUSD',
-        //         changes => array(
-        //             array( 'buy', '22252.37', '0.02' ),
-        //             array( 'buy', '22251.61', '0.04' ),
-        //             array( 'buy', '22251.60', '0.04' ),
+        //         "type" => "l2_updates",
+        //         "symbol" => "BTCUSD",
+        //         "changes" => array(
+        //             array( "buy", '22252.37', "0.02" ),
+        //             array( "buy", '22251.61', "0.04" ),
+        //             array( "buy", '22251.60', "0.04" ),
         //             // some asks
         //         ),
-        //         $trades => array(
-        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => '0.00004473', side => 'buy' ),
-        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258141090, timestamp => 1655330213216, price => '22250.00', quantity => '0.00704098', side => 'buy' ),
-        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258118291, timestamp => 1655330206753, price => '22250.00', quantity => '0.03', side => 'buy' ),
+        //         "trades" => array(
+        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => "0.00004473", side => "buy" ),
+        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258141090, timestamp => 1655330213216, price => '22250.00', quantity => "0.00704098", side => "buy" ),
+        //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258118291, timestamp => 1655330206753, price => '22250.00', quantity => "0.03", side => "buy" ),
         //         ),
-        //         auction_events => array(
+        //         "auction_events" => array(
         //             array(
-        //                 type => 'auction_result',
-        //                 $symbol => 'BTCUSD',
-        //                 time_ms => 1655323200000,
-        //                 result => 'failure',
-        //                 highest_bid_price => '21590.88',
-        //                 lowest_ask_price => '21602.30',
-        //                 collar_price => '21634.73'
+        //                 "type" => "auction_result",
+        //                 "symbol" => "BTCUSD",
+        //                 "time_ms" => 1655323200000,
+        //                 "result" => "failure",
+        //                 "highest_bid_price" => "21590.88",
+        //                 "lowest_ask_price" => "21602.30",
+        //                 "collar_price" => "21634.73"
         //             ),
         //             array(
-        //                 type => 'auction_indicative',
-        //                 $symbol => 'BTCUSD',
-        //                 time_ms => 1655323185000,
-        //                 result => 'failure',
-        //                 highest_bid_price => '21661.90',
-        //                 lowest_ask_price => '21663.79',
-        //                 collar_price => '21662.845'
+        //                 "type" => "auction_indicative",
+        //                 "symbol" => "BTCUSD",
+        //                 "time_ms" => 1655323185000,
+        //                 "result" => "failure",
+        //                 "highest_bid_price" => "21661.90",
+        //                 "lowest_ask_price" => "21663.78",
+        //                 "collar_price" => "21662.845"
         //             ),
         //         )
         //     }
@@ -191,17 +238,46 @@ class gemini extends \ccxt\async\gemini {
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function handle_trades_for_multidata(Client $client, $trades, ?int $timestamp) {
+        if ($trades !== null) {
+            $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $storesForSymbols = array();
+            for ($i = 0; $i < count($trades); $i++) {
+                $marketId = $trades[$i]['symbol'];
+                $market = $this->safe_market(strtolower($marketId));
+                $symbol = $market['symbol'];
+                $trade = $this->parse_ws_trade($trades[$i], $market);
+                $trade['timestamp'] = $timestamp;
+                $trade['datetime'] = $this->iso8601($timestamp);
+                $stored = $this->safe_value($this->trades, $symbol);
+                if ($stored === null) {
+                    $stored = new ArrayCache ($tradesLimit);
+                    $this->trades[$symbol] = $stored;
+                }
+                $stored->append ($trade);
+                $storesForSymbols[$symbol] = $stored;
+            }
+            $symbols = is_array($storesForSymbols) ? array_keys($storesForSymbols) : array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $stored = $storesForSymbols[$symbol];
+                $messageHash = 'trades:' . $symbol;
+                $client->resolve ($stored, $messageHash);
+            }
+        }
+    }
+
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @see https://docs.gemini.com/websocket-api/#candles-data-feed
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -284,14 +360,14 @@ class gemini extends \ccxt\async\gemini {
         return $message;
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the gemini api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -340,40 +416,207 @@ class gemini extends \ccxt\async\gemini {
         $client->resolve ($orderbook, $messageHash);
     }
 
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.gemini.com/websocket-api/#multi-market-data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             */
+            $orderbook = Async\await($this->helper_for_watch_multiple_construct('orderbook', $symbols, $params));
+            return $orderbook->limit ();
+        }) ();
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches best bid & ask for $symbols
+             * @see https://docs.gemini.com/websocket-api/#multi-market-data
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            return Async\await($this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params));
+        }) ();
+    }
+
+    public function handle_bids_asks_for_multidata(Client $client, $rawBidAskChanges, ?int $timestamp, ?int $nonce) {
+        //
+        // {
+        //     eventId => '1683002916916153',
+        //     events => array(
+        //       array(
+        //         $price => '50945.37',
+        //         reason => 'top-of-book',
+        //         remaining => '0.0',
+        //         side => 'bid',
+        //         $symbol => 'BTCUSDT',
+        //         type => 'change'
+        //       ),
+        //       {
+        //         $price => '50947.75',
+        //         reason => 'top-of-book',
+        //         remaining => '0.11725',
+        //         side => 'bid',
+        //         $symbol => 'BTCUSDT',
+        //         type => 'change'
+        //       }
+        //     ),
+        //     socket_sequence => 322,
+        //     $timestamp => 1708674495,
+        //     timestampms => 1708674495174,
+        //     type => 'update'
+        // }
+        //
+        $marketId = $rawBidAskChanges[0]['symbol'];
+        $market = $this->safe_market(strtolower($marketId));
+        $symbol = $market['symbol'];
+        if (!(is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks))) {
+            $this->bidsasks[$symbol] = $this->parse_ticker(array());
+            $this->bidsasks[$symbol]['symbol'] = $symbol;
+        }
+        $currentBidAsk = $this->bidsasks[$symbol];
+        $messageHash = 'bidsasks:' . $symbol;
+        // last update always overwrites the previous state and is the latest state
+        for ($i = 0; $i < count($rawBidAskChanges); $i++) {
+            $entry = $rawBidAskChanges[$i];
+            $rawSide = $this->safe_string($entry, 'side');
+            $price = $this->safe_number($entry, 'price');
+            $size = $this->safe_number($entry, 'remaining');
+            if ($size === 0) {
+                continue;
+            }
+            if ($rawSide === 'bid') {
+                $currentBidAsk['bid'] = $price;
+                $currentBidAsk['bidVolume'] = $size;
+            } else {
+                $currentBidAsk['ask'] = $price;
+                $currentBidAsk['askVolume'] = $size;
+            }
+        }
+        $currentBidAsk['timestamp'] = $timestamp;
+        $currentBidAsk['datetime'] = $this->iso8601($timestamp);
+        $currentBidAsk['info'] = $rawBidAskChanges;
+        $this->bidsasks[$symbol] = $currentBidAsk;
+        $client->resolve ($currentBidAsk, $messageHash);
+    }
+
+    public function helper_for_watch_multiple_construct(string $itemHashName, array $symbols, $params = array ()) {
+        return Async\async(function () use ($itemHashName, $symbols, $params) {
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
+            $firstMarket = $this->market($symbols[0]);
+            if (!$firstMarket['spot'] && !$firstMarket['linear']) {
+                throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
+            }
+            $messageHashes = array();
+            $marketIds = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $messageHash = $itemHashName . ':' . $symbol;
+                $messageHashes[] = $messageHash;
+                $market = $this->market($symbol);
+                $marketIds[] = $market['id'];
+            }
+            $queryStr = implode(',', $marketIds);
+            $url = $this->urls['api']['ws'] . '/v1/multimarketdata?$symbols=' . $queryStr . '&heartbeat=true&';
+            if ($itemHashName === 'orderbook') {
+                $url .= 'trades=false&bids=true&offers=true';
+            } elseif ($itemHashName === 'bidsasks') {
+                $url .= 'trades=false&bids=true&offers=true&top_of_book=true';
+            } elseif ($itemHashName === 'trades') {
+                $url .= 'trades=true&bids=false&offers=false';
+            }
+            return Async\await($this->watch_multiple($url, $messageHashes, null));
+        }) ();
+    }
+
+    public function handle_order_book_for_multidata(Client $client, $rawOrderBookChanges, ?int $timestamp, ?int $nonce) {
+        //
+        // $rawOrderBookChanges
+        //
+        // [
+        //   array(
+        //     delta => "4105123935484.817624",
+        //     $price => "0.000000001",
+        //     reason => "initial", // initial|cancel|place
+        //     remaining => "4105123935484.817624",
+        //     side => "bid", // bid|ask
+        //     $symbol => "SHIBUSD",
+        //     type => "change", // seems always change
+        //   ),
+        //   ...
+        //
+        $marketId = $rawOrderBookChanges[0]['symbol'];
+        $market = $this->safe_market(strtolower($marketId));
+        $symbol = $market['symbol'];
+        $messageHash = 'orderbook:' . $symbol;
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $ob = $this->order_book();
+            $this->orderbooks[$symbol] = $ob;
+        }
+        $orderbook = $this->orderbooks[$symbol];
+        $bids = $orderbook['bids'];
+        $asks = $orderbook['asks'];
+        for ($i = 0; $i < count($rawOrderBookChanges); $i++) {
+            $entry = $rawOrderBookChanges[$i];
+            $price = $this->safe_number($entry, 'price');
+            $size = $this->safe_number($entry, 'remaining');
+            $rawSide = $this->safe_string($entry, 'side');
+            if ($rawSide === 'bid') {
+                $bids->store ($price, $size);
+            } else {
+                $asks->store ($price, $size);
+            }
+        }
+        $orderbook['bids'] = $bids;
+        $orderbook['asks'] = $asks;
+        $orderbook['symbol'] = $symbol;
+        $orderbook['nonce'] = $nonce;
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
+        $this->orderbooks[$symbol] = $orderbook;
+        $client->resolve ($orderbook, $messageHash);
+    }
+
     public function handle_l2_updates(Client $client, $message) {
         //
         //     {
-        //         type => 'l2_updates',
-        //         symbol => 'BTCUSD',
-        //         changes => array(
-        //             array( 'buy', '22252.37', '0.02' ),
-        //             array( 'buy', '22251.61', '0.04' ),
-        //             array( 'buy', '22251.60', '0.04' ),
+        //         "type" => "l2_updates",
+        //         "symbol" => "BTCUSD",
+        //         "changes" => array(
+        //             array( "buy", '22252.37', "0.02" ),
+        //             array( "buy", '22251.61', "0.04" ),
+        //             array( "buy", '22251.60', "0.04" ),
         //             // some asks
         //         ),
-        //         trades => array(
-        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => '0.00004473', side => 'buy' ),
-        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258141090, timestamp => 1655330213216, price => '22250.00', quantity => '0.00704098', side => 'buy' ),
-        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258118291, timestamp => 1655330206753, price => '22250.00', quantity => '0.03', side => 'buy' ),
+        //         "trades" => array(
+        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => "0.00004473", side => "buy" ),
+        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258141090, timestamp => 1655330213216, price => '22250.00', quantity => "0.00704098", side => "buy" ),
+        //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258118291, timestamp => 1655330206753, price => '22250.00', quantity => "0.03", side => "buy" ),
         //         ),
-        //         auction_events => array(
+        //         "auction_events" => array(
         //             array(
-        //                 type => 'auction_result',
-        //                 symbol => 'BTCUSD',
-        //                 time_ms => 1655323200000,
-        //                 result => 'failure',
-        //                 highest_bid_price => '21590.88',
-        //                 lowest_ask_price => '21602.30',
-        //                 collar_price => '21634.73'
+        //                 "type" => "auction_result",
+        //                 "symbol" => "BTCUSD",
+        //                 "time_ms" => 1655323200000,
+        //                 "result" => "failure",
+        //                 "highest_bid_price" => "21590.88",
+        //                 "lowest_ask_price" => "21602.30",
+        //                 "collar_price" => "21634.73"
         //             ),
         //             array(
-        //                 type => 'auction_indicative',
-        //                 symbol => 'BTCUSD',
-        //                 time_ms => 1655323185000,
-        //                 result => 'failure',
-        //                 highest_bid_price => '21661.90',
-        //                 lowest_ask_price => '21663.79',
-        //                 collar_price => '21662.845'
+        //                 "type" => "auction_indicative",
+        //                 "symbol" => "BTCUSD",
+        //                 "time_ms" => 1655323185000,
+        //                 "result" => "failure",
+        //                 "highest_bid_price" => "21661.90",
+        //                 "lowest_ask_price" => "21663.79",
+        //                 "collar_price" => "21662.845"
         //             ),
         //         )
         //     }
@@ -382,16 +625,16 @@ class gemini extends \ccxt\async\gemini {
         $this->handle_trades($client, $message);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @see https://docs.gemini.com/websocket-api/#order-events
-             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
             Async\await($this->load_markets());
@@ -408,32 +651,33 @@ class gemini extends \ccxt\async\gemini {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
     }
 
     public function handle_heartbeat(Client $client, $message) {
         //
         //     {
-        //         type => 'heartbeat',
-        //         timestampms => 1659740268958,
-        //         sequence => 7,
-        //         trace_id => '25b3d92476dd3a9a5c03c9bd9e0a0dba',
-        //         socket_sequence => 7
+        //         "type" => "heartbeat",
+        //         "timestampms" => 1659740268958,
+        //         "sequence" => 7,
+        //         "trace_id" => "25b3d92476dd3a9a5c03c9bd9e0a0dba",
+        //         "socket_sequence" => 7
         //     }
         //
+        $client->lastPong = $this->milliseconds();
         return $message;
     }
 
     public function handle_subscription(Client $client, $message) {
         //
         //     {
-        //         type => 'subscription_ack',
-        //         accountId => 19433282,
-        //         subscriptionId => 'orderevents-websocket-25b3d92476dd3a9a5c03c9bd9e0a0dba',
-        //         symbolFilter => array(),
-        //         apiSessionFilter => array(),
-        //         eventTypeFilter => array()
+        //         "type" => "subscription_ack",
+        //         "accountId" => 19433282,
+        //         "subscriptionId" => "orderevents-websocket-25b3d92476dd3a9a5c03c9bd9e0a0dba",
+        //         "symbolFilter" => array(),
+        //         "apiSessionFilter" => array(),
+        //         "eventTypeFilter" => array()
         //     }
         //
         return $message;
@@ -443,23 +687,23 @@ class gemini extends \ccxt\async\gemini {
         //
         //     array(
         //         {
-        //             type => 'accepted',
-        //             order_id => '134150423884',
-        //             event_id => '134150423886',
-        //             account_name => 'primary',
-        //             client_order_id => '1659739406916',
-        //             api_session => 'account-pnBFSS0XKGvDamX4uEIt',
-        //             symbol => 'batbtc',
-        //             side => 'sell',
-        //             order_type => 'exchange limit',
-        //             timestamp => '1659739407',
-        //             timestampms => 1659739407576,
-        //             is_live => true,
-        //             is_cancelled => false,
-        //             is_hidden => false,
-        //             original_amount => '1',
-        //             price => '1',
-        //             socket_sequence => 139
+        //             "type" => "accepted",
+        //             "order_id" => "134150423884",
+        //             "event_id" => "134150423886",
+        //             "account_name" => "primary",
+        //             "client_order_id" => "1659739406916",
+        //             "api_session" => "account-pnBFSS0XKGvDamX4uEIt",
+        //             "symbol" => "batbtc",
+        //             "side" => "sell",
+        //             "order_type" => "exchange $limit",
+        //             "timestamp" => "1659739407",
+        //             "timestampms" => 1659739407576,
+        //             "is_live" => true,
+        //             "is_cancelled" => false,
+        //             "is_hidden" => false,
+        //             "original_amount" => "1",
+        //             "price" => "1",
+        //             "socket_sequence" => 139
         //         }
         //     )
         //
@@ -479,26 +723,26 @@ class gemini extends \ccxt\async\gemini {
     public function parse_ws_order($order, $market = null) {
         //
         //     {
-        //         type => 'accepted',
-        //         order_id => '134150423884',
-        //         event_id => '134150423886',
-        //         account_name => 'primary',
-        //         client_order_id => '1659739406916',
-        //         api_session => 'account-pnBFSS0XKGvDamX4uEIt',
-        //         symbol => 'batbtc',
-        //         side => 'sell',
-        //         order_type => 'exchange limit',
-        //         $timestamp => '1659739407',
-        //         timestampms => 1659739407576,
-        //         is_live => true,
-        //         is_cancelled => false,
-        //         is_hidden => false,
-        //         original_amount => '1',
-        //         price => '1',
-        //         socket_sequence => 139
+        //         "type" => "accepted",
+        //         "order_id" => "134150423884",
+        //         "event_id" => "134150423886",
+        //         "account_name" => "primary",
+        //         "client_order_id" => "1659739406916",
+        //         "api_session" => "account-pnBFSS0XKGvDamX4uEIt",
+        //         "symbol" => "batbtc",
+        //         "side" => "sell",
+        //         "order_type" => "exchange limit",
+        //         "timestamp" => "1659739407",
+        //         "timestampms" => 1659739407576,
+        //         "is_live" => true,
+        //         "is_cancelled" => false,
+        //         "is_hidden" => false,
+        //         "original_amount" => "1",
+        //         "price" => "1",
+        //         "socket_sequence" => 139
         //     }
         //
-        $timestamp = $this->safe_number($order, 'timestampms');
+        $timestamp = $this->safe_integer($order, 'timestampms');
         $status = $this->safe_string($order, 'type');
         $marketId = $this->safe_string($order, 'symbol');
         $typeId = $this->safe_string($order, 'order_type');
@@ -562,8 +806,8 @@ class gemini extends \ccxt\async\gemini {
     public function handle_error(Client $client, $message) {
         //
         //     {
-        //         reason => 'NoValidTradingPairs',
-        //         result => 'error'
+        //         "reason" => "NoValidTradingPairs",
+        //         "result" => "error"
         //     }
         //
         throw new ExchangeError($this->json($message));
@@ -573,41 +817,42 @@ class gemini extends \ccxt\async\gemini {
         //
         //  public
         //     {
-        //         $type => 'trade',
-        //         symbol => 'BTCUSD',
-        //         event_id => 122278173770,
-        //         timestamp => 1655335880981,
-        //         price => '22530.80',
-        //         quantity => '0.04',
-        //         side => 'buy'
+        //         "type" => "trade",
+        //         "symbol" => "BTCUSD",
+        //         "event_id" => 122278173770,
+        //         "timestamp" => 1655335880981,
+        //         "price" => "22530.80",
+        //         "quantity" => "0.04",
+        //         "side" => "buy"
         //     }
         //
         //  private
         //     array(
         //         {
-        //             $type => 'accepted',
-        //             order_id => '134150423884',
-        //             event_id => '134150423886',
-        //             account_name => 'primary',
-        //             client_order_id => '1659739406916',
-        //             api_session => 'account-pnBFSS0XKGvDamX4uEIt',
-        //             symbol => 'batbtc',
-        //             side => 'sell',
-        //             order_type => 'exchange limit',
-        //             timestamp => '1659739407',
-        //             timestampms => 1659739407576,
-        //             is_live => true,
-        //             is_cancelled => false,
-        //             is_hidden => false,
-        //             original_amount => '1',
-        //             price => '1',
-        //             socket_sequence => 139
+        //             "type" => "accepted",
+        //             "order_id" => "134150423884",
+        //             "event_id" => "134150423886",
+        //             "account_name" => "primary",
+        //             "client_order_id" => "1659739406916",
+        //             "api_session" => "account-pnBFSS0XKGvDamX4uEIt",
+        //             "symbol" => "batbtc",
+        //             "side" => "sell",
+        //             "order_type" => "exchange limit",
+        //             "timestamp" => "1659739407",
+        //             "timestampms" => 1659739407576,
+        //             "is_live" => true,
+        //             "is_cancelled" => false,
+        //             "is_hidden" => false,
+        //             "original_amount" => "1",
+        //             "price" => "1",
+        //             "socket_sequence" => 139
         //         }
         //     )
         //
         $isArray = gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message));
         if ($isArray) {
-            return $this->handle_order($client, $message);
+            $this->handle_order($client, $message);
+            return;
         }
         $reason = $this->safe_string($message, 'reason');
         if ($reason === 'error') {
@@ -621,11 +866,48 @@ class gemini extends \ccxt\async\gemini {
         );
         $type = $this->safe_string($message, 'type', '');
         if (mb_strpos($type, 'candles') !== false) {
-            return $this->handle_ohlcv($client, $message);
+            $this->handle_ohlcv($client, $message);
+            return;
         }
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {
             $method($client, $message);
+        }
+        // handle multimarketdata
+        if ($type === 'update') {
+            $ts = $this->safe_integer($message, 'timestampms', $this->milliseconds());
+            $eventId = $this->safe_integer($message, 'eventId');
+            $events = $this->safe_list($message, 'events');
+            $orderBookItems = array();
+            $bidaskItems = array();
+            $collectedEventsOfTrades = array();
+            $eventsLength = count($events);
+            for ($i = 0; $i < count($events); $i++) {
+                $event = $events[$i];
+                $eventType = $this->safe_string($event, 'type');
+                $isOrderBook = ($eventType === 'change') && (is_array($event) && array_key_exists('side', $event)) && $this->in_array($event['side'], array( 'ask', 'bid' ));
+                $eventReason = $this->safe_string($event, 'reason');
+                $isBidAsk = ($eventReason === 'top-of-book') || ($isOrderBook && ($eventReason === 'initial') && $eventsLength === 2);
+                if ($isBidAsk) {
+                    $bidaskItems[] = $event;
+                } elseif ($isOrderBook) {
+                    $orderBookItems[] = $event;
+                } elseif ($eventType === 'trade') {
+                    $collectedEventsOfTrades[] = $events[$i];
+                }
+            }
+            $lengthBa = count($bidaskItems);
+            if ($lengthBa > 0) {
+                $this->handle_bids_asks_for_multidata($client, $bidaskItems, $ts, $eventId);
+            }
+            $lengthOb = count($orderBookItems);
+            if ($lengthOb > 0) {
+                $this->handle_order_book_for_multidata($client, $orderBookItems, $ts, $eventId);
+            }
+            $lengthTrades = count($collectedEventsOfTrades);
+            if ($lengthTrades > 0) {
+                $this->handle_trades_for_multidata($client, $collectedEventsOfTrades, $ts);
+            }
         }
     }
 
@@ -653,7 +935,8 @@ class gemini extends \ccxt\async\gemini {
                 ),
             ),
         );
-        $this->options = array_merge($defaultOptions, $this->options);
+        // $this->options = array_merge($defaultOptions, $this->options);
+        $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,

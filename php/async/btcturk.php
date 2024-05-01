@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class btcturk extends Exchange {
 
@@ -20,6 +21,7 @@ class btcturk extends Exchange {
             'name' => 'BTCTurk',
             'countries' => array( 'TR' ), // Turkey
             'rateLimit' => 100,
+            'pro' => false,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -29,19 +31,26 @@ class btcturk extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -53,8 +62,11 @@ class btcturk extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -64,6 +76,7 @@ class btcturk extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'ws' => false,
             ),
             'timeframes' => array(
                 '1m' => 1,
@@ -71,9 +84,9 @@ class btcturk extends Exchange {
                 '30m' => 30,
                 '1h' => 60,
                 '4h' => 240,
-                '1d' => '1 day',
-                '1w' => '1 week',
-                '1y' => '1 year',
+                '1d' => '1 d',
+                '1w' => '1 w',
+                '1y' => '1 y',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
@@ -91,6 +104,7 @@ class btcturk extends Exchange {
                         'orderbook' => 1,
                         'ticker' => 0.1,
                         'trades' => 1,   // ?last=COUNT (max 50)
+                        'ohlc' => 1,
                         'server/exchangeinfo' => 1,
                     ),
                 ),
@@ -102,6 +116,8 @@ class btcturk extends Exchange {
                         'users/transactions/trade' => 1,
                     ),
                     'post' => array(
+                        'users/transactions/crypto' => 1,
+                        'users/transactions/fiat' => 1,
                         'order' => 1,
                         'cancelOrder' => 1,
                     ),
@@ -133,12 +149,13 @@ class btcturk extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all $markets for btcturk
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing market $data
+             * @see https://docs.btcturk.com/public-endpoints/exchange-info
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing market $data
              */
             $response = Async\await($this->publicGetServerExchangeinfo ($params));
             //
@@ -186,86 +203,86 @@ class btcturk extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             $markets = $this->safe_value($data, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $entry = $markets[$i];
-                $id = $this->safe_string($entry, 'name');
-                $baseId = $this->safe_string($entry, 'numerator');
-                $quoteId = $this->safe_string($entry, 'denominator');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $filters = $this->safe_value($entry, 'filters', array());
-                $minPrice = null;
-                $maxPrice = null;
-                $minAmount = null;
-                $maxAmount = null;
-                $minCost = null;
-                for ($j = 0; $j < count($filters); $j++) {
-                    $filter = $filters[$j];
-                    $filterType = $this->safe_string($filter, 'filterType');
-                    if ($filterType === 'PRICE_FILTER') {
-                        $minPrice = $this->safe_number($filter, 'minPrice');
-                        $maxPrice = $this->safe_number($filter, 'maxPrice');
-                        $minAmount = $this->safe_number($filter, 'minAmount');
-                        $maxAmount = $this->safe_number($filter, 'maxAmount');
-                        $minCost = $this->safe_number($filter, 'minExchangeValue');
-                    }
-                }
-                $status = $this->safe_string($entry, 'status');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => ($status === 'TRADING'),
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'numeratorScale'))),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'denominatorScale'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $minAmount,
-                            'max' => $maxAmount,
-                        ),
-                        'price' => array(
-                            'min' => $minPrice,
-                            'max' => $maxPrice,
-                        ),
-                        'cost' => array(
-                            'min' => $minCost,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $entry,
-                );
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_market($entry): array {
+        $id = $this->safe_string($entry, 'name');
+        $baseId = $this->safe_string($entry, 'numerator');
+        $quoteId = $this->safe_string($entry, 'denominator');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $filters = $this->safe_value($entry, 'filters', array());
+        $minPrice = null;
+        $maxPrice = null;
+        $minAmount = null;
+        $maxAmount = null;
+        $minCost = null;
+        for ($j = 0; $j < count($filters); $j++) {
+            $filter = $filters[$j];
+            $filterType = $this->safe_string($filter, 'filterType');
+            if ($filterType === 'PRICE_FILTER') {
+                $minPrice = $this->safe_number($filter, 'minPrice');
+                $maxPrice = $this->safe_number($filter, 'maxPrice');
+                $minAmount = $this->safe_number($filter, 'minAmount');
+                $maxAmount = $this->safe_number($filter, 'maxAmount');
+                $minCost = $this->safe_number($filter, 'minExchangeValue');
+            }
+        }
+        $status = $this->safe_string($entry, 'status');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'TRADING'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'numeratorScale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'denominatorScale'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $minAmount,
+                    'max' => $maxAmount,
+                ),
+                'price' => array(
+                    'min' => $minPrice,
+                    'max' => $maxPrice,
+                ),
+                'cost' => array(
+                    'min' => $minCost,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $entry,
+        );
+    }
+
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -285,12 +302,13 @@ class btcturk extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @see https://docs.btcturk.com/private-endpoints/account-balance
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetUsersBalances ($params));
@@ -314,13 +332,14 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @see https://docs.btcturk.com/public-endpoints/orderbook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -346,7 +365,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //   {
         //     "pair" => "BTCTRY",
@@ -396,27 +415,29 @@ class btcturk extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             * @see https://docs.btcturk.com/public-endpoints/ticker
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker ($params));
-            $tickers = $this->safe_value($response, 'data');
+            $tickers = $this->safe_list($response, 'data');
             return $this->parse_tickers($tickers, $symbols);
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @see https://docs.btcturk.com/public-endpoints/ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -425,7 +446,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -488,15 +509,16 @@ class btcturk extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://docs.btcturk.com/public-endpoints/trades
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -525,20 +547,20 @@ class btcturk extends Exchange {
             //       )
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
-        //        'timestamp' => 1661990400,
-        //        'high' => 368388.0,
-        //        'open' => 368388.0,
-        //        'low' => 368388.0,
-        //        'close' => 368388.0,
-        //        'volume' => 0.00035208,
+        //        "timestamp" => 1661990400,
+        //        "high" => 368388.0,
+        //        "open" => 368388.0,
+        //        "low" => 368388.0,
+        //        "close" => 368388.0,
+        //        "volume" => 0.00035208,
         //    }
         //
         return array(
@@ -551,18 +573,18 @@ class btcturk extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @see https://docs.btcturk.com/public-endpoints/get-kline-data
              * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
-             * @param {int|null} $limit the maximum amount of candles $to fetch
-             * @param {array} $params extra parameters specific $to the btcturk api endpoint
-             * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
+             * @param {int} [$limit] the maximum amount of candles $to fetch
+             * @param {array} [$params] extra parameters specific $to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -578,6 +600,7 @@ class btcturk extends Exchange {
                 $limit = 100; // default value
             }
             if ($limit !== null) {
+                $limit = min ($limit, 11000); // max 11000 candles diapason can be covered
                 if ($timeframe === '1y') { // difficult with leap years
                     throw new BadRequest($this->id . ' fetchOHLCV () does not accept a $limit parameter when $timeframe == "1y"');
                 }
@@ -587,7 +610,7 @@ class btcturk extends Exchange {
                     $to = $this->parse_to_int($since / 1000) . $limitSeconds;
                     $request['to'] = min ($request['to'], $to);
                 } else {
-                    $request['from'] = $this->parse_to_int($until / 1000) - $limitSeconds;
+                    $request['from'] = $this->parse_to_int(0 / 1000) - $limitSeconds;
                 }
             }
             $response = Async\await($this->graphGetKlinesHistory (array_merge($request, $params)));
@@ -653,16 +676,17 @@ class btcturk extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://docs.btcturk.com/private-endpoints/submit-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -682,7 +706,7 @@ class btcturk extends Exchange {
                 $request['newClientOrderId'] = $this->uuid();
             }
             $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -691,9 +715,10 @@ class btcturk extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.btcturk.com/private-endpoints/cancel-order
              * @param {string} $id order $id
-             * @param {string|null} $symbol not used by btcturk cancelOrder ()
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
+             * @param {string} $symbol not used by btcturk cancelOrder ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
@@ -703,15 +728,16 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @see https://docs.btcturk.com/private-endpoints/open-orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -723,20 +749,21 @@ class btcturk extends Exchange {
             $response = Async\await($this->privateGetOpenOrders (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data');
             $bids = $this->safe_value($data, 'bids', array());
-            $asks = $this->safe_value($data, 'asks', array());
+            $asks = $this->safe_list($data, 'asks', array());
             return $this->parse_orders($this->array_concat($bids, $asks), $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @see https://docs.btcturk.com/private-endpoints/all-orders
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -771,7 +798,7 @@ class btcturk extends Exchange {
             //     }
             //   )
             // }
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -786,7 +813,7 @@ class btcturk extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrders / fetchOpenOrders
         //     {
@@ -857,11 +884,12 @@ class btcturk extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch trades for
-             * @param {int|null} $limit the maximum number of trades structures to retrieve
-             * @param {array} $params extra parameters specific to the btcturk api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @see https://docs.btcturk.com/private-endpoints/user-transactions
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -890,7 +918,7 @@ class btcturk extends Exchange {
             //       "code" => "0"
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }

@@ -1,0 +1,1802 @@
+{
+    "BTC/USDT": {
+        "id": "XBTUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "XXBT",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {
+                "min": 0.1
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 3
+            }
+        },
+        "info": {
+            "altname": "XBTUSDT",
+            "wsname": "XBT/USDT",
+            "aclass_base": "currency",
+            "base": "XXBT",
+            "aclass_quote": "currency",
+            "quote": "USDT",
+            "lot": "unit",
+            "cost_decimals": "5",
+            "pair_decimals": "1",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [
+                2,
+                3
+            ],
+            "leverage_sell": [
+                2,
+                3
+            ],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ],
+                [
+                    100000000,
+                    0.08
+                ],
+                [
+                    250000000,
+                    0.06
+                ],
+                [
+                    500000000,
+                    0.04
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "0.0001",
+            "costmin": "0.5",
+            "tick_size": "0.1",
+            "status": "online",
+            "long_position_limit": "47",
+            "short_position_limit": "28"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "XBT/USDT",
+        "darkpool": false,
+        "altname": "XBTUSDT"
+    },
+    "BTC/USD": {
+        "id": "XXBTZUSD",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "XXBT",
+        "quoteId": "ZUSD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {
+                "min": 0.1
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 5
+            }
+        },
+        "info": {
+            "altname": "XBTUSD",
+            "wsname": "XBT/USD",
+            "aclass_base": "currency",
+            "base": "XXBT",
+            "aclass_quote": "currency",
+            "quote": "ZUSD",
+            "lot": "unit",
+            "cost_decimals": "5",
+            "pair_decimals": "1",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [
+                2,
+                3,
+                4,
+                5
+            ],
+            "leverage_sell": [
+                2,
+                3,
+                4,
+                5
+            ],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "0.0001",
+            "costmin": "0.5",
+            "tick_size": "0.1",
+            "status": "online",
+            "long_position_limit": "250",
+            "short_position_limit": "200"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "XBT/USD",
+        "darkpool": false,
+        "altname": "XBTUSD"
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "XETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 3
+            }
+        },
+        "info": {
+            "altname": "ETHUSDT",
+            "wsname": "ETH/USDT",
+            "aclass_base": "currency",
+            "base": "XETH",
+            "aclass_quote": "currency",
+            "quote": "USDT",
+            "lot": "unit",
+            "cost_decimals": "5",
+            "pair_decimals": "2",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [
+                2,
+                3
+            ],
+            "leverage_sell": [
+                2,
+                3
+            ],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "0.01",
+            "costmin": "0.5",
+            "tick_size": "0.01",
+            "status": "online",
+            "long_position_limit": "300",
+            "short_position_limit": "200"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "ETH/USDT",
+        "darkpool": false,
+        "altname": "ETHUSDT"
+    },
+    "ADA/USDT": {
+        "id": "ADAUSDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 20
+            },
+            "price": {
+                "min": 0.000001
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 4
+            }
+        },
+        "info": {
+            "altname": "ADAUSDT",
+            "wsname": "ADA/USDT",
+            "aclass_base": "currency",
+            "base": "ADA",
+            "aclass_quote": "currency",
+            "quote": "USDT",
+            "lot": "unit",
+            "cost_decimals": "8",
+            "pair_decimals": "6",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [
+                2,
+                3,
+                4
+            ],
+            "leverage_sell": [
+                2,
+                3,
+                4
+            ],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "20",
+            "costmin": "0.5",
+            "tick_size": "0.000001",
+            "status": "online",
+            "long_position_limit": "220000",
+            "short_position_limit": "100000"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "ADA/USDT",
+        "darkpool": false,
+        "altname": "ADAUSDT"
+    },
+    "LTC/USDT": {
+        "id": "LTCUSDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "XLTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.08
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 1
+            }
+        },
+        "info": {
+            "altname": "LTCUSDT",
+            "wsname": "LTC/USDT",
+            "aclass_base": "currency",
+            "base": "XLTC",
+            "aclass_quote": "currency",
+            "quote": "USDT",
+            "lot": "unit",
+            "cost_decimals": "6",
+            "pair_decimals": "5",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [],
+            "leverage_sell": [],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "0.08",
+            "costmin": "0.5",
+            "tick_size": "0.00001",
+            "status": "online"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "LTC/USDT",
+        "darkpool": false,
+        "altname": "LTCUSDT"
+    },
+    "XRP/USDT": {
+        "id": "XRPUSDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XXRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 10
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 3
+            }
+        },
+        "info": {
+            "altname": "XRPUSDT",
+            "wsname": "XRP/USDT",
+            "aclass_base": "currency",
+            "base": "XXRP",
+            "aclass_quote": "currency",
+            "quote": "USDT",
+            "lot": "unit",
+            "cost_decimals": "8",
+            "pair_decimals": "5",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [
+                2,
+                3
+            ],
+            "leverage_sell": [
+                2,
+                3
+            ],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "10",
+            "costmin": "0.5",
+            "tick_size": "0.00001",
+            "status": "online",
+            "long_position_limit": "150000",
+            "short_position_limit": "140000"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "XRP/USDT",
+        "darkpool": false,
+        "altname": "XRPUSDT"
+    },
+    "DOGE/USDT": {
+        "id": "XDGUSDT",
+        "symbol": "DOGE/USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "baseId": "XXDG",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 80
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 1
+            }
+        },
+        "info": {
+            "altname": "XDGUSDT",
+            "wsname": "XDG/USDT",
+            "aclass_base": "currency",
+            "base": "XXDG",
+            "aclass_quote": "currency",
+            "quote": "USDT",
+            "lot": "unit",
+            "cost_decimals": "9",
+            "pair_decimals": "5",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [],
+            "leverage_sell": [],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "80",
+            "costmin": "0.5",
+            "tick_size": "0.00001",
+            "status": "online"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "XDG/USDT",
+        "darkpool": false,
+        "altname": "XDGUSDT"
+    },
+    "XRP/USD": {
+        "id": "XXRPZUSD",
+        "symbol": "XRP/USD",
+        "base": "XRP",
+        "quote": "USD",
+        "baseId": "XXRP",
+        "quoteId": "ZUSD",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0026,
+        "maker": 0.0016,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 5
+            },
+            "amount": {
+                "min": 10
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {
+                "min": 0.5
+            }
+        },
+        "info": {
+            "altname": "XRPUSD",
+            "wsname": "XRP/USD",
+            "aclass_base": "currency",
+            "base": "XXRP",
+            "aclass_quote": "currency",
+            "quote": "ZUSD",
+            "lot": "unit",
+            "cost_decimals": "8",
+            "pair_decimals": "5",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [
+                2,
+                3,
+                4,
+                5
+            ],
+            "leverage_sell": [
+                2,
+                3,
+                4,
+                5
+            ],
+            "fees": [
+                [
+                    0,
+                    0.26
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.16
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "10",
+            "costmin": "0.5",
+            "tick_size": "0.00001",
+            "status": "online",
+            "long_position_limit": "2000000",
+            "short_position_limit": "1200000"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "XRP/USD",
+        "darkpool": false,
+        "altname": "XRPUSD"
+    }
+}

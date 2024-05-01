@@ -1,6 +1,6 @@
 <?php
 
-use ccxt\async\Throttle;
+use ccxt\async\Throttler;
 
 include '../../vendor/autoload.php';
 
@@ -88,13 +88,13 @@ for ($i = 0; $i < count($test_cases); $i++) {
 $kernel = ReactKernel::create(Loop::get());
 
 $scheduler = function ($case) use ($kernel, $delta) {
-    $throttle = new Throttle(array(
+    $throttler = new Throttler(array(
         'refillRate' => $case['refillRate'],
         'tokens' => $case['tokens'],
     ), $kernel);
     $start = microtime(true);
     for ($i = 0; $i < $case['runs']; $i++) {
-        yield $throttle($case['cost']);
+        yield $throttler($case['cost']);
     }
     $end = microtime(true);
     $elapsed_ms = ($end - $start) * 1000;

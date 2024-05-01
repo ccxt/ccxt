@@ -100,8 +100,17 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4_public_get_markets($params = array()) {
         return $this->request('markets', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4_public_get_futures($params = array()) {
+        return $this->request('futures', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v4_public_get_platform_status($params = array()) {
+        return $this->request('platform/status', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4_private_post_collateral_account_balance($params = array()) {
         return $this->request('collateral-account/balance', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_collateral_account_balance_summary($params = array()) {
+        return $this->request('collateral-account/balance-summary', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4_private_post_collateral_account_positions_history($params = array()) {
         return $this->request('collateral-account/positions/history', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -151,6 +160,24 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4_private_post_main_account_transfer($params = array()) {
         return $this->request('main-account/transfer', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4_private_post_main_account_smart_plans($params = array()) {
+        return $this->request('main-account/smart/plans', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_main_account_smart_investment($params = array()) {
+        return $this->request('main-account/smart/investment', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_main_account_smart_investment_close($params = array()) {
+        return $this->request('main-account/smart/investment/close', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_main_account_smart_investments($params = array()) {
+        return $this->request('main-account/smart/investments', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_main_account_fee($params = array()) {
+        return $this->request('main-account/fee', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_main_account_smart_interest_payment_history($params = array()) {
+        return $this->request('main-account/smart/interest-payment-history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4_private_post_trade_account_balance($params = array()) {
         return $this->request('trade-account/balance', array('v4', 'private'), 'POST', $params, null, null, array());
     }
@@ -169,8 +196,11 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4_private_post_order_collateral_market($params = array()) {
         return $this->request('order/collateral/market', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4_private_post_order_collateral_stop_limit($params = array()) {
+        return $this->request('order/collateral/stop-limit', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4_private_post_order_collateral_trigger_market($params = array()) {
-        return $this->request('order/collateral/trigger_market', array('v4', 'private'), 'POST', $params, null, null, array());
+        return $this->request('order/collateral/trigger-market', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4_private_post_order_new($params = array()) {
         return $this->request('order/new', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -190,11 +220,47 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4_private_post_order_cancel($params = array()) {
         return $this->request('order/cancel', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4_private_post_order_cancel_all($params = array()) {
+        return $this->request('order/cancel/all', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_order_kill_switch($params = array()) {
+        return $this->request('order/kill-switch', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_order_kill_switch_status($params = array()) {
+        return $this->request('order/kill-switch/status', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_order_bulk($params = array()) {
+        return $this->request('order/bulk', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_order_modify($params = array()) {
+        return $this->request('order/modify', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4_private_post_orders($params = array()) {
         return $this->request('orders', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4_private_post_oco_orders($params = array()) {
+        return $this->request('oco-orders', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_order_collateral_oco($params = array()) {
+        return $this->request('order/collateral/oco', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_order_oco_cancel($params = array()) {
+        return $this->request('order/oco-cancel', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_order_oto_cancel($params = array()) {
+        return $this->request('order/oto-cancel', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4_private_post_profile_websocket_token($params = array()) {
         return $this->request('profile/websocket_token', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_convert_estimate($params = array()) {
+        return $this->request('convert/estimate', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_convert_confirm($params = array()) {
+        return $this->request('convert/confirm', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_convert_history($params = array()) {
+        return $this->request('convert/history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function webGetV1Healthcheck($params = array()) {
         return $this->request('v1/healthcheck', 'web', 'GET', $params, null, null, array());
@@ -289,8 +355,17 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4PublicGetMarkets($params = array()) {
         return $this->request('markets', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4PublicGetFutures($params = array()) {
+        return $this->request('futures', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v4PublicGetPlatformStatus($params = array()) {
+        return $this->request('platform/status', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4PrivatePostCollateralAccountBalance($params = array()) {
         return $this->request('collateral-account/balance', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostCollateralAccountBalanceSummary($params = array()) {
+        return $this->request('collateral-account/balance-summary', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4PrivatePostCollateralAccountPositionsHistory($params = array()) {
         return $this->request('collateral-account/positions/history', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -340,6 +415,24 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4PrivatePostMainAccountTransfer($params = array()) {
         return $this->request('main-account/transfer', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4PrivatePostMainAccountSmartPlans($params = array()) {
+        return $this->request('main-account/smart/plans', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostMainAccountSmartInvestment($params = array()) {
+        return $this->request('main-account/smart/investment', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostMainAccountSmartInvestmentClose($params = array()) {
+        return $this->request('main-account/smart/investment/close', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostMainAccountSmartInvestments($params = array()) {
+        return $this->request('main-account/smart/investments', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostMainAccountFee($params = array()) {
+        return $this->request('main-account/fee', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostMainAccountSmartInterestPaymentHistory($params = array()) {
+        return $this->request('main-account/smart/interest-payment-history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4PrivatePostTradeAccountBalance($params = array()) {
         return $this->request('trade-account/balance', array('v4', 'private'), 'POST', $params, null, null, array());
     }
@@ -358,8 +451,11 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4PrivatePostOrderCollateralMarket($params = array()) {
         return $this->request('order/collateral/market', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4PrivatePostOrderCollateralStopLimit($params = array()) {
+        return $this->request('order/collateral/stop-limit', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4PrivatePostOrderCollateralTriggerMarket($params = array()) {
-        return $this->request('order/collateral/trigger_market', array('v4', 'private'), 'POST', $params, null, null, array());
+        return $this->request('order/collateral/trigger-market', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4PrivatePostOrderNew($params = array()) {
         return $this->request('order/new', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -379,10 +475,46 @@ abstract class whitebit extends \ccxt\async\Exchange {
     public function v4PrivatePostOrderCancel($params = array()) {
         return $this->request('order/cancel', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4PrivatePostOrderCancelAll($params = array()) {
+        return $this->request('order/cancel/all', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostOrderKillSwitch($params = array()) {
+        return $this->request('order/kill-switch', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostOrderKillSwitchStatus($params = array()) {
+        return $this->request('order/kill-switch/status', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostOrderBulk($params = array()) {
+        return $this->request('order/bulk', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostOrderModify($params = array()) {
+        return $this->request('order/modify', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4PrivatePostOrders($params = array()) {
         return $this->request('orders', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4PrivatePostOcoOrders($params = array()) {
+        return $this->request('oco-orders', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostOrderCollateralOco($params = array()) {
+        return $this->request('order/collateral/oco', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostOrderOcoCancel($params = array()) {
+        return $this->request('order/oco-cancel', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostOrderOtoCancel($params = array()) {
+        return $this->request('order/oto-cancel', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4PrivatePostProfileWebsocketToken($params = array()) {
         return $this->request('profile/websocket_token', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostConvertEstimate($params = array()) {
+        return $this->request('convert/estimate', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostConvertConfirm($params = array()) {
+        return $this->request('convert/confirm', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostConvertHistory($params = array()) {
+        return $this->request('convert/history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
 }

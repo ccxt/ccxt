@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
+/**
+ * @class huobijp
+ * @augments Exchange
+ */
 class huobijp extends huobijp$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -30,6 +34,9 @@ class huobijp extends huobijp$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
@@ -312,7 +319,6 @@ class huobijp extends huobijp$1 {
                 'GET': 'Themis',
                 'GTC': 'Game.com',
                 'HIT': 'HitChain',
-                'HOT': 'Hydro Protocol',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
@@ -328,7 +334,7 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetCommonTimestamp(params);
@@ -356,37 +362,37 @@ class huobijp extends huobijp$1 {
         const response = await this.publicGetCommonExchange(this.extend(request, params));
         //
         //     { status:   "ok",
-        //         data: {                                  symbol: "aidocbtc",
-        //                              'buy-limit-must-less-than':  1.1,
-        //                          'sell-limit-must-greater-than':  0.9,
-        //                         'limit-order-must-greater-than':  1,
-        //                            'limit-order-must-less-than':  5000000,
-        //                    'market-buy-order-must-greater-than':  0.0001,
-        //                       'market-buy-order-must-less-than':  100,
-        //                   'market-sell-order-must-greater-than':  1,
-        //                      'market-sell-order-must-less-than':  500000,
-        //                       'circuit-break-when-greater-than':  10000,
-        //                          'circuit-break-when-less-than':  10,
-        //                 'market-sell-order-rate-must-less-than':  0.1,
-        //                  'market-buy-order-rate-must-less-than':  0.1        } }
+        //         "data": {                                  symbol: "aidocbtc",
+        //                              "buy-limit-must-less-than":  1.1,
+        //                          "sell-limit-must-greater-than":  0.9,
+        //                         "limit-order-must-greater-than":  1,
+        //                            "limit-order-must-less-than":  5000000,
+        //                    "market-buy-order-must-greater-than":  0.0001,
+        //                       "market-buy-order-must-less-than":  100,
+        //                   "market-sell-order-must-greater-than":  1,
+        //                      "market-sell-order-must-less-than":  500000,
+        //                       "circuit-break-when-greater-than":  10000,
+        //                          "circuit-break-when-less-than":  10,
+        //                 "market-sell-order-rate-must-less-than":  0.1,
+        //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
         return this.parseTradingLimits(this.safeValue(response, 'data', {}));
     }
     parseTradingLimits(limits, symbol = undefined, params = {}) {
         //
         //   {                                  symbol: "aidocbtc",
-        //                  'buy-limit-must-less-than':  1.1,
-        //              'sell-limit-must-greater-than':  0.9,
-        //             'limit-order-must-greater-than':  1,
-        //                'limit-order-must-less-than':  5000000,
-        //        'market-buy-order-must-greater-than':  0.0001,
-        //           'market-buy-order-must-less-than':  100,
-        //       'market-sell-order-must-greater-than':  1,
-        //          'market-sell-order-must-less-than':  500000,
-        //           'circuit-break-when-greater-than':  10000,
-        //              'circuit-break-when-less-than':  10,
-        //     'market-sell-order-rate-must-less-than':  0.1,
-        //      'market-buy-order-rate-must-less-than':  0.1        }
+        //                  "buy-limit-must-less-than":  1.1,
+        //              "sell-limit-must-greater-than":  0.9,
+        //             "limit-order-must-greater-than":  1,
+        //                "limit-order-must-less-than":  5000000,
+        //        "market-buy-order-must-greater-than":  0.0001,
+        //           "market-buy-order-must-less-than":  100,
+        //       "market-sell-order-must-greater-than":  1,
+        //          "market-sell-order-must-less-than":  500000,
+        //           "circuit-break-when-greater-than":  10000,
+        //              "circuit-break-when-less-than":  10,
+        //     "market-sell-order-rate-must-less-than":  0.1,
+        //      "market-buy-order-rate-must-less-than":  0.1        }
         //
         return {
             'info': limits,
@@ -406,8 +412,8 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchMarkets
          * @description retrieves data on all markets for huobijp
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const method = this.options['fetchMarketsMethod'];
         const response = await this[method](params);
@@ -510,6 +516,7 @@ class huobijp extends huobijp$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -535,18 +542,18 @@ class huobijp extends huobijp$1 {
         //
         // fetchTickers
         //     {
-        //         symbol: "bhdht",
-        //         open:  2.3938,
-        //         high:  2.4151,
-        //         low:  2.3323,
-        //         close:  2.3909,
-        //         amount:  628.992,
-        //         vol:  1493.71841095,
-        //         count:  2088,
-        //         bid:  2.3643,
-        //         bidSize:  0.7136,
-        //         ask:  2.4061,
-        //         askSize:  0.4156
+        //         "symbol": "bhdht",
+        //         "open":  2.3938,
+        //         "high":  2.4151,
+        //         "low":  2.3323,
+        //         "close":  2.3909,
+        //         "amount":  628.992,
+        //         "vol":  1493.71841095,
+        //         "count":  2088,
+        //         "bid":  2.3643,
+        //         "bidSize":  0.7136,
+        //         "ask":  2.4061,
+        //         "askSize":  0.4156
         //     }
         //
         const symbol = this.safeSymbol(undefined, market);
@@ -608,8 +615,8 @@ class huobijp extends huobijp$1 {
          * @name huobijp#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -658,7 +665,7 @@ class huobijp extends huobijp$1 {
          * @name huobijp#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -697,9 +704,9 @@ class huobijp extends huobijp$1 {
         /**
          * @method
          * @name huobijp#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -717,7 +724,7 @@ class huobijp extends huobijp$1 {
             ticker['datetime'] = this.iso8601(timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -735,21 +742,21 @@ class huobijp extends huobijp$1 {
         // fetchMyTrades (private)
         //
         //     {
-        //          'symbol': 'swftcbtc',
-        //          'fee-currency': 'swftc',
-        //          'filled-fees': '0',
-        //          'source': 'spot-api',
-        //          'id': 83789509854000,
-        //          'type': 'buy-limit',
-        //          'order-id': 83711103204909,
-        //          'filled-points': '0.005826843283532154',
-        //          'fee-deduct-currency': 'ht',
-        //          'filled-amount': '45941.53',
-        //          'price': '0.0000001401',
-        //          'created-at': 1597933260729,
-        //          'match-id': 100087455560,
-        //          'role': 'maker',
-        //          'trade-id': 100050305348
+        //          "symbol": "swftcbtc",
+        //          "fee-currency": "swftc",
+        //          "filled-fees": "0",
+        //          "source": "spot-api",
+        //          "id": 83789509854000,
+        //          "type": "buy-limit",
+        //          "order-id": 83711103204909,
+        //          'filled-points': "0.005826843283532154",
+        //          "fee-deduct-currency": "ht",
+        //          'filled-amount': "45941.53",
+        //          "price": "0.0000001401",
+        //          "created-at": 1597933260729,
+        //          "match-id": 100087455560,
+        //          "role": "maker",
+        //          "trade-id": 100050305348
         //     },
         //
         const marketId = this.safeString(trade, 'symbol');
@@ -764,17 +771,15 @@ class huobijp extends huobijp$1 {
             type = typeParts[1];
         }
         const takerOrMaker = this.safeString(trade, 'role');
-        const priceString = this.safeString(trade, 'price');
-        const amountString = this.safeString2(trade, 'filled-amount', 'amount');
-        const price = this.parseNumber(priceString);
-        const amount = this.parseNumber(amountString);
-        const cost = this.parseNumber(Precise["default"].stringMul(priceString, amountString));
+        const price = this.safeString(trade, 'price');
+        const amount = this.safeString2(trade, 'filled-amount', 'amount');
+        const cost = Precise["default"].stringMul(price, amount);
         let fee = undefined;
-        let feeCost = this.safeNumber(trade, 'filled-fees');
+        let feeCost = this.safeString(trade, 'filled-fees');
         let feeCurrency = this.safeCurrencyCode(this.safeString(trade, 'fee-currency'));
-        const filledPoints = this.safeNumber(trade, 'filled-points');
+        const filledPoints = this.safeString(trade, 'filled-points');
         if (filledPoints !== undefined) {
-            if ((feeCost === undefined) || (feeCost === 0.0)) {
+            if ((feeCost === undefined) || (Precise["default"].stringEq(feeCost, '0.0'))) {
                 feeCost = filledPoints;
                 feeCurrency = this.safeCurrencyCode(this.safeString(trade, 'fee-deduct-currency'));
             }
@@ -787,13 +792,13 @@ class huobijp extends huobijp$1 {
         }
         const tradeId = this.safeString2(trade, 'trade-id', 'tradeId');
         const id = this.safeString(trade, 'id', tradeId);
-        return {
-            'id': id,
+        return this.safeTrade({
             'info': trade,
+            'id': id,
+            'symbol': symbol,
             'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': symbol,
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -801,7 +806,7 @@ class huobijp extends huobijp$1 {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        });
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -809,11 +814,11 @@ class huobijp extends huobijp$1 {
          * @name huobijp#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -827,11 +832,11 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -856,10 +861,10 @@ class huobijp extends huobijp$1 {
          * @name huobijp#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -867,7 +872,7 @@ class huobijp extends huobijp$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 2000);
         }
         const response = await this.marketGetHistoryTrade(this.extend(request, params));
         //
@@ -935,10 +940,10 @@ class huobijp extends huobijp$1 {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -947,7 +952,7 @@ class huobijp extends huobijp$1 {
             'period': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 2000);
         }
         const response = await this.marketGetHistoryKline(this.extend(request, params));
         //
@@ -962,7 +967,7 @@ class huobijp extends huobijp$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchAccounts(params = {}) {
@@ -970,7 +975,7 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets();
@@ -982,7 +987,7 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const request = {
@@ -1038,7 +1043,7 @@ class huobijp extends huobijp$1 {
             const depositEnabled = this.safeValue(currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
             const countryDisabled = this.safeValue(currency, 'country-disabled');
-            const visible = this.safeValue(currency, 'visible', false);
+            const visible = this.safeBool(currency, 'visible', false);
             const state = this.safeString(currency, 'state');
             const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
             const name = this.safeString(currency, 'display-name');
@@ -1104,8 +1109,8 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         await this.loadAccounts();
@@ -1129,21 +1134,21 @@ class huobijp extends huobijp$1 {
         const method = this.safeString(this.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
         const response = await this[method](this.extend(request, params));
         //
-        //     { status:   "ok",
-        //         data: [ {                  id:  13997833014,
-        //                                symbol: "ethbtc",
-        //                          'account-id':  3398321,
-        //                                amount: "0.045000000000000000",
-        //                                 price: "0.034014000000000000",
-        //                          'created-at':  1545836976871,
-        //                                  type: "sell-limit",
-        //                        'field-amount': "0.045000000000000000",
-        //                   'field-cash-amount': "0.001530630000000000",
-        //                          'field-fees': "0.000003061260000000",
-        //                         'finished-at':  1545837948214,
-        //                                source: "spot-api",
-        //                                 state: "filled",
-        //                         'canceled-at':  0                      }  ] }
+        //     { "status":   "ok",
+        //         "data": [ {                  id:  13997833014,
+        //                                "symbol": "ethbtc",
+        //                          "account-id":  3398321,
+        //                                "amount": "0.045000000000000000",
+        //                                 "price": "0.034014000000000000",
+        //                          "created-at":  1545836976871,
+        //                                  "type": "sell-limit",
+        //                        "field-amount": "0.045000000000000000",
+        //                   "field-cash-amount": "0.001530630000000000",
+        //                          "field-fees": "0.000003061260000000",
+        //                         "finished-at":  1545837948214,
+        //                                "source": "spot-api",
+        //                                 "state": "filled",
+        //                         "canceled-at":  0                      }  ] }
         //
         return this.parseOrders(response['data'], market, since, limit);
     }
@@ -1152,8 +1157,8 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1161,7 +1166,7 @@ class huobijp extends huobijp$1 {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId(this.extend(request, params));
-        const order = this.safeValue(response, 'data');
+        const order = this.safeDict(response, 'data');
         return this.parseOrder(order);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1169,11 +1174,11 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStates('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
@@ -1182,11 +1187,11 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const method = this.safeString(this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
         return await this[method](symbol, since, limit, params);
@@ -1202,11 +1207,11 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStates('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
@@ -1259,7 +1264,7 @@ class huobijp extends huobijp$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -1275,34 +1280,34 @@ class huobijp extends huobijp$1 {
     parseOrder(order, market = undefined) {
         //
         //     {                  id:  13997833014,
-        //                    symbol: "ethbtc",
-        //              'account-id':  3398321,
-        //                    amount: "0.045000000000000000",
-        //                     price: "0.034014000000000000",
-        //              'created-at':  1545836976871,
-        //                      type: "sell-limit",
-        //            'field-amount': "0.045000000000000000", // they have fixed it for filled-amount
-        //       'field-cash-amount': "0.001530630000000000", // they have fixed it for filled-cash-amount
-        //              'field-fees': "0.000003061260000000", // they have fixed it for filled-fees
-        //             'finished-at':  1545837948214,
-        //                    source: "spot-api",
-        //                     state: "filled",
-        //             'canceled-at':  0                      }
+        //                    "symbol": "ethbtc",
+        //              "account-id":  3398321,
+        //                    "amount": "0.045000000000000000",
+        //                     "price": "0.034014000000000000",
+        //              "created-at":  1545836976871,
+        //                      "type": "sell-limit",
+        //            "field-amount": "0.045000000000000000", // they have fixed it for filled-amount
+        //       "field-cash-amount": "0.001530630000000000", // they have fixed it for filled-cash-amount
+        //              "field-fees": "0.000003061260000000", // they have fixed it for filled-fees
+        //             "finished-at":  1545837948214,
+        //                    "source": "spot-api",
+        //                     "state": "filled",
+        //             "canceled-at":  0                      }
         //
         //     {                  id:  20395337822,
-        //                    symbol: "ethbtc",
-        //              'account-id':  5685075,
-        //                    amount: "0.001000000000000000",
-        //                     price: "0.0",
-        //              'created-at':  1545831584023,
-        //                      type: "buy-market",
-        //            'field-amount': "0.029100000000000000", // they have fixed it for filled-amount
-        //       'field-cash-amount': "0.000999788700000000", // they have fixed it for filled-cash-amount
-        //              'field-fees': "0.000058200000000000", // they have fixed it for filled-fees
-        //             'finished-at':  1545831584181,
-        //                    source: "spot-api",
-        //                     state: "filled",
-        //             'canceled-at':  0                      }
+        //                    "symbol": "ethbtc",
+        //              "account-id":  5685075,
+        //                    "amount": "0.001000000000000000",
+        //                     "price": "0.0",
+        //              "created-at":  1545831584023,
+        //                      "type": "buy-market",
+        //            "field-amount": "0.029100000000000000", // they have fixed it for filled-amount
+        //       "field-cash-amount": "0.000999788700000000", // they have fixed it for filled-cash-amount
+        //              "field-fees": "0.000058200000000000", // they have fixed it for filled-fees
+        //             "finished-at":  1545831584181,
+        //                    "source": "spot-api",
+        //                     "state": "filled",
+        //             "canceled-at":  0                      }
         //
         const id = this.safeString(order, 'id');
         let side = undefined;
@@ -1356,6 +1361,24 @@ class huobijp extends huobijp$1 {
             'trades': undefined,
         }, market);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name huobijp#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1365,8 +1388,8 @@ class huobijp extends huobijp$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1388,9 +1411,17 @@ class huobijp extends huobijp$1 {
         }
         params = this.omit(params, ['clientOrderId', 'client-order-id']);
         if ((type === 'market') && (side === 'buy')) {
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber(params, 'cost');
+            params = this.omit(params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.amountToPrecision(symbol, cost);
+            }
+            else if (createMarketBuyOrderRequiresPrice) {
                 if (price === undefined) {
-                    throw new errors.InvalidOrder(this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 }
                 else {
                     // despite that cost = amount * price is in quote currency and should have quote precision
@@ -1401,13 +1432,13 @@ class huobijp extends huobijp$1 {
                     // we use amountToPrecision here because the exchange requires cost in base precision
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
-                    const baseAmount = Precise["default"].stringMul(amountString, priceString);
-                    request['amount'] = this.costToPrecision(symbol, baseAmount);
+                    quoteAmount = this.amountToPrecision(symbol, Precise["default"].stringMul(amountString, priceString));
                 }
             }
             else {
-                request['amount'] = this.costToPrecision(symbol, amount);
+                quoteAmount = this.amountToPrecision(symbol, amount);
             }
+            request['amount'] = quoteAmount;
         }
         else {
             request['amount'] = this.amountToPrecision(symbol, amount);
@@ -1417,13 +1448,12 @@ class huobijp extends huobijp$1 {
         }
         const method = this.options['createOrderMethod'];
         const response = await this[method](this.extend(request, params));
-        const timestamp = this.milliseconds();
         const id = this.safeString(response, 'data');
-        return {
+        return this.safeOrder({
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,
@@ -1438,7 +1468,7 @@ class huobijp extends huobijp$1 {
             'fee': undefined,
             'clientOrderId': undefined,
             'average': undefined,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1446,15 +1476,15 @@ class huobijp extends huobijp$1 {
          * @name huobijp#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by huobijp cancelOrder ()
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {string} symbol not used by huobijp cancelOrder ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const response = await this.privatePostOrderOrdersIdSubmitcancel({ 'id': id });
         //
         //     {
-        //         'status': 'ok',
-        //         'data': '10138899000',
+        //         "status": "ok",
+        //         "data": "10138899000",
         //     }
         //
         return this.extend(this.parseOrder(response), {
@@ -1467,9 +1497,9 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#cancelOrders
          * @description cancel multiple orders
-         * @param {[string]} ids order ids
-         * @param {string|undefined} symbol not used by huobijp cancelOrders ()
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {string[]} ids order ids
+         * @param {string} symbol not used by huobijp cancelOrders ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1522,9 +1552,9 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1542,8 +1572,8 @@ class huobijp extends huobijp$1 {
         const response = await this.privatePostOrderOrdersBatchCancelOpenOrders(this.extend(request, params));
         //
         //     {
-        //         code: 200,
-        //         data: {
+        //         "code": 200,
+        //         "data": {
         //             "success-count": 2,
         //             "failed-count": 0,
         //             "next-id": 5454600
@@ -1567,10 +1597,10 @@ class huobijp extends huobijp$1 {
     parseDepositAddress(depositAddress, currency = undefined) {
         //
         //     {
-        //         currency: "usdt",
-        //         address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        //         addressTag: "",
-        //         chain: "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
+        //         "currency": "usdt",
+        //         "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //         "addressTag": "",
+        //         "chain": "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
         const address = this.safeString(depositAddress, 'address');
@@ -1597,11 +1627,11 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (limit === undefined || limit > 100) {
             limit = 100;
@@ -1630,11 +1660,11 @@ class huobijp extends huobijp$1 {
          * @method
          * @name huobijp#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (limit === undefined || limit > 100) {
             limit = 100;
@@ -1663,35 +1693,35 @@ class huobijp extends huobijp$1 {
         // fetchDeposits
         //
         //     {
-        //         'id': 8211029,
-        //         'type': 'deposit',
-        //         'currency': 'eth',
-        //         'chain': 'eth',
-        //         'tx-hash': 'bd315....',
-        //         'amount': 0.81162421,
-        //         'address': '4b8b....',
-        //         'address-tag': '',
-        //         'fee': 0,
-        //         'state': 'safe',
-        //         'created-at': 1542180380965,
-        //         'updated-at': 1542180788077
+        //         "id": 8211029,
+        //         "type": "deposit",
+        //         "currency": "eth",
+        //         "chain": "eth",
+        //         'tx-hash': "bd315....",
+        //         "amount": 0.81162421,
+        //         "address": "4b8b....",
+        //         'address-tag": '",
+        //         "fee": 0,
+        //         "state": "safe",
+        //         "created-at": 1542180380965,
+        //         "updated-at": 1542180788077
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         'id': 6908275,
-        //         'type': 'withdraw',
-        //         'currency': 'btc',
-        //         'chain': 'btc',
-        //         'tx-hash': 'c1a1a....',
-        //         'amount': 0.80257005,
-        //         'address': '1QR....',
-        //         'address-tag': '',
-        //         'fee': 0.0005,
-        //         'state': 'confirmed',
-        //         'created-at': 1552107295685,
-        //         'updated-at': 1552108032859
+        //         "id": 6908275,
+        //         "type": "withdraw",
+        //         "currency": "btc",
+        //         "chain": "btc",
+        //         'tx-hash': "c1a1a....",
+        //         "amount": 0.80257005,
+        //         "address": "1QR....",
+        //         'address-tag": '",
+        //         "fee": 0.0005,
+        //         "state": "confirmed",
+        //         "created-at": 1552107295685,
+        //         "updated-at": 1552108032859
         //     }
         //
         // withdraw
@@ -1729,6 +1759,8 @@ class huobijp extends huobijp$1 {
             'currency': code,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'state')),
             'updated': this.safeInteger(transaction, 'updated-at'),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCost),
@@ -1767,8 +1799,8 @@ class huobijp extends huobijp$1 {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);

@@ -12,6 +12,15 @@ class mexc extends mexc$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'cancelAllOrdersWs': false,
+                'cancelOrdersWs': false,
+                'cancelOrderWs': false,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchBalanceWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'fetchTradesWs': false,
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
@@ -46,7 +55,7 @@ class mexc extends mexc$1 {
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 25,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'listenKey': undefined,
             },
@@ -63,8 +72,8 @@ class mexc extends mexc$1 {
          * @name mexc3#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -84,15 +93,15 @@ class mexc extends mexc$1 {
     handleTicker(client, message) {
         //
         //    {
-        //        c: 'spot@public.bookTicker.v3.api@BTCUSDT',
-        //        d: {
-        //            A: '4.70432',
-        //            B: '6.714863',
-        //            a: '20744.54',
-        //            b: '20744.17'
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
         //        },
-        //        s: 'BTCUSDT',
-        //        t: 1678643605721
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
         //    }
         //
         const rawTicker = this.safeValue2(message, 'd', 'data');
@@ -117,10 +126,10 @@ class mexc extends mexc$1 {
         //
         // spot
         //    {
-        //        A: '4.70432',
-        //        B: '6.714863',
-        //        a: '20744.54',
-        //        b: '20744.17'
+        //        "A": "4.70432",
+        //        "B": "6.714863",
+        //        "a": "20744.54",
+        //        "b": "20744.17"
         //    }
         //
         return this.safeTicker({
@@ -198,10 +207,10 @@ class mexc extends mexc$1 {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -232,46 +241,46 @@ class mexc extends mexc$1 {
         // spot
         //
         //    {
-        //        d: {
-        //            e: 'spot@public.kline.v3.api',
-        //            k: {
-        //                t: 1678642260,
-        //                o: 20626.94,
-        //                c: 20599.69,
-        //                h: 20626.94,
-        //                l: 20597.06,
-        //                v: 27.678686,
-        //                a: 570332.77,
-        //                T: 1678642320,
-        //                i: 'Min1'
+        //        "d": {
+        //            "e": "spot@public.kline.v3.api",
+        //            "k": {
+        //                "t": 1678642261,
+        //                "o": 20626.94,
+        //                "c": 20599.69,
+        //                "h": 20626.94,
+        //                "l": 20597.06,
+        //                "v": 27.678686,
+        //                "a": 570332.77,
+        //                "T": 1678642320,
+        //                "i": "Min1"
         //            }
         //        },
-        //        c: 'spot@public.kline.v3.api@BTCUSDT@Min1',
-        //        t: 1678642276459,
-        //        s: 'BTCUSDT'
+        //        "c": "spot@public.kline.v3.api@BTCUSDT@Min1",
+        //        "t": 1678642276459,
+        //        "s": "BTCUSDT"
         //    }
         //
         // swap
         //
         //   {
-        //       channel: 'push.kline',
-        //       data: {
-        //         a: 325653.3287,
-        //         c: 38839,
-        //         h: 38909.5,
-        //         interval: 'Min1',
-        //         l: 38833,
-        //         o: 38901.5,
-        //         q: 83808,
-        //         rc: 38839,
-        //         rh: 38909.5,
-        //         rl: 38833,
-        //         ro: 38909.5,
-        //         symbol: 'BTC_USDT',
-        //         t: 1651230660
+        //       "channel": "push.kline",
+        //       "data": {
+        //         "a": 325653.3287,
+        //         "c": 38839,
+        //         "h": 38909.5,
+        //         "interval": "Min1",
+        //         "l": 38833,
+        //         "o": 38901.5,
+        //         "q": 83808,
+        //         "rc": 38839,
+        //         "rh": 38909.5,
+        //         "rl": 38833,
+        //         "ro": 38909.5,
+        //         "symbol": "BTC_USDT",
+        //         "t": 1651230660
         //       },
-        //       symbol: 'BTC_USDT',
-        //       ts: 1651230713067
+        //       "symbol": "BTC_USDT",
+        //       "ts": 1651230713067
         //   }
         //
         const d = this.safeValue2(message, 'd', 'data', {});
@@ -299,36 +308,36 @@ class mexc extends mexc$1 {
         // spot
         //
         //    {
-        //        t: 1678642260,
-        //        o: 20626.94,
-        //        c: 20599.69,
-        //        h: 20626.94,
-        //        l: 20597.06,
-        //        v: 27.678686,
-        //        a: 570332.77,
-        //        T: 1678642320,
-        //        i: 'Min1'
+        //        "t": 1678642260,
+        //        "o": 20626.94,
+        //        "c": 20599.69,
+        //        "h": 20626.94,
+        //        "l": 20597.06,
+        //        "v": 27.678686,
+        //        "a": 570332.77,
+        //        "T": 1678642320,
+        //        "i": "Min1"
         //    }
         //
         // swap
         //    {
-        //       symbol: 'BTC_USDT',
-        //       interval: 'Min1',
-        //       t: 1680055080,
-        //       o: 27301.9,
-        //       c: 27301.8,
-        //       h: 27301.9,
-        //       l: 27301.8,
-        //       a: 8.19054,
-        //       q: 3,
-        //       ro: 27301.8,
-        //       rc: 27301.8,
-        //       rh: 27301.8,
-        //       rl: 27301.8
+        //       "symbol": "BTC_USDT",
+        //       "interval": "Min1",
+        //       "t": 1680055080,
+        //       "o": 27301.9,
+        //       "c": 27301.8,
+        //       "h": 27301.9,
+        //       "l": 27301.8,
+        //       "a": 8.19054,
+        //       "q": 3,
+        //       "ro": 27301.8,
+        //       "rc": 27301.8,
+        //       "rh": 27301.8,
+        //       "rl": 27301.8
         //     }
         //
         return [
-            this.safeIntegerProduct(ohlcv, 't', 1000),
+            this.safeTimestamp(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
@@ -343,9 +352,9 @@ class mexc extends mexc$1 {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -367,7 +376,7 @@ class mexc extends mexc$1 {
     }
     handleOrderBookSubscription(client, message) {
         // spot
-        //     { id: 0, code: 0, msg: 'spot@public.increase.depth.v3.api@BTCUSDT' }
+        //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         const msg = this.safeString(message, 'msg');
         const parts = msg.split('@');
@@ -441,26 +450,27 @@ class mexc extends mexc$1 {
         const symbol = this.safeSymbol(marketId);
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue(client.subscriptions, messageHash);
+        const limit = this.safeInteger(subscription, 'limit');
         if (subscription === true) {
             // we set client.subscriptions[messageHash] to 1
             // once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook({});
         }
-        const storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push(data);
             return;
         }
         try {
             this.handleDelta(storedOrderBook, data);
-            const timestamp = this.safeInteger(message, 't');
+            const timestamp = this.safeInteger2(message, 't', 'ts');
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
         }
@@ -490,10 +500,12 @@ class mexc extends mexc$1 {
         }
     }
     handleDelta(orderbook, delta) {
-        const nonce = this.safeInteger(orderbook, 'nonce');
+        const existingNonce = this.safeInteger(orderbook, 'nonce');
         const deltaNonce = this.safeInteger2(delta, 'r', 'version');
-        if (deltaNonce !== nonce && deltaNonce !== nonce + 1) {
-            throw new errors.ExchangeError(this.id + ' handleOrderBook received an out-of-order nonce');
+        if (deltaNonce < existingNonce) {
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         orderbook['nonce'] = deltaNonce;
         const asks = this.safeValue(delta, 'asks', []);
@@ -510,10 +522,10 @@ class mexc extends mexc$1 {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -539,18 +551,18 @@ class mexc extends mexc$1 {
     handleTrades(client, message) {
         //
         //    {
-        //        c: "spot@public.deals.v3.api@BTCUSDT",
-        //        d: {
-        //            deals: [{
-        //                p: "20382.70",
-        //                v: "0.043800",
-        //                S: 1,
-        //                t: 1678593222456,
+        //        "c": "spot@public.deals.v3.api@BTCUSDT",
+        //        "d": {
+        //            "deals": [{
+        //                "p": "20382.70",
+        //                "v": "0.043800",
+        //                "S": 1,
+        //                "t": 1678593222456,
         //            }, ],
-        //            e: "spot@public.deals.v3.api",
+        //            "e": "spot@public.deals.v3.api",
         //        },
-        //        s: "BTCUSDT",
-        //        t: 1678593222460,
+        //        "s": "BTCUSDT",
+        //        "t": 1678593222460,
         //    }
         //
         // swap
@@ -598,11 +610,11 @@ class mexc extends mexc$1 {
          * @name mexc3#watchMyTrades
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         let messageHash = 'myTrades';
@@ -630,20 +642,20 @@ class mexc extends mexc$1 {
     handleMyTrade(client, message, subscription = undefined) {
         //
         //    {
-        //        c: 'spot@private.deals.v3.api',
-        //        d: {
-        //            p: '22339.99',
-        //            v: '0.000235',
-        //            S: 1,
-        //            T: 1678670940695,
-        //            t: '9f6a47fb926442e496c5c4c104076ae3',
-        //            c: '',
-        //            i: 'e2b9835d1b6745f8a10ab74a81a16d50',
-        //            m: 0,
-        //            st: 0
+        //        "c": "spot@private.deals.v3.api",
+        //        "d": {
+        //            "p": "22339.99",
+        //            "v": "0.000235",
+        //            "S": 1,
+        //            "T": 1678670940695,
+        //            "t": "9f6a47fb926442e496c5c4c104076ae3",
+        //            "c": '',
+        //            "i": "e2b9835d1b6745f8a10ab74a81a16d50",
+        //            "m": 0,
+        //            "st": 0
         //        },
-        //        s: 'BTCUSDT',
-        //        t: 1678670940700
+        //        "s": "BTCUSDT",
+        //        "t": 1678670940700
         //    }
         //
         const messageHash = 'myTrades';
@@ -674,10 +686,10 @@ class mexc extends mexc$1 {
         //
         // public trade
         //    {
-        //        p: "20382.70",
-        //        v: "0.043800",
-        //        S: 1,
-        //        t: 1678593222456,
+        //        "p": "20382.70",
+        //        "v": "0.043800",
+        //        "S": 1,
+        //        "t": 1678593222456,
         //    }
         // private trade
         //    {
@@ -692,6 +704,21 @@ class mexc extends mexc$1 {
         //        "v": "5"
         //    }
         //
+        //
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
+        //   }
         let timestamp = this.safeInteger(trade, 'T');
         let tradeId = this.safeString(trade, 't');
         if (timestamp === undefined) {
@@ -703,6 +730,8 @@ class mexc extends mexc$1 {
         const rawSide = this.safeString(trade, 'S');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger(trade, 'm');
+        const feeAmount = this.safeNumber(trade, 'n');
+        const feeCurrencyId = this.safeString(trade, 'N');
         return this.safeTrade({
             'info': trade,
             'id': tradeId,
@@ -716,7 +745,10 @@ class mexc extends mexc$1 {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': undefined,
+            'fee': {
+                'cost': feeAmount,
+                'currency': this.safeCurrencyCode(feeCurrencyId),
+            },
         }, market);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -726,12 +758,12 @@ class mexc extends mexc$1 {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @params {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         params = this.omit(params, 'type');
@@ -755,7 +787,7 @@ class mexc extends mexc$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrder(client, message) {
         //
@@ -976,9 +1008,9 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#watchBalance
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -1076,7 +1108,7 @@ class mexc extends mexc$1 {
             this.delay(listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
         }
         catch (error) {
-            const url = this.urls['api']['ws'] + '?listenKey=' + listenKey;
+            const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
             const client = this.client(url);
             this.options['listenKey'] = undefined;
             client.reject(error);
@@ -1090,14 +1122,14 @@ class mexc extends mexc$1 {
     handleSubscriptionStatus(client, message) {
         //
         //    {
-        //        id: 0,
-        //        code: 0,
-        //        msg: 'spot@public.increase.depth.v3.api@BTCUSDT'
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
         //
         const msg = this.safeString(message, 'msg');
         if (msg === 'PONG') {
-            return this.handlePong(client, message);
+            this.handlePong(client, message);
         }
         else if (msg.indexOf('@') > -1) {
             const parts = msg.split('@');
@@ -1120,7 +1152,8 @@ class mexc extends mexc$1 {
             return;
         }
         if ('msg' in message) {
-            return this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, message);
+            return;
         }
         const c = this.safeString(message, 'c');
         let channel = undefined;

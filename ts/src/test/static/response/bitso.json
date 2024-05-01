@@ -1,0 +1,118 @@
+{
+    "exchange": "bitso",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "payload": [
+                        {
+                            "book": "btc_usdt",
+                            "created_at": "2024-03-13T10:59:59+0000",
+                            "amount": "0.00007045",
+                            "maker_side": "sell",
+                            "price": "73320",
+                            "tid": "119089863"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "119089863",
+                        "info": {
+                            "book": "btc_usdt",
+                            "created_at": "2024-03-13T10:59:59+0000",
+                            "amount": "0.00007045",
+                            "maker_side": "sell",
+                            "price": "73320",
+                            "tid": "119089863"
+                        },
+                        "timestamp": 1710327599000,
+                        "datetime": "2024-03-13T10:59:59.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73320,
+                        "amount": 0.00007045,
+                        "cost": 5.165394,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "payload": {
+                        "high": "73681",
+                        "last": "73440",
+                        "created_at": "2024-03-13T11:10:45+00:00",
+                        "book": "btc_usdt",
+                        "volume": "33.96216034",
+                        "vwap": "71004.0822715099",
+                        "low": "68696",
+                        "ask": "73440",
+                        "bid": "73288",
+                        "change_24": "1239",
+                        "rolling_average_change": {
+                            "6": "0.2759"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245000,
+                    "datetime": "2024-03-13T11:10:45.000Z",
+                    "high": 73681,
+                    "low": 68696,
+                    "bid": 73288,
+                    "bidVolume": null,
+                    "ask": 73440,
+                    "askVolume": null,
+                    "vwap": 71004.0822715099,
+                    "open": null,
+                    "close": 73440,
+                    "last": 73440,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 33.96216034,
+                    "quoteVolume": 2411452.0268995706,
+                    "info": {
+                        "high": "73681",
+                        "last": "73440",
+                        "created_at": "2024-03-13T11:10:45+00:00",
+                        "book": "btc_usdt",
+                        "volume": "33.96216034",
+                        "vwap": "71004.0822715099",
+                        "low": "68696",
+                        "ask": "73440",
+                        "bid": "73288",
+                        "change_24": "1239",
+                        "rolling_average_change": {
+                            "6": "0.2759"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

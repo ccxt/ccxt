@@ -1,26 +1,31 @@
 import Exchange from './abstract/whitebit.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees } from './base/types.js';
+/**
+ * @class whitebit
+ * @augments Exchange
+ */
 export default class whitebit extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{
+    fetchMarkets(params?: {}): Promise<Market[]>;
+    parseMarket(market: any): Market;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{
         withdraw: {};
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
-    fetchTradingFees(params?: {}): Promise<{}>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    parseTicker(ticker: any, market?: Market): Ticker;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: Market): Trade;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchStatus(params?: {}): Promise<{
         status: string;
         updated: any;
@@ -29,15 +34,18 @@ export default class whitebit extends Exchange {
         info: any;
     }>;
     fetchTime(params?: {}): Promise<number>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderType(type: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseOrder(order: any, market?: Market): Order;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -45,83 +53,27 @@ export default class whitebit extends Exchange {
         network: any;
         info: any;
     }>;
-    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: any;
         timestamp: any;
         datetime: any;
-        currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-    }>;
-    parseTransfer(transfer: any, currency?: any): {
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: any;
+        currency: string;
         amount: any;
         fromAccount: any;
         toAccount: any;
         status: any;
     };
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    parseTransaction(transaction: any, currency?: any): {
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        addressFrom: string;
-        address: string;
-        addressTo: string;
-        amount: number;
-        type: string;
-        currency: any;
-        status: string;
-        updated: any;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: string;
-        fee: {
-            cost: number;
-            currency: any;
-        };
-        info: any;
-    };
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
-    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        addressFrom: string;
-        address: string;
-        addressTo: string;
-        amount: number;
-        type: string;
-        currency: any;
-        status: string;
-        updated: any;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: string;
-        fee: {
-            cost: number;
-            currency: any;
-        };
-        info: any;
-    }>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market?: any): {
-        symbol: any;
+    fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseBorrowInterest(info: any, market?: Market): {
+        symbol: string;
         marginMode: string;
         currency: string;
         interest: number;
@@ -131,7 +83,28 @@ export default class whitebit extends Exchange {
         datetime: string;
         info: any;
     };
-    isFiat(currency: any): any;
+    fetchFundingRate(symbol: string, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
+    parseFundingRate(contract: any, market?: Market): {
+        info: any;
+        symbol: string;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: number;
+        timestamp: any;
+        datetime: any;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: string;
+        nextFundingRate: any;
+        nextFundingTimestamp: number;
+        nextFundingDatetime: string;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    isFiat(currency: any): boolean;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

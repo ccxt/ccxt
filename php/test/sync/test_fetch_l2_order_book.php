@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_order_book.php';
+include_once PATH_TO_CCXT . '/test/base/test_order_book.php';
 
 function test_fetch_l2_order_book($exchange, $skipped_properties, $symbol) {
     $method = 'fetchL2OrderBook';

@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_ledger_entry($exchange, $skipped_properties, $method, $entry, $requested_code, $now) {
     $format = array(
@@ -16,8 +15,8 @@ function test_ledger_entry($exchange, $skipped_properties, $method, $entry, $req
         'id' => 'x1234',
         'currency' => 'BTC',
         'account' => 'spot',
-        'referenceId' => '',
-        'referenceAccount' => '',
+        'referenceId' => 'foo',
+        'referenceAccount' => 'bar',
         'status' => 'ok',
         'amount' => $exchange->parse_number('22'),
         'before' => $exchange->parse_number('111'),
@@ -30,7 +29,7 @@ function test_ledger_entry($exchange, $skipped_properties, $method, $entry, $req
     );
     $empty_allowed_for = ['referenceId', 'referenceAccount', 'id'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now);
     assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['currency'], $requested_code);
     //
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'direction', ['in', 'out']);
@@ -39,5 +38,4 @@ function test_ledger_entry($exchange, $skipped_properties, $method, $entry, $req
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'before', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'after', '0');
-    assert_fee_structure($exchange, $skipped_properties, $method, $entry, 'fee');
 }

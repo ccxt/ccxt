@@ -1,25 +1,32 @@
 import Exchange from './abstract/bitvavo.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+/**
+ * @class bitvavo
+ * @augments Exchange
+ */
 export default class bitvavo extends Exchange {
     describe(): any;
     currencyToPrecision(code: any, fee: any, networkCode?: any): any;
     amountToPrecision(symbol: any, amount: any): any;
     priceToPrecision(symbol: any, price: any): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    fetchCurrenciesFromCache(params?: {}): Promise<any>;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTradingFees(params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
+    parseMarkets(markets: any): any[];
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrencies(currencies: any): {};
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    parseTicker(ticker: any, market?: Market): Ticker;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: Market): Trade;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    parseTradingFees(fees: any, market?: any): {};
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
+    fetchOHLCVRequest(symbol: Str, timeframe?: string, since?: Int, limit?: Int, params?: {}): any;
+    fetchOHLCV(symbol: Str, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -27,57 +34,42 @@ export default class bitvavo extends Exchange {
         network: any;
         info: any;
     }>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrder(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): {};
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    cancelOrderRequest(id: Str, symbol?: Str, params?: {}): any;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrdersRequest(symbol?: Str, since?: Int, limit?: Int, params?: {}): any;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        addressFrom: any;
-        address: string;
-        addressTo: string;
-        tagFrom: any;
-        tag: string;
-        tagTo: string;
-        type: any;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: any;
-        fee: any;
-    }>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseOrder(order: any, market?: Market): Order;
+    fetchMyTradesRequest(symbol?: Str, since?: Int, limit?: Int, params?: {}): any;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    withdrawRequest(code: Str, amount: any, address: any, tag?: any, params?: {}): any;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    fetchWithdrawalsRequest(code?: Str, since?: Int, limit?: Int, params?: {}): any;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsRequest(code?: Str, since?: Int, limit?: Int, params?: {}): any;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
-        id: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        addressFrom: any;
-        address: string;
-        addressTo: string;
-        tagFrom: any;
-        tag: string;
-        tagTo: string;
-        type: any;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: any;
-        fee: any;
+        withdraw: {
+            fee: number;
+            percentage: boolean;
+        };
+        deposit: {
+            fee: number;
+            percentage: boolean;
+        };
+        networks: {};
     };
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

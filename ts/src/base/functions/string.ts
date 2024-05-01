@@ -14,6 +14,12 @@
 //
 // @ts-nocheck
 const unCamelCase = (s: string): string => {
+    const exceptions = {
+        'fetchOHLCVWs': 'fetch_ohlcv_ws', // ws = websocket
+    }
+    if (exceptions[s]) {
+        return exceptions[s];
+    }
     return s.match (/[A-Z]/) ? s.replace (/[a-z0-9][A-Z]/g, (x) => x[0] + '_' + x[1]).replace (/[A-Z0-9][A-Z0-9][a-z][^$]/g, (x) => x[0] + '_' + x[1] + x[2] + x[3]).replace (/[a-z][0-9]$/g, (x) => x[0] + '_' + x[1]).toLowerCase () : s;
 };
 const capitalize = (s: string): string => {

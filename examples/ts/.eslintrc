@@ -12,6 +12,7 @@
   "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript"],
   "ignorePatterns": ["*/*", "cli.ts"],
   "rules": {
+    "no-console": "off",
     "import/no-unresolved":"off", // tmp until typescript decides to properly resolve names
     "import/named": "off",
     "strict": "off",
@@ -49,7 +50,7 @@
     "quotes": ["error", "single", { "avoidEscape": true }],
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^(headers|body|account|info|symbol|price|tag|side|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client)" }],
     "new-parens": "error",
-    "new-cap": ["warn"],
+    "new-cap": "off",
     "no-var": "error",
     "prefer-const": ["error", {
         "destructuring": "any",
@@ -60,12 +61,11 @@
     "lines-between-class-members": "error",
     "no-multiple-empty-lines": ["error", { "max": 2 }],
     "padding-line-between-statements": ["warn",
-      { "blankLine": "never", "prev":"*", "next": "*" },
+      // { "blankLine": "never", "prev":"*", "next": "*" }, // comment this to allow blank-lines
       { "blankLine": "always", "prev":"directive", "next": "*" },
       { "blankLine": "always", "prev":"*", "next": "cjs-export" },
       { "blankLine": "always", "prev":"*", "next": "export" },
       { "blankLine": "always", "prev":"*", "next": "function" }
-
     ],
     "prefer-template": "off",
     "curly": "error",
@@ -90,7 +90,13 @@
     "no-underscore-dangle": "off",
     "consistent-return": "off",
     "no-await-in-loop": "off",
-    "prefer-exponentiation-operator": "off"
+    "prefer-exponentiation-operator": "off",
+    "no-use-before-define": ["error", {
+        "functions": false,
+        "classes": true,
+        "variables": true,
+        "allowNamedExports": false
+    }]
   },
   "settings": {
     "import/resolver": {
