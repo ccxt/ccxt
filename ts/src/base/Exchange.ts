@@ -1045,7 +1045,7 @@ export default class Exchange {
         let chosenAgent = undefined;
         // in browser-side, proxy modules are not supported in 'fetch/ws' methods
         if (!isNode && (httpProxy || httpsProxy || socksProxy)) {
-            throw new NotSupported (this.id + ' - proxies in browser-side projects are not supported. You can setup local cors proxy server (find sample file named "sample-local-proxy-server-with-cors" in https://github.com/ccxt/ccxt/tree/master/examples/ folder) and override exchange.fetch method to send request through your cors-server backend, which in turn routes all requests through proxy');
+            throw new NotSupported (this.id + ' - proxies in browser-side projects are not supported. You have several choices: (A) setup cors proxy server (find sample file named "sample-local-proxy-server-with-cors" in https://github.com/ccxt/ccxt/tree/master/examples/ folder) on local/remote server and override `exchange.fetch` method to send request through your cors-server address (B) Use .proxyUrl property to redirect through local/remote cors-proxy snippet');
         }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
