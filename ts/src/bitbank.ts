@@ -443,8 +443,8 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const pairs = this.safeValue (data, 'pairs', []);
+        const data = this.safeDict (response, 'data', {});
+        const pairs = this.safeList (data, 'pairs', []);
         const result = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
