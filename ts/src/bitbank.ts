@@ -227,7 +227,7 @@ export default class bitbank extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': this.safeValue (entry, 'is_enabled'),
+            'active': this.safeBool (entry, 'is_enabled'),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
