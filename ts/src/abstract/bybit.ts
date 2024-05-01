@@ -135,6 +135,7 @@ interface Exchange {
     privateGetV5AccountFeeRate (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountTransactionLog (params?: {}): Promise<implicitReturnType>;
+    privateGetV5AccountContractTransactionLog (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountSmpGroup (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountMmpState (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeOrderRecord (params?: {}): Promise<implicitReturnType>;

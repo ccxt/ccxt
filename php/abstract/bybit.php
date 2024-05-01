@@ -385,6 +385,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_account_transaction_log($params = array()) {
         return $this->request('v5/account/transaction-log', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v5_account_contract_transaction_log($params = array()) {
+        return $this->request('v5/account/contract-transaction-log', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_v5_account_smp_group($params = array()) {
         return $this->request('v5/account/smp-group', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1260,6 +1263,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetV5AccountTransactionLog($params = array()) {
         return $this->request('v5/account/transaction-log', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetV5AccountContractTransactionLog($params = array()) {
+        return $this->request('v5/account/contract-transaction-log', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetV5AccountSmpGroup($params = array()) {
         return $this->request('v5/account/smp-group', 'private', 'GET', $params, null, null, array("cost" => 1));

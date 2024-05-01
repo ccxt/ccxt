@@ -293,6 +293,7 @@ public partial class bybit : Exchange
                         { "v5/account/fee-rate", 10 },
                         { "v5/account/info", 5 },
                         { "v5/account/transaction-log", 1 },
+                        { "v5/account/contract-transaction-log", 1 },
                         { "v5/account/smp-group", 1 },
                         { "v5/account/mmp-state", 5 },
                         { "v5/asset/exchange/order-record", 5 },

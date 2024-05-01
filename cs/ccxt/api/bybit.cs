@@ -641,6 +641,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5AccountTransactionLog",parameters);
     }
 
+    public async Task<object> privateGetV5AccountContractTransactionLog (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountContractTransactionLog",parameters);
+    }
+
     public async Task<object> privateGetV5AccountSmpGroup (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AccountSmpGroup",parameters);
