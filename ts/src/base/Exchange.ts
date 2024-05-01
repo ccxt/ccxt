@@ -2510,7 +2510,7 @@ export default class Exchange {
         const timestampString = this.omitZero (this.safeString (obj, key));
         let timestamp = undefined;
         if (timestampString !== undefined) {
-            timestamp = this.parseToInt (timestampString);
+            timestamp = parseInt (timestampString);
         } else if (defaultValue !== undefined) {
             timestamp = defaultValue;
         }
