@@ -195,6 +195,8 @@ class blofin extends Exchange {
                         'trade/orders-tpsl-pending' => 1,
                         'trade/orders-history' => 1,
                         'trade/orders-tpsl-history' => 1,
+                        'user/query-apikey' => 1,
+                        'affiliate/basic' => 1,
                     ),
                     'post' => array(
                         'trade/order' => 1,
@@ -952,13 +954,15 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
             // blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

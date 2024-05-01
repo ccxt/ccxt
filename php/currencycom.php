@@ -313,7 +313,7 @@ class currencycom extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
@@ -629,7 +629,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET

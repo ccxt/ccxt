@@ -2113,6 +2113,8 @@ public partial class bitmart : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "maker_fee_rate") },
             { "taker", this.safeNumber(fee, "taker_fee_rate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -3824,7 +3826,7 @@ public partial class bitmart : Exchange
         return this.parseIsolatedBorrowRate(borrowRate, market);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -3915,13 +3917,7 @@ public partial class bitmart : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object symbols = this.safeValue(data, "symbols", new List<object>() {});
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-        {
-            object symbol = this.safeValue(symbols, i);
-            ((IList<object>)result).Add(this.parseIsolatedBorrowRate(symbol));
-        }
-        return result;
+        return this.parseIsolatedBorrowRates(symbols);
     }
 
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
@@ -4119,9 +4115,9 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "time_end", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["time_end"] = endTime;

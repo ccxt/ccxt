@@ -58,7 +58,13 @@ export default class latoken extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -878,6 +884,8 @@ export default class latoken extends Exchange {
             'symbol': market['symbol'],
             'maker': this.safeNumber(response, 'makerFee'),
             'taker': this.safeNumber(response, 'takerFee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchPrivateTradingFee(symbol, params = {}) {
@@ -901,6 +909,8 @@ export default class latoken extends Exchange {
             'symbol': market['symbol'],
             'maker': this.safeNumber(response, 'makerFee'),
             'taker': this.safeNumber(response, 'takerFee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

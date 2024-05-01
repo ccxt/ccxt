@@ -60,8 +60,11 @@ public partial class timex : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -1152,6 +1155,8 @@ public partial class timex : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", rate },
             { "taker", rate },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

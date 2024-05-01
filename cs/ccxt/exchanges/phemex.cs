@@ -3010,9 +3010,15 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
+        object stop = this.safeValue2(parameters, "stop", "trigger", false);
+        parameters = this.omit(parameters, "stop", "trigger");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        if (isTrue(stop))
+        {
+            ((IDictionary<string,object>)request)["untriggerred"] = stop;
+        }
         object response = null;
         if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
         {
@@ -4293,7 +4299,7 @@ public partial class phemex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -4309,6 +4315,7 @@ public partial class phemex : Exchange
             { "info", data },
             { "symbol", this.safeSymbol(null, market) },
             { "type", "set" },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, codeCurrency) },

@@ -58,7 +58,13 @@ class latoken extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -405,7 +411,7 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -843,7 +849,7 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a market
@@ -889,6 +895,8 @@ class latoken extends Exchange {
                 'symbol' => $market['symbol'],
                 'maker' => $this->safe_number($response, 'makerFee'),
                 'taker' => $this->safe_number($response, 'takerFee'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }) ();
     }
@@ -915,6 +923,8 @@ class latoken extends Exchange {
                 'symbol' => $market['symbol'],
                 'maker' => $this->safe_number($response, 'makerFee'),
                 'taker' => $this->safe_number($response, 'takerFee'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }) ();
     }

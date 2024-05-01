@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, IsolatedBorrowRates, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -24,7 +25,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -985,7 +985,7 @@ class bitmart(Exchange, ImplicitAPI):
         contract = await self.fetch_contract_markets(params)
         return self.array_concat(spot, contract)
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1999,7 +1999,7 @@ class bitmart(Exchange, ImplicitAPI):
         #
         return self.custom_parse_balance(response, marketType)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol": "ETH_USDT",
@@ -2014,9 +2014,11 @@ class bitmart(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'maker_fee_rate'),
             'taker': self.safe_number(fee, 'taker_fee_rate'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -2959,7 +2961,7 @@ class bitmart(Exchange, ImplicitAPI):
             return code
         return self.network_id_to_code(networkId)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3340,7 +3342,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_isolated_borrow_rate(self, symbol: str, params={}):
+    async def fetch_isolated_borrow_rate(self, symbol: str, params={}) -> IsolatedBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3391,7 +3393,7 @@ class bitmart(Exchange, ImplicitAPI):
         borrowRate = self.safe_value(symbols, 0)
         return self.parse_isolated_borrow_rate(borrowRate, market)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None):
+    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -3433,7 +3435,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_isolated_borrow_rates(self, params={}):
+    async def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """
         fetch the borrow interest rates of all currencies, currently only works for isolated margin
         :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3476,11 +3478,7 @@ class bitmart(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         symbols = self.safe_value(data, 'symbols', [])
-        result = []
-        for i in range(0, len(symbols)):
-            symbol = self.safe_value(symbols, i)
-            result.append(self.parse_isolated_borrow_rate(symbol))
-        return result
+        return self.parse_isolated_borrow_rates(symbols)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
@@ -3639,9 +3637,9 @@ class bitmart(Exchange, ImplicitAPI):
             request['time_start'] = since
         if limit is not None:
             request['limit'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'time_end', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['till', 'until'])
+        params = self.omit(params, ['until'])
         if endTime is not None:
             request['time_end'] = endTime
         response = await self.privatePostAccountV1TransferContractList(self.extend(request, params))

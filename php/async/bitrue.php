@@ -590,7 +590,7 @@ class bitrue extends Exchange {
         return $this->safe_string_2($networksById, $networkId, $uppercaseNetworkId, $networkId);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -2751,7 +2751,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3044,6 +3044,7 @@ class bitrue extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => null,

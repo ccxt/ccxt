@@ -67,8 +67,11 @@ export default class timex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1164,6 +1167,8 @@ export default class timex extends Exchange {
             'symbol': this.safeSymbol(marketId, market),
             'maker': rate,
             'taker': rate,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

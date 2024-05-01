@@ -322,10 +322,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -454,6 +454,12 @@ public partial class okx
     /// <term>params.tpOrdKind</term>
     /// <description>
     /// string : 'condition' or 'limit', the default is 'condition'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// string : true/false, to automatically set exchange-specific params needed when trading in hedge mode
     /// </description>
     /// </item>
     /// </list>
@@ -638,6 +644,59 @@ public partial class okx
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// cancel multiple orders for multiple symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : whether the order is a stop/trigger order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// boolean : set to true if you want to cancel trailing orders
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrdersForSymbols(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetch an order by the id
@@ -1063,7 +1122,7 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1429,6 +1488,32 @@ public partial class okx
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>param.accountId</term>
+    /// <description>
+    /// string : if you have multiple accounts, you must specify the account id to fetch the position mode
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// set hedged to true or false for a market
     /// </summary>
     /// <remarks>
@@ -1489,10 +1574,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRates> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRates(parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRates(res);
     }
     /// <summary>
     /// fetch the rate of interest to borrow a currency for margin trading
@@ -1509,10 +1594,10 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
     }
     /// <summary>
     /// retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
@@ -1860,5 +1945,256 @@ public partial class okx
     {
         var res = await this.fetchOptionChain(code, parameters);
         return new OptionChain(res);
+    }
+    /// <summary>
+    /// fetch a quote for converting from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// convert from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the data for a conversion trade
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code of the conversion trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertTrade(id, code, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the users history of conversion trades
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch conversions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of conversion structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest conversion to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
+    }
+    /// <summary>
+    /// fetches all available currencies that can be converted
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
+    public async Task<Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertCurrencies(parameters);
+        return new Currencies(res);
+    }
+    /// <summary>
+    /// fetches the history of margin added or reduced from contract isolated positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : not used by okx fetchMarginAdjustmentHistory
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>type</term>
+    /// <description>
+    /// string : "add" or "reduce"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.auto</term>
+    /// <description>
+    /// boolean : true if fetching auto margin increases
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}.</returns>
+    public async Task<List<MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since2 = 0, double? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new MarginModification(item)).ToList<MarginModification>();
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbols</term>
+    /// <description>
+    /// string : unified market symbols
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest position to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=100, max=100
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : "cross" or "isolated"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instType</term>
+    /// <description>
+    /// string : margin, swap, futures or option
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.posId</term>
+    /// <description>
+    /// string : position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.before</term>
+    /// <description>
+    /// string : timestamp in ms of the earliest position to fetch based on the last update time of the position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.after</term>
+    /// <description>
+    /// string : timestamp in ms of the latest position to fetch based on the last update time of the position
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
 }

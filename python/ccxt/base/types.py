@@ -149,6 +149,12 @@ class OrderRequest(TypedDict):
     params: Dict[str, Any]
 
 
+class CancellationRequest(TypedDict):
+    id: Str
+    symbol: Str
+    clientOrderId: Str
+
+
 class Order(TypedDict):
     info: Dict[str, Any]
     id: Str
@@ -172,6 +178,8 @@ class Order(TypedDict):
     stopLossPrice: Num
     cost: Num
     trades: List[Trade]
+    reduceOnly: Bool
+    postOnly: Bool
     fee: Fee
 
 
@@ -311,6 +319,19 @@ class Greeks(TypedDict):
     info: Dict[str, Any]
 
 
+class Conversion(TypedDict):
+    info: Dict[str, Any]
+    timestamp: Int
+    datetime: Str
+    id: Str
+    fromCurrency: Str
+    fromAmount: Num
+    toCurrency: Str
+    toAmount: Num
+    price: Num
+    fee: Num
+
+
 class Option(TypedDict):
     info: Dict[str, Any]
     currency: Str
@@ -410,6 +431,7 @@ class MarginModification(TypedDict):
     info: Dict[str, any]
     symbol: str
     type: Optional[Literal['add', 'reduce', 'set']]
+    marginMode: Optional[Literal['isolated', 'cross']]
     amount: Optional[float]
     code: Str
     status: Str
@@ -417,9 +439,32 @@ class MarginModification(TypedDict):
     datetime: Str
 
 
+class CrossBorrowRate(TypedDict):
+    info: Dict[str, any]
+    currency: Str
+    rate: float
+    period: Optional[float]
+    timestamp: Int
+    datetime: Str
+
+
+class IsolatedBorrowRate(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    base: str
+    baseRate: float
+    quote: str
+    quoteRate: float
+    period: Int
+    timestamp: Int
+    datetime: Str
+
+
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
+IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
+CrossBorrowRates = Dict[Str, CrossBorrowRate]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

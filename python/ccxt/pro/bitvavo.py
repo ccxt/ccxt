@@ -6,12 +6,12 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class bitvavo(ccxt.async_support.bitvavo):
@@ -838,7 +838,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         deposits = self.parse_transactions(response, None, None, None, {'type': 'deposit'})
         client.resolve(deposits, messageHash)
 
-    async def fetch_trading_fees_ws(self, params={}):
+    async def fetch_trading_fees_ws(self, params={}) -> TradingFees:
         """
         :see: https://docs.bitvavo.com/#tag/Account/paths/~1account/get
         fetch the trading fees for multiple markets

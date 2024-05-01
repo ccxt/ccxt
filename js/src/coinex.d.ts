@@ -1,12 +1,12 @@
 import Exchange from './abstract/coinex.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
 /**
  * @class coinex
  * @augments Exchange
  */
 export default class coinex extends Exchange {
     describe(): any;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchContractMarkets(params: any): Promise<any[]>;
@@ -17,23 +17,9 @@ export default class coinex extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-        percentage: boolean;
-        tierBased: boolean;
-    }>;
-    fetchTradingFees(params?: {}): Promise<{}>;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-        percentage: boolean;
-        tierBased: boolean;
-    };
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchMarginBalance(params?: {}): Promise<Balances>;
@@ -79,18 +65,17 @@ export default class coinex extends Exchange {
         network: any;
     };
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    parsePosition(position: any, market?: Market): Position;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
     parseMarketLeverageTiers(item: any, market?: Market): any[];
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: Market): MarginModification;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
@@ -131,13 +116,14 @@ export default class coinex extends Exchange {
         previousFundingDatetime: any;
     };
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransferStatus(status: any): string;
     parseTransfer(transfer: any, currency?: Currency): {
+        info: any;
         id: number;
         timestamp: number;
         datetime: string;
@@ -150,29 +136,9 @@ export default class coinex extends Exchange {
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseIsolatedBorrowRate(info: any, market?: Market): {
-        symbol: string;
-        base: string;
-        baseRate: number;
-        quote: string;
-        quoteRate: number;
-        period: number;
-        timestamp: any;
-        datetime: any;
-        info: any;
-    };
-    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<{
-        symbol: string;
-        base: string;
-        baseRate: number;
-        quote: string;
-        quoteRate: number;
-        period: number;
-        timestamp: any;
-        datetime: any;
-        info: any;
-    }>;
-    fetchIsolatedBorrowRates(params?: {}): Promise<any[]>;
+    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
+    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
+    fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: Market): {
         account: any;
@@ -202,6 +168,7 @@ export default class coinex extends Exchange {
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
     parseLeverage(leverage: any, market?: any): Leverage;
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position>;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
@@ -211,4 +178,5 @@ export default class coinex extends Exchange {
         headers: any;
     };
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: {}): Promise<MarginModification[]>;
 }

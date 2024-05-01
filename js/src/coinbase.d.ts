@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -10,6 +10,7 @@ export default class coinbase extends Exchange {
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchAccountsV2(params?: {}): Promise<Account[]>;
     fetchAccountsV3(params?: {}): Promise<Account[]>;
+    fetchPortfolios(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
         id: string;
         type: string;
@@ -33,8 +34,10 @@ export default class coinbase extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsV2(params?: {}): Promise<any[]>;
     fetchMarketsV3(params?: {}): Promise<any[]>;
+    parseSpotMarket(market: any, feeTier: any): MarketInterface;
+    parseContractMarket(market: any, feeTier: any): MarketInterface;
     fetchCurrenciesFromCache(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTickersV2(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchTickersV3(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
@@ -90,8 +93,8 @@ export default class coinbase extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         info: any;
         currency: string;
@@ -101,6 +104,15 @@ export default class coinbase extends Exchange {
     };
     deposit(code: string, amount: number, id: string, params?: {}): Promise<Transaction>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
+    fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
+    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    createAuthToken(seconds: Int, method?: Str, url?: Str): string;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

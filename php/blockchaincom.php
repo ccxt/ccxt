@@ -636,7 +636,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api.blockchain.com/v3/#/trading/getFees
@@ -911,7 +911,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://api.blockchain.com/v3/#/payments/createWithdrawal

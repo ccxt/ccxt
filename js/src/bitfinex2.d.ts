@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
 /**
  * @class bitfinex2
  * @augments Exchange
@@ -19,7 +19,7 @@ export default class bitfinex2 extends Exchange {
         info: any;
     }>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     safeNetwork(networkId: any): string;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
@@ -76,9 +76,9 @@ export default class bitfinex2 extends Exchange {
     }>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     nonce(): number;

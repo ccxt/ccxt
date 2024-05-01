@@ -64,8 +64,11 @@ class luno extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -882,7 +885,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -909,6 +912,8 @@ class luno extends Exchange {
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($response, 'maker_fee'),
                 'taker' => $this->safe_number($response, 'taker_fee'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }) ();
     }

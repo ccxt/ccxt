@@ -574,7 +574,7 @@ class zaif extends Exchange {
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
          * make a withdrawal

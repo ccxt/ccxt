@@ -70,8 +70,11 @@ class timex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -322,7 +325,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -1174,7 +1177,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "fee" => 0.0075,
@@ -1188,10 +1191,12 @@ class timex extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $rate,
             'taker' => $rate,
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market

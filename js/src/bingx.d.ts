@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, O
 export default class bingx extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchSpotMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
     fetchSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
@@ -79,7 +79,9 @@ export default class bingx extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
@@ -95,7 +97,7 @@ export default class bingx extends Exchange {
         toAccount: string;
         status: string;
     };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     fetchDepositAddress(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
@@ -130,8 +132,8 @@ export default class bingx extends Exchange {
         networks: {};
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    parseParams(params: any): {};
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    parseParams(params: any): import("./base/types.js").Dictionary<any>;
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;

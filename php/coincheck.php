@@ -50,8 +50,11 @@ class coincheck extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -517,7 +520,7 @@ class coincheck extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://coincheck.com/documents/exchange/api#account-info

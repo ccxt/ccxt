@@ -65,7 +65,12 @@ class exmo extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -270,6 +275,7 @@ class exmo extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $market),
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $this->safe_value($market, 'quote'),
@@ -279,7 +285,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -293,7 +299,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -307,7 +313,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -606,7 +612,7 @@ class exmo extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -2155,7 +2161,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -42,6 +42,7 @@ export default class binance extends Exchange {
                 'cancelOrders': true,  // contract only
                 'closeAllPositions': false,
                 'closePosition': false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
@@ -73,6 +74,10 @@ export default class binance extends Exchange {
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchConvertCurrencies': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -100,6 +105,7 @@ export default class binance extends Exchange {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarginMode': 'emulated',
                 'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -121,8 +127,10 @@ export default class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
@@ -317,6 +325,7 @@ export default class binance extends Exchange {
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 1800, // Weight(IP): 18000 => cost = 0.1 * 18000 = 1800
+                        'capital/withdraw/address/list': 10,
                         'capital/contract/convertible-coins': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'convert/tradeFlow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'convert/exchangeInfo': 50,
@@ -971,6 +980,7 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'order/oco': 0.2,
+                        'orderList/oco': 0.2,
                         'sor/order': 0.2,
                         'sor/order/test': 0.2,
                         'order': 0.2,
@@ -1091,7 +1101,7 @@ export default class binance extends Exchange {
                         'feeSide': 'quote',
                         'tierBased': true,
                         'percentage': true,
-                        'taker': this.parseNumber ('0.000400'),
+                        'taker': this.parseNumber ('0.000500'),
                         'maker': this.parseNumber ('0.000200'),
                         'tiers': {
                             'taker': [
@@ -4072,6 +4082,7 @@ export default class binance extends Exchange {
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
+         * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -4206,10 +4217,13 @@ export default class binance extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
+        const marketId = market['id'];
         if (price === 'index') {
-            request['pair'] = market['id'];   // Index price takes this argument instead of symbol
+            const parts = marketId.split ('_');
+            const pair = this.safeString (parts, 0);
+            request['pair'] = pair;   // Index price takes this argument instead of symbol
         } else {
-            request['symbol'] = market['id'];
+            request['symbol'] = marketId;
         }
         // const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
@@ -4886,23 +4900,7 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name binance#editContractOrder
-         * @description edit a trade order
-         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
-         * @param {string} id cancel order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
+    editContractOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         if (!market['contract']) {
             throw new NotSupported (this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
@@ -4921,6 +4919,28 @@ export default class binance extends Exchange {
             request['origClientOrderId'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
+        return request;
+    }
+
+    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#editContractOrder
+         * @description edit a trade order
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.editContractOrderRequest (id, symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['linear']) {
             response = await this.fapiPrivatePutOrder (this.extend (request, params));
@@ -5731,7 +5751,7 @@ export default class binance extends Exchange {
             } else {
                 response = await this.dapiPrivatePostOrder (request);
             }
-        } else if (marketType === 'margin' || marginMode !== undefined) {
+        } else if (marketType === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiPostMarginOrder (request);
             } else {
@@ -5826,14 +5846,6 @@ export default class binance extends Exchange {
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
-        if ((marketType === 'spot') || (marketType === 'margin')) {
-            request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else {
-            // swap, futures and options
-            if (!isPortfolioMargin) {
-                request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
-            }
-        }
         if (market['option']) {
             if (type === 'market') {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
@@ -5869,6 +5881,13 @@ export default class binance extends Exchange {
                     request['isIsolated'] = true;
                 }
             }
+        }
+        // handle newOrderRespType response type
+        if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
+            request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        } else {
+            // swap, futures and options
+            request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
         const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
         request[typeRequest] = uppercaseType;
@@ -6489,7 +6508,7 @@ export default class binance extends Exchange {
             } else {
                 response = await this.dapiPrivateGetOpenOrders (this.extend (request, params));
             }
-        } else if (type === 'margin' || marginMode !== undefined) {
+        } else if (type === 'margin' || marginMode !== undefined || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiGetMarginOpenOrders (this.extend (request, params));
             } else {
@@ -6967,7 +6986,7 @@ export default class binance extends Exchange {
             } else {
                 response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, params));
             }
-        } else if ((type === 'margin') || (marginMode !== undefined)) {
+        } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
                 response = await this.papiDeleteMarginAllOpenOrders (this.extend (request, params));
             } else {
@@ -8463,7 +8482,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name binance#withdraw
@@ -8891,9 +8910,9 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
+        params = this.omit (params, [ 'endTime', 'until' ]);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -11050,25 +11069,41 @@ export default class binance extends Exchange {
         //         "type": 1
         //     }
         //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        symbol: "XRPUSDT",
+        //        type: "1",
+        //        deltaType: "TRADE",
+        //        amount: "2.57148240",
+        //        asset: "USDT",
+        //        time: "1711046271555",
+        //        positionSide: "BOTH",
+        //        clientTranId: ""
+        //    }
+        //
         const rawType = this.safeInteger (data, 'type');
-        const resultType = (rawType === 1) ? 'add' : 'reduce';
-        const resultAmount = this.safeNumber (data, 'amount');
         const errorCode = this.safeString (data, 'code');
-        const status = (errorCode === '200') ? 'ok' : 'failed';
+        const marketId = this.safeString (data, 'symbol');
+        const timestamp = this.safeInteger (data, 'time');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const noErrorCode = errorCode === undefined;
+        const success = errorCode === '200';
         return {
             'info': data,
             'symbol': market['symbol'],
-            'type': resultType,
-            'amount': resultAmount,
+            'type': (rawType === 1) ? 'add' : 'reduce',
+            'marginMode': 'isolated',
+            'amount': this.safeNumber (data, 'amount'),
+            'code': this.safeString (data, 'asset'),
             'total': undefined,
-            'code': undefined,
-            'status': status,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'status': (success || noErrorCode) ? 'ok' : 'failed',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name binance#reduceMargin
@@ -11083,7 +11118,7 @@ export default class binance extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name binance#addMargin
@@ -11098,7 +11133,7 @@ export default class binance extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async fetchCrossBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
         /**
          * @method
          * @name binance#fetchCrossBorrowRate
@@ -11595,9 +11630,9 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'endTime', 'until', 'till' ]);
+        params = this.omit (params, [ 'endTime', 'until' ]);
         if (endTime) {
             request['endTime'] = endTime;
         } else if (since) {
@@ -12334,5 +12369,476 @@ export default class binance extends Exchange {
             'baseVolume': this.safeNumber (chain, 'volume'),
             'quoteVolume': undefined,
         };
+    }
+
+    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
+        /**
+         * @method
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-position-margin-change-history-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-position-margin-change-history-trade
+         * @param {string} symbol unified market symbol
+         * @param {string} [type] "add" or "reduce"
+         * @param {int} [since] timestamp in ms of the earliest change to fetch
+         * @param {int} [limit] the maximum amount of changes to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest change to fetch
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory () requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        const request = {
+            'symbol': market['id'],
+        };
+        if (type !== undefined) {
+            request['type'] = (type === 'add') ? 1 : 2;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivateGetPositionMarginHistory (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivateGetPositionMarginHistory (this.extend (request, params));
+        } else {
+            throw new BadRequest (this.id + 'fetchMarginAdjustmentHistory () is not supported for markets of type ' + market['type']);
+        }
+        //
+        //    [
+        //        {
+        //            symbol: "XRPUSDT",
+        //            type: "1",
+        //            deltaType: "TRADE",
+        //            amount: "2.57148240",
+        //            asset: "USDT",
+        //            time: "1711046271555",
+        //            positionSide: "BOTH",
+        //            clientTranId: ""
+        //        }
+        //        ...
+        //    ]
+        //
+        const modifications = this.parseMarginModifications (response);
+        return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
+    }
+
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name binance#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets ();
+        const response = await this.sapiGetConvertAssetInfo (params);
+        //
+        //     [
+        //         {
+        //             "asset": "BTC",
+        //             "fraction": 8
+        //         },
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const id = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': this.safeInteger (entry, 'fraction'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+            };
+        }
+        return result;
+    }
+
+    async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name binance#fetchConvertQuote
+         * @description fetch a quote for converting from one currency to another
+         * @see https://binance-docs.github.io/apidocs/spot/en/#send-quote-request-user_data
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} amount how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchConvertQuote() requires an amount argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'fromAsset': fromCode,
+            'toAsset': toCode,
+            'fromAmount': amount,
+        };
+        const response = await this.sapiPostConvertGetQuote (this.extend (request, params));
+        //
+        //     {
+        //         "quoteId":"12415572564",
+        //         "ratio":"38163.7",
+        //         "inverseRatio":"0.0000262",
+        //         "validTimestamp":1623319461670,
+        //         "toAmount":"3816.37",
+        //         "fromAmount":"0.1"
+        //     }
+        //
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        return this.parseConversion (response, fromCurrency, toCurrency);
+    }
+
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name binance#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#accept-quote-trade
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let response = undefined;
+        if ((fromCode === 'BUSD') || (toCode === 'BUSD')) {
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' createConvertTrade() requires an amount argument');
+            }
+            request['clientTranId'] = id;
+            request['asset'] = fromCode;
+            request['targetAsset'] = toCode;
+            request['amount'] = amount;
+            response = await this.sapiPostAssetConvertTransfer (this.extend (request, params));
+            //
+            //     {
+            //         "tranId": 118263407119,
+            //         "status": "S"
+            //     }
+            //
+        } else {
+            request['quoteId'] = id;
+            response = await this.sapiPostConvertAcceptQuote (this.extend (request, params));
+            //
+            //     {
+            //         "orderId":"933256278426274426",
+            //         "createTime":1623381330472,
+            //         "orderStatus":"PROCESS"
+            //     }
+            //
+        }
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        return this.parseConversion (response, fromCurrency, toCurrency);
+    }
+
+    async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name binance#fetchConvertTrade
+         * @description fetch the data for a conversion trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#order-status-user_data
+         * @param {string} id the id of the trade that you want to fetch
+         * @param {string} [code] the unified currency code of the conversion trade
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let response = undefined;
+        if (code === 'BUSD') {
+            const msInDay = 86400000;
+            const now = this.milliseconds ();
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['asset'] = currency['id'];
+            }
+            request['tranId'] = id;
+            request['startTime'] = now - msInDay;
+            request['endTime'] = now;
+            response = await this.sapiGetAssetConvertTransferQueryByPage (this.extend (request, params));
+            //
+            //     {
+            //         "total": 3,
+            //         "rows": [
+            //             {
+            //                 "tranId": 118263615991,
+            //                 "type": 244,
+            //                 "time": 1664442078000,
+            //                 "deductedAsset": "BUSD",
+            //                 "deductedAmount": "1",
+            //                 "targetAsset": "USDC",
+            //                 "targetAmount": "1",
+            //                 "status": "S",
+            //                 "accountType": "MAIN"
+            //             },
+            //         ]
+            //     }
+            //
+        } else {
+            request['orderId'] = id;
+            response = await this.sapiGetConvertOrderStatus (this.extend (request, params));
+            //
+            //     {
+            //         "orderId":933256278426274426,
+            //         "orderStatus":"SUCCESS",
+            //         "fromAsset":"BTC",
+            //         "fromAmount":"0.00054414",
+            //         "toAsset":"USDT",
+            //         "toAmount":"20",
+            //         "ratio":"36755",
+            //         "inverseRatio":"0.00002721",
+            //         "createTime":1623381330472
+            //     }
+            //
+        }
+        let data = response;
+        if (code === 'BUSD') {
+            const rows = this.safeList (response, 'rows', []);
+            data = this.safeDict (rows, 0, {});
+        }
+        const fromCurrencyId = this.safeString2 (data, 'deductedAsset', 'fromAsset');
+        const toCurrencyId = this.safeString2 (data, 'targetAsset', 'toAsset');
+        let fromCurrency = undefined;
+        let toCurrency = undefined;
+        if (fromCurrencyId !== undefined) {
+            fromCurrency = this.currency (fromCurrencyId);
+        }
+        if (toCurrencyId !== undefined) {
+            toCurrency = this.currency (toCurrencyId);
+        }
+        return this.parseConversion (data, fromCurrency, toCurrency);
+    }
+
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        /**
+         * @method
+         * @name binance#fetchConvertTradeHistory
+         * @description fetch the users history of conversion trades
+         * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-convert-trade-history-user_data
+         * @param {string} [code] the unified currency code
+         * @param {int} [since] the earliest time in ms to fetch conversions for
+         * @param {int} [limit] the maximum number of conversion structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+         * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const msInThirtyDays = 2592000000;
+        const now = this.milliseconds ();
+        if (since !== undefined) {
+            request['startTime'] = since;
+        } else {
+            request['startTime'] = now - msInThirtyDays;
+        }
+        const endTime = this.safeString2 (params, 'endTime', 'until');
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        } else {
+            request['endTime'] = now;
+        }
+        params = this.omit (params, 'until');
+        let response = undefined;
+        let responseQuery = undefined;
+        let fromCurrencyKey = undefined;
+        let toCurrencyKey = undefined;
+        if (code === 'BUSD') {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+            if (limit !== undefined) {
+                request['size'] = limit;
+            }
+            fromCurrencyKey = 'deductedAsset';
+            toCurrencyKey = 'targetAsset';
+            responseQuery = 'rows';
+            response = await this.sapiGetAssetConvertTransferQueryByPage (this.extend (request, params));
+            //
+            //     {
+            //         "total": 3,
+            //         "rows": [
+            //             {
+            //                 "tranId": 118263615991,
+            //                 "type": 244,
+            //                 "time": 1664442078000,
+            //                 "deductedAsset": "BUSD",
+            //                 "deductedAmount": "1",
+            //                 "targetAsset": "USDC",
+            //                 "targetAmount": "1",
+            //                 "status": "S",
+            //                 "accountType": "MAIN"
+            //             },
+            //         ]
+            //     }
+            //
+        } else {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            fromCurrencyKey = 'fromAsset';
+            toCurrencyKey = 'toAsset';
+            responseQuery = 'list';
+            response = await this.sapiGetConvertTradeFlow (this.extend (request, params));
+            //
+            //     {
+            //         "list": [
+            //             {
+            //                 "quoteId": "f3b91c525b2644c7bc1e1cd31b6e1aa6",
+            //                 "orderId": 940708407462087195,
+            //                 "orderStatus": "SUCCESS",
+            //                 "fromAsset": "USDT",
+            //                 "fromAmount": "20",
+            //                 "toAsset": "BNB",
+            //                 "toAmount": "0.06154036",
+            //                 "ratio": "0.00307702",
+            //                 "inverseRatio": "324.99",
+            //                 "createTime": 1624248872184
+            //             }
+            //         ],
+            //         "startTime": 1623824139000,
+            //         "endTime": 1626416139000,
+            //         "limit": 100,
+            //         "moreData": false
+            //     }
+            //
+        }
+        const rows = this.safeList (response, responseQuery, []);
+        return this.parseConversions (rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
+    }
+
+    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "quoteId":"12415572564",
+        //         "ratio":"38163.7",
+        //         "inverseRatio":"0.0000262",
+        //         "validTimestamp":1623319461670,
+        //         "toAmount":"3816.37",
+        //         "fromAmount":"0.1"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "orderId":"933256278426274426",
+        //         "createTime":1623381330472,
+        //         "orderStatus":"PROCESS"
+        //     }
+        //
+        // createConvertTrade BUSD
+        //
+        //     {
+        //         "tranId": 118263407119,
+        //         "status": "S"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory BUSD
+        //
+        //     {
+        //         "tranId": 118263615991,
+        //         "type": 244,
+        //         "time": 1664442078000,
+        //         "deductedAsset": "BUSD",
+        //         "deductedAmount": "1",
+        //         "targetAsset": "USDC",
+        //         "targetAmount": "1",
+        //         "status": "S",
+        //         "accountType": "MAIN"
+        //     }
+        //
+        // fetchConvertTrade
+        //
+        //     {
+        //         "orderId":933256278426274426,
+        //         "orderStatus":"SUCCESS",
+        //         "fromAsset":"BTC",
+        //         "fromAmount":"0.00054414",
+        //         "toAsset":"USDT",
+        //         "toAmount":"20",
+        //         "ratio":"36755",
+        //         "inverseRatio":"0.00002721",
+        //         "createTime":1623381330472
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "quoteId": "f3b91c525b2644c7bc1e1cd31b6e1aa6",
+        //         "orderId": 940708407462087195,
+        //         "orderStatus": "SUCCESS",
+        //         "fromAsset": "USDT",
+        //         "fromAmount": "20",
+        //         "toAsset": "BNB",
+        //         "toAmount": "0.06154036",
+        //         "ratio": "0.00307702",
+        //         "inverseRatio": "324.99",
+        //         "createTime": 1624248872184
+        //     }
+        //
+        const timestamp = this.safeIntegerN (conversion, [ 'time', 'validTimestamp', 'createTime' ]);
+        const fromCur = this.safeString2 (conversion, 'deductedAsset', 'fromAsset');
+        const fromCode = this.safeCurrencyCode (fromCur, fromCurrency);
+        const to = this.safeString2 (conversion, 'targetAsset', 'toAsset');
+        const toCode = this.safeCurrencyCode (to, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeStringN (conversion, [ 'tranId', 'orderId', 'quoteId' ]),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber2 (conversion, 'deductedAmount', 'fromAmount'),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber2 (conversion, 'targetAmount', 'toAmount'),
+            'price': undefined,
+            'fee': undefined,
+        } as Conversion;
     }
 }

@@ -67,8 +67,11 @@ class probit extends probit$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1487,12 +1490,11 @@ class probit extends probit$1 {
         const result = await this.fetchTransactions(code, since, limit, this.extend(request, params));
         return result;
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name probit#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
+         * @name probit#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
          * @see https://docs-en.probit.com/reference/transferpayment
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for
@@ -1514,10 +1516,10 @@ class probit extends probit$1 {
         else {
             request['start_time'] = this.iso8601(1);
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             request['end_time'] = this.iso8601(until);
-            params = this.omit(params, ['until', 'till']);
+            params = this.omit(params, ['until']);
         }
         else {
             request['end_time'] = this.iso8601(this.milliseconds());

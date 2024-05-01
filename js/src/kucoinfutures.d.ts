@@ -1,5 +1,5 @@
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface } from './base/types.js';
 /**
  * @class kucoinfutures
  * @augments Exchange
@@ -31,24 +31,18 @@ export default class kucoinfutures extends kucoin {
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(info: any, market?: Market): {
-        info: any;
-        direction: any;
-        mode: string;
-        amount: any;
-        code: string;
-        symbol: string;
-        status: any;
-    };
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    parseMarginModification(info: any, market?: Market): MarginModification;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
@@ -101,4 +95,5 @@ export default class kucoinfutures extends kucoin {
         datetime: string;
     };
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
 }

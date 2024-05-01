@@ -61,8 +61,11 @@ public partial class probit : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -1598,13 +1601,12 @@ public partial class probit : Exchange
         return result;
     }
 
-    public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
-        * @name probit#fetchTransactions
-        * @deprecated
-        * @description use fetchDepositsWithdrawals instead
+        * @name probit#fetchDepositsWithdrawals
+        * @description fetch history of deposits and withdrawals
         * @see https://docs-en.probit.com/reference/transferpayment
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch transactions for
@@ -1629,11 +1631,11 @@ public partial class probit : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(1);
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
         } else
         {
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(this.milliseconds());

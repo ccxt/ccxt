@@ -1211,7 +1211,7 @@ class lbank extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //      {
         //          "symbol":"skt_usdt",
@@ -1226,10 +1226,12 @@ class lbank extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommission'),
             'taker' => $this->safe_number($fee, 'takerCommission'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
@@ -1239,10 +1241,10 @@ class lbank extends Exchange {
          */
         $market = $this->market($symbol);
         $result = $this->fetch_trading_fees(array_merge($params, array( 'category' => $market['id'] )));
-        return $result;
+        return $this->safe_dict($result, $symbol);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://www.lbank.com/en-US/docs/index.html#transaction-$fee-rate-query
@@ -1987,7 +1989,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal

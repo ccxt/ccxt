@@ -16,10 +16,10 @@ public partial class htx
         var res = await this.fetchTime(parameters);
         return (Int64)res;
     }
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -345,6 +345,11 @@ public partial class htx
         var res = await this.cancelAllOrders(symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
@@ -374,7 +379,7 @@ public partial class htx
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -398,10 +403,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
-    public async Task<List<BorrowRate>> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRates(parameters);
-        return ((IList<object>)res).Select(item => new BorrowRate(item)).ToList<BorrowRate>();
+        return new IsolatedBorrowRates(res);
     }
     public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -478,12 +483,12 @@ public partial class htx
         var res = await this.fetchOpenInterest(symbol, parameters);
         return new OpenInterest(res);
     }
-    public async Task<Dictionary<string, object>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchSettlementHistory(symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {

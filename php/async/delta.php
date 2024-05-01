@@ -414,7 +414,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -2611,7 +2611,7 @@ class delta extends Exchange {
         );
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -2625,7 +2625,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -2707,6 +2707,7 @@ class delta extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => $this->safe_number($data, 'margin'),
             'code' => null,

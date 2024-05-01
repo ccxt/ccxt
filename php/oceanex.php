@@ -553,7 +553,7 @@ class oceanex extends Exchange {
         return $this->safe_timestamp($response, 'data');
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api.oceanex.pro/doc/v1/#trading-fees-post

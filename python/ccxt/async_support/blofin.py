@@ -6,16 +6,16 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -201,6 +201,8 @@ class blofin(Exchange, ImplicitAPI):
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'user/query-apikey': 1,
+                        'affiliate/basic': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -906,13 +908,15 @@ class blofin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
             # blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
+            'percentage': None,
+            'tierBased': None,
         }
 
     async def fetch_balance(self, params={}) -> Balances:

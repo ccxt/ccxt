@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -16,7 +16,7 @@ export default class delta extends Exchange {
         url: any;
         info: any;
     }>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<MarketInterface>>;
     indexByStringifiedNumericId(input: any): {};
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -115,8 +115,8 @@ export default class delta extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: any, market?: Market): MarginModification;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;

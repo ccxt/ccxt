@@ -9,13 +9,13 @@ var index$1 = require('../../static_dependencies/qs/index.cjs.js');
 
 /* eslint-disable */
 /*  ------------------------------------------------------------------------ */
-const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedObject = object => ((typeof object === 'string') &&
+const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedObject = (object) => ((typeof object === 'string') &&
     (object.length >= 2) &&
-    ((object[0] === '{') || (object[0] === '['))), binaryToString = index.utf8.encode, stringToBinary = index.utf8.decode, stringToBase64 = string => index.base64.encode(index.utf8.decode(string)), base64ToString = string => index.utf8.encode(index.base64.decode(string)), base64ToBinary = index.base64.decode, binaryToBase64 = index.base64.encode, base16ToBinary = index.base16.decode, binaryToBase16 = index.base16.encode, base58ToBinary = index.base58.decode, binaryToBase58 = index.base58.encode, binaryConcat = utils.concatBytes, binaryConcatArray = (arr) => utils.concatBytes(...arr), urlencode = object => index$1.stringify(object), urlencodeNested = object => index$1.stringify(object) // implemented only in python
-, urlencodeWithArrayRepeat = object => index$1.stringify(object, { arrayFormat: 'repeat' }), rawencode = object => index$1.stringify(object, { encode: false }), encode = index.utf8.decode // lol
+    ((object[0] === '{') || (object[0] === '['))), binaryToString = index.utf8.encode, stringToBinary = index.utf8.decode, stringToBase64 = (string) => index.base64.encode(index.utf8.decode(string)), base64ToString = (string) => index.utf8.encode(index.base64.decode(string)), base64ToBinary = index.base64.decode, binaryToBase64 = index.base64.encode, base16ToBinary = index.base16.decode, binaryToBase16 = index.base16.encode, base58ToBinary = index.base58.decode, binaryToBase58 = index.base58.encode, binaryConcat = utils.concatBytes, binaryConcatArray = (arr) => utils.concatBytes(...arr), urlencode = (object) => index$1.stringify(object), urlencodeNested = (object) => index$1.stringify(object) // implemented only in python
+, urlencodeWithArrayRepeat = (object) => index$1.stringify(object, { arrayFormat: 'repeat' }), rawencode = (object) => index$1.stringify(object, { encode: false }), encode = index.utf8.decode // lol
 , decode = index.utf8.encode
 // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
-, urlencodeBase64 = base64string => base64string.replace(/[=]+$/, '')
+, urlencodeBase64 = (base64string) => base64string.replace(/[=]+$/, '')
     .replace(/\+/g, '-')
     .replace(/\//g, '_'), numberToLE = (n, padding) => utils.numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => utils.numberToBytesBE(BigInt(n), padding);
 function packb(req) {

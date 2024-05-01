@@ -79,6 +79,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -92,8 +93,10 @@ export default class coinbaseinternational extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1833,9 +1836,9 @@ export default class coinbaseinternational extends Exchange {
         if (since !== undefined) {
             request['time_from'] = this.iso8601(since);
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeStringN(params, ['until']);
         if (until !== undefined) {
-            params = this.omit(params, ['until', 'till']);
+            params = this.omit(params, ['until']);
             request['ref_datetime'] = this.iso8601(until);
         }
         const response = await this.v1PrivateGetPortfoliosFills(this.extend(request, params));

@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -19,7 +20,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -82,8 +82,11 @@ class bitstamp(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -370,6 +373,12 @@ class bitstamp(Exchange, ImplicitAPI):
                         'blur_address/': 1,
                         'vext_withdrawal/': 1,
                         'vext_address/': 1,
+                        'cspr_withdrawal/': 1,
+                        'cspr_address/': 1,
+                        'vchf_withdrawal/': 1,
+                        'vchf_address/': 1,
+                        'veur_withdrawal/': 1,
+                        'veur_address/': 1,
                     },
                 },
             },
@@ -440,6 +449,30 @@ class bitstamp(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'UST': 'USTC',
+            },
+            # exchange-specific options
+            'options': {
+                'networksById': {
+                    'bitcoin-cash': 'BCH',
+                    'bitcoin': 'BTC',
+                    'ethereum': 'ERC20',
+                    'litecoin': 'LTC',
+                    'stellar': 'XLM',
+                    'xrpl': 'XRP',
+                    'tron': 'TRC20',
+                    'algorand': 'ALGO',
+                    'flare': 'FLR',
+                    'hedera': 'HBAR',
+                    'cardana': 'ADA',
+                    'songbird': 'FLR',
+                    'avalanche-c-chain': 'AVAX',
+                    'solana': 'SOL',
+                    'polkadot': 'DOT',
+                    'near': 'NEAR',
+                    'doge': 'DOGE',
+                    'sui': 'SUI',
+                    'casper': 'CSRP',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -607,7 +640,7 @@ class bitstamp(Exchange, ImplicitAPI):
             })
         return self.safe_value(self.options['fetchMarkets'], 'response')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
@@ -1117,7 +1150,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
@@ -1149,7 +1182,7 @@ class bitstamp(Exchange, ImplicitAPI):
         tradingFee = self.safe_dict(tradingFeesByMarketId, market['id'])
         return self.parse_trading_fee(tradingFee, market)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         marketId = self.safe_string(fee, 'market')
         fees = self.safe_dict(fee, 'fees', {})
         return {
@@ -1157,6 +1190,8 @@ class bitstamp(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(marketId, market),
             'maker': self.safe_number(fees, 'maker'),
             'taker': self.safe_number(fees, 'taker'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def parse_trading_fees(self, fees):
@@ -1168,7 +1203,7 @@ class bitstamp(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
@@ -1197,58 +1232,43 @@ class bitstamp(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        :see: https://www.bitstamp.net/api/#balance
+        :see: https://www.bitstamp.net/api/#tag/Fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
-        balance = await self.privatePostBalance(params)
-        return self.parse_transaction_fees(balance)
+        response = await self.privatePostFeesWithdrawal(params)
+        #
+        #     [
+        #         {
+        #             "currency": "btc",
+        #             "fee": "0.00015000",
+        #             "network": "bitcoin"
+        #         }
+        #         ...
+        #     ]
+        #
+        return self.parse_transaction_fees(response)
 
     def parse_transaction_fees(self, response, codes=None):
-        #
-        #  {
-        #     "yfi_available": "0.00000000",
-        #     "yfi_balance": "0.00000000",
-        #     "yfi_reserved": "0.00000000",
-        #     "yfi_withdrawal_fee": "0.00070000",
-        #     "yfieur_fee": "0.000",
-        #     "yfiusd_fee": "0.000",
-        #     "zrx_available": "0.00000000",
-        #     "zrx_balance": "0.00000000",
-        #     "zrx_reserved": "0.00000000",
-        #     "zrx_withdrawal_fee": "12.00000000",
-        #     "zrxeur_fee": "0.000",
-        #     "zrxusd_fee": "0.000",
-        #     ...
-        #  }
-        #
-        if codes is None:
-            codes = list(self.currencies.keys())
         result = {}
-        mainCurrencyId = None
-        ids = list(response.keys())
+        currencies = self.index_by(response, 'currency')
+        ids = list(currencies.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            currencyId = id.split('_')[0]
-            code = self.safe_currency_code(currencyId)
-            if codes is not None and not self.in_array(code, codes):
+            fees = self.safe_value(response, i, {})
+            code = self.safe_currency_code(id)
+            if (codes is not None) and not self.in_array(code, codes):
                 continue
-            if id.find('_available') >= 0:
-                mainCurrencyId = currencyId
-                result[code] = {
-                    'deposit': None,
-                    'withdraw': None,
-                    'info': {},
-                }
-            if currencyId == mainCurrencyId:
-                result[code]['info'][id] = self.safe_number(response, id)
-            if id.find('_withdrawal_fee') >= 0:
-                result[code]['withdraw'] = self.safe_number(response, id)
+            result[code] = {
+                'withdraw_fee': self.safe_number(fees, 'fee'),
+                'deposit': {},
+                'info': self.safe_dict(currencies, id),
+            }
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
@@ -1257,60 +1277,41 @@ class bitstamp(Exchange, ImplicitAPI):
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
-        response = await self.privatePostBalance(params)
+        response = await self.privatePostFeesWithdrawal(params)
         #
-        #    {
-        #        "yfi_available": "0.00000000",
-        #        "yfi_balance": "0.00000000",
-        #        "yfi_reserved": "0.00000000",
-        #        "yfi_withdrawal_fee": "0.00070000",
-        #        "yfieur_fee": "0.000",
-        #        "yfiusd_fee": "0.000",
-        #        "zrx_available": "0.00000000",
-        #        "zrx_balance": "0.00000000",
-        #        "zrx_reserved": "0.00000000",
-        #        "zrx_withdrawal_fee": "12.00000000",
-        #        "zrxeur_fee": "0.000",
-        #        "zrxusd_fee": "0.000",
-        #        ...
-        #    }
+        #     [
+        #         {
+        #             "currency": "btc",
+        #             "fee": "0.00015000",
+        #             "network": "bitcoin"
+        #         }
+        #         ...
+        #     ]
         #
-        return self.parse_deposit_withdraw_fees(response, codes)
+        responseByCurrencyId = self.group_by(response, 'currency')
+        return self.parse_deposit_withdraw_fees(responseByCurrencyId, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
-        #
-        #    {
-        #        "yfi_available": "0.00000000",
-        #        "yfi_balance": "0.00000000",
-        #        "yfi_reserved": "0.00000000",
-        #        "yfi_withdrawal_fee": "0.00070000",
-        #        "yfieur_fee": "0.000",
-        #        "yfiusd_fee": "0.000",
-        #        "zrx_available": "0.00000000",
-        #        "zrx_balance": "0.00000000",
-        #        "zrx_reserved": "0.00000000",
-        #        "zrx_withdrawal_fee": "12.00000000",
-        #        "zrxeur_fee": "0.000",
-        #        "zrxusd_fee": "0.000",
-        #        ...
-        #    }
-        #
-        result = {}
-        ids = list(response.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            currencyId = id.split('_')[0]
-            code = self.safe_currency_code(currencyId)
-            dictValue = self.safe_number(response, id)
-            if codes is not None and not self.in_array(code, codes):
-                continue
-            if id.find('_available') >= 0:
-                result[code] = self.deposit_withdraw_fee({})
-            if id.find('_withdrawal_fee') >= 0:
-                result[code]['withdraw']['fee'] = dictValue
-            resultValue = self.safe_value(result, code)
-            if resultValue is not None:
-                result[code]['info'][id] = dictValue
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        result = self.deposit_withdraw_fee(fee)
+        for j in range(0, len(fee)):
+            networkEntry = fee[j]
+            networkId = self.safe_string(networkEntry, 'network')
+            networkCode = self.network_id_to_code(networkId)
+            withdrawFee = self.safe_number(networkEntry, 'fee')
+            result['withdraw'] = {
+                'fee': withdrawFee,
+                'percentage': None,
+            }
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': withdrawFee,
+                    'percentage': None,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
         return result
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1965,7 +1966,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal

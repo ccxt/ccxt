@@ -691,55 +691,70 @@ class bitget extends bitget$1 {
         //         "side": "buy",
         //         "tradeId": "1116461060594286593"
         //     }
+        // swap private
         //
-        // order with trade in it
-        //     {
-        //         accBaseVolume: '0.1',
-        //         baseVolume: '0.1',
-        //         cTime: '1709221342922',
-        //         clientOid: '1147122943507734528',
-        //         enterPointSource: 'API',
-        //         feeDetail: [Array],
-        //         fillFee: '-0.0049578',
-        //         fillFeeCoin: 'USDT',
-        //         fillNotionalUsd: '8.263',
-        //         fillPrice: '82.63',
-        //         fillTime: '1709221342986',
-        //         force: 'gtc',
-        //         instId: 'LTCUSDT',
-        //         leverage: '10',
-        //         marginCoin: 'USDT',
-        //         marginMode: 'crossed',
-        //         notionalUsd: '8.268',
-        //         orderId: '1147122943499345921',
-        //         orderType: 'market',
-        //         pnl: '0',
-        //         posMode: 'hedge_mode',
-        //         posSide: 'short',
-        //         price: '0',
-        //         priceAvg: '82.63',
-        //         reduceOnly: 'no',
-        //         side: 'sell',
-        //         size: '0.1',
-        //         status: 'filled',
-        //         tradeId: '1147122943772479563',
-        //         tradeScope: 'T',
-        //         tradeSide: 'open',
-        //         uTime: '1709221342986'
-        //     }
+        //            {
+        //               "orderId": "1169142761031114781",
+        //               "tradeId": "1169142761312637004",
+        //               "symbol": "LTCUSDT",
+        //               "orderType": "market",
+        //               "side": "buy",
+        //               "price": "80.87",
+        //               "baseVolume": "0.1",
+        //               "quoteVolume": "8.087",
+        //               "profit": "0",
+        //               "tradeSide": "open",
+        //               "posMode": "hedge_mode",
+        //               "tradeScope": "taker",
+        //               "feeDetail": [
+        //                  {
+        //                     "feeCoin": "USDT",
+        //                     "deduction": "no",
+        //                     "totalDeductionFee": "0",
+        //                     "totalFee": "-0.0048522"
+        //                  }
+        //               ],
+        //               "cTime": "1714471276596",
+        //               "uTime": "1714471276596"
+        //            }
+        // spot private
+        //        {
+        //           "orderId": "1169142457356959747",
+        //           "tradeId": "1169142457636958209",
+        //           "symbol": "LTCUSDT",
+        //           "orderType": "market",
+        //           "side": "buy",
+        //           "priceAvg": "81.069",
+        //           "size": "0.074",
+        //           "amount": "5.999106",
+        //           "tradeScope": "taker",
+        //           "feeDetail": [
+        //              {
+        //                 "feeCoin": "LTC",
+        //                 "deduction": "no",
+        //                 "totalDeductionFee": "0",
+        //                 "totalFee": "0.000074"
+        //              }
+        //           ],
+        //           "cTime": "1714471204194",
+        //           "uTime": "1714471204194"
+        //        }
         //
-        const instId = this.safeString(trade, 'instId');
+        const instId = this.safeString2(trade, 'symbol', 'instId');
+        const posMode = this.safeString(trade, 'posMode');
+        const defaultType = (posMode !== undefined) ? 'contract' : 'spot';
         if (market === undefined) {
-            market = this.safeMarket(instId, undefined, undefined, 'contract');
+            market = this.safeMarket(instId, undefined, undefined, defaultType);
         }
         const timestamp = this.safeIntegerN(trade, ['uTime', 'cTime', 'ts']);
-        const feeCost = this.safeString(trade, 'fillFee');
+        const feeDetail = this.safeList(trade, 'feeDetail', []);
+        const first = this.safeDict(feeDetail, 0);
         let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString(trade, 'fillFeeCoin');
+        if (first !== undefined) {
+            const feeCurrencyId = this.safeString(first, 'feeCoin');
             const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = {
-                'cost': Precise["default"].stringAbs(feeCost),
+                'cost': Precise["default"].stringAbs(this.safeString(first, 'totalFee')),
                 'currency': feeCurrencyCode,
             };
         }
@@ -750,12 +765,12 @@ class bitget extends bitget$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
+            'type': this.safeString(trade, 'orderType'),
             'side': this.safeString(trade, 'side'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.safeString(trade, 'tradeScope'),
             'price': this.safeString2(trade, 'priceAvg', 'price'),
-            'amount': this.safeString(trade, 'size'),
-            'cost': this.safeString(trade, 'fillNotionalUsd'),
+            'amount': this.safeString2(trade, 'size', 'baseVolume'),
+            'cost': this.safeString2(trade, 'amount', 'quoteVolume'),
             'fee': fee,
         }, market);
     }
@@ -1004,7 +1019,7 @@ class bitget extends bitget$1 {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrder(client, message, subscription = undefined) {
+    handleOrder(client, message) {
         //
         // spot
         //
@@ -1161,9 +1176,6 @@ class bitget extends bitget$1 {
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
-            if ('tradeId' in order) {
-                this.handleMyTrades(client, order);
-            }
             const marketId = this.safeString(order, 'instId');
             const market = this.safeMarket(marketId, undefined, undefined, marketType);
             const parsed = this.parseWsOrder(order, market);
@@ -1363,8 +1375,6 @@ class bitget extends bitget$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        // only contracts stream provides the trade info consistently in between order updates
-        // the spot stream only provides on limit orders updates so we can't support it for spot
         await this.loadMarkets();
         let market = undefined;
         let messageHash = 'myTrades';
@@ -1373,17 +1383,12 @@ class bitget extends bitget$1 {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
-        if (type === 'spot') {
-            throw new errors.NotSupported(this.id + ' watchMyTrades is not supported for ' + type + ' markets.');
-        }
         let instType = undefined;
         [instType, params] = this.getInstType(market, params);
-        const subscriptionHash = 'order:trades';
+        const subscriptionHash = 'fill:' + instType;
         const args = {
             'instType': instType,
-            'channel': 'orders',
+            'channel': 'fill',
             'instId': 'default',
         };
         const trades = await this.watchPrivate(messageHash, subscriptionHash, args, params);
@@ -1394,34 +1399,74 @@ class bitget extends bitget$1 {
     }
     handleMyTrades(client, message) {
         //
-        // order and trade mixin (contract)
-        //
+        // spot
+        // {
+        //     "action": "snapshot",
+        //     "arg": {
+        //        "instType": "SPOT",
+        //        "channel": "fill",
+        //        "instId": "default"
+        //     },
+        //     "data": [
+        //        {
+        //           "orderId": "1169142457356959747",
+        //           "tradeId": "1169142457636958209",
+        //           "symbol": "LTCUSDT",
+        //           "orderType": "market",
+        //           "side": "buy",
+        //           "priceAvg": "81.069",
+        //           "size": "0.074",
+        //           "amount": "5.999106",
+        //           "tradeScope": "taker",
+        //           "feeDetail": [
+        //              {
+        //                 "feeCoin": "LTC",
+        //                 "deduction": "no",
+        //                 "totalDeductionFee": "0",
+        //                 "totalFee": "0.000074"
+        //              }
+        //           ],
+        //           "cTime": "1714471204194",
+        //           "uTime": "1714471204194"
+        //        }
+        //     ],
+        //     "ts": 1714471204270
+        // }
+        // swap
         //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
-        //             "feeCoin": "USDT",
-        //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
+        //         "action": "snapshot",
+        //         "arg": {
+        //            "instType": "USDT-FUTURES",
+        //            "channel": "fill",
+        //            "instId": "default"
+        //         },
+        //         "data": [
+        //            {
+        //               "orderId": "1169142761031114781",
+        //               "tradeId": "1169142761312637004",
+        //               "symbol": "LTCUSDT",
+        //               "orderType": "market",
+        //               "side": "buy",
+        //               "price": "80.87",
+        //               "baseVolume": "0.1",
+        //               "quoteVolume": "8.087",
+        //               "profit": "0",
+        //               "tradeSide": "open",
+        //               "posMode": "hedge_mode",
+        //               "tradeScope": "taker",
+        //               "feeDetail": [
+        //                  {
+        //                     "feeCoin": "USDT",
+        //                     "deduction": "no",
+        //                     "totalDeductionFee": "0",
+        //                     "totalFee": "-0.0048522"
+        //                  }
+        //               ],
+        //               "cTime": "1714471276596",
+        //               "uTime": "1714471276596"
+        //            }
+        //         ],
+        //         "ts": 1714471276629
         //     }
         //
         if (this.myTrades === undefined) {
@@ -1429,13 +1474,18 @@ class bitget extends bitget$1 {
             this.myTrades = new Cache.ArrayCache(limit);
         }
         const stored = this.myTrades;
-        const parsed = this.parseWsTrade(message);
-        stored.append(parsed);
-        const symbol = parsed['symbol'];
+        const data = this.safeList(message, 'data', []);
+        const length = data.length;
         const messageHash = 'myTrades';
+        for (let i = 0; i < length; i++) {
+            const trade = data[i];
+            const parsed = this.parseWsTrade(trade);
+            stored.append(parsed);
+            const symbol = parsed['symbol'];
+            const symbolSpecificMessageHash = 'myTrades:' + symbol;
+            client.resolve(stored, symbolSpecificMessageHash);
+        }
         client.resolve(stored, messageHash);
-        const symbolSpecificMessageHash = 'myTrades:' + symbol;
-        client.resolve(stored, symbolSpecificMessageHash);
     }
     async watchBalance(params = {}) {
         /**
@@ -1718,10 +1768,13 @@ class bitget extends bitget$1 {
         const methods = {
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
+            'fill': this.handleMyTrades,
             'orders': this.handleOrder,
             'ordersAlgo': this.handleOrder,
             'account': this.handleBalance,
             'positions': this.handlePositions,
+            'account-isolated': this.handleBalance,
+            'account-crossed': this.handleBalance,
         };
         const arg = this.safeValue(message, 'arg', {});
         const topic = this.safeValue(arg, 'channel', '');

@@ -153,6 +153,7 @@ public partial class coinmetro : Exchange
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "users/balances", 1 },
+                        { "users/wallets", 1 },
                         { "users/wallets/history/{since}", 1.67 },
                         { "exchange/orders/status/{orderID}", 1 },
                         { "exchange/orders/active", 1 },
@@ -526,10 +527,10 @@ public partial class coinmetro : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = ":from"; // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         }
-        until = this.safeInteger2(parameters, "till", "until", until);
+        until = this.safeInteger(parameters, "until", until);
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["to"] = until;
         } else
         {
@@ -992,53 +993,52 @@ public partial class coinmetro : Exchange
         * @method
         * @name coinmetro#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+        * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetUsersBalances(parameters);
-        return this.parseBalance(response);
+        object response = await this.privateGetUsersWallets(parameters);
+        object list = this.safeList(response, "list", new List<object>() {});
+        return this.parseBalance(list);
     }
 
-    public override object parseBalance(object response)
+    public override object parseBalance(object balances)
     {
         //
-        //     {
-        //         "USDC": {
-        //             "USDC": 99,
-        //             "EUR": 91.16,
-        //             "BTC": 0.002334
+        //     [
+        //         {
+        //             "xcmLocks": [],
+        //             "xcmLockAmounts": [],
+        //             "refList": [],
+        //             "balanceHistory": [],
+        //             "_id": "5fecd3c998e75c2e4d63f7c3",
+        //             "currency": "BTC",
+        //             "label": "BTC",
+        //             "userId": "5fecd3c97fbfed1521db23bd",
+        //             "__v": 0,
+        //             "balance": 0.5,
+        //             "createdAt": "2020-12-30T19:23:53.646Z",
+        //             "disabled": false,
+        //             "updatedAt": "2020-12-30T19:23:53.653Z",
+        //             "reserved": 0,
+        //             "id": "5fecd3c998e75c2e4d63f7c3"
         //         },
-        //         "XCM": {
-        //             "XCM": 0,
-        //             "EUR": 0,
-        //             "BTC": 0
-        //         },
-        //         "TOTAL": {
-        //             "EUR": 91.16,
-        //             "BTC": 0.002334
-        //         },
-        //         "REF": {
-        //             "XCM": 0,
-        //             "EUR": 0,
-        //             "BTC": 0
-        //         }
-        //     }
+        //         ...
+        //     ]
         //
         object result = new Dictionary<string, object>() {
-            { "info", response },
+            { "info", balances },
         };
-        object balances = this.omit(response, new List<object>() {"TOTAL", "REF"});
-        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
-            object currencyId = getValue(currencyIds, i);
+            object balanceEntry = this.safeDict(balances, i, new Dictionary<string, object>() {});
+            object currencyId = this.safeString(balanceEntry, "currency");
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            object currency = this.safeValue(balances, currencyId, new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)account)["total"] = this.safeString(currency, currencyId);
+            ((IDictionary<string,object>)account)["total"] = this.safeString(balanceEntry, "balance");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(balanceEntry, "reserved");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
         return this.safeBalance(result);

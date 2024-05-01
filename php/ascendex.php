@@ -355,7 +355,7 @@ class ascendex extends Exchange {
                     '300013' => '\\ccxt\\InvalidOrder', // INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
                     '300014' => '\\ccxt\\InvalidOrder', // array("code":300014,"message":"Order price doesn't conform to the required tick size => 0.1","reason":"TICK_SIZE_VIOLATION")
                     '300020' => '\\ccxt\\InvalidOrder', // TRADING_RESTRICTED There is some trading restriction on account or asset
-                    '300021' => '\\ccxt\\InvalidOrder', // TRADING_DISABLED Trading is disabled on account or asset
+                    '300021' => '\\ccxt\\AccountSuspended', // array("code":300021,"message":"Trading disabled for this account.","reason":"TRADING_DISABLED")
                     '300031' => '\\ccxt\\InvalidOrder', // NO_MARKET_PRICE No market price for market type order trading
                     '310001' => '\\ccxt\\InsufficientFunds', // INVALID_MARGIN_BALANCE No enough margin balance
                     '310002' => '\\ccxt\\InvalidOrder', // INVALID_MARGIN_ACCOUNT Not a valid account for margin trading
@@ -384,7 +384,7 @@ class ascendex extends Exchange {
         return $this->capitalize($lowercaseAccount);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1428,7 +1428,7 @@ class ascendex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1471,6 +1471,8 @@ class ascendex extends Exchange {
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($takerMaker, 'maker'),
                 'taker' => $this->safe_number($takerMaker, 'taker'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }
         return $result;
@@ -2849,6 +2851,7 @@ class ascendex extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market['quote'],
@@ -2858,7 +2861,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
@@ -2869,7 +2872,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @param {string} $symbol unified market $symbol

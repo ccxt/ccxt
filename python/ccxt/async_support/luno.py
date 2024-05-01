@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -64,8 +64,11 @@ class luno(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -812,7 +815,7 @@ class luno(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
@@ -838,6 +841,8 @@ class luno(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(response, 'maker_fee'),
             'taker': self.safe_number(response, 'taker_fee'),
+            'percentage': None,
+            'tierBased': None,
         }
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):

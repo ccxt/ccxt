@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies } from './base/types.js';
 /**
  * @class phemex
  * @augments Exchange
@@ -10,7 +10,7 @@ export default class phemex extends Exchange {
     parseSwapMarket(market: any): import("./base/types.js").MarketInterface;
     parseSpotMarket(market: any): import("./base/types.js").MarketInterface;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     customParseBidAsk(bidask: any, priceKey?: number, amountKey?: number, market?: Market): number[];
     customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: Market): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -128,6 +128,6 @@ export default class phemex extends Exchange {
     };
     parseTransferStatus(status: any): string;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

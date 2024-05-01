@@ -7,9 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +24,6 @@ from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -971,7 +971,7 @@ class phemex(Exchange, ImplicitAPI):
             result.append(market)
         return result
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2699,11 +2699,15 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        stop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, 'stop', 'trigger')
         request = {
             'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
+        if stop:
+            request['untriggerred'] = stop
         response = None
         if market['settle'] == 'USDT':
             response = await self.privateDeleteGOrdersAll(self.extend(request, params))
@@ -3792,6 +3796,7 @@ class phemex(Exchange, ImplicitAPI):
             'info': data,
             'symbol': self.safe_symbol(None, market),
             'type': 'set',
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': market[codeCurrency],
@@ -4314,7 +4319,7 @@ class phemex(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://phemex-docs.github.io/#create-withdraw-request

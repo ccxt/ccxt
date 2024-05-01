@@ -3119,7 +3119,7 @@ public partial class bitrue : Exchange
         return response;
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // setMargin
@@ -3134,6 +3134,7 @@ public partial class bitrue : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", null },

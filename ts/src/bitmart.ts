@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3154,7 +3154,7 @@ export default class bitmart extends Exchange {
         return this.networkIdToCode (networkId);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#withdraw
@@ -3569,7 +3569,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchIsolatedBorrowRate (symbol: string, params = {}) {
+    async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<IsolatedBorrowRate> {
         /**
          * @method
          * @name bitmart#fetchIsolatedBorrowRate
@@ -3623,7 +3623,7 @@ export default class bitmart extends Exchange {
         return this.parseIsolatedBorrowRate (borrowRate, market);
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined) {
+    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -3666,7 +3666,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchIsolatedBorrowRates (params = {}) {
+    async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
         /**
          * @method
          * @name bitmart#fetchIsolatedBorrowRates
@@ -3711,12 +3711,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = this.safeValue (symbols, i);
-            result.push (this.parseIsolatedBorrowRate (symbol));
-        }
-        return result;
+        return this.parseIsolatedBorrowRates (symbols);
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
@@ -3893,9 +3888,9 @@ export default class bitmart extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger (params, 'time_end', until); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'till', 'until' ]);
+        params = this.omit (params, [ 'until' ]);
         if (endTime !== undefined) {
             request['time_end'] = endTime;
         }

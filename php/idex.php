@@ -71,8 +71,11 @@ class idex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -610,7 +613,7 @@ class idex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api-docs-v3.idex.io/#get-api-account
@@ -719,7 +722,7 @@ class idex extends Exchange {
         return $this->sort_by($result, 0, $descending);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://api-docs-v3.idex.io/#get-assets
@@ -1337,7 +1340,7 @@ class idex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://api-docs-v3.idex.io/#withdraw-funds

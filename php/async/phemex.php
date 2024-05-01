@@ -973,7 +973,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -2854,11 +2854,16 @@ class phemex extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, 'stop', 'trigger');
             $request = array(
                 'symbol' => $market['id'],
                 // 'untriggerred' => false, // false to cancel non-conditional orders, true to cancel conditional orders
                 // 'text' => 'up to 40 characters max',
             );
+            if ($stop) {
+                $request['untriggerred'] = $stop;
+            }
             $response = null;
             if ($market['settle'] === 'USDT') {
                 $response = Async\await($this->privateDeleteGOrdersAll (array_merge($request, $params)));
@@ -4042,6 +4047,7 @@ class phemex extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $market),
             'type' => 'set',
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market[$codeCurrency],
@@ -4629,7 +4635,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

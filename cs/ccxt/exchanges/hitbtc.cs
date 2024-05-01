@@ -1532,6 +1532,8 @@ public partial class hitbtc : Exchange
             { "symbol", symbol },
             { "taker", taker },
             { "maker", maker },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1658,7 +1660,7 @@ public partial class hitbtc : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
@@ -2838,7 +2840,7 @@ public partial class hitbtc : Exchange
         }
         object market = null;
         object request = new Dictionary<string, object>() {};
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(symbol, null)))
@@ -3317,9 +3319,10 @@ public partial class hitbtc : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
             }
         }
-        if (isTrue(!isEqual(amount, 0)))
+        object stringAmount = this.numberToString(amount);
+        if (isTrue(!isEqual(stringAmount, "0")))
         {
-            amount = this.amountToPrecision(symbol, amount);
+            amount = this.amountToPrecision(symbol, stringAmount);
         } else
         {
             amount = "0";
@@ -3375,7 +3378,7 @@ public partial class hitbtc : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // addMargin/reduceMargin
@@ -3404,6 +3407,7 @@ public partial class hitbtc : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", this.safeString(currencyInfo, "code") },
@@ -3429,7 +3433,7 @@ public partial class hitbtc : Exchange
         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(!isEqual(amount, 0)))
+        if (isTrue(!isEqual(this.numberToString(amount), "0")))
         {
             throw new BadRequest ((string)add(this.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
         }

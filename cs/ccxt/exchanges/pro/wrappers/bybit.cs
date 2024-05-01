@@ -7,6 +7,228 @@ public class  Bybit: bybit { public Bybit(object args = null) : base(args) { } }
 public partial class bybit
 {
     /// <summary>
+    /// create a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/order/create-order"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : "GTC", "IOC", "FOK"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : true or false whether the order is post-only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// bool : true or false whether the order is reduce-only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionIdx</term>
+    /// <description>
+    /// string : *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.isLeverage</term>
+    /// <description>
+    /// boolean : *unified spot only* false then spot trading true then margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tpslMode</term>
+    /// <description>
+    /// string : *contract only* 'full' or 'partial'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.mmp</term>
+    /// <description>
+    /// string : *option only* market maker protection
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerDirection</term>
+    /// <description>
+    /// string : *contract only* the direction for trigger orders, 'above' or 'below'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : The price at which a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : The price at which a stop loss order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : The price at which a take profit order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// object : *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingAmount</term>
+    /// <description>
+    /// string : the quote amount to trail away from the current market price
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingTriggerPrice</term>
+    /// <description>
+    /// string : the price to trigger a trailing order, default uses the price argument
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// edit a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/order/amend-order"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : The price that a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : The price that a stop loss order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : The price that a take profit order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// object : *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// object : *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerBy</term>
+    /// <description>
+    /// string : 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.slTriggerBy</term>
+    /// <description>
+    /// string : 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tpTriggerby</term>
+    /// <description>
+    /// string : 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrderWs(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// cancels an open order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/order/cancel-order"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : *spot only* whether the order is a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.orderFilter</term>
+    /// <description>
+    /// string : *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrderWs(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>

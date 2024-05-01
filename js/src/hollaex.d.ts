@@ -1,5 +1,5 @@
 import Exchange from './abstract/hollaex.js';
-import type { Balances, Currency, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 /**
  * @class hollaex
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { Balances, Currency, Dictionary, Int, Market, Num, OHLCV, Order, Or
 export default class hollaex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -16,7 +16,7 @@ export default class hollaex extends Exchange {
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseBalance(response: any): Balances;
@@ -39,12 +39,12 @@ export default class hollaex extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<Dictionary<any>>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {

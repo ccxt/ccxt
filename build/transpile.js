@@ -194,6 +194,8 @@ class Transpiler {
             [ /\.fetchOrders\s/g, '.fetch_orders'],
             [ /\.fetchOrderTrades\s/g, '.fetch_order_trades'],
             [ /\.fetchOrder\s/g, '.fetch_order'],
+            [ /\.fetchPositionHistory\s/g, '.fetch_position_history'],
+            [ /\.fetchPositionsHistory\s/g, '.fetch_positions_history'],
             [ /\.fetchBalance\s/g, '.fetch_balance'],
             [ /\.fetchTotalBalance\s/g, '.fetch_total_balance'],
             [ /\.fetchUsedBalance\s/g, '.fetch_used_balance'],
@@ -205,6 +207,7 @@ class Transpiler {
             [ /\.fetchTicker\s/g, '.fetch_ticker'],
             [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
             [ /\.fetchStatus\s/g, '.fetch_status'],
+            [ /\.fetchMarginAdjustmentHistory\s/g, '.fetch_margin_adjustment_history'],
             [ /\.numberToString\s/g, '.number_to_string' ],
             [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
             [ /\.priceToPrecision\s/g, '.price_to_precision'],
@@ -345,6 +348,9 @@ class Transpiler {
             [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
             [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
+            [ /\.setTakeProfitAndStopLossParams\s/g, '.set_take_profit_and_stop_loss_params'],
+            [ /\.randomBytes\s/g, '.random_bytes'],
+            [ /\.createAuthToken\s/g, '.create_auth_token'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -987,13 +993,17 @@ class Transpiler {
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'Bool': /: Bool =/,
+            'Conversion': /-> Conversion:/,
+            'CrossBorrowRate': /-> CrossBorrowRate:/,
+            'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'Int': /: Int =/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
+            'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
+            'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
@@ -1011,6 +1021,7 @@ class Transpiler {
             'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
+            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
@@ -1511,7 +1522,8 @@ class Transpiler {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
                         overwriteFile (qualifiedPath, code)
-                        fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // this line makes it impossible to detect if the files were properly transpiled or not (to avoid stale files)
                     }
                 })
 
@@ -1675,7 +1687,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1713,7 +1725,9 @@ class Transpiler {
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                if (syncReturnType.match (phpArrayRegex)) {
+                if (syncReturnType === 'Currencies') {
+                    syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                } else if (syncReturnType.match (phpArrayRegex)) {
                     syncPhpReturnType = ': array'
                 } else {
                     syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
@@ -2927,15 +2941,21 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges, processes = undefined) {
+function parallelizeTranspiling (exchanges, processes = undefined, force = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
+    const args = [];
+    if (force) {
+        args.push ('--force')
+    }
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
-        const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
-        isFirst = false
         fork (process.argv[1], toProcess.concat (args))
+        if (isFirst) {
+            args.push ('--child');
+            isFirst = false
+        }
     }
 }
 
@@ -2970,7 +2990,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        parallelizeTranspiling (exchangeIds, undefined, force)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

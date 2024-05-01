@@ -994,7 +994,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -2088,7 +2088,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETH_USDT",
@@ -2103,10 +2103,12 @@ class bitmart extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'maker_fee_rate'),
             'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -3158,7 +3160,7 @@ class bitmart extends Exchange {
         return $this->network_id_to_code($networkId);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3575,7 +3577,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
@@ -3629,7 +3631,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -3672,7 +3674,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest rates of all currencies, currently only works for isolated margin
@@ -3716,12 +3718,7 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->safe_value($data, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $this->safe_value($symbols, $i);
-                $result[] = $this->parse_isolated_borrow_rate($symbol);
-            }
-            return $result;
+            return $this->parse_isolated_borrow_rates($symbols);
         }) ();
     }
 
@@ -3898,9 +3895,9 @@ class bitmart extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'time_end', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             if ($endTime !== null) {
                 $request['time_end'] = $endTime;
             }

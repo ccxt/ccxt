@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, IndexType, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +21,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -89,6 +89,7 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverages': False,
                 'fetchLeverageTiers': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
@@ -103,8 +104,10 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositionMode': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -998,7 +1001,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.safe_integer(response, 'data')
         return None
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
@@ -1461,7 +1464,7 @@ class mexc(Exchange, ImplicitAPI):
             request['limit'] = limit
         trades = None
         if market['spot']:
-            until = self.safe_integer_n(params, ['endTime', 'until', 'till'])
+            until = self.safe_integer_n(params, ['endTime', 'until'])
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1718,7 +1721,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         candles = None
         if market['spot']:
-            until = self.safe_integer_n(params, ['until', 'endTime', 'till'])
+            until = self.safe_integer_n(params, ['until', 'endTime'])
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1729,7 +1732,7 @@ class mexc(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             if until is not None:
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
                 request['endTime'] = until
             response = self.spotPublicGetKlines(self.extend(request, params))
             #
@@ -1748,11 +1751,11 @@ class mexc(Exchange, ImplicitAPI):
             #
             candles = response
         elif market['swap']:
-            until = self.safe_integer_product_n(params, ['until', 'endTime', 'till'], 0.001)
+            until = self.safe_integer_product_n(params, ['until', 'endTime'], 0.001)
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
             if until is not None:
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
                 request['end'] = until
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
@@ -3343,7 +3346,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3778,7 +3781,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         return response
 
-    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -3788,7 +3791,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol
@@ -4031,8 +4034,9 @@ class mexc(Exchange, ImplicitAPI):
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
-        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        :param str[]|None symbols: list of unified market symbols
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for self market
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
@@ -4088,10 +4092,44 @@ class mexc(Exchange, ImplicitAPI):
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
-        """
-            @param info {object} Exchange response for 1 market
-            @param market {object} CCXT market
-        """
+        #
+        #    {
+        #        "symbol": "BTC_USDT",
+        #        "displayName": "BTC_USDT永续",
+        #        "displayNameEn": "BTC_USDT SWAP",
+        #        "positionOpenType": 3,
+        #        "baseCoin": "BTC",
+        #        "quoteCoin": "USDT",
+        #        "settleCoin": "USDT",
+        #        "contractSize": 0.0001,
+        #        "minLeverage": 1,
+        #        "maxLeverage": 125,
+        #        "priceScale": 2,
+        #        "volScale": 0,
+        #        "amountScale": 4,
+        #        "priceUnit": 0.5,
+        #        "volUnit": 1,
+        #        "minVol": 1,
+        #        "maxVol": 1000000,
+        #        "bidLimitPriceRate": 0.1,
+        #        "askLimitPriceRate": 0.1,
+        #        "takerFeeRate": 0.0006,
+        #        "makerFeeRate": 0.0002,
+        #        "maintenanceMarginRate": 0.004,
+        #        "initialMarginRate": 0.008,
+        #        "riskBaseVol": 10000,
+        #        "riskIncrVol": 200000,
+        #        "riskIncrMmr": 0.004,
+        #        "riskIncrImr": 0.004,
+        #        "riskLevelLimit": 5,
+        #        "priceCoefficientVariation": 0.1,
+        #        "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        #        "state": 0,  # 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        #        "isNew": False,
+        #        "isHot": True,
+        #        "isHidden": False
+        #    }
+        #
         maintenanceMarginRate = self.safe_string(info, 'maintenanceMarginRate')
         initialMarginRate = self.safe_string(info, 'initialMarginRate')
         maxVol = self.safe_string(info, 'maxVol')
@@ -4101,6 +4139,18 @@ class mexc(Exchange, ImplicitAPI):
         floor = '0'
         tiers = []
         quoteId = self.safe_string(info, 'quoteCoin')
+        if riskIncrVol == '0':
+            return [
+                {
+                    'tier': 0,
+                    'currency': self.safe_currency_code(quoteId),
+                    'notionalFloor': None,
+                    'notionalCap': None,
+                    'maintenanceMarginRate': None,
+                    'maxLeverage': self.safe_number(info, 'maxLeverage'),
+                    'info': info,
+                },
+            ]
         while(Precise.string_lt(floor, maxVol)):
             cap = Precise.string_add(floor, riskIncrVol)
             tiers.append({
@@ -4510,6 +4560,8 @@ class mexc(Exchange, ImplicitAPI):
 
     def parse_position(self, position, market: Market = None):
         #
+        # fetchPositions
+        #
         #     {
         #         "positionId": 1394650,
         #         "symbol": "ETH_USDT",
@@ -4532,6 +4584,40 @@ class mexc(Exchange, ImplicitAPI):
         #         "updateTime": 1609991676000,
         #         "autoAddIm": False
         #     }
+        #
+        # fetchPositionsHistory
+        #
+        #    {
+        #        positionId: '390281084',
+        #        symbol: 'RVN_USDT',
+        #        positionType: '1',
+        #        openType: '2',
+        #        state: '3',
+        #        holdVol: '0',
+        #        frozenVol: '0',
+        #        closeVol: '1141',
+        #        holdAvgPrice: '0.03491',
+        #        holdAvgPriceFullyScale: '0.03491',
+        #        openAvgPrice: '0.03491',
+        #        openAvgPriceFullyScale: '0.03491',
+        #        closeAvgPrice: '0.03494',
+        #        liquidatePrice: '0.03433',
+        #        oim: '0',
+        #        im: '0',
+        #        holdFee: '0',
+        #        realised: '0.1829',
+        #        leverage: '50',
+        #        createTime: '1711512408000',
+        #        updateTime: '1711512553000',
+        #        autoAddIm: False,
+        #        version: '4',
+        #        profitRatio: '0.0227',
+        #        newOpenAvgPrice: '0.03491',
+        #        newCloseAvgPrice: '0.03494',
+        #        closeProfitLoss: '0.3423',
+        #        fee: '0.1593977',
+        #        positionShowStatus: 'CLOSED'
+        #    }
         #
         market = self.safe_market(self.safe_string(position, 'symbol'), market)
         symbol = market['symbol']
@@ -4805,7 +4891,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
@@ -5131,6 +5217,74 @@ class mexc(Exchange, ImplicitAPI):
         if (defaultType == 'margin') or (isMargin is True):
             marginMode = 'isolated'
         return [marginMode, params]
+
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+        :param str[] [symbols]: unified contract symbols
+        :param int [since]: not used by mexc fetchPositionsHistory
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int type: position type，1: long, 2: short
+        :param int page_num: current page number, default is 1
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        request = {}
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        if limit is not None:
+            request['page_size'] = limit
+        response = self.contractPrivateGetPositionListHistoryPositions(self.extend(request, params))
+        #
+        #    {
+        #        success: True,
+        #        code: '0',
+        #        data: [
+        #            {
+        #                positionId: '390281084',
+        #                symbol: 'RVN_USDT',
+        #                positionType: '1',
+        #                openType: '2',
+        #                state: '3',
+        #                holdVol: '0',
+        #                frozenVol: '0',
+        #                closeVol: '1141',
+        #                holdAvgPrice: '0.03491',
+        #                holdAvgPriceFullyScale: '0.03491',
+        #                openAvgPrice: '0.03491',
+        #                openAvgPriceFullyScale: '0.03491',
+        #                closeAvgPrice: '0.03494',
+        #                liquidatePrice: '0.03433',
+        #                oim: '0',
+        #                im: '0',
+        #                holdFee: '0',
+        #                realised: '0.1829',
+        #                leverage: '50',
+        #                createTime: '1711512408000',
+        #                updateTime: '1711512553000',
+        #                autoAddIm: False,
+        #                version: '4',
+        #                profitRatio: '0.0227',
+        #                newOpenAvgPrice: '0.03491',
+        #                newCloseAvgPrice: '0.03494',
+        #                closeProfitLoss: '0.3423',
+        #                fee: '0.1593977',
+        #                positionShowStatus: 'CLOSED'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_list(response, 'data')
+        positions = self.parse_positions(data, symbols, params)
+        return self.filter_by_since_limit(positions, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section = self.safe_string(api, 0)

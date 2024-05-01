@@ -64,8 +64,11 @@ class timex extends timex$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1161,6 +1164,8 @@ class timex extends timex$1 {
             'symbol': this.safeSymbol(marketId, market),
             'maker': rate,
             'taker': rate,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

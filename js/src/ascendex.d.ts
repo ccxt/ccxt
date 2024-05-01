@@ -1,5 +1,5 @@
 import Exchange from './abstract/ascendex.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees } from './base/types.js';
 /**
  * @class ascendex
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, Order
 export default class ascendex extends Exchange {
     describe(): any;
     getAccount(params?: {}): string;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchTime(params?: {}): Promise<number>;
     fetchAccounts(params?: {}): Promise<Account[]>;
@@ -25,7 +25,7 @@ export default class ascendex extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -72,8 +72,8 @@ export default class ascendex extends Exchange {
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: any, market?: Market): MarginModification;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;

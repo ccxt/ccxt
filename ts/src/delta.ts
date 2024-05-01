@@ -2605,7 +2605,7 @@ export default class delta extends Exchange {
         };
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name delta#addMargin
@@ -2619,7 +2619,7 @@ export default class delta extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name delta#reduceMargin
@@ -2699,6 +2699,7 @@ export default class delta extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': this.safeNumber (data, 'margin'),
             'code': undefined,

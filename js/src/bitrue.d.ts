@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import type { Balances, Currency, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class bitrue
  * @augments Exchange
@@ -17,7 +17,7 @@ export default class bitrue extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     safeNetwork(networkId: any): string;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     parseBalance(response: any): Balances;
@@ -45,7 +45,7 @@ export default class bitrue extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatusByType(status: any, type?: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {

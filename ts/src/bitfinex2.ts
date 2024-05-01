@@ -2583,7 +2583,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#withdraw
@@ -3556,6 +3556,7 @@ export default class bitfinex2 extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': undefined,

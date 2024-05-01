@@ -53,7 +53,13 @@ class latoken extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -394,7 +400,7 @@ class latoken extends Exchange {
         return $this->safe_value($this->options['fetchCurrencies'], 'response');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -820,7 +826,7 @@ class latoken extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a market
          * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
@@ -863,6 +869,8 @@ class latoken extends Exchange {
             'symbol' => $market['symbol'],
             'maker' => $this->safe_number($response, 'makerFee'),
             'taker' => $this->safe_number($response, 'takerFee'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -887,6 +895,8 @@ class latoken extends Exchange {
             'symbol' => $market['symbol'],
             'maker' => $this->safe_number($response, 'makerFee'),
             'taker' => $this->safe_number($response, 'takerFee'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

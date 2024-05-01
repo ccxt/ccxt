@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -19,7 +20,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -82,8 +82,11 @@ class probit(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -355,7 +358,7 @@ class probit(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         :see: https://docs-en.probit.com/reference/currency
         fetches all available currencies on an exchange
@@ -1331,7 +1334,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://docs-en.probit.com/reference/withdrawal
         make a withdrawal
@@ -1404,10 +1407,9 @@ class probit(Exchange, ImplicitAPI):
         result = await self.fetch_transactions(code, since, limit, self.extend(request, params))
         return result
 
-    async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
+        fetch history of deposits and withdrawals
         :see: https://docs-en.probit.com/reference/transferpayment
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch transactions for
@@ -1426,10 +1428,10 @@ class probit(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         else:
             request['start_time'] = self.iso8601(1)
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
             request['end_time'] = self.iso8601(until)
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
         else:
             request['end_time'] = self.iso8601(self.milliseconds())
         if limit is not None:
