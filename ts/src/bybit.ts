@@ -1468,12 +1468,12 @@ export default class bybit extends Exchange {
             }
         }
         const promises = await Promise.all (promisesUnresolved);
-        const spotMarkets = this.safeValue (promises, 0, []);
-        const linearMarkets = this.safeValue (promises, 1, []);
-        const inverseMarkets = this.safeValue (promises, 2, []);
-        const btcOptionMarkets = this.safeValue (promises, 3, []);
-        const ethOptionMarkets = this.safeValue (promises, 4, []);
-        const solOptionMarkets = this.safeValue (promises, 5, []);
+        const spotMarkets = this.safeList (promises, 0, []);
+        const linearMarkets = this.safeList (promises, 1, []);
+        const inverseMarkets = this.safeList (promises, 2, []);
+        const btcOptionMarkets = this.safeList (promises, 3, []);
+        const ethOptionMarkets = this.safeList (promises, 4, []);
+        const solOptionMarkets = this.safeList (promises, 5, []);
         const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
         let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
         optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
@@ -1778,8 +1778,8 @@ export default class bybit extends Exchange {
                 while (paginationCursor !== undefined) {
                     request['cursor'] = paginationCursor;
                     const responseInner = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
-                    const dataNew = this.safeValue (responseInner, 'result', {});
-                    const rawMarkets = this.safeValue (dataNew, 'list', []);
+                    const dataNew = this.safeDict (responseInner, 'result', {});
+                    const rawMarkets = this.safeList (dataNew, 'list', []);
                     const rawMarketsLength = rawMarkets.length;
                     if (rawMarketsLength === 0) {
                         break;
@@ -2996,7 +2996,7 @@ export default class bybit extends Exchange {
                 const entry = currencyList[i];
                 const accountType = this.safeString (entry, 'accountType');
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
-                    const coins = this.safeValue (entry, 'coin');
+                    const coins = this.safeList (entry, 'coin');
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account ();
                         const coinEntry = coins[j];
