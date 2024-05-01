@@ -1259,6 +1259,7 @@ class bitget(Exchange, ImplicitAPI):
                     'your balance is low': InsufficientFunds,  # {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
                     'address invalid cointype': ExchangeError,
                     'system exception': ExchangeError,  # {"status":"error","ts":1595711862763,"err_code":"system exception","err_msg":"system exception"}
+                    'The order amount exceeds the balance': InsufficientFunds,
                     '50003': ExchangeError,  # No record
                     '50004': BadSymbol,  # The transaction pair is currently not supported or has been suspended
                     '50006': PermissionDenied,  # The account is forbidden to withdraw. If you have any questions, please contact customer service.
@@ -7705,13 +7706,13 @@ class bitget(Exchange, ImplicitAPI):
         #     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         #     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         #
-        message = self.safe_string(response, 'err_msg')
-        errorCode = self.safe_string_2(response, 'code', 'err_code')
+        message = self.safe_string_2(response, 'err_msg', 'msg')
         feedback = self.id + ' ' + body
-        nonEmptyMessage = ((message is not None) and (message != ''))
+        nonEmptyMessage = ((message is not None) and (message != '') and (message != 'success'))
         if nonEmptyMessage:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+        errorCode = self.safe_string_2(response, 'code', 'err_code')
         nonZeroErrorCode = (errorCode is not None) and (errorCode != '00000')
         if nonZeroErrorCode:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
