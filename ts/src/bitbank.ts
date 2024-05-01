@@ -530,9 +530,9 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const candlestick = this.safeValue (data, 'candlestick', []);
-        const first = this.safeValue (candlestick, 0, {});
+        const data = this.safeDict (response, 'data', {});
+        const candlestick = this.safeList (data, 'candlestick', []);
+        const first = this.safeDict (candlestick, 0, {});
         const ohlcv = this.safeList (first, 'ohlcv', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
