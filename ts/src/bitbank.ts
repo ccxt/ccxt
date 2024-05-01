@@ -949,7 +949,7 @@ export default class bitbank extends Exchange {
             return undefined;
         }
         const success = this.safeInteger (response, 'success');
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         if (!success || !data) {
             const errorMessages = {
                 '10000': 'URL does not exist',
