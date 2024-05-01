@@ -752,7 +752,7 @@ export default class bitbank extends Exchange {
             request['since'] = this.parseToInt (since / 1000);
         }
         const response = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
