@@ -86,8 +86,9 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
 
-    async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    async def fetch2(self, path, api='public', method='GET', params=None, headers=None, body=None, config=None):
         """A better wrapper over request for deferred signing"""
+        params = params or dict()
         if self.enableRateLimit:
             await self.throttle(self.rateLimit)
         self.lastRestRequestTimestamp = self.milliseconds()

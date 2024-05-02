@@ -147,118 +147,118 @@ class coinbase(Exchange, ImplicitAPI):
             'api': {
                 'v2': {
                     'public': {
-                        'get': {
-                            'currencies': 10.6,
-                            'currencies/crypto': 10.6,
-                            'time': 10.6,
-                            'exchange-rates': 10.6,
-                            'users/{user_id}': 10.6,
-                            'prices/{symbol}/buy': 10.6,
-                            'prices/{symbol}/sell': 10.6,
-                            'prices/{symbol}/spot': 10.6,
-                        },
+                        'get': [
+                            'currencies',
+                            'currencies/crypto',
+                            'time',
+                            'exchange-rates',
+                            'users/{user_id}',
+                            'prices/{symbol}/buy',
+                            'prices/{symbol}/sell',
+                            'prices/{symbol}/spot',
+                        ],
                     },
                     'private': {
-                        'get': {
-                            'accounts': 10.6,
-                            'accounts/{account_id}': 10.6,
-                            'accounts/{account_id}/addresses': 10.6,
-                            'accounts/{account_id}/addresses/{address_id}': 10.6,
-                            'accounts/{account_id}/addresses/{address_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
-                            'accounts/{account_id}/buys': 10.6,
-                            'accounts/{account_id}/buys/{buy_id}': 10.6,
-                            'accounts/{account_id}/sells': 10.6,
-                            'accounts/{account_id}/sells/{sell_id}': 10.6,
-                            'accounts/{account_id}/deposits': 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}': 10.6,
-                            'accounts/{account_id}/withdrawals': 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}': 10.6,
-                            'payment-methods': 10.6,
-                            'payment-methods/{payment_method_id}': 10.6,
-                            'user': 10.6,
-                            'user/auth': 10.6,
-                        },
-                        'post': {
-                            'accounts': 10.6,
-                            'accounts/{account_id}/primary': 10.6,
-                            'accounts/{account_id}/addresses': 10.6,
-                            'accounts/{account_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/complete': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/resend': 10.6,
-                            'accounts/{account_id}/buys': 10.6,
-                            'accounts/{account_id}/buys/{buy_id}/commit': 10.6,
-                            'accounts/{account_id}/sells': 10.6,
-                            'accounts/{account_id}/sells/{sell_id}/commit': 10.6,
-                            'accounts/{account_id}/deposits': 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}/commit': 10.6,
-                            'accounts/{account_id}/withdrawals': 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit': 10.6,
-                        },
-                        'put': {
-                            'accounts/{account_id}': 10.6,
-                            'user': 10.6,
-                        },
-                        'delete': {
-                            'accounts/{id}': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
-                        },
+                        'get': [
+                            'accounts',
+                            'accounts/{account_id}',
+                            'accounts/{account_id}/addresses',
+                            'accounts/{account_id}/addresses/{address_id}',
+                            'accounts/{account_id}/addresses/{address_id}/transactions',
+                            'accounts/{account_id}/transactions',
+                            'accounts/{account_id}/transactions/{transaction_id}',
+                            'accounts/{account_id}/buys',
+                            'accounts/{account_id}/buys/{buy_id}',
+                            'accounts/{account_id}/sells',
+                            'accounts/{account_id}/sells/{sell_id}',
+                            'accounts/{account_id}/deposits',
+                            'accounts/{account_id}/deposits/{deposit_id}',
+                            'accounts/{account_id}/withdrawals',
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}',
+                            'payment-methods',
+                            'payment-methods/{payment_method_id}',
+                            'user',
+                            'user/auth',
+                        ],
+                        'post': [
+                            'accounts',
+                            'accounts/{account_id}/primary',
+                            'accounts/{account_id}/addresses',
+                            'accounts/{account_id}/transactions',
+                            'accounts/{account_id}/transactions/{transaction_id}/complete',
+                            'accounts/{account_id}/transactions/{transaction_id}/resend',
+                            'accounts/{account_id}/buys',
+                            'accounts/{account_id}/buys/{buy_id}/commit',
+                            'accounts/{account_id}/sells',
+                            'accounts/{account_id}/sells/{sell_id}/commit',
+                            'accounts/{account_id}/deposits',
+                            'accounts/{account_id}/deposits/{deposit_id}/commit',
+                            'accounts/{account_id}/withdrawals',
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
+                        ],
+                        'put': [
+                            'accounts/{account_id}',
+                            'user',
+                        ],
+                        'delete': [
+                            'accounts/{id}',
+                            'accounts/{account_id}/transactions/{transaction_id}',
+                        ],
                     },
                 },
                 'v3': {
                     'public': {
-                        'get': {
-                            'brokerage/time': 3,
-                        },
+                        'get': [
+                            'brokerage/time',
+                        ],
                     },
                     'private': {
-                        'get': {
-                            'brokerage/accounts': 1,
-                            'brokerage/accounts/{account_uuid}': 1,
-                            'brokerage/orders/historical/batch': 1,
-                            'brokerage/orders/historical/fills': 1,
-                            'brokerage/orders/historical/{order_id}': 1,
-                            'brokerage/products': 3,
-                            'brokerage/products/{product_id}': 3,
-                            'brokerage/products/{product_id}/candles': 3,
-                            'brokerage/products/{product_id}/ticker': 3,
-                            'brokerage/best_bid_ask': 3,
-                            'brokerage/product_book': 3,
-                            'brokerage/transaction_summary': 3,
-                            'brokerage/portfolios': 1,
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                            'brokerage/convert/trade/{trade_id}': 1,
-                            'brokerage/cfm/balance_summary': 1,
-                            'brokerage/cfm/positions': 1,
-                            'brokerage/cfm/positions/{product_id}': 1,
-                            'brokerage/cfm/sweeps': 1,
-                            'brokerage/intx/portfolio/{portfolio_uuid}': 1,
-                            'brokerage/intx/positions/{portfolio_uuid}': 1,
-                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
-                            'brokerage/payment_methods': 1,
-                            'brokerage/payment_methods/{payment_method_id}': 1,
-                        },
-                        'post': {
-                            'brokerage/orders': 1,
-                            'brokerage/orders/batch_cancel': 1,
-                            'brokerage/orders/edit': 1,
-                            'brokerage/orders/edit_preview': 1,
-                            'brokerage/orders/preview': 1,
-                            'brokerage/portfolios': 1,
-                            'brokerage/portfolios/move_funds': 1,
-                            'brokerage/convert/quote': 1,
-                            'brokerage/convert/trade/{trade_id}': 1,
-                            'brokerage/cfm/sweeps/schedule': 1,
-                            'brokerage/intx/allocate': 1,
-                        },
-                        'put': {
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                        },
-                        'delete': {
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                            'brokerage/cfm/sweeps': 1,
-                        },
+                        'get': [
+                            'brokerage/accounts',
+                            'brokerage/accounts/{account_uuid}',
+                            'brokerage/orders/historical/batch',
+                            'brokerage/orders/historical/fills',
+                            'brokerage/orders/historical/{order_id}',
+                            'brokerage/products',
+                            'brokerage/products/{product_id}',
+                            'brokerage/products/{product_id}/candles',
+                            'brokerage/products/{product_id}/ticker',
+                            'brokerage/best_bid_ask',
+                            'brokerage/product_book',
+                            'brokerage/transaction_summary',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/{portfolio_uuid}',
+                            'brokerage/convert/trade/{trade_id}',
+                            'brokerage/cfm/balance_summary',
+                            'brokerage/cfm/positions',
+                            'brokerage/cfm/positions/{product_id}',
+                            'brokerage/cfm/sweeps',
+                            'brokerage/intx/portfolio/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}',
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}',
+                            'brokerage/payment_methods',
+                            'brokerage/payment_methods/{payment_method_id}',
+                        ],
+                        'post': [
+                            'brokerage/orders',
+                            'brokerage/orders/batch_cancel',
+                            'brokerage/orders/edit',
+                            'brokerage/orders/edit_preview',
+                            'brokerage/orders/preview',
+                            'brokerage/portfolios',
+                            'brokerage/portfolios/move_funds',
+                            'brokerage/convert/quote',
+                            'brokerage/convert/trade/{trade_id}',
+                            'brokerage/cfm/sweeps/schedule',
+                            'brokerage/intx/allocate',
+                        ],
+                        'put': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                        ],
+                        'delete': [
+                            'brokerage/portfolios/{portfolio_uuid}',
+                            'brokerage/cfm/sweeps',
+                        ],
                     },
                 },
             },
@@ -355,6 +355,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'ERC20': 'ethereum',
                     'XLM': 'stellar',
                 },
+                'networksById': {},
                 'createMarketBuyOrderRequiresPrice': True,
                 'advanced': True,  # set to True if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
@@ -1114,6 +1115,12 @@ class coinbase(Exchange, ImplicitAPI):
                     })
         return result
 
+    def _populate_aliases(self, markets):
+        _id_to_symbol = {market['id']: market['symbol'] for market in markets}
+        for market in markets:
+            alias = self.safe_string(market['info'], 'alias')
+            market['alias'] = _id_to_symbol.get(alias) if alias else None
+
     def fetch_markets_v3(self, params={}):
         promisesUnresolved = [
             self.v3PrivateGetBrokerageProducts(params),
@@ -1241,6 +1248,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'created': None,
                 'info': market,
             })
+        self._populate_aliases(result)
         return result
 
     def fetch_currencies_from_cache(self, params={}):
@@ -2424,7 +2432,7 @@ class coinbase(Exchange, ImplicitAPI):
             if errorResponse is not None:
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorTitle, errorMessage)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], errorTitle, errorMessage)
-                raise ExchangeError(errorMessage)
+                raise ExchangeError(errorResponse)
         data = self.safe_dict(response, 'success_response', {})
         return self.parse_order(data, market)
 
@@ -2621,6 +2629,8 @@ class coinbase(Exchange, ImplicitAPI):
         request = {
             'order_ids': ids,
         }
+        if len(ids) > 1:
+            raise NotSupported('Current implementation does not feedback if some failed some succeeded')
         response = self.v3PrivatePostBrokerageOrdersBatchCancel(self.extend(request, params))
         #
         #     {
@@ -2635,9 +2645,13 @@ class coinbase(Exchange, ImplicitAPI):
         #
         orders = self.safe_list(response, 'results', [])
         for i in range(0, len(orders)):
-            success = self.safe_bool(orders[i], 'success')
+            order = orders[i]
+            success = self.safe_bool(order, 'success')
             if success is not True:
-                raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
+                order_id = self.safe_string(order, 'order_id')
+                if self.safe_string(order, 'failure_reason') == 'UNKNOWN_CANCEL_ORDER':
+                    raise OrderNotFound(f'{self.id} order {order_id} not found')
+                raise ExchangeError(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
@@ -3046,8 +3060,6 @@ class coinbase(Exchange, ImplicitAPI):
         until, params = self.handle_option_and_params(params, 'fetchTrades', 'until')
         if until is not None:
             request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
-        elif since is not None:
-            raise ArgumentsRequired(self.id + ' fetchTrades() requires a `until` parameter when you use `since` argument')
         response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
         #
         #     {

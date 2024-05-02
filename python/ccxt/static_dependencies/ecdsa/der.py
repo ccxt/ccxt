@@ -2,7 +2,7 @@ from __future__ import division
 
 import binascii
 import base64
-from six import int2byte, b, integer_types, text_type
+from six import int2byte, b, integer_types
 
 
 class UnexpectedDER(Exception):
@@ -205,11 +205,11 @@ def remove_bitstring(string):
 #  iso(1) identified-organization(3) certicom(132) curve(0) 34 }
 
 def unpem(pem):
-    if isinstance(pem, text_type):
+    if isinstance(pem, str):
         pem = pem.encode()
 
-    d = b("").join([l.strip() for l in pem.split(b("\n"))
-                    if l and not l.startswith(b("-----"))])
+    d = b''.join([l.strip() for l in pem.split(b'\n')
+                  if l and not l.startswith(b'-----')])
     return base64.b64decode(d)
 
 

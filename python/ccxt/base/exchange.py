@@ -552,10 +552,10 @@ class Exchange(object):
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, api='public', method='GET', params=None, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params=None, headers=None, body=None, config=None):
         """Exchange.request is the entry point for all generated methods"""
         params = params or dict()
-        return self.fetch2(path, api, method, params, headers, body)
+        return self.fetch2(path, api, method, params, headers, body, config)
 
     @staticmethod
     def gzip_deflate(response, text):
@@ -995,11 +995,15 @@ class Exchange(object):
         return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
 
     @staticmethod
-    def get_object_value_from_key_list(dictionary, key_list):
-        filtered_list = list(filter(lambda el: el in dictionary, key_list))
-        if (len(filtered_list) == 0):
-            return None
-        return dictionary[filtered_list[0]]
+    def get_object_value_from_key_list(dictionary_or_list, key_list):
+        for key in key_list:
+            if isinstance(key, str):
+                if key in dictionary_or_list and dictionary_or_list[key] is not None and dictionary_or_list[key] != '':
+                    return dictionary_or_list[key]
+            elif key is not None:
+                if (key < len(dictionary_or_list)) and (dictionary_or_list[key] is not None) and (dictionary_or_list[key] != ''):
+                    return dictionary_or_list[key]
+        return None
 
     @staticmethod
     def safe_either(method, dictionary, key1, key2, default_value=None):
@@ -1383,24 +1387,35 @@ class Exchange(object):
         return base64.standard_b64decode(s)
 
     @staticmethod
-    def jwt(request, secret, alg='HS256'):
+    def jwt(request, secret, algorithm='sha256', is_rsa=False, opts={}):
         algos = {
-            'HS256': hashlib.sha256,
-            'HS384': hashlib.sha384,
-            'HS512': hashlib.sha512,
+            'sha256': hashlib.sha256,
+            'sha384': hashlib.sha384,
+            'sha512': hashlib.sha512,
         }
-        header = Exchange.encode(Exchange.json({
+        alg = ('RS' if is_rsa else 'HS') + algorithm[3:]
+        if 'alg' in opts and opts['alg'] is not None:
+            alg = opts['alg']
+        header_opts = {
             'alg': alg,
             'typ': 'JWT',
-        }))
+        }
+        if 'kid' in opts and opts['kid'] is not None:
+            header_opts['kid'] = opts['kid']
+        if 'nonce' in opts and opts['nonce'] is not None:
+            header_opts['nonce'] = opts['nonce']
+        header = Exchange.encode(Exchange.json(header_opts))
         encoded_header = Exchange.base64urlencode(header)
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
-        if alg[:2] == 'RS':
-            signature = Exchange.rsa(token, secret, alg)
+        algoType = alg[0:2]
+        if is_rsa or algoType == 'RS':
+            signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
+        elif algoType == 'ES':
+            rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
+            signature = Exchange.base16_to_binary(rawSignature['r'] + rawSignature['s'])
         else:
-            algorithm = algos[alg]
-            signature = Exchange.hmac(Exchange.encode(token), secret, algorithm, 'binary')
+            signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
 
     @staticmethod
@@ -1413,6 +1428,10 @@ class Exchange(object):
         algorithm = algorithms[alg]
         priv_key = load_pem_private_key(secret, None, backends.default_backend())
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
+
+    @staticmethod
+    def random_bytes(length):
+        return format(random.getrandbits(length * 8), 'x')
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
@@ -1434,8 +1453,13 @@ class Exchange(object):
             digest = Exchange.hash(encoded_request, hash, 'binary')
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
-        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret),
-                                                            casefold=True), curve=curve_info[0])
+        if isinstance(secret, str):
+            secret = Exchange.encode(secret)
+        if secret.find(b'-----BEGIN EC PRIVATE KEY-----') > -1:
+            key = ecdsa.SigningKey.from_pem(secret, hash_function)
+        else:
+            key = ecdsa.SigningKey.from_string(base64.b16decode(secret,
+                                                                casefold=True), curve=curve_info[0])
         r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                               sigencode=ecdsa.util.sigencode_strings_canonize)
         r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
