@@ -456,10 +456,6 @@ export default class bitrue extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
-    }
-
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
