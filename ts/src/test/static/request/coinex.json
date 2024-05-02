@@ -36,103 +36,115 @@
         ],
         "fetchOpenOrders": [
             {
-                "description": "Spot open orders",
+                "description": "Spot fetch open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.coinex.com/v1/order/pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&page=1&tonce=1699458294944",
+                "url": "https://api.coinex.com/v2/spot/pending-order?market=BTCUSDT&market_type=SPOT",
                 "input": [
-                    "LTC/USDT"
+                  "BTC/USDT"
                 ]
             },
             {
-                "description": "Swap open orders",
+                "description": "Swap fetch open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.coinex.com/perpetual/v1/order/pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295225",
+                "url": "https://api.coinex.com/v2/futures/pending-order?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                    "LTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             },
             {
-                "description": "Spot open stop orders",
+                "description": "Spot fetch open trigger orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.coinex.com/v1/order/stop/pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&page=1&tonce=1699458294944",
+                "url": "https://api.coinex.com/v2/spot/pending-stop-order?market=BTCUSDT&market_type=SPOT",
                 "input": [
-                    "LTC/USDT",
-                    null,
-                    null,
-                    {
-                        "stop": true
-                    }
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
                 ]
             },
             {
-                "description": "Swap open stop orders",
+                "description": "Swap fetch open trigger orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.coinex.com/perpetual/v1/order/stop_pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295225",
+                "url": "https://api.coinex.com/v2/futures/pending-stop-order?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                    "LTC/USDT:USDT",
-                    null,
-                    null,
-                    {
-                        "stop": true
-                    }
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
                 ]
             },
             {
-                "description": "spot margin open orders",
+                "description": "Spot margin fetch open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.coinex.com/v1/order/pending?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&account_id=6&limit=100&marginMode=isolated&market=LTCUSDT&page=1&tonce=1706032720402",
+                "url": "https://api.coinex.com/v2/spot/pending-order?market=BTCUSDT&market_type=MARGIN",
                 "input": [
-                    "LTC/USDT",
-                    null,
-                    null,
-                    {
-                        "marginMode": "isolated",
-                        "account_id": 6
-                    }
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
                 ]
             }
         ],
         "fetchClosedOrders": [
             {
-                "description": "Spot closed orders",
+                "description": "Spot fetch closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.coinex.com/v1/order/finished?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&page=1&tonce=1699458295531",
+                "url": "https://api.coinex.com/v2/spot/finished-order?market=BTCUSDT&market_type=SPOT",
                 "input": [
-                    "LTC/USDT"
+                  "BTC/USDT"
                 ]
             },
             {
-                "description": "Swap closed orders",
+                "description": "Swap fetch closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.coinex.com/perpetual/v1/order/finished?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295831",
+                "url": "https://api.coinex.com/v2/futures/finished-order?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                    "LTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             },
             {
-                "description": "Spot closed stop orders",
+                "description": "Spot fetch closed stop orders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.coinex.com/v1/order/stop/finished?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&page=1&tonce=1699458295531",
+                "url": "https://api.coinex.com/v2/spot/finished-stop-order?market=BTCUSDT&market_type=SPOT",
                 "input": [
-                    "LTC/USDT",
-                    null,
-                    null,
-                    {
-                        "stop": true
-                    }
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
                 ]
             },
             {
-                "description": "Swap closed stop orders",
+                "description": "Swap fetch closed trigger orders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.coinex.com/perpetual/v1/order/stop_pending?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=100&market=LTCUSDT&offset=0&side=0&timestamp=1699458295831",
+                "url": "https://api.coinex.com/v2/futures/finished-stop-order?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                    "LTC/USDT:USDT",
-                    null,
-                    null,
-                    {
-                        "stop": true
-                    }
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ]
+            },
+            {
+                "description": "Spot margin fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.coinex.com/v2/spot/finished-order?market=BTCUSDT&market_type=MARGIN",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
                 ]
             }
         ],
