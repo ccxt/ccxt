@@ -194,98 +194,98 @@
                 "description": "spot closed order",
                 "method": "fetchClosedOrders",
                 "input": [
-                    "BTC/USDT",
-                    null,
-                    1
+                  "LTC/USDT",
+                  null,
+                  1
                 ],
                 "httpResponse": {
-                    "code": 0,
-                    "data": [
-                        {
-                            "order_id": 117654919342,
-                            "market": "BTCUSDT",
-                            "market_type": "SPOT",
-                            "side": "sell",
-                            "type": "market",
-                            "ccy": "BTC",
-                            "amount": "0.00010087",
-                            "price": "0",
-                            "client_id": "",
-                            "created_at": 1714618087585,
-                            "updated_at": 0,
-                            "base_fee": "0",
-                            "quote_fee": "0.0115927954296",
-                            "discount_fee": "0",
-                            "maker_fee_rate": "0",
-                            "taker_fee_rate": "0.002",
-                            "unfilled_amount": "0",
-                            "filled_amount": "0.00010087",
-                            "filled_value": "5.7963977148"
-                        }
-                    ],
-                    "message": "OK",
-                    "pagination": {
-                        "has_next": true
+                  "code": "0",
+                  "data": [
+                    {
+                      "order_id": "117193263933",
+                      "market": "LTCUSDT",
+                      "market_type": "SPOT",
+                      "side": "sell",
+                      "type": "market",
+                      "ccy": "LTC",
+                      "amount": "0.07",
+                      "price": "0",
+                      "client_id": "x-167673045-b1fe1dd3e421b261",
+                      "created_at": "1714130440203",
+                      "updated_at": "0",
+                      "base_fee": "0",
+                      "quote_fee": "0.0119896",
+                      "discount_fee": "0",
+                      "maker_fee_rate": "0",
+                      "taker_fee_rate": "0.002",
+                      "unfilled_amount": "0",
+                      "filled_amount": "0.07",
+                      "filled_value": "5.9948"
                     }
+                  ],
+                  "message": "OK",
+                  "pagination": {
+                    "has_next": true
+                  }
                 },
                 "parsedResponse": [
-                    {
-                        "id": "78418117654919342175782",
-                        "clientOrderId": "",
-                        "datetime": "2024-05-02T02:48:07.585Z",
-                        "timestamp": 1714618087585,
-                        "lastTradeTimestamp": 1714618087585,
-                        "status": null,
-                        "symbol": "BTC/USDT",
-                        "type": "market",
-                        "timeInForce": "IOC",
-                        "postOnly": null,
-                        "reduceOnly": null,
-                        "side": "sell",
-                        "price": 57464.04,
-                        "stopPrice": null,
-                        "triggerPrice": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null,
-                        "cost": 5.7963977148,
-                        "average": 57464.04,
-                        "amount": 0.00010087,
-                        "filled": 0.00010087,
-                        "remaining": 0,
-                        "trades": [],
-                        "fee": {
-                            "currency": "USDT",
-                            "cost": "0.0115927954296"
-                        },
-                        "info": {
-                            "order_id": 117654919342,
-                            "market": "BTCUSDT",
-                            "market_type": "SPOT",
-                            "side": "sell",
-                            "type": "market",
-                            "ccy": "BTC",
-                            "amount": "0.00010087",
-                            "price": "0",
-                            "client_id": "",
-                            "created_at": 1714618087585,
-                            "updated_at": 0,
-                            "base_fee": "0",
-                            "quote_fee": "0.0115927954296",
-                            "discount_fee": "0",
-                            "maker_fee_rate": "0",
-                            "taker_fee_rate": "0.002",
-                            "unfilled_amount": "0",
-                            "filled_amount": "0.00010087",
-                            "filled_value": "5.7963977148"
-                        },
-                        "fees": [
-                            {
-                                "currency": "USDT",
-                                "cost": 0.0115927954296
-                            }
-                        ],
-                        "lastUpdateTimestamp": null
-                    }
+                  {
+                    "id": "117193263933",
+                    "clientOrderId": "x-167673045-b1fe1dd3e421b261",
+                    "datetime": "2024-04-26T11:20:40.203Z",
+                    "timestamp": 1714130440203,
+                    "lastTradeTimestamp": 1714130440203,
+                    "status": null,
+                    "symbol": "LTC/USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "price": 85.64,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 5.9948,
+                    "average": 85.64,
+                    "amount": 0.07,
+                    "filled": 0.07,
+                    "remaining": 0,
+                    "trades": [],
+                    "fee": {
+                      "currency": "USDT",
+                      "cost": "0.0119896"
+                    },
+                    "info": {
+                      "order_id": "117193263933",
+                      "market": "LTCUSDT",
+                      "market_type": "SPOT",
+                      "side": "sell",
+                      "type": "market",
+                      "ccy": "LTC",
+                      "amount": "0.07",
+                      "price": "0",
+                      "client_id": "x-167673045-b1fe1dd3e421b261",
+                      "created_at": "1714130440203",
+                      "updated_at": "0",
+                      "base_fee": "0",
+                      "quote_fee": "0.0119896",
+                      "discount_fee": "0",
+                      "maker_fee_rate": "0",
+                      "taker_fee_rate": "0.002",
+                      "unfilled_amount": "0",
+                      "filled_amount": "0.07",
+                      "filled_value": "5.9948"
+                    },
+                    "fees": [
+                      {
+                        "currency": "USDT",
+                        "cost": 0.0119896
+                      }
+                    ],
+                    "lastUpdateTimestamp": null
+                  }
                 ]
             },
             {
