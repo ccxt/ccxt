@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -55,6 +55,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'closeAllPositions': False,
                 'closePosition': True,
+                'createConvertTrade': True,
                 'createDepositAddress': True,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
@@ -78,6 +79,9 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchConvertQuote': True,
+                'fetchConvertTrade': True,
+                'fetchConvertTradeHistory': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -3903,6 +3907,97 @@ class coinbase(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data)
+
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        fetch a quote for converting from one currency to another
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.trade_incentive_metadata]: an object to fill in user incentive data
+        :param str [params.trade_incentive_metadata.user_incentive_id]: the id of the incentive
+        :param str [params.trade_incentive_metadata.code_val]: the code value of the incentive
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'from_account': fromCode,
+            'to_account': toCode,
+            'amount': self.number_to_string(amount),
+        }
+        response = await self.v3PrivatePostBrokerageConvertQuote(self.extend(request, params))
+        data = self.safe_dict(response, 'trade', {})
+        return self.parse_conversion(data)
+
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'trade_id': id,
+            'from_account': fromCode,
+            'to_account': toCode,
+        }
+        response = await self.v3PrivatePostBrokerageConvertTradeTradeId(self.extend(request, params))
+        data = self.safe_dict(response, 'trade', {})
+        return self.parse_conversion(data)
+
+    async def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
+        """
+        fetch the data for a conversion trade
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
+        :param str id: the id of the trade that you want to commit
+        :param str code: the unified currency code that was converted from
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param strng params['toCode']: the unified currency code that was converted into
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchConvertTrade() requires a code argument')
+        toCode = self.safe_string(params, 'toCode')
+        if toCode is None:
+            raise ArgumentsRequired(self.id + ' fetchConvertTrade() requires a toCode parameter')
+        params = self.omit(params, 'toCode')
+        request = {
+            'trade_id': id,
+            'from_account': code,
+            'to_account': toCode,
+        }
+        response = await self.v3PrivateGetBrokerageConvertTradeTradeId(self.extend(request, params))
+        data = self.safe_dict(response, 'trade', {})
+        return self.parse_conversion(data)
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        fromCoin = self.safe_string(conversion, 'source_currency')
+        fromCode = self.safe_currency_code(fromCoin, fromCurrency)
+        to = self.safe_string(conversion, 'target_currency')
+        toCode = self.safe_currency_code(to, toCurrency)
+        fromAmountStructure = self.safe_dict(conversion, 'user_entered_amount')
+        feeStructure = self.safe_dict(conversion, 'total_fee')
+        feeAmountStructure = self.safe_dict(feeStructure, 'amount')
+        return {
+            'info': conversion,
+            'timestamp': None,
+            'datetime': None,
+            'id': self.safe_string(conversion, 'id'),
+            'fromCurrency': fromCode,
+            'fromAmount': self.safe_number(fromAmountStructure, 'value'),
+            'toCurrency': toCode,
+            'toAmount': None,
+            'price': None,
+            'fee': self.safe_number(feeAmountStructure, 'value'),
+        }
 
     async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
         """
