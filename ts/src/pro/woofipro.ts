@@ -293,6 +293,84 @@ export default class woofipro extends woofiproRest {
         client.resolve (result, topic);
     }
 
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name woofipro#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
+            throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+        }
+        const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const name = 'kline';
+        const topic = market['id'] + '@' + name + '_' + interval;
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        const ohlcv = await this.watchPublic (topic, message);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         "topic":"PERP_BTC_USDT@kline_1m",
+        //         "ts":1618822432146,
+        //         "data":{
+        //             "symbol":"PERP_BTC_USDT",
+        //             "type":"1m",
+        //             "open":56948.97,
+        //             "close":56891.76,
+        //             "high":56948.97,
+        //             "low":56889.06,
+        //             "volume":44.00947568,
+        //             "amount":2504584.9,
+        //             "startTime":1618822380000,
+        //             "endTime":1618822440000
+        //         }
+        //     }
+        //
+        const data = this.safeValue (message, 'data');
+        const topic = this.safeValue (message, 'topic');
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const interval = this.safeString (data, 'type');
+        const timeframe = this.findTimeframe (interval);
+        const parsed = [
+            this.safeInteger (data, 'startTime'),
+            this.safeFloat (data, 'open'),
+            this.safeFloat (data, 'high'),
+            this.safeFloat (data, 'low'),
+            this.safeFloat (data, 'close'),
+            this.safeFloat (data, 'volume'),
+        ];
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, topic);
+    }
+
     checkRequiredUid (error = true) {
         if (!this.uid) {
             if (error) {
@@ -347,6 +425,7 @@ export default class woofipro extends woofiproRest {
             'orderbook': this.handleOrderBook,
             'ticker': this.handleTicker,
             'tickers': this.handleTickers,
+            'kline': this.handleOHLCV,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
