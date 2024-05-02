@@ -559,6 +559,42 @@ public partial class coinex
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
     }
+    /// <summary>
+    /// fetch a list of orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/list-finished-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/list-finished-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' for fetching spot margin orders
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -570,10 +606,10 @@ public partial class coinex
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http027_query_pending_stop"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http025_query_pending"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade013_stop_pending_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade011_pending_order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/list-pending-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/list-pending-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/list-pending-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/list-pending-stop-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -584,13 +620,25 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of  open orders structures to retrieve
+    /// int : the maximum number of open order structures to retrieve
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' for fetching spot margin orders
     /// </description>
     /// </item>
     /// </list>
@@ -607,9 +655,10 @@ public partial class coinex
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http029_query_finished"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade010_stop_finished_order"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade012_finished_order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/list-finished-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/list-finished-order"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -624,9 +673,15 @@ public partial class coinex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// boolean : set to true for fetching trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' for fetching spot margin orders
     /// </description>
     /// </item>
     /// </list>
