@@ -1,20 +1,21 @@
 import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { CHash } from '../../static_dependencies/noble-hashes/utils.js';
+import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
 import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
 import { urlencodeBase64, stringToBase64, base16ToBinary, binaryToBase64 } from './encode.js';
 import { hmac } from './crypto.js';
 import { P256 } from '../../static_dependencies/noble-curves/p256.js';
 import { ecdsa } from '../../base/functions/crypto.js';
+import { Dictionary } from "../types.js";
 
 function rsa (request: string, secret: string, hash: CHash) {
     const RSA = new JSEncrypt ()
-    const digester = (input) => base16.encode (hash (input))
+    const digester = (input: Input) => base16.encode (hash (input))
     RSA.setPrivateKey (secret)
     const name = (hash.create ()).constructor.name.toLowerCase ()
     return RSA.sign (request, digester, name) as string;
 }
 
-function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false, opts = {}) {
+function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA = false, opts: Dictionary<any> = {}) {
     let alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8);
     if (opts['alg']) {
         alg = opts['alg'].toUpperCase ();
