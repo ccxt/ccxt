@@ -1113,6 +1113,19 @@
                 ],
                 "output": "{\"ccy\":\"ETH\",\"chain\":\"ERC20\"}"
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch a deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.coinex.com/v2/assets/deposit-address?ccy=ETH&chain=ERC20",
+                "input": [
+                  "ETH",
+                  {
+                    "network": "ERC20"
+                  }
+                ]
+            }
         ]
     },
     "disabledTests": {}
