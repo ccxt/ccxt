@@ -6101,6 +6101,8 @@ export default class coinex extends Exchange {
                 preparedString += nonce + this.secret;
                 const signature = this.hash (this.encode (preparedString), sha256);
                 headers = {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json',
                     'X-COINEX-KEY': this.apiKey,
                     'X-COINEX-SIGN': signature,
                     'X-COINEX-TIMESTAMP': nonce,
