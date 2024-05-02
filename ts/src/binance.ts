@@ -11329,8 +11329,8 @@ export default class binance extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'spot');
         const data = this.safeList (info, 'data');
-        const baseInfo = this.safeList (data, 0);
-        const quoteInfo = this.safeList (data, 1);
+        const baseInfo = this.safeDict (data, 0);
+        const quoteInfo = this.safeDict (data, 1);
         return {
             'info': info,
             'symbol': this.safeString (market, 'symbol'),
