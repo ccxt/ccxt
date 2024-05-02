@@ -3687,7 +3687,7 @@ export default class coinex extends Exchange {
         //     {
         //         "code": 0,
         //         "data": {
-        //             "address": "0xc7vebd6479355142334f45653ad5d8b76105e762",
+        //             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
         //             "memo": ""
         //         },
         //         "message": "OK"
@@ -3702,18 +3702,16 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account020_query_deposit_address
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] the blockchain network to create a deposit address on
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
-            'coin_type': currency['id'],
-        };
-        const networks = this.safeValue (currency, 'networks', {});
-        const network = this.safeString (params, 'network');
+        const networks = this.safeDict (currency, 'networks', {});
+        const network = this.safeString2 (params, 'network', 'chain');
         params = this.omit (params, 'network');
         const networksKeys = Object.keys (networks);
         const numOfNetworks = networksKeys.length;
@@ -3725,24 +3723,24 @@ export default class coinex extends Exchange {
                 throw new ExchangeError (this.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code);
             }
         }
-        if (network !== undefined) {
-            request['smart_contract_name'] = network;
-        }
-        const response = await this.v1PrivateGetBalanceDepositAddressCoinType (this.extend (request, params));
+        const request = {
+            'ccy': currency['id'],
+            'chain': network,
+        };
+        const response = await this.v2PrivateGetAssetsDepositAddress (this.extend (request, params));
         //
-        //      {
-        //          "code": 0,
-        //          "data": {
-        //            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        //            // coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy", // with embedded tag/memo
-        //            "is_bitcoin_cash": false
-        //          },
-        //          "message": "Success"
-        //      }
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        //             "memo": ""
+        //         },
+        //         "message": "OK"
+        //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const depositAddress = this.parseDepositAddress (data, currency);
-        const options = this.safeValue (this.options, 'fetchDepositAddress', {});
+        const options = this.safeDict (this.options, 'fetchDepositAddress', {});
         const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             depositAddress['network'] = this.safeNetworkCode (network, currency);
