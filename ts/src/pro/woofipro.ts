@@ -146,6 +146,153 @@ export default class woofipro extends woofiproRest {
         client.resolve (orderbook, topic);
     }
 
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name woofipro#watchTicker
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const name = 'ticker';
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = market['id'] + '@' + name;
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        return await this.watchPublic (topic, message);
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDT",
+        //         "open": 19441.5,
+        //         "close": 20147.07,
+        //         "high": 20761.87,
+        //         "low": 19320.54,
+        //         "volume": 2481.103,
+        //         "amount": 50037935.0286,
+        //         "count": 3689
+        //     }
+        //
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'open'),
+            'close': this.safeString (ticker, 'close'),
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'amount'),
+            'info': ticker,
+        }, market);
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //     {
+        //         "topic": "PERP_BTC_USDT@ticker",
+        //         "ts": 1657120017000,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "open": 19441.5,
+        //             "close": 20147.07,
+        //             "high": 20761.87,
+        //             "low": 19320.54,
+        //             "volume": 2481.103,
+        //             "amount": 50037935.0286,
+        //             "count": 3689
+        //         }
+        //     }
+        //
+        const data = this.safeValue (message, 'data');
+        const topic = this.safeValue (message, 'topic');
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const timestamp = this.safeInteger (message, 'ts');
+        data['date'] = timestamp;
+        const ticker = this.parseWsTicker (data, market);
+        ticker['symbol'] = market['symbol'];
+        this.tickers[market['symbol']] = ticker;
+        client.resolve (ticker, topic);
+        return message;
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name woofipro#watchTickers
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const name = 'tickers';
+        const topic = name;
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        const tickers = await this.watchPublic (topic, message);
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    handleTickers (client: Client, message) {
+        //
+        //     {
+        //         "topic":"tickers",
+        //         "ts":1618820615000,
+        //         "data":[
+        //             {
+        //                 "symbol":"PERP_NEAR_USDC",
+        //                 "open":16.297,
+        //                 "close":17.183,
+        //                 "high":24.707,
+        //                 "low":11.997,
+        //                 "volume":0,
+        //                 "amount":0,
+        //                 "count":0
+        //             },
+        //         ...
+        //         ]
+        //     }
+        //
+        const topic = this.safeValue (message, 'topic');
+        const data = this.safeValue (message, 'data');
+        const timestamp = this.safeInteger (message, 'ts');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const marketId = this.safeString (data[i], 'symbol');
+            const market = this.safeMarket (marketId);
+            const ticker = this.parseWsTicker (this.extend (data[i], { 'date': timestamp }), market);
+            this.tickers[market['symbol']] = ticker;
+            result.push (ticker);
+        }
+        client.resolve (result, topic);
+    }
+
     checkRequiredUid (error = true) {
         if (!this.uid) {
             if (error) {
@@ -198,6 +345,8 @@ export default class woofipro extends woofiproRest {
             'pong': this.handlePong,
             'subscribe': this.handleSubscribe,
             'orderbook': this.handleOrderBook,
+            'ticker': this.handleTicker,
+            'tickers': this.handleTickers,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
