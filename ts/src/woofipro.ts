@@ -1983,7 +1983,7 @@ export default class woofipro extends Exchange {
         return this.parseBalance (data);
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<[Currency,any[]]> {
         await this.loadMarkets ();
         const request = { };
         let currency: Currency = undefined;
