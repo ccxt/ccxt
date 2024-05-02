@@ -861,7 +861,7 @@ class bitfinex2 extends bitfinex2$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleAuthenticationMessage(client, message) {
         const messageHash = 'authenticated';

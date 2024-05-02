@@ -3,7 +3,7 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -118,7 +118,7 @@ export default class hitbtc extends hitbtcRest {
             //    }
             //
         }
-        return future;
+        return await future;
     }
 
     async subscribePublic (name: string, messageHashPrefix: string, symbols: Strings = undefined, params = {}) {
@@ -254,7 +254,10 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const data = this.safeValue2 (message, 'snapshot', 'update', {});
+        const snapshot = this.safeDict (message, 'snapshot');
+        const update = this.safeDict (message, 'update');
+        const data = snapshot ? snapshot : update;
+        const type = snapshot ? 'snapshot' : 'update';
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -263,17 +266,22 @@ export default class hitbtc extends hitbtcRest {
             const item = data[marketId];
             const messageHash = 'orderbooks::' + symbol;
             if (!(symbol in this.orderbooks)) {
-                const subscription = this.safeValue (client.subscriptions, messageHash, {});
+                const subscription = this.safeDict (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
+            const orderbook = this.orderbooks[symbol];
             const timestamp = this.safeInteger (item, 't');
             const nonce = this.safeInteger (item, 's');
-            const orderbook = this.orderbooks[symbol];
-            const asks = this.safeValue (item, 'a', []);
-            const bids = this.safeValue (item, 'b', []);
-            this.handleDeltas (orderbook['asks'], asks);
-            this.handleDeltas (orderbook['bids'], bids);
+            if (type === 'snapshot') {
+                const parsedSnapshot = this.parseOrderBook (item, symbol, timestamp, 'b', 'a');
+                orderbook.reset (parsedSnapshot);
+            } else {
+                const asks = this.safeList (item, 'a', []);
+                const bids = this.safeList (item, 'b', []);
+                this.handleDeltas (orderbook['asks'], asks);
+                this.handleDeltas (orderbook['bids'], bids);
+            }
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['nonce'] = nonce;
@@ -1008,7 +1016,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.subscribePrivate (name, undefined, this.extend (request, params));
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name hitbtc#createOrder

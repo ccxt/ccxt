@@ -67,8 +67,11 @@ class indodax extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -221,7 +224,7 @@ class indodax extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for indodax
          * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
@@ -472,7 +475,7 @@ class indodax extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->safe_value($response, 'ticker', array());
+        $ticker = $this->safe_dict($response, 'ticker', array());
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -502,7 +505,7 @@ class indodax extends Exchange {
         // }
         //
         $response = $this->publicGetApiTickerAll ($params);
-        $tickers = $this->safe_value($response, 'tickers');
+        $tickers = $this->safe_list($response, 'tickers');
         return $this->parse_tickers($tickers, $symbols);
     }
 
@@ -581,8 +584,8 @@ class indodax extends Exchange {
         $timeframes = $this->options['timeframes'];
         $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
         $now = $this->seconds();
-        $until = $this->safe_integer_2($params, 'until', 'till', $now);
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer($params, 'until', $now);
+        $params = $this->omit($params, array( 'until' ));
         $request = array(
             'to' => $until,
             'tf' => $selectedTimeframe,
@@ -986,7 +989,7 @@ class indodax extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints

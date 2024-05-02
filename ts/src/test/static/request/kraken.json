@@ -223,6 +223,26 @@
                 "output": "nonce=1699458295807"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel spot orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.kraken.com/0/private/CancelAllOrdersAfter",
+                "input": [
+                    10000
+                ],
+                "output": "timeout=10&nonce=1699458295619"
+            },
+            {
+                "description": "Cancel spot orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.kraken.com/0/private/CancelAllOrdersAfter",
+                "input": [
+                    0
+                ],
+                "output": "timeout=0&nonce=1699458295619"
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel open trailing percent order",
@@ -260,15 +280,11 @@
         ],
         "fetchPositions": [
             {
-                "description": "Fetch linear position",
+                "description": "fetch positions",
                 "method": "fetchPositions",
                 "url": "https://api.kraken.com/0/private/OpenPositions",
-                "input": [
-                    [
-                        "LTC/USDT:USDT"
-                    ]
-                ],
-                "output": "nonce=1699458296389"
+                "input": [],
+                "output": "nonce=1712572467788&docalcs=true&consolidation=market"
             }
         ],
         "fetchLedger": [

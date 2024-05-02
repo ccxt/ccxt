@@ -64,8 +64,11 @@ class timex extends timex$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -546,7 +549,7 @@ class timex extends timex$1 {
         //         }
         //     ]
         //
-        const ticker = this.safeValue(response, 0);
+        const ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -807,7 +810,7 @@ class timex extends timex$1 {
         //     }
         //
         const orders = this.safeValue(response, 'orders', []);
-        const order = this.safeValue(orders, 0, {});
+        const order = this.safeDict(orders, 0, {});
         return this.parseOrder(order, market);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -858,7 +861,7 @@ class timex extends timex$1 {
         }
         const orders = this.safeValue(response, 'changedOrders', []);
         const firstOrder = this.safeValue(orders, 0, {});
-        const order = this.safeValue(firstOrder, 'newOrder', {});
+        const order = this.safeDict(firstOrder, 'newOrder', {});
         return this.parseOrder(order, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -966,7 +969,7 @@ class timex extends timex$1 {
         //     }
         //
         const order = this.safeValue(response, 'order', {});
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseOrder(this.extend(order, { 'trades': trades }));
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1021,7 +1024,7 @@ class timex extends timex$1 {
         //         ]
         //     }
         //
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1081,7 +1084,7 @@ class timex extends timex$1 {
         //         ]
         //     }
         //
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1144,7 +1147,7 @@ class timex extends timex$1 {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTradingFee(fee, market = undefined) {
@@ -1161,6 +1164,8 @@ class timex extends timex$1 {
             'symbol': this.safeSymbol(marketId, market),
             'maker': rate,
             'taker': rate,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

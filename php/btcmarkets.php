@@ -62,8 +62,11 @@ class btcmarkets extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -354,7 +357,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for btcmarkets
          * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/{1v3}1markets/get
@@ -535,7 +538,7 @@ class btcmarkets extends Exchange {
             $request['from'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default is 10, max 200
+            $request['limit'] = min ($limit, 200); // default is 10, max 200
         }
         $response = $this->publicGetMarketsMarketIdCandles (array_merge($request, $params));
         //
@@ -1142,7 +1145,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/{1v3}1withdrawals/post

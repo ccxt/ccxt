@@ -396,6 +396,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("privateGetMarginRepay",parameters);
     }
 
+    public async Task<object> privateGetMarginInterest (object parameters = null)
+    {
+        return await this.callAsync ("privateGetMarginInterest",parameters);
+    }
+
     public async Task<object> privateGetProjectList (object parameters = null)
     {
         return await this.callAsync ("privateGetProjectList",parameters);
@@ -914,6 +919,16 @@ public partial class kucoinfutures : kucoin
     public async Task<object> futuresPrivateGetTradeStatistics (object parameters = null)
     {
         return await this.callAsync ("futuresPrivateGetTradeStatistics",parameters);
+    }
+
+    public async Task<object> futuresPrivateGetTradeFees (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivateGetTradeFees",parameters);
+    }
+
+    public async Task<object> futuresPrivateGetHistoryPositions (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivateGetHistoryPositions",parameters);
     }
 
     public async Task<object> futuresPrivatePostTransferOut (object parameters = null)

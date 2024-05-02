@@ -2,7 +2,7 @@
 import { ROUND_UP, ROUND_DOWN } from './number.js'
 import { asFloat } from './type.js'
 import { NotSupported } from '../errors.js'
-import { OHLCVC, Trade } from '../types.js'
+import { Num, OHLCVC, Trade } from '../types.js'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
@@ -10,7 +10,7 @@ const parseTimeframe = (timeframe: string): number => {
 
     const amount = asFloat (timeframe.slice (0, -1));
     const unit = timeframe.slice (-1);
-    let scale: number = undefined;
+    let scale: Num = undefined;
 
     if (unit === 'y') {
         scale = 60 * 60 * 24 * 365;

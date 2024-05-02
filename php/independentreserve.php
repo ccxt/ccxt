@@ -60,8 +60,11 @@ class independentreserve extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -140,7 +143,7 @@ class independentreserve extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for independentreserve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -498,7 +501,7 @@ class independentreserve extends Exchange {
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
         $response = $this->privatePostGetOpenOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -525,7 +528,7 @@ class independentreserve extends Exchange {
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
         $response = $this->privatePostGetClosedOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -616,7 +619,7 @@ class independentreserve extends Exchange {
         return $this->parse_trades($response['Trades'], $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

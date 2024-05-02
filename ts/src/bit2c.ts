@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, Not
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -375,7 +375,7 @@ export default class bit2c extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bit2c#fetchTradingFees
@@ -425,7 +425,7 @@ export default class bit2c extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#createOrder
@@ -499,7 +499,7 @@ export default class bit2c extends Exchange {
         const response = await this.privateGetOrderMyOrders (this.extend (request, params));
         const orders = this.safeValue (response, market['id'], {});
         const asks = this.safeValue (orders, 'ask', []);
-        const bids = this.safeValue (orders, 'bid', []);
+        const bids = this.safeList (orders, 'bid', []);
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 

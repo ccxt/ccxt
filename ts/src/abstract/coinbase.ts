@@ -55,6 +55,11 @@ interface Exchange {
     v2PrivateDeleteAccountsId (params?: {}): Promise<implicitReturnType>;
     v2PrivateDeleteAccountsAccountIdTransactionsTransactionId (params?: {}): Promise<implicitReturnType>;
     v3PublicGetBrokerageTime (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProductBook (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProducts (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProductsProductId (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProductsProductIdCandles (params?: {}): Promise<implicitReturnType>;
+    v3PublicGetBrokerageMarketProductsProductIdTicker (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageAccounts (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageAccountsAccountUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageOrdersHistoricalBatch (params?: {}): Promise<implicitReturnType>;
@@ -77,6 +82,8 @@ interface Exchange {
     v3PrivateGetBrokerageIntxPortfolioPortfolioUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageIntxPositionsPortfolioUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokeragePaymentMethods (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokeragePaymentMethodsPaymentMethodId (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit (params?: {}): Promise<implicitReturnType>;
@@ -88,6 +95,7 @@ interface Exchange {
     v3PrivatePostBrokerageConvertTradeTradeId (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageCfmSweepsSchedule (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageIntxAllocate (params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageOrdersClosePosition (params?: {}): Promise<implicitReturnType>;
     v3PrivatePutBrokeragePortfoliosPortfolioUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteBrokeragePortfoliosPortfolioUuid (params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteBrokerageCfmSweeps (params?: {}): Promise<implicitReturnType>;

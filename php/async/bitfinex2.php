@@ -505,7 +505,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitfinex2
@@ -635,7 +635,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -1400,6 +1400,8 @@ class bitfinex2 extends Exchange {
             $market = $this->market($symbol);
             if ($limit === null) {
                 $limit = 10000;
+            } else {
+                $limit = min ($limit, 10000);
             }
             $request = array(
                 'symbol' => $market['id'],
@@ -1807,7 +1809,7 @@ class bitfinex2 extends Exchange {
                 'all' => 1,
             );
             $response = Async\await($this->privatePostAuthWOrderCancelMulti (array_merge($request, $params)));
-            $orders = $this->safe_value($response, 4, array());
+            $orders = $this->safe_list($response, 4, array());
             return $this->parse_orders($orders);
         }) ();
     }
@@ -2411,7 +2413,7 @@ class bitfinex2 extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -2585,7 +2587,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3510,7 +3512,7 @@ class bitfinex2 extends Exchange {
         ));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * either adds or reduces margin in a swap position in order to set the margin to a specific value
@@ -3542,16 +3544,29 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, $market = null): array {
+        //
+        // setMargin
+        //
+        //     array(
+        //         array(
+        //             1
+        //         )
+        //     )
+        //
         $marginStatusRaw = $data[0];
         $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => null,
             'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => null,
             'status' => $marginStatus,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

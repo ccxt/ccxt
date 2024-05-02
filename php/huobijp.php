@@ -408,7 +408,7 @@ class huobijp extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for huobijp
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -945,7 +945,7 @@ class huobijp extends Exchange {
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['size'] = min ($limit, 2000);
         }
         $response = $this->marketGetHistoryKline (array_merge($request, $params));
         //
@@ -960,11 +960,11 @@ class huobijp extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -975,7 +975,7 @@ class huobijp extends Exchange {
         return $response['data'];
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1156,7 +1156,7 @@ class huobijp extends Exchange {
             'id' => $id,
         );
         $response = $this->privateGetOrderOrdersId (array_merge($request, $params));
-        $order = $this->safe_value($response, 'data');
+        $order = $this->safe_dict($response, 'data');
         return $this->parse_order($order);
     }
 
@@ -1253,7 +1253,7 @@ class huobijp extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -1775,7 +1775,7 @@ class huobijp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

@@ -49,7 +49,13 @@ public partial class latoken : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
+                { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -920,6 +926,8 @@ public partial class latoken : Exchange
             { "symbol", getValue(market, "symbol") },
             { "maker", this.safeNumber(response, "makerFee") },
             { "taker", this.safeNumber(response, "takerFee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -946,6 +954,8 @@ public partial class latoken : Exchange
             { "symbol", getValue(market, "symbol") },
             { "maker", this.safeNumber(response, "makerFee") },
             { "taker", this.safeNumber(response, "takerFee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1540,7 +1550,7 @@ public partial class latoken : Exchange
         {
             currency = this.currency(code);
         }
-        object content = this.safeValue(response, "content", new List<object>() {});
+        object content = this.safeList(response, "content", new List<object>() {});
         return this.parseTransactions(content, currency, since, limit);
     }
 
@@ -1677,7 +1687,7 @@ public partial class latoken : Exchange
         //         "hasContent": true
         //     }
         //
-        object transfers = this.safeValue(response, "content", new List<object>() {});
+        object transfers = this.safeList(response, "content", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 

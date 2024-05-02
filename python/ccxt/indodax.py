@@ -7,15 +7,15 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -78,8 +78,11 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -229,7 +232,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'server_time')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for indodax
         :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
@@ -473,7 +476,7 @@ class indodax(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'ticker', {})
+        ticker = self.safe_dict(response, 'ticker', {})
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -502,7 +505,7 @@ class indodax(Exchange, ImplicitAPI):
         # }
         #
         response = self.publicGetApiTickerAll(params)
-        tickers = self.safe_value(response, 'tickers')
+        tickers = self.safe_list(response, 'tickers')
         return self.parse_tickers(tickers, symbols)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -577,8 +580,8 @@ class indodax(Exchange, ImplicitAPI):
         timeframes = self.options['timeframes']
         selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
         now = self.seconds()
-        until = self.safe_integer_2(params, 'until', 'till', now)
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until', now)
+        params = self.omit(params, ['until'])
         request = {
             'to': until,
             'tf': selectedTimeframe,
@@ -766,7 +769,7 @@ class indodax(Exchange, ImplicitAPI):
         orders = self.filter_by(orders, 'status', 'closed')
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
@@ -951,7 +954,7 @@ class indodax(Exchange, ImplicitAPI):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints

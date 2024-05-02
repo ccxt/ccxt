@@ -66,8 +66,11 @@ public partial class wazirx : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
@@ -326,7 +329,7 @@ public partial class wazirx : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 2000);
         }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});

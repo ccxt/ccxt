@@ -10,8 +10,8 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Stri
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import RateLimitExceeded
 
 
 class bitmex(ccxt.async_support.bitmex):
@@ -540,8 +540,8 @@ class bitmex(ccxt.async_support.bitmex):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            messageHash = table + ':' + marketId
             symbol = market['symbol']
+            messageHash = table + ':' + symbol
             trades = self.parse_trades(dataByMarketIds[marketId], market)
             stored = self.safe_value(self.trades, symbol)
             if stored is None:
@@ -561,22 +561,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        table = 'trade'
-        messageHash = table + ':' + market['id']
-        url = self.urls['api']['ws']
-        request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        }
-        trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
-        if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def authenticate(self, params={}):
         url = self.urls['api']['ws']
@@ -599,7 +584,7 @@ class bitmex(ccxt.async_support.bitmex):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_authentication_message(self, client: Client, message):
         authenticated = self.safe_bool(message, 'success', False)
@@ -1170,6 +1155,39 @@ class bitmex(ccxt.async_support.bitmex):
         }
         orderbook = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), topics)
         return orderbook.limit()
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a list of symbols
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        table = 'trade'
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            topic = table + ':' + market['id']
+            topics.append(topic)
+            messageHash = table + ':' + symbol
+            messageHashes.append(messageHash)
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': topics,
+        }
+        trades = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), topics)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """

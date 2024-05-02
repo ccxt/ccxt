@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitflyer.js';
-import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -116,6 +116,11 @@ export default class bitflyer extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    '-2': OnMaintenance, // {"status":-2,"error_message":"Under maintenance","data":null}
+                },
+            },
         });
     }
 
@@ -141,14 +146,14 @@ export default class bitflyer extends Exchange {
         return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         // Since they're the same we just need to return one
         return super.safeMarket (marketId, market, delimiter, 'spot');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitflyer#fetchMarkets
@@ -518,7 +523,7 @@ export default class bitflyer extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name bitflyer#fetchTradingFee
@@ -545,10 +550,12 @@ export default class bitflyer extends Exchange {
             'symbol': market['symbol'],
             'maker': fee,
             'taker': fee,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#createOrder
@@ -683,7 +690,7 @@ export default class bitflyer extends Exchange {
         const response = await this.privateGetGetchildorders (this.extend (request, params));
         let orders = this.parseOrders (response, market, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
+            orders = this.filterBy (orders, 'symbol', symbol) as Order[];
         }
         return orders;
     }
@@ -825,7 +832,7 @@ export default class bitflyer extends Exchange {
         return response;
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#withdraw
@@ -1066,5 +1073,20 @@ export default class bitflyer extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to the default error handler
+        }
+        const feedback = this.id + ' ' + body;
+        // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        const errorMessage = this.safeString (response, 'error_message');
+        const statusCode = this.safeNumber (response, 'status');
+        if (errorMessage !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], statusCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+        }
+        return undefined;
     }
 }

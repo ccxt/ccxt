@@ -62,7 +62,11 @@ public partial class ndax : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -2007,7 +2011,7 @@ public partial class ndax : Exchange
         //     ]
         //
         object grouped = this.groupBy(response, "ChangeReason");
-        object trades = this.safeValue(grouped, "Trade", new List<object>() {});
+        object trades = this.safeList(grouped, "Trade", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

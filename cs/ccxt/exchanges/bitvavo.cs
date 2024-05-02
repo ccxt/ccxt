@@ -63,8 +63,11 @@ public partial class bitvavo : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -956,6 +959,9 @@ public partial class bitvavo : Exchange
             if (isTrue(isEqual(limit, null)))
             {
                 limit = 1440;
+            } else
+            {
+                limit = mathMin(limit, 1440);
             }
             ((IDictionary<string,object>)request)["end"] = this.sum(since, multiply(multiply(limit, duration), 1000));
         }

@@ -236,7 +236,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    async fetchTickerWs (symbol, params = {}): Promise<Ticker> {
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lbank#fetchTickerWs
@@ -440,7 +440,7 @@ export default class lbank extends lbankRest {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell",
+        //             "direction":"sell", // or "sell_market"
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -481,7 +481,7 @@ export default class lbank extends lbankRest {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell",
+        //        "direction":"sell", // or "sell_market"
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -490,6 +490,8 @@ export default class lbank extends lbankRest {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (datetime);
         }
+        let side = this.safeString2 (trade, 'direction', 3);
+        side = side.replace ('_market', '');
         return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -498,7 +500,7 @@ export default class lbank extends lbankRest {
             'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
-            'side': this.safeString2 (trade, 'direction', 3),
+            'side': side,
             'price': this.safeString2 (trade, 'price', 1),
             'amount': this.safeString2 (trade, 'volume', 2),
             'cost': this.safeString (trade, 'amount'),

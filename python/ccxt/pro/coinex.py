@@ -9,11 +9,11 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticke
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -981,8 +981,12 @@ class coinex(ccxt.async_support.coinex):
         #
         messageHashSpot = 'authenticated:spot'
         messageHashSwap = 'authenticated:swap'
-        client.resolve(message, messageHashSpot)
-        client.resolve(message, messageHashSwap)
+        # client.resolve(message, messageHashSpot)
+        # client.resolve(message, messageHashSwap)
+        spotFuture = self.safe_value(client.futures, messageHashSpot)
+        spotFuture.resolve(True)
+        swapFutures = self.safe_value(client.futures, messageHashSwap)
+        swapFutures.resolve(True)
         return message
 
     def handle_subscription_status(self, client: Client, message):
@@ -1004,15 +1008,19 @@ class coinex(ccxt.async_support.coinex):
         url = self.urls['api']['ws'][type]
         client = self.client(url)
         time = self.milliseconds()
+        isSpot = (type == 'spot')
+        spotMessageHash = 'authenticated:spot'
+        swapMessageHash = 'authenticated:swap'
+        messageHash = spotMessageHash if isSpot else swapMessageHash
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
         if type == 'spot':
-            messageHash = 'authenticated:spot'
-            future = self.safe_value(client.subscriptions, messageHash)
-            if future is not None:
+            if authenticated is not None:
                 return await future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
-                'future': 'authenticated:spot',
+                'future': spotMessageHash,
             }
             signData = 'access_id=' + self.apiKey + '&tonce=' + self.number_to_string(time) + '&secret_key=' + self.secret
             hash = self.hash(self.encode(signData), 'md5')
@@ -1025,18 +1033,16 @@ class coinex(ccxt.async_support.coinex):
                 ],
                 'id': requestId,
             }
-            future = self.watch(url, messageHash, request, requestId, subscribe)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, request, requestId, subscribe)
+            client.subscriptions[messageHash] = True
             return await future
         else:
-            messageHash = 'authenticated:swap'
-            future = self.safe_value(client.subscriptions, messageHash)
-            if future is not None:
+            if authenticated is not None:
                 return await future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
-                'future': 'authenticated:swap',
+                'future': swapMessageHash,
             }
             signData = 'access_id=' + self.apiKey + '&timestamp=' + self.number_to_string(time) + '&secret_key=' + self.secret
             hash = self.hash(self.encode(signData), 'sha256', 'hex')
@@ -1049,6 +1055,6 @@ class coinex(ccxt.async_support.coinex):
                 ],
                 'id': requestId,
             }
-            future = self.watch(url, messageHash, request, requestId, subscribe)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, request, requestId, subscribe)
+            client.subscriptions[messageHash] = True
             return await future

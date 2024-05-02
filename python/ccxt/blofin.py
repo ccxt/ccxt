@@ -6,16 +6,16 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -201,6 +201,8 @@ class blofin(Exchange, ImplicitAPI):
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'user/query-apikey': 1,
+                        'affiliate/basic': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -355,7 +357,7 @@ class blofin(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for blofin
         :see: https://blofin.com/docs#get-instruments
@@ -906,13 +908,15 @@ class blofin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
             # blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
+            'percentage': None,
+            'tierBased': None,
         }
 
     def fetch_balance(self, params={}) -> Balances:
@@ -939,7 +943,7 @@ class blofin(Exchange, ImplicitAPI):
             response = self.privateGetAccountBalance(self.extend(request, params))
         return self.parse_balance_by_type(accountType, response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1053,7 +1057,7 @@ class blofin(Exchange, ImplicitAPI):
         leverage = self.safe_string(order, 'leverage', '1')
         contractSize = self.safe_string(market, 'contractSize')
         baseAmount = Precise.string_mul(contractSize, filled)
-        cost: str = None
+        cost: Str = None
         if average is not None:
             cost = Precise.string_mul(average, baseAmount)
             cost = Precise.string_div(cost, leverage)
@@ -1105,7 +1109,7 @@ class blofin(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
         :see: https://blofin.com/docs#place-order
@@ -1154,7 +1158,7 @@ class blofin(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
-    def create_tpsl_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def create_tpsl_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
         positionSide = self.safe_string(params, 'positionSide', 'net')
         request = {
@@ -1194,6 +1198,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if cancelling a trigger/conditional order/tp sl orders
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1203,12 +1208,20 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
+        isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'], False)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         else:
-            request['orderId'] = id
-        query = self.omit(params, ['orderId', 'clientOrderId'])
+            if not isTrigger:
+                request['orderId'] = str(id)
+            else:
+                request['tpslId'] = str(id)
+        query = self.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl'])
+        if isTrigger:
+            tpslResponse = self.cancel_orders([id], symbol, params)
+            first = self.safe_dict(tpslResponse, 0)
+            return first
         response = self.privatePostTradeCancelOrder(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0)
@@ -1265,7 +1278,7 @@ class blofin(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         isStop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
-        method: str = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response = None
@@ -1946,7 +1959,7 @@ class blofin(Exchange, ImplicitAPI):
         if since is not None:
             request['begin'] = since
         isStop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
-        method: str = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response = None

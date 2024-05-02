@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zaif import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -143,7 +143,7 @@ class zaif(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
         retrieves data on all markets for zaif
@@ -421,7 +421,7 @@ class zaif(Exchange, ImplicitAPI):
                 response = []
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
         create a trade order
@@ -557,7 +557,7 @@ class zaif(Exchange, ImplicitAPI):
         response = self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
         make a withdrawal
@@ -600,7 +600,7 @@ class zaif(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        returnData = self.safe_value(result, 'return')
+        returnData = self.safe_dict(result, 'return')
         return self.parse_transaction(returnData, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:

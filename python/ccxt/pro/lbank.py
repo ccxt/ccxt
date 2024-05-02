@@ -227,7 +227,7 @@ class lbank(ccxt.async_support.lbank):
             messageHash = 'ohlcv:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)
 
-    async def fetch_ticker_ws(self, symbol, params={}) -> Ticker:
+    async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -416,7 +416,7 @@ class lbank(ccxt.async_support.lbank):
         #             "volume":6.3607,
         #             "amount":77148.9303,
         #             "price":12129,
-        #             "direction":"sell",
+        #             "direction":"sell",  # or "sell_market"
         #             "TS":"2019-06-28T19:55:49.460"
         #         },
         #         "type":"trade",
@@ -454,7 +454,7 @@ class lbank(ccxt.async_support.lbank):
         #        "volume":6.3607,
         #        "amount":77148.9303,
         #        "price":12129,
-        #        "direction":"sell",
+        #        "direction":"sell",  # or "sell_market"
         #        "TS":"2019-06-28T19:55:49.460"
         #    }
         #
@@ -462,6 +462,8 @@ class lbank(ccxt.async_support.lbank):
         datetime = (self.iso8601(timestamp)) if (timestamp is not None) else (self.safe_string(trade, 'TS'))
         if timestamp is None:
             timestamp = self.parse8601(datetime)
+        side = self.safe_string_2(trade, 'direction', 3)
+        side = side.replace('_market', '')
         return self.safe_trade({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -470,7 +472,7 @@ class lbank(ccxt.async_support.lbank):
             'order': None,
             'type': None,
             'takerOrMaker': None,
-            'side': self.safe_string_2(trade, 'direction', 3),
+            'side': side,
             'price': self.safe_string_2(trade, 'price', 1),
             'amount': self.safe_string_2(trade, 'volume', 2),
             'cost': self.safe_string(trade, 'amount'),

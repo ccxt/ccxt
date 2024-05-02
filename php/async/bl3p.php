@@ -60,8 +60,11 @@ class bl3p extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -179,7 +182,7 @@ class bl3p extends Exchange {
                 'market' => $market['id'],
             );
             $response = Async\await($this->publicGetMarketOrderbook (array_merge($request, $params)));
-            $orderbook = $this->safe_value($response, 'data');
+            $orderbook = $this->safe_dict($response, 'data');
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price_int', 'amount_int');
         }) ();
     }
@@ -328,7 +331,7 @@ class bl3p extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets

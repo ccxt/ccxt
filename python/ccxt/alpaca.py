@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Trade
+from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -80,7 +80,13 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchStatus': False,
                 'fetchTicker': False,
                 'fetchTickers': False,
@@ -296,7 +302,7 @@ class alpaca(Exchange, ImplicitAPI):
         iso = self.parse8601(localTime) - self.parse_to_numeric(jetlag) * 3600 * 1000
         return iso
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for alpaca
         :see: https://docs.alpaca.markets/reference/get-v2-assets
@@ -663,7 +669,7 @@ class alpaca(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),  # volume
         ]
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.alpaca.markets/reference/postorder

@@ -12,6 +12,7 @@ public partial class testMainClass : BaseTest
         object method = "fetchTradingFees";
         object fees = await exchange.fetchTradingFees();
         object symbols = new List<object>(((IDictionary<string,object>)fees).Keys);
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, symbols);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);

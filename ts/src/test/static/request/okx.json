@@ -259,6 +259,40 @@
                     }
                 ],
                 "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.5\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"50\",\"clOrdId\":\"mycustomid\"}]"
+            },
+            {
+                "description": "contract with hedged market sell and stopLossPrice",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "stopLossPrice": 2000,
+                    "hedged": true
+                  }
+                ],
+                "output": "{\"instId\":\"ETH-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"2000\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"posSide\":\"long\",\"clOrdId\":\"e847386390ce4dBC159d537bd47d91ff\",\"tag\":\"e847386590ce2dBC\"}"
+            },
+            {
+                "description": "contract with hedged market sell and reduceOnly",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "reduceOnly": true,
+                    "hedged": true
+                  }
+                ],
+                "output": "[{\"instId\":\"ETH-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"1\",\"posSide\":\"long\",\"tdMode\":\"cross\",\"clOrdId\":\"e847383590ce4dBCdb03fa5964dabfc8\",\"tag\":\"e847382590ce4dBC\"}]"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -799,6 +833,46 @@
                 "output": "[{\"algoId\":\"663748219972878336\",\"instId\":\"BTC-USDT-SWAP\"}]"
             }
         ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
+                "input": [
+                  [
+                    {
+                      "id": "1388361822563405824",
+                      "symbol": "LTC/USDT:USDT"
+                    },
+                    {
+                      "id": "1388360134171496448",
+                      "symbol": "ADA/USDT"
+                    }
+                  ]
+                ],
+                "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"ordId\":\"1388361822563405824\"},{\"instId\":\"ADA-USDT\",\"ordId\":\"1388360134171496448\"}]"
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
+                "input": [
+                    10000
+                ],
+                "output": "{\"timeOut\":10}"
+            },
+            {
+                "description": "Close cancel orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://www.okx.com/api/v5/trade/cancel-all-after",
+                "input": [
+                    0
+                ],
+                "output": "{\"timeOut\":0}"
+            }
+        ],
         "closePosition": [
             {
                 "description": "Closing positiion in net mode",
@@ -880,6 +954,33 @@
                         "LTC/USDT:USDT",
                         "BTC/USDT:USDT"
                     ]
+                ]
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "url": "https://www.okx.com/api/v5/system/status",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://www.okx.com/api/v5/asset/currencies",
+                "input": []
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "Fetch transfer",
+                "method": "fetchTransfer",
+                "url": "https://www.okx.com/api/v5/asset/transfer-state?transId=0",
+                "input": [
+                    0,
+                    "USDC"
                 ]
             }
         ],
@@ -1139,6 +1240,18 @@
                 ]
             }
         ],
+        "setLeverage": [
+            {
+                "description": "set leverage",
+                "method": "setLeverage",
+                "url": "https://www.okx.com/api/v5/account/set-leverage",
+                "input": [
+                  5,
+                  "LTC/USDT:USDT"
+                ],
+                "output": "{\"lever\":5,\"mgnMode\":\"cross\",\"instId\":\"LTC-USDT-SWAP\"}"
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from spot to funding",
@@ -1253,6 +1366,183 @@
                 "description": "fetchTime",
                 "method": "fetchTime",
                 "url": "https://www.okx.com/api/v5/public/time",
+                "input": []
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USD-241227-60000-P",
+                "input": [
+                  "BTC/USD:BTC-241227-60000-P"
+                ]
+            }
+        ],
+        "fetchOptionChain": [
+            {
+                "description": "Fetch an option chain",
+                "method": "fetchOptionChain",
+                "url": "https://www.okx.com/api/v5/market/tickers?uly=BTC-USD&instType=OPTION",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT-SWAP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://www.okx.com/api/v5/market/tickers?instType=SPOT",
+                "input": [
+                  [
+                    "BTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://www.okx.com/api/v5/market/tickers?instType=SWAP",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw usdt-trc20",
+                "method": "withdraw",
+                "url": "https://www.okx.com/api/v5/asset/withdrawal",
+                "input": [
+                  "USDT",
+                  5,
+                  "TTsY9uu2Y3aXXXXXscA4v",
+                  null,
+                  {
+                    "network": "TRC20",
+                    "fee": 1
+                  }
+                ],
+                "output": "{\"ccy\":\"USDT\",\"toAddr\":\"TTsY9uu2Y3aXXXXXscA4v\",\"dest\":\"4\",\"amt\":\"5\",\"chain\":\"USDT-TRC20\",\"fee\":\"1\"}"
+            }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "Fetching margin reductions",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://www.okx.com/api/v5/account/bills?subType=161&mgnMode=isolated",
+                "input": [
+                  null,
+                  "reduce"
+                ]
+            },
+            {
+                "description": "Fetching margin additions",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://www.okx.com/api/v5/account/bills?subType=160&mgnMode=isolated",
+                "input": [
+                  null,
+                  "add"
+                ]
+            },
+            {
+                "description": "Fetching 3 margin additions older than a week",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?subType=160&mgnMode=isolated&startTime=1709251200000&limit=3",
+                "input": [
+                  null,
+                  "add",
+                  1709251200000,
+                  3
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "Fetch Positions History",
+                "method": "fetchPositionHistory",
+                "url": "https://www.okx.com/api/v5/account/positions-history?limit=100",
+                "input": []
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionsHistory",
+                "url": "https://www.okx.com/api/v5/account/positions-history?limit=1&instId=XRP-USDT-SWAP",
+                "input": [
+                  [
+                    "XRP/USDT:USDT"
+                  ],
+                  1708735940395,
+                  1
+                ]
+            }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "Fetch currencies that can be converted",
+                "method": "fetchConvertCurrencies",
+                "url": "https://www.okx.com/api/v5/asset/convert/currencies",
+                "input": []
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "from usdc to usdt",
+                "method": "createConvertTrade",
+                "url": "https://www.okx.com/api/v5/asset/convert/trade",
+                "input": [
+                  "quoternextUSDC-USDT17133439642216046",
+                  "USDC",
+                  "USDT",
+                  3
+                ],
+                "output": "{\"quoteId\":\"quoternextUSDC-USDT17133439642216046\",\"baseCcy\":\"USDC\",\"quoteCcy\":\"USDT\",\"szCcy\":\"USDC\",\"sz\":\"3\",\"side\":\"sell\"}"
+            }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "Fetch a conversion trade by the id",
+                "method": "fetchConvertTrade",
+                "url": "https://www.okx.com/api/v5/asset/convert/history?clTReqId=12AB34",
+                "input": [
+                  "12AB34"
+                ]
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "Fetch the conversion trade history",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://www.okx.com/api/v5/asset/convert/history",
+                "input": []
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://www.okx.com/api/v5/account/config",
                 "input": []
             }
         ]

@@ -734,7 +734,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for phemex
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -961,7 +961,7 @@ class phemex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1290,7 +1290,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $rows = $this->safe_value($data, 'rows', array());
+        $rows = $this->safe_list($data, 'rows', array());
         return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $userLimit);
     }
 
@@ -1451,7 +1451,7 @@ class phemex extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($result, $market);
     }
 
@@ -1484,7 +1484,7 @@ class phemex extends Exchange {
         } else {
             $response = $this->v2GetMdV2Ticker24hrAll ($query);
         }
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         return $this->parse_tickers($result, $symbols);
     }
 
@@ -2692,7 +2692,7 @@ class phemex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -2763,7 +2763,7 @@ class phemex extends Exchange {
         } else {
             $response = $this->privatePutSpotOrders (array_merge($request, $params));
         }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -2804,7 +2804,7 @@ class phemex extends Exchange {
         } else {
             $response = $this->privateDeleteSpotOrders (array_merge($request, $params));
         }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -2821,11 +2821,16 @@ class phemex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
+        $params = $this->omit($params, 'stop', 'trigger');
         $request = array(
             'symbol' => $market['id'],
             // 'untriggerred' => false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text' => 'up to 40 characters max',
         );
+        if ($stop) {
+            $request['untriggerred'] = $stop;
+        }
         $response = null;
         if ($market['settle'] === 'USDT') {
             $response = $this->privateDeleteGOrdersAll (array_merge($request, $params));
@@ -2918,7 +2923,7 @@ class phemex extends Exchange {
             $response = $this->privateGetSpotOrders (array_merge($request, $params));
         }
         $data = $this->safe_value($response, 'data', array());
-        $rows = $this->safe_value($data, 'rows', $data);
+        $rows = $this->safe_list($data, 'rows', $data);
         return $this->parse_orders($rows, $market, $since, $limit);
     }
 
@@ -2962,7 +2967,7 @@ class phemex extends Exchange {
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             return $this->parse_orders($data, $market, $since, $limit);
         } else {
-            $rows = $this->safe_value($data, 'rows', array());
+            $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_orders($rows, $market, $since, $limit);
         }
     }
@@ -3046,7 +3051,7 @@ class phemex extends Exchange {
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             return $this->parse_orders($data, $market, $since, $limit);
         } else {
-            $rows = $this->safe_value($data, 'rows', array());
+            $rows = $this->safe_list($data, 'rows', array());
             return $this->parse_orders($rows, $market, $since, $limit);
         }
     }
@@ -3934,7 +3939,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
@@ -3969,7 +3974,7 @@ class phemex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "code" => 0,
@@ -3982,12 +3987,15 @@ class phemex extends Exchange {
         $codeCurrency = $inverse ? 'base' : 'quote';
         return array(
             'info' => $data,
+            'symbol' => $this->safe_symbol(null, $market),
             'type' => 'set',
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market[$codeCurrency],
-            'symbol' => $this->safe_symbol(null, $market),
             'status' => $this->parse_margin_status($this->safe_string($data, 'code')),
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
@@ -4146,7 +4154,7 @@ class phemex extends Exchange {
         //
         //
         $data = $this->safe_value($response, 'data', array());
-        $riskLimits = $this->safe_value($data, 'riskLimits');
+        $riskLimits = $this->safe_list($data, 'riskLimits');
         return $this->parse_leverage_tiers($riskLimits, $symbols, 'symbol');
     }
 
@@ -4274,7 +4282,7 @@ class phemex extends Exchange {
         return $response;
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -4403,7 +4411,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $transfers = $this->safe_value($data, 'rows', array());
+        $transfers = $this->safe_list($data, 'rows', array());
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
@@ -4555,7 +4563,7 @@ class phemex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://phemex-docs.github.io/#create-withdraw-$request
@@ -4622,7 +4630,7 @@ class phemex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 

@@ -7,9 +7,10 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -103,7 +103,11 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': False,
@@ -336,7 +340,7 @@ class coinlist(Exchange, ImplicitAPI):
         string = self.safe_string(response, 'iso')
         return self.parse8601(string)
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
@@ -397,7 +401,7 @@ class coinlist(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinlist
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
@@ -679,9 +683,9 @@ class coinlist(Exchange, ImplicitAPI):
                 request['end_time'] = self.iso8601(self.sum(since, duration * (limit)))
             else:
                 request['end_time'] = self.iso8601(self.milliseconds())
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.publicGetV1SymbolsSymbolCandles(self.extend(request, params))
         #
@@ -708,7 +712,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        candles = self.safe_value(response, 'candles', [])
+        candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -752,9 +756,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = min(limit, 500)
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.publicGetV1SymbolsSymbolAuctions(self.extend(request, params))
         #
@@ -781,7 +785,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        auctions = self.safe_value(response, 'auctions', [])
+        auctions = self.safe_list(response, 'auctions', [])
         return self.parse_trades(auctions, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -856,7 +860,7 @@ class coinlist(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
@@ -1031,7 +1035,7 @@ class coinlist(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-accounts
@@ -1130,9 +1134,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Fills(self.extend(request, params))
         #
@@ -1163,7 +1167,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        fills = self.safe_value(response, 'fills', [])
+        fills = self.safe_list(response, 'fills', [])
         return self.parse_trades(fills, market, since, limit)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -1209,9 +1213,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Orders(self.extend(request, params))
         #
@@ -1240,7 +1244,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        orders = self.safe_value(response, 'orders', [])
+        orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1395,7 +1399,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = self.privateDeleteV1OrdersBulk(params)
         return response
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
@@ -1458,10 +1462,10 @@ class coinlist(Exchange, ImplicitAPI):
         #         "timestamp": "2023-10-26T11:30:55.376Z"
         #     }
         #
-        order = self.safe_value(response, 'order', {})
+        order = self.safe_dict(response, 'order', {})
         return self.parse_order(order, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
@@ -1702,9 +1706,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = self.privateGetV1Transfers(self.extend(request, params))
         #
@@ -1729,7 +1733,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        transfers = self.safe_value(response, 'transfers', [])
+        transfers = self.safe_list(response, 'transfers', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     def parse_transfer(self, transfer, currency: Currency = None):
@@ -1865,7 +1869,7 @@ class coinlist(Exchange, ImplicitAPI):
         # coinlist returns both internal transfers and blockchain transactions
         return self.parse_transactions(response, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         request a withdrawal from CoinList wallet.(Disabled by default. Contact CoinList to apply for an exception.)
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet
@@ -1889,7 +1893,7 @@ class coinlist(Exchange, ImplicitAPI):
         #         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
@@ -1984,9 +1988,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         params = self.omit(params, ['trader_id', 'traderId'])
         response = self.privateGetV1AccountsTraderIdLedger(self.extend(request, params))

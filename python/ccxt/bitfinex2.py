@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -22,7 +23,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -508,7 +508,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitfinex2
         :see: https://docs.bitfinex.com/reference/rest-public-conf
@@ -630,7 +630,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.bitfinex.com/reference/rest-public-conf
@@ -1343,6 +1343,8 @@ class bitfinex2(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 10000
+        else:
+            limit = min(limit, 10000)
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -1483,7 +1485,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build an order request
@@ -1561,7 +1563,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create an order on the exchange
         :see: https://docs.bitfinex.com/reference/rest-auth-submit-order
@@ -1712,7 +1714,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'all': 1,
         }
         response = self.privatePostAuthWOrderCancelMulti(self.extend(request, params))
-        orders = self.safe_value(response, 4, [])
+        orders = self.safe_list(response, 4, [])
         return self.parse_orders(orders)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -2259,7 +2261,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             },
         }
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.bitfinex.com/reference/rest-auth-summary
@@ -2422,7 +2424,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.bitfinex.com/reference/rest-auth-withdraw
@@ -3279,7 +3281,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def set_margin(self, symbol: str, amount: float, params={}):
+    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         either adds or reduces margin in a swap position in order to set the margin to a specific value
         :see: https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
@@ -3307,19 +3309,32 @@ class bitfinex2(Exchange, ImplicitAPI):
         data = self.safe_value(response, 0)
         return self.parse_margin_modification(data, market)
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market=None) -> MarginModification:
+        #
+        # setMargin
+        #
+        #     [
+        #         [
+        #             1
+        #         ]
+        #     ]
+        #
         marginStatusRaw = data[0]
         marginStatus = 'ok' if (marginStatusRaw == 1) else 'failed'
         return {
             'info': data,
-            'type': None,
-            'amount': None,
-            'code': None,
             'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': None,
             'status': marginStatus,
+            'timestamp': None,
+            'datetime': None,
         }
 
-    def fetch_order(self, id: str, symbol: str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -3382,7 +3397,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         order = self.safe_list(response, 0)
         return self.parse_order(order, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.bitfinex.com/reference/rest-auth-update-order

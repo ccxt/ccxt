@@ -68,8 +68,13 @@ export default class bitopro extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -758,6 +763,9 @@ export default class bitopro extends Exchange {
         // we need to have a limit argument because "to" and "from" are required
         if (limit === undefined) {
             limit = 500;
+        }
+        else {
+            limit = Math.min(limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
         }
         const timeframeInSeconds = this.parseTimeframe(timeframe);
         let alignedSince = undefined;
@@ -1665,7 +1673,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -50,6 +50,7 @@ public partial class p2b : ccxt.p2b
                 { "watchTickers", new Dictionary<string, object>() {
                     { "name", "state" },
                 } },
+                { "tickerSubs", this.createSafeDictionary() },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -129,13 +130,16 @@ public partial class p2b : ccxt.p2b
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object watchTickerOptions = this.safeValue(this.options, "watchTicker");
+        object watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
         var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
         name = ((IList<object>)nameparametersVariable)[0];
         parameters = ((IList<object>)nameparametersVariable)[1];
         object market = this.market(symbol);
-        object request = new List<object>() {getValue(market, "id")};
+        symbol = getValue(market, "symbol");
+        ((IDictionary<string,object>)getValue(this.options, "tickerSubs"))[(string)getValue(market, "id")] = true; // we need to re-subscribe to all tickers upon watching a new ticker
+        object tickerSubs = getValue(this.options, "tickerSubs");
+        object request = new List<object>(((IDictionary<string,object>)tickerSubs).Keys);
         object messageHash = add(add(name, "::"), getValue(market, "symbol"));
         return await this.subscribe(add(name, ".subscribe"), messageHash, request, parameters);
     }
@@ -469,5 +473,17 @@ public partial class p2b : ccxt.p2b
         //
         client.lastPong = this.safeInteger(message, "id");
         return message;
+    }
+
+    public override void onError(WebSocketClient client, object error)
+    {
+        ((IDictionary<string,object>)this.options)["tickerSubs"] = this.createSafeDictionary();
+        this.onError(client as WebSocketClient, error);
+    }
+
+    public override void onClose(WebSocketClient client, object error)
+    {
+        ((IDictionary<string,object>)this.options)["tickerSubs"] = this.createSafeDictionary();
+        this.onClose(client as WebSocketClient, error);
     }
 }

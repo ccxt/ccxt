@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 /**
  * @class coinlist
@@ -86,7 +86,11 @@ export default class coinlist extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -325,7 +329,7 @@ export default class coinlist extends Exchange {
         return this.parse8601 (string);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name coinlist#fetchCurrencies
@@ -390,7 +394,7 @@ export default class coinlist extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinlist#fetchMarkets
@@ -690,9 +694,9 @@ export default class coinlist extends Exchange {
                 request['end_time'] = this.iso8601 (this.milliseconds ());
             }
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, [ 'until' ]);
             request['end_time'] = this.iso8601 (until);
         }
         const response = await this.publicGetV1SymbolsSymbolCandles (this.extend (request, params));
@@ -720,7 +724,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue (response, 'candles', []);
+        const candles = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -770,9 +774,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min (limit, 500);
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, [ 'until' ]);
             request['end_time'] = this.iso8601 (until);
         }
         const response = await this.publicGetV1SymbolsSymbolAuctions (this.extend (request, params));
@@ -800,7 +804,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const auctions = this.safeValue (response, 'auctions', []);
+        const auctions = this.safeList (response, 'auctions', []);
         return this.parseTrades (auctions, market, since, limit);
     }
 
@@ -880,7 +884,7 @@ export default class coinlist extends Exchange {
         }, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name coinlist#fetchTradingFees
@@ -1065,7 +1069,7 @@ export default class coinlist extends Exchange {
         };
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name coinlist#fetchAccounts
@@ -1178,9 +1182,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, [ 'until' ]);
             request['end_time'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1Fills (this.extend (request, params));
@@ -1212,7 +1216,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const fills = this.safeValue (response, 'fills', []);
+        const fills = this.safeList (response, 'fills', []);
         return this.parseTrades (fills, market, since, limit);
     }
 
@@ -1268,9 +1272,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, [ 'until' ]);
             request['end_time'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1Orders (this.extend (request, params));
@@ -1300,7 +1304,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1478,7 +1482,7 @@ export default class coinlist extends Exchange {
         return response;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#createOrder
@@ -1549,11 +1553,11 @@ export default class coinlist extends Exchange {
         //         "timestamp": "2023-10-26T11:30:55.376Z"
         //     }
         //
-        const order = this.safeValue (response, 'order', {});
+        const order = this.safeDict (response, 'order', {});
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#editOrder
@@ -1813,9 +1817,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, [ 'until' ]);
             request['end_time'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1Transfers (this.extend (request, params));
@@ -1841,7 +1845,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const transfers = this.safeValue (response, 'transfers', []);
+        const transfers = this.safeList (response, 'transfers', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
@@ -1988,7 +1992,7 @@ export default class coinlist extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#withdraw
@@ -2014,7 +2018,7 @@ export default class coinlist extends Exchange {
         //         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
@@ -2120,9 +2124,9 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'till', 'until' ]);
+            params = this.omit (params, [ 'until' ]);
             request['end_time'] = this.iso8601 (until);
         }
         params = this.omit (params, [ 'trader_id', 'traderId' ]);

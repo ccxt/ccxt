@@ -50,8 +50,11 @@ public partial class coinspot : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -394,7 +397,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeValue(prices, id);
+        object ticker = this.safeDict(prices, id);
         return this.parseTicker(ticker, market);
     }
 
@@ -474,7 +477,7 @@ public partial class coinspot : Exchange
         //         ],
         //     }
         //
-        object trades = this.safeValue(response, "orders", new List<object>() {});
+        object trades = this.safeList(response, "orders", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

@@ -55,7 +55,12 @@ public partial class exmo : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", true },
                 { "fetchOrderTrades", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
+                { "fetchPositions", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -199,19 +204,22 @@ public partial class exmo : Exchange
         return margin;
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //      {}
         //
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", this.safeValue(market, "quote") },
             { "symbol", this.safeSymbol(null, market) },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
             { "total", null },
+            { "code", this.safeValue(market, "quote") },
             { "status", "ok" },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -865,8 +873,7 @@ public partial class exmo : Exchange
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object options = this.safeValue(this.options, "fetchOHLCV");
-        object maxLimit = this.safeInteger(options, "maxLimit", 3000);
+        object maxLimit = 3000;
         object duration = this.parseTimeframe(timeframe);
         object now = this.milliseconds();
         if (isTrue(isEqual(since, null)))
@@ -874,10 +881,9 @@ public partial class exmo : Exchange
             if (isTrue(isEqual(limit, null)))
             {
                 limit = 1000; // cap default at generous amount
-            }
-            if (isTrue(isGreaterThan(limit, maxLimit)))
+            } else
             {
-                limit = maxLimit; // avoid exception
+                limit = mathMin(limit, maxLimit);
             }
             ((IDictionary<string,object>)request)["from"] = subtract(subtract(this.parseToInt(divide(now, 1000)), multiply(limit, duration)), 1);
             ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(now, 1000));
@@ -886,16 +892,13 @@ public partial class exmo : Exchange
             ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(since, 1000)), 1);
             if (isTrue(isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(now, 1000));
+                limit = maxLimit;
             } else
             {
-                if (isTrue(isGreaterThan(limit, maxLimit)))
-                {
-                    throw new BadRequest ((string)add(add(add(this.id, " fetchOHLCV() will serve "), ((object)maxLimit).ToString()), " candles at most")) ;
-                }
-                object to = this.sum(since, multiply(multiply(limit, duration), 1000));
-                ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(to, 1000));
+                limit = mathMin(limit, maxLimit);
             }
+            object to = this.sum(since, multiply(multiply(limit, duration), 1000));
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(to, 1000));
         }
         object response = await this.publicGetCandlesHistory(this.extend(request, parameters));
         //
@@ -907,7 +910,7 @@ public partial class exmo : Exchange
         //         ]
         //     }
         //
-        object candles = this.safeValue(response, "candles", new List<object>() {});
+        object candles = this.safeList(response, "candles", new List<object>() {});
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
@@ -1026,7 +1029,7 @@ public partial class exmo : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.publicGetOrderBook(this.extend(request, parameters));
-        object result = this.safeValue(response, getValue(market, "id"));
+        object result = this.safeDict(response, getValue(market, "id"));
         return this.parseOrderBook(result, getValue(market, "symbol"), null, "bid", "ask");
     }
 
@@ -1318,7 +1321,7 @@ public partial class exmo : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, getValue(market, "id"), new List<object>() {});
+        object data = this.safeList(response, getValue(market, "id"), new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1676,7 +1679,7 @@ public partial class exmo : Exchange
         {
             response = await this.privatePostOrderTrades(this.extend(request, parameters));
         }
-        object trades = this.safeValue(response, "trades");
+        object trades = this.safeList(response, "trades");
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -2500,7 +2503,7 @@ public partial class exmo : Exchange
         //         "count": 23
         //     }
         //
-        object items = this.safeValue(response, "items", new List<object>() {});
+        object items = this.safeList(response, "items", new List<object>() {});
         return this.parseTransactions(items, currency, since, limit);
     }
 
@@ -2556,7 +2559,7 @@ public partial class exmo : Exchange
         //     }
         //
         object items = this.safeValue(response, "items", new List<object>() {});
-        object first = this.safeValue(items, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(items, 0, new Dictionary<string, object>() {});
         return this.parseTransaction(first, currency);
     }
 
@@ -2612,7 +2615,7 @@ public partial class exmo : Exchange
         //     }
         //
         object items = this.safeValue(response, "items", new List<object>() {});
-        object first = this.safeValue(items, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(items, 0, new Dictionary<string, object>() {});
         return this.parseTransaction(first, currency);
     }
 
@@ -2671,7 +2674,7 @@ public partial class exmo : Exchange
         //         "count": 23
         //     }
         //
-        object items = this.safeValue(response, "items", new List<object>() {});
+        object items = this.safeList(response, "items", new List<object>() {});
         return this.parseTransactions(items, currency, since, limit);
     }
 

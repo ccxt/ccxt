@@ -57,8 +57,11 @@ public partial class coinone : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -456,7 +459,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "tickers", new List<object>() {});
+        object data = this.safeList(response, "tickers", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
 
@@ -513,7 +516,7 @@ public partial class coinone : Exchange
         //     }
         //
         object data = this.safeValue(response, "tickers", new List<object>() {});
-        object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
 
@@ -687,7 +690,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "transactions", new List<object>() {});
+        object data = this.safeList(response, "transactions", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -957,7 +960,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object limitOrders = this.safeValue(response, "limitOrders", new List<object>() {});
+        object limitOrders = this.safeList(response, "limitOrders", new List<object>() {});
         return this.parseOrders(limitOrders, market, since, limit);
     }
 
@@ -1004,7 +1007,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object completeOrders = this.safeValue(response, "completeOrders", new List<object>() {});
+        object completeOrders = this.safeList(response, "completeOrders", new List<object>() {});
         return this.parseTrades(completeOrders, market, since, limit);
     }
 

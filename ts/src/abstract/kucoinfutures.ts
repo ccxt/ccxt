@@ -86,6 +86,7 @@ interface kucoin {
     privateGetIsolatedAccountSymbol (params?: {}): Promise<implicitReturnType>;
     privateGetMarginBorrow (params?: {}): Promise<implicitReturnType>;
     privateGetMarginRepay (params?: {}): Promise<implicitReturnType>;
+    privateGetMarginInterest (params?: {}): Promise<implicitReturnType>;
     privateGetProjectList (params?: {}): Promise<implicitReturnType>;
     privateGetProjectMarketInterestRate (params?: {}): Promise<implicitReturnType>;
     privateGetRedeemOrders (params?: {}): Promise<implicitReturnType>;
@@ -190,6 +191,8 @@ interface kucoin {
     futuresPrivateGetWithdrawalList (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetSubApiKey (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetTradeStatistics (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetTradeFees (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetHistoryPositions (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferOut (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferIn (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders (params?: {}): Promise<implicitReturnType>;

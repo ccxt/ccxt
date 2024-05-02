@@ -279,6 +279,7 @@ public partial class hitbtc : Exchange
                     { "2012", typeof(BadRequest) },
                     { "2020", typeof(BadRequest) },
                     { "2022", typeof(BadRequest) },
+                    { "2024", typeof(InvalidOrder) },
                     { "10001", typeof(BadRequest) },
                     { "10021", typeof(AccountSuspended) },
                     { "10022", typeof(BadRequest) },
@@ -296,6 +297,7 @@ public partial class hitbtc : Exchange
                     { "20012", typeof(ExchangeError) },
                     { "20014", typeof(ExchangeError) },
                     { "20016", typeof(ExchangeError) },
+                    { "20018", typeof(ExchangeError) },
                     { "20031", typeof(ExchangeError) },
                     { "20032", typeof(ExchangeError) },
                     { "20033", typeof(ExchangeError) },
@@ -306,10 +308,15 @@ public partial class hitbtc : Exchange
                     { "20043", typeof(ExchangeError) },
                     { "20044", typeof(PermissionDenied) },
                     { "20045", typeof(InvalidOrder) },
+                    { "20047", typeof(InvalidOrder) },
+                    { "20048", typeof(InvalidOrder) },
+                    { "20049", typeof(InvalidOrder) },
                     { "20080", typeof(ExchangeError) },
                     { "21001", typeof(ExchangeError) },
                     { "21003", typeof(AccountSuspended) },
                     { "21004", typeof(AccountSuspended) },
+                    { "22004", typeof(ExchangeError) },
+                    { "22008", typeof(ExchangeError) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -1328,15 +1335,16 @@ public partial class hitbtc : Exchange
         //         ],
         //         "fee": "1.22" // only for WITHDRAW
         //       }
-        //     }
-        //
+        //     },
+        //     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk": {}
         // withdraw
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        object id = this.safeString(transaction, "id");
+        object id = this.safeString2(transaction, "operation_id", "id");
         object timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         object updated = this.parse8601(this.safeString(transaction, "updated_at"));
         object type = this.parseTransactionType(this.safeString(transaction, "type"));
@@ -1524,6 +1532,8 @@ public partial class hitbtc : Exchange
             { "symbol", symbol },
             { "taker", taker },
             { "maker", maker },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1650,12 +1660,12 @@ public partial class hitbtc : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object price = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
@@ -1871,7 +1881,7 @@ public partial class hitbtc : Exchange
         //       }
         //     ]
         //
-        object order = this.safeValue(response, 0);
+        object order = this.safeDict(response, 0);
         return this.parseOrder(order, market);
     }
 
@@ -2830,7 +2840,7 @@ public partial class hitbtc : Exchange
         }
         object market = null;
         object request = new Dictionary<string, object>() {};
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(symbol, null)))
@@ -3309,9 +3319,10 @@ public partial class hitbtc : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
             }
         }
-        if (isTrue(!isEqual(amount, 0)))
+        object stringAmount = this.numberToString(amount);
+        if (isTrue(!isEqual(stringAmount, "0")))
         {
-            amount = this.amountToPrecision(symbol, amount);
+            amount = this.amountToPrecision(symbol, stringAmount);
         } else
         {
             amount = "0";
@@ -3367,17 +3378,42 @@ public partial class hitbtc : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
         object currencies = this.safeValue(data, "currencies", new List<object>() {});
         object currencyInfo = this.safeValue(currencies, 0);
+        object datetime = this.safeString(data, "updated_at");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", this.safeString(currencyInfo, "code") },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", this.safeString(currencyInfo, "code") },
             { "status", null },
+            { "timestamp", this.parse8601(datetime) },
+            { "datetime", datetime },
         };
     }
 
@@ -3397,7 +3433,7 @@ public partial class hitbtc : Exchange
         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(!isEqual(amount, 0)))
+        if (isTrue(!isEqual(this.numberToString(amount), "0")))
         {
             throw new BadRequest ((string)add(this.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
         }

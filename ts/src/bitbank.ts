@@ -5,7 +5,7 @@ import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -58,8 +58,11 @@ export default class bitbank extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -140,26 +143,28 @@ export default class bitbank extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '20001': AuthenticationError,
-                '20002': AuthenticationError,
-                '20003': AuthenticationError,
-                '20005': AuthenticationError,
-                '20004': InvalidNonce,
-                '40020': InvalidOrder,
-                '40021': InvalidOrder,
-                '40025': ExchangeError,
-                '40013': OrderNotFound,
-                '40014': OrderNotFound,
-                '50008': PermissionDenied,
-                '50009': OrderNotFound,
-                '50010': OrderNotFound,
-                '60001': InsufficientFunds,
-                '60005': InvalidOrder,
+                'exact': {
+                    '20001': AuthenticationError,
+                    '20002': AuthenticationError,
+                    '20003': AuthenticationError,
+                    '20005': AuthenticationError,
+                    '20004': InvalidNonce,
+                    '40020': InvalidOrder,
+                    '40021': InvalidOrder,
+                    '40025': ExchangeError,
+                    '40013': OrderNotFound,
+                    '40014': OrderNotFound,
+                    '50008': PermissionDenied,
+                    '50009': OrderNotFound,
+                    '50010': OrderNotFound,
+                    '60001': InsufficientFunds,
+                    '60005': InvalidOrder,
+                },
             },
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitbank#fetchMarkets
@@ -304,7 +309,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTicker (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -395,11 +400,11 @@ export default class bitbank extends Exchange {
         };
         const response = await this.publicGetPairTransactions (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'transactions', []);
+        const trades = this.safeList (data, 'transactions', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitbank#fetchTradingFees
@@ -528,7 +533,7 @@ export default class bitbank extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const candlestick = this.safeValue (data, 'candlestick', []);
         const first = this.safeValue (candlestick, 0, {});
-        const ohlcv = this.safeValue (first, 'ohlcv', []);
+        const ohlcv = this.safeList (first, 'ohlcv', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -650,7 +655,7 @@ export default class bitbank extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#createOrder
@@ -676,7 +681,7 @@ export default class bitbank extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostUserSpotOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -719,7 +724,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetUserSpotOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -748,7 +753,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -779,7 +784,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'trades', []);
+        const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -813,7 +818,7 @@ export default class bitbank extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#withdraw
@@ -854,7 +859,7 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
@@ -1008,15 +1013,10 @@ export default class bitbank extends Exchange {
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
-            const errorClasses = this.exceptions;
             const code = this.safeString (data, 'code');
             const message = this.safeString (errorMessages, code, 'Error');
-            const ErrorClass = this.safeValue (errorClasses, code);
-            if (ErrorClass !== undefined) {
-                throw new errorClasses[code] (message);
-            } else {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, message);
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return undefined;
     }

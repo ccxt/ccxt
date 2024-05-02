@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -60,8 +60,11 @@ class coinspot(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -274,7 +277,7 @@ class coinspot(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_value(prices, id)
+        ticker = self.safe_dict(prices, id)
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -340,7 +343,7 @@ class coinspot(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
-        trades = self.safe_value(response, 'orders', [])
+        trades = self.safe_list(response, 'orders', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -464,7 +467,7 @@ class coinspot(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://www.coinspot.com.au/api#placebuyorder

@@ -445,7 +445,7 @@ public partial class novadax
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -465,10 +465,10 @@ public partial class novadax
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// fetch all deposits made to an account

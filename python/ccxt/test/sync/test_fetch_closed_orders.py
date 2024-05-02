@@ -18,10 +18,10 @@ from ccxt.test.base import test_shared_methods  # noqa E402
 def test_fetch_closed_orders(exchange, skipped_properties, symbol):
     method = 'fetchClosedOrders'
     orders = exchange.fetch_closed_orders(symbol)
-    assert isinstance(orders, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(orders)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, orders, symbol)
     now = exchange.milliseconds()
     for i in range(0, len(orders)):
         order = orders[i]
         test_order(exchange, skipped_properties, method, order, symbol, now)
-        assert exchange.in_array(order['status'], ['closed', 'canceled']), exchange.id + ' ' + method + ' ' + symbol + ' returned an order with status ' + order['status'] + ' (expected \"closed\" or \"canceled\")'
+        test_shared_methods.assert_in_array(exchange, skipped_properties, method, order, 'status', ['closed', 'canceled'])
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, orders)

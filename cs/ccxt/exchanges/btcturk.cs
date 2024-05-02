@@ -53,8 +53,11 @@ public partial class btcturk : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -72,9 +75,9 @@ public partial class btcturk : Exchange
                 { "30m", 30 },
                 { "1h", 60 },
                 { "4h", 240 },
-                { "1d", "1 day" },
-                { "1w", "1 week" },
-                { "1y", "1 year" },
+                { "1d", "1 d" },
+                { "1w", "1 w" },
+                { "1y", "1 y" },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg" },
@@ -429,7 +432,7 @@ public partial class btcturk : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTicker(parameters);
-        object tickers = this.safeValue(response, "data");
+        object tickers = this.safeList(response, "data");
         return this.parseTickers(tickers, symbols);
     }
 
@@ -557,7 +560,7 @@ public partial class btcturk : Exchange
         //       ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -610,6 +613,7 @@ public partial class btcturk : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
+            limit = mathMin(limit, 11000); // max 11000 candles diapason can be covered
             if (isTrue(isEqual(timeframe, "1y")))
             {
                 throw new BadRequest ((string)add(this.id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
@@ -622,7 +626,7 @@ public partial class btcturk : Exchange
                 ((IDictionary<string,object>)request)["to"] = mathMin(getValue(request, "to"), to);
             } else
             {
-                ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(until, 1000)), limitSeconds);
+                ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(0, 1000)), limitSeconds);
             }
         }
         object response = await this.graphGetKlinesHistory(this.extend(request, parameters));
@@ -726,7 +730,7 @@ public partial class btcturk : Exchange
             ((IDictionary<string,object>)request)["newClientOrderId"] = this.uuid();
         }
         object response = await this.privatePostOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }
 
@@ -774,7 +778,7 @@ public partial class btcturk : Exchange
         object response = await this.privateGetOpenOrders(this.extend(request, parameters));
         object data = this.safeValue(response, "data");
         object bids = this.safeValue(data, "bids", new List<object>() {});
-        object asks = this.safeValue(data, "asks", new List<object>() {});
+        object asks = this.safeList(data, "asks", new List<object>() {});
         return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }
 
@@ -827,7 +831,7 @@ public partial class btcturk : Exchange
         //     }
         //   ]
         // }
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -952,7 +956,7 @@ public partial class btcturk : Exchange
         //       "code": "0"
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseTrades(data, market, since, limit);
     }
 

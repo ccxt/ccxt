@@ -1,5 +1,5 @@
 import Exchange from './abstract/wavesexchange.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class wavesexchange
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class wavesexchange extends Exchange {
         cost: number;
     }>;
     getQuotes(): Promise<any>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: Int): any[];
     checkRequiredKeys(): void;
@@ -52,7 +52,7 @@ export default class wavesexchange extends Exchange {
     priceFromPrecision(symbol: any, price: any): string;
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
         info: any;
         id: string;
@@ -88,6 +88,6 @@ export default class wavesexchange extends Exchange {
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): any;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
 }

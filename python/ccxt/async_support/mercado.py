@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mercado import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -67,8 +67,11 @@ class mercado(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -161,7 +164,7 @@ class mercado(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for mercado
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -415,7 +418,7 @@ class mercado(Exchange, ImplicitAPI):
         response = await self.privatePostGetAccountInfo(params)
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -492,7 +495,7 @@ class mercado(Exchange, ImplicitAPI):
         #     }
         #
         responseData = self.safe_value(response, 'response_data', {})
-        order = self.safe_value(responseData, 'order', {})
+        order = self.safe_dict(responseData, 'order', {})
         return self.parse_order(order, market)
 
     def parse_order_status(self, status):
@@ -591,10 +594,10 @@ class mercado(Exchange, ImplicitAPI):
         }
         response = await self.privatePostGetOrder(self.extend(request, params))
         responseData = self.safe_value(response, 'response_data', {})
-        order = self.safe_value(responseData, 'order')
+        order = self.safe_dict(responseData, 'order')
         return self.parse_order(order, market)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -648,7 +651,7 @@ class mercado(Exchange, ImplicitAPI):
         #     }
         #
         responseData = self.safe_value(response, 'response_data', {})
-        withdrawal = self.safe_value(responseData, 'withdrawal')
+        withdrawal = self.safe_dict(responseData, 'withdrawal')
         return self.parse_transaction(withdrawal, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
@@ -745,7 +748,7 @@ class mercado(Exchange, ImplicitAPI):
         }
         response = await self.privatePostListOrders(self.extend(request, params))
         responseData = self.safe_value(response, 'response_data', {})
-        orders = self.safe_value(responseData, 'orders', [])
+        orders = self.safe_list(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -767,7 +770,7 @@ class mercado(Exchange, ImplicitAPI):
         }
         response = await self.privatePostListOrders(self.extend(request, params))
         responseData = self.safe_value(response, 'response_data', {})
-        orders = self.safe_value(responseData, 'orders', [])
+        orders = self.safe_list(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

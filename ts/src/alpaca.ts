@@ -3,7 +3,7 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade } from './base/types.js';
+import type { Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -71,7 +71,13 @@ export default class alpaca extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
@@ -291,7 +297,7 @@ export default class alpaca extends Exchange {
         return iso;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name alpaca#fetchMarkets
@@ -679,7 +685,7 @@ export default class alpaca extends Exchange {
         ];
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#createOrder

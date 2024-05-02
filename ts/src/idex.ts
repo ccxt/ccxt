@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -79,8 +79,11 @@ export default class idex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -164,13 +167,15 @@ export default class idex extends Exchange {
                 'network': 'MATIC',
             },
             'exceptions': {
-                'INVALID_ORDER_QUANTITY': InvalidOrder,
-                'INSUFFICIENT_FUNDS': InsufficientFunds,
-                'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
-                'EXCEEDED_RATE_LIMIT': DDoSProtection,
-                'INVALID_PARAMETER': BadRequest,
-                'WALLET_NOT_ASSOCIATED': InvalidAddress,
-                'INVALID_WALLET_SIGNATURE': AuthenticationError,
+                'exact': {
+                    'INVALID_ORDER_QUANTITY': InvalidOrder,
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
+                    'EXCEEDED_RATE_LIMIT': DDoSProtection,
+                    'INVALID_PARAMETER': BadRequest,
+                    'WALLET_NOT_ASSOCIATED': InvalidAddress,
+                    'INVALID_WALLET_SIGNATURE': AuthenticationError,
+                },
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -197,7 +202,7 @@ export default class idex extends Exchange {
         return this.decimalToPrecision (price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name idex#fetchMarkets
@@ -363,7 +368,7 @@ export default class idex extends Exchange {
         //   }
         // ]
         const response = await this.publicGetTickers (this.extend (request, params));
-        const ticker = this.safeValue (response, 0);
+        const ticker = this.safeDict (response, 0);
         return this.parseTicker (ticker, market);
     }
 
@@ -469,7 +474,7 @@ export default class idex extends Exchange {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         const response = await this.publicGetCandles (this.extend (request, params));
         if (Array.isArray (response)) {
@@ -626,7 +631,7 @@ export default class idex extends Exchange {
         }, market);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name idex#fetchTradingFees
@@ -739,7 +744,7 @@ export default class idex extends Exchange {
         return this.sortBy (result, 0, descending);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name idex#fetchCurrencies
@@ -1169,7 +1174,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name idex#createOrder
@@ -1371,7 +1376,7 @@ export default class idex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name idex#withdraw
@@ -1504,18 +1509,15 @@ export default class idex extends Exchange {
         };
         // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         const response = await this.privateDeleteOrders (this.extend (request, params));
-        const canceledOrder = this.safeValue (response, 0);
+        const canceledOrder = this.safeDict (response, 0);
         return this.parseOrder (canceledOrder, market);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if (errorCode in this.exceptions) {
-            const Exception = this.exceptions[errorCode];
-            throw new Exception (this.id + ' ' + message);
-        }
         if (errorCode !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
             throw new ExchangeError (this.id + ' ' + message);
         }
         return undefined;
@@ -1779,7 +1781,7 @@ export default class idex extends Exchange {
         return authenticated ? (defaultCost / 2) : defaultCost;
     }
 
-    async fetchDepositAddress (code: string = undefined, params = {}) {
+    async fetchDepositAddress (code: Str = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchDepositAddress

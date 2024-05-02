@@ -7,9 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -111,7 +111,7 @@ class poloniex extends \ccxt\async\poloniex {
                     ),
                 );
                 $message = array_merge($request, $params);
-                $future = Async\await($this->watch($url, $messageHash, $message));
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 //
                 //    {
                 //        "data" => array(

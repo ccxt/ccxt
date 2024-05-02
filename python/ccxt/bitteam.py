@@ -5,16 +5,16 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitteam import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
@@ -96,7 +96,11 @@ class bitteam(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': False,
@@ -247,7 +251,7 @@ class bitteam(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitteam
         :see: https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
@@ -415,7 +419,7 @@ class bitteam(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
@@ -669,7 +673,7 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'data', [])
+        data = self.safe_list(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -844,7 +848,7 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'orders', [])
+        orders = self.safe_list(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
@@ -901,7 +905,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         return self.parse_order(result, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -952,7 +956,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
@@ -1001,7 +1005,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        order = self.safe_value(response, 'result', {})
+        order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1026,7 +1030,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -1475,7 +1479,7 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        pair = self.safe_value(result, 'pair', {})
+        pair = self.safe_dict(result, 'pair', {})
         return self.parse_ticker(pair, market)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -1796,7 +1800,7 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'trades', [])
+        trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -2087,7 +2091,7 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        transactions = self.safe_value(result, 'transactions', [])
+        transactions = self.safe_list(result, 'transactions', [])
         return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:

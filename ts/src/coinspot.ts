@@ -5,7 +5,7 @@ import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -59,8 +59,11 @@ export default class coinspot extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -288,7 +291,7 @@ export default class coinspot extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue (prices, id);
+        const ticker = this.safeDict (prices, id);
         return this.parseTicker (ticker, market);
     }
 
@@ -362,7 +365,7 @@ export default class coinspot extends Exchange {
         //         ],
         //     }
         //
-        const trades = this.safeValue (response, 'orders', []);
+        const trades = this.safeList (response, 'orders', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -496,7 +499,7 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#createOrder

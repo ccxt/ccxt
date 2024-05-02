@@ -27,6 +27,7 @@ class krakenfutures extends Exchange {
                 'future' => true,
                 'option' => false,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createMarketOrder' => false,
@@ -262,7 +263,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple $currencies
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-$instruments
@@ -346,7 +347,8 @@ class krakenfutures extends Exchange {
             // $swap == perpetual
             $settle = null;
             $settleId = null;
-            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'contractValueTradePrecision', '0')));
+            $cvtp = $this->safe_string($market, 'contractValueTradePrecision');
+            $amountPrecision = $this->parse_number($this->integer_precision_to_amount($cvtp));
             $pricePrecision = $this->safe_number($market, 'tickSize');
             $contract = ($swap || $future || $index);
             $swapOrFutures = ($swap || $future);
@@ -525,7 +527,7 @@ class krakenfutures extends Exchange {
         //        "serverTime" => "2022-02-18T14:16:29.440Z"
         //    }
         //
-        $tickers = $this->safe_value($response, 'tickers');
+        $tickers = $this->safe_list($response, 'tickers');
         return $this->parse_tickers($tickers, $symbols);
     }
 
@@ -630,16 +632,13 @@ class krakenfutures extends Exchange {
             $request['from'] = $this->parse_to_int($since / 1000);
             if ($limit === null) {
                 $limit = 5000;
-            } elseif ($limit > 5000) {
-                throw new BadRequest($this->id . ' fetchOHLCV() $limit cannot exceed 5000');
             }
+            $limit = min ($limit, 5000);
             $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
             $currentTimestamp = $this->seconds();
             $request['to'] = min ($toTimestamp, $currentTimestamp);
         } elseif ($limit !== null) {
-            if ($limit > 5000) {
-                throw new BadRequest($this->id . ' fetchOHLCV() $limit cannot exceed 5000');
-            }
+            $limit = min ($limit, 5000);
             $duration = $this->parse_timeframe($timeframe);
             $request['to'] = $this->seconds();
             $request['from'] = $this->parse_to_int($request['to'] - ($duration * $limit));
@@ -660,7 +659,7 @@ class krakenfutures extends Exchange {
         //        "more_candles" => true
         //    }
         //
-        $candles = $this->safe_value($response, 'candles');
+        $candles = $this->safe_list($response, 'candles');
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
@@ -1114,7 +1113,7 @@ class krakenfutures extends Exchange {
         //     )
         // }
         //
-        $data = $this->safe_value($response, 'batchStatus', array());
+        $data = $this->safe_list($response, 'batchStatus', array());
         return $this->parse_orders($data);
     }
 
@@ -1227,7 +1226,7 @@ class krakenfutures extends Exchange {
         //       }
         //     )
         // }
-        $batchStatus = $this->safe_value($response, 'batchStatus', array());
+        $batchStatus = $this->safe_list($response, 'batchStatus', array());
         return $this->parse_orders($batchStatus);
     }
 
@@ -1247,6 +1246,32 @@ class krakenfutures extends Exchange {
         return $response;
     }
 
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $request = array(
+            'timeout' => ($timeout > 0) ? ($this->parse_to_int($timeout / 1000)) : 0,
+        );
+        $response = $this->privatePostCancelallordersafter (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => "success",
+        //         "serverTime" => "2018-06-19T16:51:23.839Z",
+        //         "status" => {
+        //             "currentTime" => "2018-06-19T16:51:23.839Z",
+        //             "triggerTime" => "0"
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-$orders
@@ -1263,7 +1288,7 @@ class krakenfutures extends Exchange {
             $market = $this->market($symbol);
         }
         $response = $this->privateGetOpenorders ($params);
-        $orders = $this->safe_value($response, 'openOrders', array());
+        $orders = $this->safe_list($response, 'openOrders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -2326,7 +2351,7 @@ class krakenfutures extends Exchange {
         //        "serverTime" => "2018-07-19T11:32:39.433Z"
         //    }
         //
-        $data = $this->safe_value($response, 'instruments');
+        $data = $this->safe_list($response, 'instruments');
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
@@ -2456,7 +2481,7 @@ class krakenfutures extends Exchange {
         return $this->transfer($code, $amount, 'future', 'spot', $params);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-$transfer
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
@@ -2526,7 +2551,7 @@ class krakenfutures extends Exchange {
         return $this->privatePutLeveragepreferences (array_merge($request, $params));
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): Leverages {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all contract and margin markets
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
@@ -2552,7 +2577,7 @@ class krakenfutures extends Exchange {
         return $this->parse_leverages($leveragePreferences, $symbols, 'symbol');
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-$market
@@ -2581,7 +2606,7 @@ class krakenfutures extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'maxLeverage');
         return array(

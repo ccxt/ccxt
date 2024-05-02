@@ -54,8 +54,11 @@ class coinmate extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -220,7 +223,7 @@ class coinmate extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for coinmate
          * @see https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
@@ -391,7 +394,7 @@ class coinmate extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_ticker($data, $market);
     }
 
@@ -590,7 +593,7 @@ class coinmate extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/withdraw-bitcoins/post
@@ -673,7 +676,7 @@ class coinmate extends Exchange {
             $request['timestampFrom'] = $since;
         }
         $response = $this->privatePostTradeHistory (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, null, $since, $limit);
     }
 
@@ -774,11 +777,11 @@ class coinmate extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post
@@ -1014,7 +1017,7 @@ class coinmate extends Exchange {
             $market = $this->market($symbol);
         }
         $response = $this->privatePostOrderById (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 

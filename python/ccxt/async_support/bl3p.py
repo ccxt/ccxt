@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bl3p import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, IndexType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, IndexType, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -61,8 +61,11 @@ class bl3p(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -172,7 +175,7 @@ class bl3p(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response = await self.publicGetMarketOrderbook(self.extend(request, params))
-        orderbook = self.safe_value(response, 'data')
+        orderbook = self.safe_dict(response, 'data')
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price_int', 'amount_int')
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -311,7 +314,7 @@ class bl3p(Exchange, ImplicitAPI):
         result = self.parse_trades(response['data']['trades'], market, since, limit)
         return result
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
@@ -364,7 +367,7 @@ class bl3p(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-order

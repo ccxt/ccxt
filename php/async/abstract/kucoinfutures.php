@@ -238,6 +238,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function private_get_margin_repay($params = array()) {
         return $this->request('margin/repay', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function private_get_margin_interest($params = array()) {
+        return $this->request('margin/interest', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_project_list($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -549,6 +552,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function futuresprivate_get_trade_statistics($params = array()) {
         return $this->request('trade-statistics', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function futuresprivate_get_trade_fees($params = array()) {
+        return $this->request('trade-fees', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function futuresprivate_get_history_positions($params = array()) {
+        return $this->request('history-positions', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function futuresprivate_post_transfer_out($params = array()) {
         return $this->request('transfer-out', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -874,6 +883,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function privateGetMarginRepay($params = array()) {
         return $this->request('margin/repay', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function privateGetMarginInterest($params = array()) {
+        return $this->request('margin/interest', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateGetProjectList($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1185,6 +1197,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function futuresPrivateGetTradeStatistics($params = array()) {
         return $this->request('trade-statistics', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivateGetTradeFees($params = array()) {
+        return $this->request('trade-fees', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivateGetHistoryPositions($params = array()) {
+        return $this->request('history-positions', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function futuresPrivatePostTransferOut($params = array()) {
         return $this->request('transfer-out', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));

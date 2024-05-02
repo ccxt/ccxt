@@ -1,18 +1,18 @@
 import Exchange from './abstract/bitmex.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies } from './base/types.js';
 /**
  * @class bitmex
  * @augments Exchange
  */
 export default class bitmex extends Exchange {
     describe(): any;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     convertFromRealAmount(code: any, amount: any): number;
     convertToRealAmount(code: Str, amount: Str): string;
     amountToPrecision(symbol: any, amount: any): any;
     convertFromRawQuantity(symbol: any, rawQuantity: any, currencySide?: string): number;
     convertFromRawCost(symbol: any, rawQuantity: any): number;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -57,16 +57,17 @@ export default class bitmex extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
     parseLeverage(leverage: any, market?: any): Leverage;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
     parseFundingRate(contract: any, market?: Market): {
         info: any;

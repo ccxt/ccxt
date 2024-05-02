@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -19,7 +20,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -326,7 +326,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
@@ -395,7 +395,7 @@ class currencycom(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for currencycom
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
@@ -574,7 +574,7 @@ class currencycom(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
@@ -628,7 +628,7 @@ class currencycom(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
@@ -963,7 +963,7 @@ class currencycom(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
+            request['limit'] = min(limit, 1000)  # default 500, max 1000
         response = await self.publicGetV2Klines(self.extend(request, params))
         #
         #     [
@@ -1230,7 +1230,7 @@ class currencycom(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/orderUsingPOST
@@ -1847,7 +1847,7 @@ class currencycom(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'positions', [])
+        data = self.safe_list(response, 'positions', [])
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market: Market = None):

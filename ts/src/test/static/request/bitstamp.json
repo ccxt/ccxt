@@ -5,26 +5,60 @@
     "methods": {
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
+                "description": "Fetch main balance",
                 "method": "fetchBalance",
-                "url": "https://www.bitstamp.net/api/v2/balance/",
-                "input": [
-                    {
-                        "type": "spot"
-                    }
-                ],
-                "output": "type=spot"
-            },
+                "url": "https://www.bitstamp.net/api/v2/account_balances/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchTradingFee": [
             {
-                "description": "Fetch swap Balance",
-                "method": "fetchBalance",
-                "url": "https://www.bitstamp.net/api/v2/balance/",
+                "description": "Fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://www.bitstamp.net/api/v2/fees/trading/",
                 "input": [
-                    {
-                        "type": "swap"
-                    }
+                    "BTC/USDT"
                 ],
-                "output": "type=swap"
+                "output": "market_symbol=btcusdt"
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/trading/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "Fetch transaction fees",
+                "method": "fetchTransactionFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit withdraw fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "Fetch deposit withdraw fee",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [
+                    "USDC"
+                ],
+                "output": "foo=bar"
             }
         ],
         "fetchLedger": [
@@ -194,6 +228,20 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from main to subAccount or from subAccount to main",
+                "method": "transfer",
+                "url": "https://www.bitstamp.net/api/v2/transfer-from-main/",
+                "input": [
+                    "USDT",
+                    1,
+                    "main",
+                    93482781
+                ],
+                "output": "amount=1&currency=USDT&subAccount=93482781"
             }
         ]
     }

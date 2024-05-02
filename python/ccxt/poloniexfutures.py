@@ -6,8 +6,9 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -17,7 +18,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -215,7 +215,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for poloniexfutures
         :see: https://futures-docs.poloniex.com/#symbol-2
@@ -382,7 +382,17 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
+        timestampString = self.safe_string(ticker, 'ts')
+        # check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        multiplier = None
+        if len(timestampString) == 17:
+            multiplier = 0.0001
+        elif len(timestampString) == 18:
+            multiplier = 0.00001
+        else:
+            # 19 length default
+            multiplier = 0.000001
+        timestamp = self.safe_integer_product(ticker, 'ts', multiplier)
         last = self.safe_string_2(ticker, 'price', 'lastPrice')
         percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
         return self.safe_ticker({
@@ -665,7 +675,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        },
         #    }
         #
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_time(self, params={}):
@@ -729,7 +739,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
@@ -780,7 +790,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
         :see: https://futures-docs.poloniex.com/#place-an-order
@@ -970,7 +980,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market: Market = None):
@@ -1209,8 +1219,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         self.load_markets()
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['triger', 'stop', 'until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['trigger', 'stop', 'until'])
         if status == 'closed':
             status = 'done'
         request = {}
@@ -1298,7 +1308,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1314,14 +1324,14 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    def fetch_order(self, id: str = None, symbol: Str = None, params={}):
+    def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1389,7 +1399,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #    }
         #
         market = self.market(symbol) if (symbol is not None) else None
-        responseData = self.safe_value(response, 'data')
+        responseData = self.safe_dict(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market: Market = None) -> Order:
@@ -1616,10 +1626,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'items', {})
+        trades = self.safe_list(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def set_margin_mode(self, marginMode: str, symbol: str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://futures-docs.poloniex.com/#change-margin-mode

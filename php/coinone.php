@@ -62,8 +62,11 @@ class coinone extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -196,7 +199,7 @@ class coinone extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.coinone.co.kr/reference/currencies
@@ -261,7 +264,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for coinone
          * @see https://docs.coinone.co.kr/v1.0/reference/tickers
@@ -504,7 +507,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'tickers', array());
+        $data = $this->safe_list($response, 'tickers', array());
         return $this->parse_tickers($data, $symbols);
     }
 
@@ -557,7 +560,7 @@ class coinone extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'tickers', array());
-        $ticker = $this->safe_value($data, 0, array());
+        $ticker = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -722,7 +725,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'transactions', array());
+        $data = $this->safe_list($response, 'transactions', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -966,7 +969,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $limitOrders = $this->safe_value($response, 'limitOrders', array());
+        $limitOrders = $this->safe_list($response, 'limitOrders', array());
         return $this->parse_orders($limitOrders, $market, $since, $limit);
     }
 
@@ -1008,7 +1011,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $completeOrders = $this->safe_value($response, 'completeOrders', array());
+        $completeOrders = $this->safe_list($response, 'completeOrders', array());
         return $this->parse_trades($completeOrders, $market, $since, $limit);
     }
 
