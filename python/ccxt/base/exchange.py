@@ -448,7 +448,49 @@ class Exchange(object):
         delimiters = re.compile('[^a-zA-Z0-9]')
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
         for key, value in api.items():
-            if isinstance(value, list):
+            if isinstance(value, int) or isinstance(value, float):
+                uppercase_method = paths[-1].upper()
+                lowercase_method = paths[-1].lower()
+                camelcase_method = lowercase_method.capitalize()
+                temp_paths = paths[:-1]
+                path = key.strip()
+                split_path = delimiters.split(path)
+                lowercase_path = [x.strip().lower() for x in split_path]
+                camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+                underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
+                camelcase_prefix = ''
+                underscore_prefix = ''
+                if len(temp_paths):
+                    camelcase_prefix = temp_paths[0]
+                    underscore_prefix = temp_paths[0]
+                    if len(temp_paths) > 1:
+                        camelcase_prefix += ''.join([Exchange.capitalize(x) for x in temp_paths[1:]])
+                        underscore_prefix += '_' + '_'.join([x.strip() for p in temp_paths[1:] for x in delimiters.split(p)])
+                        api_argument = temp_paths
+                    else:
+                        api_argument = temp_paths[0]
+                camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
+                underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
+
+                def partialer():
+                    outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method}
+
+                    @functools.wraps(entry)
+                    def inner(_self, params=None):
+                        """
+                        Inner is called when a generated method (publicGetX) is called.
+                        _self is a reference to self created by function.__get__(exchange, type(exchange))
+                        https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
+                        """
+                        inner_kwargs = dict(outer_kwargs)  # avoid mutation
+                        if params is not None:
+                            inner_kwargs['params'] = params
+                        return entry(_self, **inner_kwargs)
+                    return inner
+                to_bind = partialer()
+                setattr(cls, camelcase, to_bind)
+                setattr(cls, underscore, to_bind)
+            elif isinstance(value, list):
                 uppercase_method = key.upper()
                 lowercase_method = key.lower()
                 camelcase_method = lowercase_method.capitalize()
