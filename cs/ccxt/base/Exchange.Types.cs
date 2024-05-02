@@ -178,7 +178,7 @@ public struct Trade
     public double? price;
     public double? cost;
     public string? id;
-    public string? orderId;
+    public string? order;
     public Dictionary<string, object>? info;
     public Int64? timestamp;
     public string? datetime;
@@ -194,7 +194,7 @@ public struct Trade
         price = Exchange.SafeFloat(trade, "price");
         cost = Exchange.SafeFloat(trade, "cost");
         id = Exchange.SafeString(trade, "id");
-        orderId = Exchange.SafeString(trade, "orderId");
+        order = Exchange.SafeString(trade, "order");
         // info = trade.ContainsKey("info") ? (Dictionary<string, object>)trade["info"] : null;
         timestamp = Exchange.SafeInteger(trade, "timestamp");
         datetime = Exchange.SafeString(trade, "datetime");
@@ -831,11 +831,11 @@ public struct IsolatedBorrowRate
     public IsolatedBorrowRate(object isolatedBorrowRate)
     {
         var isolatedBorrowRate2 = (Dictionary<string, object>)isolatedBorrowRate;
-        symbol = Exchange.SafeString (isolatedBorrowRate2, "symbol");
+        symbol = Exchange.SafeString(isolatedBorrowRate2, "symbol");
         // base = Exchange.SafeString (isolatedBorrowRate2, "base");
-        baseRate = Exchange.SafeFloat (isolatedBorrowRate2, "baseRate");
-        quote = Exchange.SafeString (isolatedBorrowRate2, "quote");
-        quoteRate = Exchange.SafeFloat (isolatedBorrowRate2, "quoteRate");
+        baseRate = Exchange.SafeFloat(isolatedBorrowRate2, "baseRate");
+        quote = Exchange.SafeString(isolatedBorrowRate2, "quote");
+        quoteRate = Exchange.SafeFloat(isolatedBorrowRate2, "quoteRate");
         rate = Exchange.SafeFloat(isolatedBorrowRate2, "rate");
         timestamp = Exchange.SafeInteger(isolatedBorrowRate2, "timestamp");
         datetime = Exchange.SafeString(isolatedBorrowRate2, "datetime");

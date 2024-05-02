@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.11'
+__version__ = '4.3.14'
 
 # -----------------------------------------------------------------------------
 
@@ -460,6 +460,10 @@ class Exchange(object):
             self.set_markets(self.markets)
 
         self.after_construct()
+
+        is_sandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
+        if is_sandbox:
+            self.set_sandbox_mode(is_sandbox)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -1216,7 +1220,7 @@ class Exchange(object):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                string = ''.join([str(value).zfill(2) for value in parsedate(timestamp)[:6]]) + '.000Z'
                 dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
                 return calendar.timegm(dt.utctimetuple()) * 1000
             except (TypeError, OverflowError, OSError):

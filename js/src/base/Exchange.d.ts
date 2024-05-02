@@ -200,7 +200,7 @@ export default class Exchange {
     numberToBE: (n: number, padding: number) => Uint8Array;
     base16ToBinary: (str: string) => Uint8Array;
     iso8601: (timestamp: any) => string;
-    omit: (x: Dictionary<any>, ...args: any[]) => any;
+    omit: (x: Dictionary<any>, ...args: any) => any;
     isJsonEncodedObject: (object: any) => boolean;
     safeInteger: (o: any, k: IndexType, $default?: number) => number;
     sum: (...xs: any[]) => any;

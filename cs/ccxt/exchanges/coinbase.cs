@@ -31,6 +31,7 @@ public partial class coinbase : Exchange
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", true },
+                { "createConvertTrade", true },
                 { "createDepositAddress", true },
                 { "createLimitBuyOrder", true },
                 { "createLimitSellOrder", true },
@@ -54,6 +55,9 @@ public partial class coinbase : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchConvertQuote", true },
+                { "fetchConvertTrade", true },
+                { "fetchConvertTradeHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -4368,6 +4372,118 @@ public partial class coinbase : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
+    }
+
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchConvertQuote
+        * @description fetch a quote for converting from one currency to another
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
+        * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
+        * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "from_account", fromCode },
+            { "to_account", toCode },
+            { "amount", this.numberToString(amount) },
+        };
+        object response = await this.v3PrivatePostBrokerageConvertQuote(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "trade_id", id },
+            { "from_account", fromCode },
+            { "to_account", toCode },
+        };
+        object response = await this.v3PrivatePostBrokerageConvertTradeTradeId(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchConvertTrade
+        * @description fetch the data for a conversion trade
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
+        * @param {string} id the id of the trade that you want to commit
+        * @param {string} code the unified currency code that was converted from
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {strng} params.toCode the unified currency code that was converted into
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchConvertTrade() requires a code argument")) ;
+        }
+        object toCode = this.safeString(parameters, "toCode");
+        if (isTrue(isEqual(toCode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchConvertTrade() requires a toCode parameter")) ;
+        }
+        parameters = this.omit(parameters, "toCode");
+        object request = new Dictionary<string, object>() {
+            { "trade_id", id },
+            { "from_account", code },
+            { "to_account", toCode },
+        };
+        object response = await this.v3PrivateGetBrokerageConvertTradeTradeId(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        object fromCoin = this.safeString(conversion, "source_currency");
+        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        object to = this.safeString(conversion, "target_currency");
+        object toCode = this.safeCurrencyCode(to, toCurrency);
+        object fromAmountStructure = this.safeDict(conversion, "user_entered_amount");
+        object feeStructure = this.safeDict(conversion, "total_fee");
+        object feeAmountStructure = this.safeDict(feeStructure, "amount");
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", null },
+            { "datetime", null },
+            { "id", this.safeString(conversion, "id") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.safeNumber(fromAmountStructure, "value") },
+            { "toCurrency", toCode },
+            { "toAmount", null },
+            { "price", null },
+            { "fee", this.safeNumber(feeAmountStructure, "value") },
+        };
     }
 
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)

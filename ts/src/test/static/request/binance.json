@@ -3077,6 +3077,24 @@
                 ],
                 "output": "timestamp=1713536455384&quoteId=844f131de9994643a0b6ce7805d08cfb&recvWindow=10000&signature=39e6351a5061356643aa48f6e335b6d3c903710206f2543bd9443af07885948b"
             }
+        ],
+        "fetchIsolatedBorrowRate": [
+            {
+                "description": "fetchIsolatedBorrowRate",
+                "method": "fetchIsolatedBorrowRate",
+                "url": "https://api.binance.com/sapi/v1/margin/isolatedMarginData?timestamp=1714664548704&symbol=BTCUSDT&recvWindow=10000&signature=6bed3101b0139a52896c5ac2cba8c9c16371153e133ecdef782c7cd398bb470f",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchIsolatedBorrowRates": [
+            {
+                "description": "fetchIsolatedBorrowRates",
+                "method": "fetchIsolatedBorrowRates",
+                "url": "https://api.binance.com/sapi/v1/margin/isolatedMarginData?timestamp=1714664627834&recvWindow=10000&signature=9b4fa07568a385ee7a642e31375bb1c6e0640d1491508b2f5bbd4e36ce31f117",
+                "input": []
+            }
         ]
     }
 }
