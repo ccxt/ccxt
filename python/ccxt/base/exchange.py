@@ -461,6 +461,10 @@ class Exchange(object):
 
         self.after_construct()
 
+        is_sandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
+        if is_sandbox:
+            self.set_sandbox_mode(is_sandbox)
+
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         for name in dir(self):
