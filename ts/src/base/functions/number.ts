@@ -99,12 +99,12 @@ function precisionFromString (str) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x,
-    roundingMode,
-    numPrecisionDigits,
+    x: number,
+    roundingMode: number,
+    numPrecisionDigits: number,
     countingMode = DECIMAL_PLACES,
     paddingMode = NO_PADDING
-) => {
+): string => {
     if (countingMode === TICK_SIZE) {
         if (typeof numPrecisionDigits === 'string') {
             numPrecisionDigits = parseFloat(numPrecisionDigits)
@@ -116,7 +116,7 @@ const decimalToPrecision = (
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * parseFloat (decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();
