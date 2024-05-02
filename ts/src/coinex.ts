@@ -3312,6 +3312,21 @@ export default class coinex extends Exchange {
     }
 
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchOrdersByStatus
+         * @description fetch a list of orders
+         * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
+         * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
+         * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
+         * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {boolean} [params.trigger] set to true for fetching trigger orders
+         * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -3327,9 +3342,11 @@ export default class coinex extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         let response = undefined;
+        const isClosed = (status === 'finished') || (status === 'closed');
+        const isOpen = (status === 'pending') || (status === 'open');
         if (marketType === 'swap') {
             request['market_type'] = 'FUTURES';
-            if (status === 'finished') {
+            if (isClosed) {
                 if (stop) {
                     response = await this.v2PrivateGetFuturesFinishedStopOrder (this.extend (request, params));
                     //
@@ -3391,7 +3408,7 @@ export default class coinex extends Exchange {
                     //     }
                     //
                 }
-            } else if (status === 'pending') {
+            } else if (isOpen) {
                 if (stop) {
                     response = await this.v2PrivateGetFuturesPendingStopOrder (this.extend (request, params));
                     //
@@ -3467,7 +3484,7 @@ export default class coinex extends Exchange {
             } else {
                 request['market_type'] = 'SPOT';
             }
-            if (status === 'finished') {
+            if (isClosed) {
                 if (stop) {
                     response = await this.v2PrivateGetSpotFinishedStopOrder (this.extend (request, params));
                     //
