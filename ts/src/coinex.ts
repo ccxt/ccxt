@@ -1942,8 +1942,11 @@ export default class coinex extends Exchange {
         }
         const marketId = this.safeString (order, 'market');
         const defaultType = this.safeString (this.options, 'defaultType');
-        const orderType = this.safeString (order, 'market_type', defaultType);
-        const marketType = ((orderType === 'FUTURES') || (orderType === 'swap')) ? 'swap' : 'spot';
+        let orderType = this.safeStringLower (order, 'market_type', defaultType);
+        if (orderType === 'FUTURES') {
+            orderType = 'swap';
+        }
+        const marketType = (orderType === 'swap') ? 'swap' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const feeCurrencyId = this.safeString (order, 'fee_ccy');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
