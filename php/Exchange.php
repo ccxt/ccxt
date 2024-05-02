@@ -1202,6 +1202,9 @@ class Exchange {
         }
 
         $this->after_construct();
+
+        $is_sandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', False);
+        $this->set_sandbox_mode($is_sandbox);
     }
 
     public static function underscore($camelcase) {
