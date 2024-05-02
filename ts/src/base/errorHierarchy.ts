@@ -46,6 +46,7 @@ const errorHierarchy = {
                 'InvalidNonce': {},
                 'RequestTimeout': {},
             },
+            'MarketClosed': {},
         },
     },
 };
