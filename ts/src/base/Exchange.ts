@@ -5022,7 +5022,7 @@ export default class Exchange {
             }
             // temporary support for old futures
             if (symbol.indexOf ('-') >= 0) {
-                const futureTypes  = [ 'W', 'BW', 'M', 'BM', 'Q', 'BQ' ]
+                const futureTypes = [ 'W', 'BW', 'M', 'BM', 'Q', 'BQ' ]
                 for (let i = 0; i < futureTypes.length; i++) {
                     // if requested symbol is correct format (i.e. A/B:C-Wxxxxxx) then skip
                     if (symbol.indexOf ('-' + futureTypes[i]) < 0) {
