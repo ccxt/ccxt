@@ -164,6 +164,7 @@ class coinmetro extends Exchange {
                 'private' => array(
                     'get' => array(
                         'users/balances' => 1,
+                        'users/wallets' => 1,
                         'users/wallets/history/{since}' => 1.67,
                         'exchange/orders/status/{orderID}' => 1,
                         'exchange/orders/active' => 1,
@@ -250,7 +251,7 @@ class coinmetro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -338,7 +339,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinmetro
@@ -511,9 +512,9 @@ class coinmetro extends Exchange {
             } else {
                 $request['from'] = ':from'; // this endpoint doesn't accept empty from and to $params (setting them into the value described in the documentation)
             }
-            $until = $this->safe_integer_2($params, 'till', 'until', $until);
+            $until = $this->safe_integer($params, 'until', $until);
             if ($until !== null) {
-                $params = $this->omit($params, array( 'till', 'until' ));
+                $params = $this->omit($params, array( 'until' ));
                 $request['to'] = $until;
             } else {
                 $request['to'] = ':to';
@@ -546,7 +547,7 @@ class coinmetro extends Exchange {
             //         )
             //     }
             //
-            $candleHistory = $this->safe_value($response, 'candleHistory', array());
+            $candleHistory = $this->safe_list($response, 'candleHistory', array());
             return $this->parse_ohlcvs($candleHistory, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -613,7 +614,7 @@ class coinmetro extends Exchange {
             //         )
             //     }
             //
-            $tickHistory = $this->safe_value($response, 'tickHistory', array());
+            $tickHistory = $this->safe_list($response, 'tickHistory', array());
             return $this->parse_trades($tickHistory, $market, $since, $limit);
         }) ();
     }
@@ -891,7 +892,7 @@ class coinmetro extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetExchangePrices ($params));
-            $latestPrices = $this->safe_value($response, 'latestPrices', array());
+            $latestPrices = $this->safe_list($response, 'latestPrices', array());
             return $this->parse_tickers($latestPrices, $symbols);
         }) ();
     }
@@ -954,51 +955,50 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+             * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetUsersBalances ($params));
-            return $this->parse_balance($response);
+            $response = Async\await($this->privateGetUsersWallets ($params));
+            $list = $this->safe_list($response, 'list', array());
+            return $this->parse_balance($list);
         }) ();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance($balances): array {
         //
-        //     {
-        //         "USDC" => array(
-        //             "USDC" => 99,
-        //             "EUR" => 91.16,
-        //             "BTC" => 0.002334
+        //     array(
+        //         array(
+        //             "xcmLocks" => array(),
+        //             "xcmLockAmounts" => array(),
+        //             "refList" => array(),
+        //             "balanceHistory" => array(),
+        //             "_id" => "5fecd3c998e75c2e4d63f7c3",
+        //             "currency" => "BTC",
+        //             "label" => "BTC",
+        //             "userId" => "5fecd3c97fbfed1521db23bd",
+        //             "__v" => 0,
+        //             "balance" => 0.5,
+        //             "createdAt" => "2020-12-30T19:23:53.646Z",
+        //             "disabled" => false,
+        //             "updatedAt" => "2020-12-30T19:23:53.653Z",
+        //             "reserved" => 0,
+        //             "id" => "5fecd3c998e75c2e4d63f7c3"
         //         ),
-        //         "XCM" => array(
-        //             "XCM" => 0,
-        //             "EUR" => 0,
-        //             "BTC" => 0
-        //         ),
-        //         "TOTAL" => array(
-        //             "EUR" => 91.16,
-        //             "BTC" => 0.002334
-        //         ),
-        //         "REF" => {
-        //             "XCM" => 0,
-        //             "EUR" => 0,
-        //             "BTC" => 0
-        //         }
-        //     }
+        //         ...
+        //     )
         //
         $result = array(
-            'info' => $response,
+            'info' => $balances,
         );
-        $balances = $this->omit($response, array( 'TOTAL', 'REF' ));
-        $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
+        for ($i = 0; $i < count($balances); $i++) {
+            $balanceEntry = $this->safe_dict($balances, $i, array());
+            $currencyId = $this->safe_string($balanceEntry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $currency = $this->safe_value($balances, $currencyId, array());
-            $account['total'] = $this->safe_string($currency, $currencyId);
+            $account['total'] = $this->safe_string($balanceEntry, 'balance');
+            $account['used'] = $this->safe_string($balanceEntry, 'reserved');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);

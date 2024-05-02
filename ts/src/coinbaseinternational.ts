@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -78,6 +78,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -91,8 +92,10 @@ export default class coinbaseinternational extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -119,10 +122,10 @@ export default class coinbaseinternational extends Exchange {
                 },
                 'www': 'https://international.coinbase.com',
                 'doc': [
-                    'https://docs.cloud.coinbaseinternational.com/intx/docs',
+                    'https://docs.cloud.coinbase.com/intx/docs',
                 ],
                 'fees': [
-                    'https://help.coinbaseinternational.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
+                    'https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
                 ],
                 'referral': '',
             },
@@ -966,7 +969,7 @@ export default class coinbaseinternational extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinbaseinternational#fetchMarkets
@@ -1142,7 +1145,7 @@ export default class coinbaseinternational extends Exchange {
         };
     }
 
-    async fetchCurrencies (params = {}): Promise<any> {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name coinbaseinternational#fetchCurrencies
@@ -1871,9 +1874,9 @@ export default class coinbaseinternational extends Exchange {
         if (since !== undefined) {
             request['time_from'] = this.iso8601 (since);
         }
-        const until = this.safeStringN (params, [ 'until', 'till' ]);
+        const until = this.safeStringN (params, [ 'until' ]);
         if (until !== undefined) {
-            params = this.omit (params, [ 'until', 'till' ]);
+            params = this.omit (params, [ 'until' ]);
             request['ref_datetime'] = this.iso8601 (until);
         }
         const response = await this.v1PrivateGetPortfoliosFills (this.extend (request, params));
@@ -1921,7 +1924,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbaseinternational#withdraw

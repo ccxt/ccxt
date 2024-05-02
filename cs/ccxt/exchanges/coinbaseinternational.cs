@@ -69,6 +69,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchLedger", false },
                 { "fetchLeverage", false },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -82,8 +83,10 @@ public partial class coinbaseinternational : Exchange
                 { "fetchOrderBook", false },
                 { "fetchOrders", false },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -109,8 +112,8 @@ public partial class coinbaseinternational : Exchange
                     { "rest", "https://api-n5e1.coinbase.com/api" },
                 } },
                 { "www", "https://international.coinbase.com" },
-                { "doc", new List<object>() {"https://docs.cloud.coinbaseinternational.com/intx/docs"} },
-                { "fees", new List<object>() {"https://help.coinbaseinternational.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees"} },
+                { "doc", new List<object>() {"https://docs.cloud.coinbase.com/intx/docs"} },
+                { "fees", new List<object>() {"https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees"} },
                 { "referral", "" },
             } },
             { "requiredCredentials", new Dictionary<string, object>() {
@@ -1980,10 +1983,10 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
+        object until = this.safeStringN(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["ref_datetime"] = this.iso8601(until);
         }
         object response = await this.v1PrivateGetPortfoliosFills(this.extend(request, parameters));

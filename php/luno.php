@@ -59,8 +59,11 @@ class luno extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -176,7 +179,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for luno
          * @see https://www.luno.com/en/developers/api#tag/Market/operation/Markets
@@ -478,7 +481,7 @@ class luno extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privateGetListorders (array_merge($request, $params));
-        $orders = $this->safe_value($response, 'orders', array());
+        $orders = $this->safe_list($response, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -732,7 +735,7 @@ class luno extends Exchange {
         //          )
         //      }
         //
-        $trades = $this->safe_value($response, 'trades', array());
+        $trades = $this->safe_list($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -776,7 +779,7 @@ class luno extends Exchange {
         //          "pair" => "XBTEUR"
         //     }
         //
-        $ohlcvs = $this->safe_value($response, 'candles', array());
+        $ohlcvs = $this->safe_list($response, 'candles', array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -845,11 +848,11 @@ class luno extends Exchange {
         //          )
         //      }
         //
-        $trades = $this->safe_value($response, 'trades', array());
+        $trades = $this->safe_list($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
@@ -875,6 +878,8 @@ class luno extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($response, 'maker_fee'),
             'taker' => $this->safe_number($response, 'taker_fee'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

@@ -528,6 +528,26 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"spot\",\"orderFilter\":\"StopOrder\"}"
             }
         ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-batch",
+                "input": [
+                  [
+                    {
+                      "id": "da3d893d-8668-4482-a2ec-c3d1414695c3",
+                      "symbol": "LTC/USDT:USDT"
+                    },
+                    {
+                      "id": "da03221b-f231-49c2-9b93-e1d10ed470c2",
+                      "symbol": "ADA/USDT:USDT"
+                    }
+                  ]
+                ],
+                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderId\":\"da3d893d-8668-4482-a2ec-c3d1414695c3\"},{\"symbol\":\"ADAUSDT\",\"orderId\":\"da03221b-f231-49c2-9b93-e1d10ed470c2\"}]}"
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot fetchOpenOrders",
@@ -755,7 +775,44 @@
                         "BTCUSDT"
                     ]
                 ]
-            }
+            },
+            {
+                "description": "exchange default",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=linear",
+                "input": []
+            },
+            {
+                "description": "spot with option.defaultType",
+                "options": {
+                    "defaultType": "spot"
+                },
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=spot",
+                "input": []
+            },
+            {
+                "description": "subtype:linear",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=linear",
+                "input": [
+                  null,
+                  {
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "subtype:inverse",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=inverse",
+                "input": [
+                  null,
+                  {
+                    "subType": "inverse"
+                  }
+                ]
+             }
         ],
         "fetchOHLCV": [
             {
@@ -929,6 +986,59 @@
                   ]
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "funding history linear",
+                "method": "fetchFundingHistory",
+                "url": "https://api-testnet.bybit.com/v5/execution/list?execType=Funding&symbol=LTCUSDT&category=linear&size=100",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOptionChain": [
+            {
+                "description": "Fetch an entire option chain for an underlying asset",
+                "method": "fetchOptionChain",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&baseCoin=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&symbol=BTC-27DEC24-55000-P",
+                "input": [
+                  "BTC/USDC:USDC-241227-55000-P"
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionsHistory",
+                "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear",
+                "input": []
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPositionsHistory",
+                "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear&symbol=XRPUSDT&startTime=1709589714736&limit=1&endTime=1709590068602",
+                "input": [
+                  [
+                    "XRP/USDT:USDT"
+                  ],
+                  1709589714736,
+                  1,
+                  {
+                    "until": 1709590068602
+                  }
+                ]
+              }
         ]
     },
     "disabled": []

@@ -2,7 +2,7 @@ import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 
 /**
  * @class timex
@@ -63,8 +63,11 @@ export default class timex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -281,7 +284,7 @@ export default class timex extends Exchange {
         return this.parseToInt (response) * 1000;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name timex#fetchMarkets
@@ -315,7 +318,7 @@ export default class timex extends Exchange {
         return this.parseMarkets (response);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name timex#fetchCurrencies
@@ -554,7 +557,7 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        const ticker = this.safeValue (response, 0);
+        const ticker = this.safeDict (response, 0);
         return this.parseTicker (ticker, market);
     }
 
@@ -817,7 +820,7 @@ export default class timex extends Exchange {
         //     }
         //
         const orders = this.safeValue (response, 'orders', []);
-        const order = this.safeValue (orders, 0, {});
+        const order = this.safeDict (orders, 0, {});
         return this.parseOrder (order, market);
     }
 
@@ -869,7 +872,7 @@ export default class timex extends Exchange {
         }
         const orders = this.safeValue (response, 'changedOrders', []);
         const firstOrder = this.safeValue (orders, 0, {});
-        const order = this.safeValue (firstOrder, 'newOrder', {});
+        const order = this.safeDict (firstOrder, 'newOrder', {});
         return this.parseOrder (order, market);
     }
 
@@ -980,7 +983,7 @@ export default class timex extends Exchange {
         //     }
         //
         const order = this.safeValue (response, 'order', {});
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseOrder (this.extend (order, { 'trades': trades }));
     }
 
@@ -1036,7 +1039,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1097,7 +1100,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1161,11 +1164,11 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "fee": 0.0075,
@@ -1179,10 +1182,12 @@ export default class timex extends Exchange {
             'symbol': this.safeSymbol (marketId, market),
             'maker': rate,
             'taker': rate,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name timex#fetchTradingFee

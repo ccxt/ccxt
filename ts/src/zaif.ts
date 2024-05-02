@@ -143,7 +143,7 @@ export default class zaif extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name zaif#fetchMarkets
@@ -597,7 +597,7 @@ export default class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name zaif#withdraw
@@ -644,7 +644,7 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        const returnData = this.safeValue (result, 'return');
+        const returnData = this.safeDict (result, 'return');
         return this.parseTransaction (returnData, currency);
     }
 

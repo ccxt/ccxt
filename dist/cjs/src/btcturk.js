@@ -60,8 +60,11 @@ class btcturk extends btcturk$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -415,7 +418,7 @@ class btcturk extends btcturk$1 {
          */
         await this.loadMarkets();
         const response = await this.publicGetTicker(params);
-        const tickers = this.safeValue(response, 'data');
+        const tickers = this.safeList(response, 'data');
         return this.parseTickers(tickers, symbols);
     }
     async fetchTicker(symbol, params = {}) {
@@ -533,7 +536,7 @@ class btcturk extends btcturk$1 {
         //       ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -585,6 +588,7 @@ class btcturk extends btcturk$1 {
             limit = 100; // default value
         }
         if (limit !== undefined) {
+            limit = Math.min(limit, 11000); // max 11000 candles diapason can be covered
             if (timeframe === '1y') { // difficult with leap years
                 throw new errors.BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
@@ -595,7 +599,7 @@ class btcturk extends btcturk$1 {
                 request['to'] = Math.min(request['to'], to);
             }
             else {
-                request['from'] = this.parseToInt(until / 1000) - limitSeconds;
+                request['from'] = this.parseToInt(0 / 1000) - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory(this.extend(request, params));
@@ -690,7 +694,7 @@ class btcturk extends btcturk$1 {
             request['newClientOrderId'] = this.uuid();
         }
         const response = await this.privatePostOrder(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -731,7 +735,7 @@ class btcturk extends btcturk$1 {
         const response = await this.privateGetOpenOrders(this.extend(request, params));
         const data = this.safeValue(response, 'data');
         const bids = this.safeValue(data, 'bids', []);
-        const asks = this.safeValue(data, 'asks', []);
+        const asks = this.safeList(data, 'asks', []);
         return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -779,7 +783,7 @@ class btcturk extends btcturk$1 {
         //     }
         //   ]
         // }
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -896,7 +900,7 @@ class btcturk extends btcturk$1 {
         //       "code": "0"
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     nonce() {

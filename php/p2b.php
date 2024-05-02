@@ -77,8 +77,11 @@ class p2b extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPermissions' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -229,7 +232,7 @@ class p2b extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bigone
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$markets
@@ -567,7 +570,7 @@ class p2b extends Exchange {
         //        current_time => '1699255571.413828'
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
@@ -683,7 +686,7 @@ class p2b extends Exchange {
         //        current_time => '1699256375.030494'
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
@@ -818,7 +821,7 @@ class p2b extends Exchange {
         //        }
         //    }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_dict($response, 'result');
         return $this->parse_order($result, $market);
     }
 
@@ -863,7 +866,7 @@ class p2b extends Exchange {
         //        }
         //    }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_dict($response, 'result');
         return $this->parse_order($result);
     }
 
@@ -917,7 +920,7 @@ class p2b extends Exchange {
         //        )
         //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
@@ -968,7 +971,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_value($response, 'result', array());
-        $records = $this->safe_value($result, 'records', array());
+        $records = $this->safe_list($result, 'records', array());
         return $this->parse_trades($records, $market, $since, $limit);
     }
 
@@ -1042,7 +1045,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_value($response, 'result', array());
-        $deals = $this->safe_value($result, 'deals', array());
+        $deals = $this->safe_list($result, 'deals', array());
         return $this->parse_trades($deals, $market, $since, $limit);
     }
 

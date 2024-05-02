@@ -73,6 +73,7 @@ class coinbaseinternational extends Exchange {
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -86,8 +87,10 @@ class coinbaseinternational extends Exchange {
                 'fetchOrderBook' => false,
                 'fetchOrders' => false,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -114,10 +117,10 @@ class coinbaseinternational extends Exchange {
                 ),
                 'www' => 'https://international.coinbase.com',
                 'doc' => array(
-                    'https://docs.cloud.coinbaseinternational.com/intx/docs',
+                    'https://docs.cloud.coinbase.com/intx/docs',
                 ),
                 'fees' => array(
-                    'https://help.coinbaseinternational.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
+                    'https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
                 ),
                 'referral' => '',
             ),
@@ -928,7 +931,7 @@ class coinbaseinternational extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
          * retrieves data on all markets for coinbaseinternational
@@ -1102,7 +1105,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()): mixed {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.cloud.coinbase.com/intx/reference/getassets
@@ -1807,9 +1810,9 @@ class coinbaseinternational extends Exchange {
         if ($since !== null) {
             $request['time_from'] = $this->iso8601($since);
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till' ));
+        $until = $this->safe_string_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['ref_datetime'] = $this->iso8601($until);
         }
         $response = $this->v1PrivateGetPortfoliosFills (array_merge($request, $params));
@@ -1857,7 +1860,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.cloud.coinbase.com/intx/reference/withdraw

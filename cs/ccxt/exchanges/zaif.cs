@@ -651,7 +651,7 @@ public partial class zaif : Exchange
         //         }
         //     }
         //
-        object returnData = this.safeValue(result, "return");
+        object returnData = this.safeDict(result, "return");
         return this.parseTransaction(returnData, currency);
     }
 

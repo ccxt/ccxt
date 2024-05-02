@@ -62,8 +62,11 @@ class independentreserve extends independentreserve$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -505,7 +508,7 @@ class independentreserve extends independentreserve$1 {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetOpenOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'Data', []);
+        const data = this.safeList(response, 'Data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -533,7 +536,7 @@ class independentreserve extends independentreserve$1 {
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetClosedOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'Data', []);
+        const data = this.safeList(response, 'Data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = 50, params = {}) {

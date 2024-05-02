@@ -9,9 +9,9 @@ import hashlib
 from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 
 
 class cryptocom(ccxt.async_support.cryptocom):
@@ -931,7 +931,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)

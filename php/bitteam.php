@@ -85,7 +85,11 @@ class bitteam extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -237,7 +241,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitteam
          * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
@@ -408,7 +412,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
@@ -666,7 +670,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $data = $this->safe_value($result, 'data', array());
+        $data = $this->safe_list($result, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -846,7 +850,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $orders = $this->safe_value($result, 'orders', array());
+        $orders = $this->safe_list($result, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -905,7 +909,7 @@ class bitteam extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_dict($response, 'result');
         return $this->parse_order($result, $market);
     }
 
@@ -1011,7 +1015,7 @@ class bitteam extends Exchange {
         //         }
         //     }
         //
-        $order = $this->safe_value($response, 'result', array());
+        $order = $this->safe_dict($response, 'result', array());
         return $this->parse_order($order, $market);
     }
 
@@ -1037,7 +1041,7 @@ class bitteam extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_order($result);
     }
 
@@ -1499,7 +1503,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $pair = $this->safe_value($result, 'pair', array());
+        $pair = $this->safe_dict($result, 'pair', array());
         return $this->parse_ticker($pair, $market);
     }
 
@@ -1826,7 +1830,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $trades = $this->safe_value($result, 'trades', array());
+        $trades = $this->safe_list($result, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2127,7 +2131,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $transactions = $this->safe_value($result, 'transactions', array());
+        $transactions = $this->safe_list($result, 'transactions', array());
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 

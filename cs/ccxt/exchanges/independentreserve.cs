@@ -56,8 +56,11 @@ public partial class independentreserve : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -504,7 +507,7 @@ public partial class independentreserve : Exchange
         ((IDictionary<string,object>)request)["pageIndex"] = 1;
         ((IDictionary<string,object>)request)["pageSize"] = limit;
         object response = await this.privatePostGetOpenOrders(this.extend(request, parameters));
-        object data = this.safeValue(response, "Data", new List<object>() {});
+        object data = this.safeList(response, "Data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -537,7 +540,7 @@ public partial class independentreserve : Exchange
         ((IDictionary<string,object>)request)["pageIndex"] = 1;
         ((IDictionary<string,object>)request)["pageSize"] = limit;
         object response = await this.privatePostGetClosedOrders(this.extend(request, parameters));
-        object data = this.safeValue(response, "Data", new List<object>() {});
+        object data = this.safeList(response, "Data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 

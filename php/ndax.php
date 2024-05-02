@@ -66,7 +66,11 @@ class ndax extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -325,7 +329,7 @@ class ndax extends Exchange {
         return $response;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apidoc.ndax.io/#getproduct
@@ -394,7 +398,7 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for ndax
          * @see https://apidoc.ndax.io/#getinstruments
@@ -1919,7 +1923,7 @@ class ndax extends Exchange {
         //     )
         //
         $grouped = $this->group_by($response, 'ChangeReason');
-        $trades = $this->safe_value($grouped, 'Trade', array());
+        $trades = $this->safe_list($grouped, 'Trade', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2267,7 +2271,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

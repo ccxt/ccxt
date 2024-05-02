@@ -73,8 +73,11 @@ class btcmarkets(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -350,7 +353,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for btcmarkets
         :see: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets/get
@@ -522,7 +525,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         if since is not None:
             request['from'] = self.iso8601(since)
         if limit is not None:
-            request['limit'] = limit  # default is 10, max 200
+            request['limit'] = min(limit, 200)  # default is 10, max 200
         response = await self.publicGetMarketsMarketIdCandles(self.extend(request, params))
         #
         #     [
@@ -1093,7 +1096,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/post

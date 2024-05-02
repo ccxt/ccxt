@@ -19,6 +19,7 @@ class bithumb extends bithumb$1 {
             'name': 'Bithumb',
             'countries': ['KR'],
             'rateLimit': 500,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -54,7 +55,11 @@ class bithumb extends bithumb$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -494,7 +499,7 @@ class bithumb extends bithumb$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -561,7 +566,7 @@ class bithumb extends bithumb$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -678,7 +683,7 @@ class bithumb extends bithumb$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -774,7 +779,7 @@ class bithumb extends bithumb$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(this.extend(data, { 'order_id': id }), market);
     }
     parseOrderStatus(status) {
@@ -930,7 +935,7 @@ class bithumb extends bithumb$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {

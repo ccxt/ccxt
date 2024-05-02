@@ -195,6 +195,8 @@ export default class blofin extends Exchange {
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'user/query-apikey': 1,
+                        'affiliate/basic': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -944,6 +946,8 @@ export default class blofin extends Exchange {
             // blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker': this.parseNumber(Precise.stringNeg(this.safeString2(fee, 'maker', 'makerU'))),
             'taker': this.parseNumber(Precise.stringNeg(this.safeString2(fee, 'taker', 'takerU'))),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchBalance(params = {}) {

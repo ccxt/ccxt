@@ -61,8 +61,11 @@ public partial class probit : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -641,7 +644,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
 
@@ -789,7 +792,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -848,7 +851,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1058,7 +1061,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1104,7 +1107,7 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["market_id"] = getValue(market, "id");
         }
         object response = await this.privateGetOpenOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -1143,7 +1146,7 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.privateGetOrderHistory(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -1179,7 +1182,7 @@ public partial class probit : Exchange
         object query = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
         object response = await this.privateGetOrder(this.extend(request, query));
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -1401,7 +1404,7 @@ public partial class probit : Exchange
             { "order_id", id },
         };
         object response = await this.privatePostCancelOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data);
     }
 
@@ -1506,7 +1509,7 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["currency_id"] = String.Join(",", ((IList<object>)codes).ToArray());
         }
         object response = await this.privateGetDepositAddress(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositAddresses(data, codes);
     }
 
@@ -1554,7 +1557,7 @@ public partial class probit : Exchange
             parameters = this.omit(parameters, "network");
         }
         object response = await this.privatePostWithdrawal(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseTransaction(data, currency);
     }
 
@@ -1598,13 +1601,12 @@ public partial class probit : Exchange
         return result;
     }
 
-    public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
-        * @name probit#fetchTransactions
-        * @deprecated
-        * @description use fetchDepositsWithdrawals instead
+        * @name probit#fetchDepositsWithdrawals
+        * @description fetch history of deposits and withdrawals
         * @see https://docs-en.probit.com/reference/transferpayment
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch transactions for
@@ -1629,11 +1631,11 @@ public partial class probit : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(1);
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
         } else
         {
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(this.milliseconds());
@@ -1825,7 +1827,7 @@ public partial class probit : Exchange
         //     ]
         //  }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes, "id");
     }
 

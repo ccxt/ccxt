@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -18,7 +19,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -48,6 +48,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': None,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'closeAllPositions': False,
@@ -75,6 +76,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchLeverages': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -86,7 +88,9 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -290,7 +294,7 @@ class bitmex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://www.bitmex.com/api/explorer/#not /Wallet/Wallet_getAssetsConfig
@@ -453,7 +457,7 @@ class bitmex(Exchange, ImplicitAPI):
     def convert_from_raw_cost(self, symbol, rawQuantity):
         return self.convert_from_raw_quantity(symbol, rawQuantity, 'quote')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitmex
         :see: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_getActive
@@ -1978,6 +1982,27 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
+    async def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://www.bitmex.com/api/explorer/#not /Order/Order_cancelAllAfter
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        await self.load_markets()
+        request: dict = {
+            'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
+        }
+        response = await self.privatePostOrderCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         now: '2024-04-09T09:01:56.560Z',
+        #         cancelTime: '2024-04-09T09:01:56.660Z'
+        #     }
+        #
+        return response
+
     async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
         """
         fetch the set leverage for all contract markets
@@ -2254,7 +2279,7 @@ class bitmex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.bitmex.com/api/explorer/#not /User/User_requestWithdrawal
@@ -2384,8 +2409,8 @@ class bitmex(Exchange, ImplicitAPI):
             request['startTime'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = self.iso8601(until)
         if (since is None) and (until is None):

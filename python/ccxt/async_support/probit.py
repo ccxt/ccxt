@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -19,7 +20,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -82,8 +82,11 @@ class probit(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -256,7 +259,7 @@ class probit(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs-en.probit.com/reference/market
         retrieves data on all markets for probit
@@ -355,7 +358,7 @@ class probit(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         :see: https://docs-en.probit.com/reference/currency
         fetches all available currencies on an exchange
@@ -616,7 +619,7 @@ class probit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -744,7 +747,7 @@ class probit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -793,7 +796,7 @@ class probit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -963,7 +966,7 @@ class probit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1007,7 +1010,7 @@ class probit(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['market_id'] = market['id']
         response = await self.privateGetOpenOrder(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1035,7 +1038,7 @@ class probit(Exchange, ImplicitAPI):
         if limit:
             request['limit'] = limit
         response = await self.privateGetOrderHistory(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1061,7 +1064,7 @@ class probit(Exchange, ImplicitAPI):
         query = self.omit(params, ['clientOrderId', 'client_order_id'])
         response = await self.privateGetOrder(self.extend(request, query))
         data = self.safe_value(response, 'data', [])
-        order = self.safe_value(data, 0)
+        order = self.safe_dict(data, 0)
         return self.parse_order(order, market)
 
     def parse_order_status(self, status):
@@ -1242,7 +1245,7 @@ class probit(Exchange, ImplicitAPI):
             'order_id': id,
         }
         response = await self.privatePostCancelOrder(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
@@ -1328,10 +1331,10 @@ class probit(Exchange, ImplicitAPI):
                 currencyIds.append(currency['id'])
             request['currency_id'] = ','.join(codes)
         response = await self.privateGetDepositAddress(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://docs-en.probit.com/reference/withdrawal
         make a withdrawal
@@ -1371,7 +1374,7 @@ class probit(Exchange, ImplicitAPI):
             request['platform_id'] = network
             params = self.omit(params, 'network')
         response = await self.privatePostWithdrawal(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_transaction(data, currency)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1404,10 +1407,9 @@ class probit(Exchange, ImplicitAPI):
         result = await self.fetch_transactions(code, since, limit, self.extend(request, params))
         return result
 
-    async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
+        fetch history of deposits and withdrawals
         :see: https://docs-en.probit.com/reference/transferpayment
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch transactions for
@@ -1426,10 +1428,10 @@ class probit(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         else:
             request['start_time'] = self.iso8601(1)
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
             request['end_time'] = self.iso8601(until)
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
         else:
             request['end_time'] = self.iso8601(self.milliseconds())
         if limit is not None:
@@ -1605,7 +1607,7 @@ class probit(Exchange, ImplicitAPI):
         #     ]
         #  }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'id')
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):

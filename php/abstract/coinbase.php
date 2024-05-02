@@ -145,6 +145,21 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v3_public_get_brokerage_time($params = array()) {
         return $this->request('brokerage/time', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function v3_public_get_brokerage_market_product_book($params = array()) {
+        return $this->request('brokerage/market/product_book', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function v3_public_get_brokerage_market_products($params = array()) {
+        return $this->request('brokerage/market/products', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function v3_public_get_brokerage_market_products_product_id($params = array()) {
+        return $this->request('brokerage/market/products/{product_id}', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function v3_public_get_brokerage_market_products_product_id_candles($params = array()) {
+        return $this->request('brokerage/market/products/{product_id}/candles', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function v3_public_get_brokerage_market_products_product_id_ticker($params = array()) {
+        return $this->request('brokerage/market/products/{product_id}/ticker', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function v3_private_get_brokerage_accounts($params = array()) {
         return $this->request('brokerage/accounts', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -249,6 +264,9 @@ abstract class coinbase extends \ccxt\Exchange {
     }
     public function v3_private_post_brokerage_intx_allocate($params = array()) {
         return $this->request('brokerage/intx/allocate', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v3_private_post_brokerage_orders_close_position($params = array()) {
+        return $this->request('brokerage/orders/close_position', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v3_private_put_brokerage_portfolios_portfolio_uuid($params = array()) {
         return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 1));
@@ -397,6 +415,21 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v3PublicGetBrokerageTime($params = array()) {
         return $this->request('brokerage/time', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function v3PublicGetBrokerageMarketProductBook($params = array()) {
+        return $this->request('brokerage/market/product_book', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function v3PublicGetBrokerageMarketProducts($params = array()) {
+        return $this->request('brokerage/market/products', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function v3PublicGetBrokerageMarketProductsProductId($params = array()) {
+        return $this->request('brokerage/market/products/{product_id}', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function v3PublicGetBrokerageMarketProductsProductIdCandles($params = array()) {
+        return $this->request('brokerage/market/products/{product_id}/candles', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function v3PublicGetBrokerageMarketProductsProductIdTicker($params = array()) {
+        return $this->request('brokerage/market/products/{product_id}/ticker', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function v3PrivateGetBrokerageAccounts($params = array()) {
         return $this->request('brokerage/accounts', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -501,6 +534,9 @@ abstract class coinbase extends \ccxt\Exchange {
     }
     public function v3PrivatePostBrokerageIntxAllocate($params = array()) {
         return $this->request('brokerage/intx/allocate', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v3PrivatePostBrokerageOrdersClosePosition($params = array()) {
+        return $this->request('brokerage/orders/close_position', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v3PrivatePutBrokeragePortfoliosPortfolioUuid($params = array()) {
         return $this->request('brokerage/portfolios/{portfolio_uuid}', array('v3', 'private'), 'PUT', $params, null, null, array("cost" => 1));

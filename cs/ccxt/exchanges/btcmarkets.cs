@@ -58,8 +58,11 @@ public partial class btcmarkets : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -526,7 +529,7 @@ public partial class btcmarkets : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default is 10, max 200
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 200); // default is 10, max 200
         }
         object response = await this.publicGetMarketsMarketIdCandles(this.extend(request, parameters));
         //

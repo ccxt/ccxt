@@ -18,6 +18,7 @@ declare class baseMainTestClass {
     privateTestOnly: boolean;
     loadKeys: boolean;
     sandbox: boolean;
+    skippedSettingsForExchange: {};
     skippedMethods: {};
     checkedPublicTests: {};
     testFiles: {};
@@ -32,15 +33,15 @@ declare class baseMainTestClass {
 }
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs(): void;
-    init(exchangeId: any, symbolArgv: any): Promise<void>;
-    checkIfSpecificTestIsChosen(symbolArgv: any): any;
+    init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
+    checkIfSpecificTestIsChosen(methodArgv: any): void;
     importFiles(exchange: Exchange): Promise<void>;
     loadCredentialsFromEnv(exchange: Exchange): void;
     expandSettings(exchange: Exchange): void;
     addPadding(message: string, size: any): string;
     exchangeHint(exchange: any, market?: any): string;
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<void>;
-    getSkips(exchange: any, methodName: any): any;
+    getSkips(exchange: Exchange, methodName: string): any;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<any>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<void>;
@@ -90,5 +91,6 @@ export default class testMainClass extends baseMainTestClass {
     testBlofin(): Promise<void>;
     testHyperliquid(): Promise<void>;
     testCoinbaseinternational(): Promise<boolean>;
+    testCoinbaseAdvanced(): Promise<boolean>;
 }
 export {};

@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -76,50 +76,52 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function authenticate() {
-        /**
-         * @ignore
-         * authenticates the user to access private web socket channels
-         * @see https://api.hitbtc.com/#socket-authentication
-         * @return {array} response from exchange
-         */
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = $this->milliseconds();
-            $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
-            $request = array(
-                'method' => 'login',
-                'params' => array(
-                    'type' => 'HS256',
-                    'api_key' => $this->apiKey,
-                    'timestamp' => $timestamp,
-                    'signature' => $signature,
-                ),
-            );
-            $this->watch($url, $messageHash, $request, $messageHash);
-            //
-            //    {
-            //        "jsonrpc" => "2.0",
-            //        "result" => true
-            //    }
-            //
-            //    # Failure to return results
-            //
-            //    {
-            //        "jsonrpc" => "2.0",
-            //        "error" => {
-            //            "code" => 1002,
-            //            "message" => "Authorization is required or has been failed",
-            //            "description" => "invalid $signature format"
-            //        }
-            //    }
-            //
-        }
-        return $future;
+        return Async\async(function ()  {
+            /**
+             * @ignore
+             * authenticates the user to access private web socket channels
+             * @see https://api.hitbtc.com/#socket-authentication
+             * @return {array} response from exchange
+             */
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws']['private'];
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = $this->milliseconds();
+                $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
+                $request = array(
+                    'method' => 'login',
+                    'params' => array(
+                        'type' => 'HS256',
+                        'api_key' => $this->apiKey,
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    ),
+                );
+                $this->watch($url, $messageHash, $request, $messageHash);
+                //
+                //    {
+                //        "jsonrpc" => "2.0",
+                //        "result" => true
+                //    }
+                //
+                //    # Failure to return results
+                //
+                //    {
+                //        "jsonrpc" => "2.0",
+                //        "error" => {
+                //            "code" => 1002,
+                //            "message" => "Authorization is required or has been failed",
+                //            "description" => "invalid $signature format"
+                //        }
+                //    }
+                //
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function subscribe_public(string $name, string $messageHashPrefix, ?array $symbols = null, $params = array ()) {

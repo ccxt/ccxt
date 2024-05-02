@@ -12,6 +12,11 @@
 // Author: github.com/frosty00
 // Email: carlo.revelli@berkeley.edu
 //
+/**
+ *
+ * @param array
+ * @param x
+ */
 function bisectLeft(array, x) {
     let low = 0;
     let high = array.length - 1;
@@ -278,4 +283,4 @@ Asks, Bids, OrderBookSide,
 // count-based
 CountedAsks, CountedBids, CountedOrderBookSide, 
 // order-id based
-IndexedAsks, IndexedBids, IndexedOrderBookSide, };
+IndexedAsks, IndexedBids, IndexedOrderBookSide };

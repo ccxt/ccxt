@@ -236,7 +236,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    async fetchTickerWs (symbol, params = {}): Promise<Ticker> {
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lbank#fetchTickerWs

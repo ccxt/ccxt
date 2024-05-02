@@ -1450,15 +1450,16 @@ class hitbtc extends hitbtc$1 {
         //         ],
         //         "fee": "1.22" // only for WITHDRAW
         //       }
-        //     }
-        //
+        //     },
+        //     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk": {}
         // withdraw
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        const id = this.safeString(transaction, 'id');
+        const id = this.safeString2(transaction, 'operation_id', 'id');
         const timestamp = this.parse8601(this.safeString(transaction, 'created_at'));
         const updated = this.parse8601(this.safeString(transaction, 'updated_at'));
         const type = this.parseTransactionType(this.safeString(transaction, 'type'));
@@ -1624,6 +1625,8 @@ class hitbtc extends hitbtc$1 {
             'symbol': symbol,
             'taker': taker,
             'maker': maker,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -1731,9 +1734,9 @@ class hitbtc extends hitbtc$1 {
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
         }
-        [request, params] = this.handleUntilOption('till', request, params);
+        [request, params] = this.handleUntilOption('until', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const price = this.safeString(params, 'price');
         params = this.omit(params, 'price');
@@ -1931,7 +1934,7 @@ class hitbtc extends hitbtc$1 {
         //       }
         //     ]
         //
-        const order = this.safeValue(response, 0);
+        const order = this.safeDict(response, 0);
         return this.parseOrder(order, market);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2803,11 +2806,11 @@ class hitbtc extends hitbtc$1 {
         // 'symbols': Comma separated list of symbol codes,
         // 'sort': 'DESC' or 'ASC'
         // 'from': 'Datetime or Number',
-        // 'till': 'Datetime or Number',
+        // 'until': 'Datetime or Number',
         // 'limit': 100,
         // 'offset': 0,
         };
-        [request, params] = this.handleUntilOption('till', request, params);
+        [request, params] = this.handleUntilOption('until', request, params);
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];
@@ -3238,8 +3241,9 @@ class hitbtc extends hitbtc$1 {
                 throw new errors.ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
-        if (amount !== 0) {
-            amount = this.amountToPrecision(symbol, amount);
+        const stringAmount = this.numberToString(amount);
+        if (stringAmount !== '0') {
+            amount = this.amountToPrecision(symbol, stringAmount);
         }
         else {
             amount = '0';
@@ -3291,15 +3295,40 @@ class hitbtc extends hitbtc$1 {
         });
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
+        //             {
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
+        //             }
+        //         ],
+        //         "positions": null
+        //     }
+        //
         const currencies = this.safeValue(data, 'currencies', []);
         const currencyInfo = this.safeValue(currencies, 0);
+        const datetime = this.safeString(data, 'updated_at');
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': this.safeString(currencyInfo, 'code'),
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeString(currencyInfo, 'code'),
             'status': undefined,
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -3316,7 +3345,7 @@ class hitbtc extends hitbtc$1 {
          * @param {bool} [params.margin] true for reducing spot-margin
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
-        if (amount !== 0) {
+        if (this.numberToString(amount) !== '0') {
             throw new errors.BadRequest(this.id + ' reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount');
         }
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);

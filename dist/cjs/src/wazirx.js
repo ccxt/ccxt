@@ -71,8 +71,11 @@ class wazirx extends wazirx$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -319,7 +322,7 @@ class wazirx extends wazirx$1 {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 2000);
         }
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['until']);

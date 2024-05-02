@@ -63,8 +63,13 @@ class ace extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -170,7 +175,7 @@ class ace extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for ace
@@ -406,7 +411,7 @@ class ace extends Exchange {
             //         "status" => 200
             //     }
             //
-            $orderBook = $this->safe_value($response, 'attachment');
+            $orderBook = $this->safe_dict($response, 'attachment');
             return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks');
         }) ();
     }
@@ -631,7 +636,7 @@ class ace extends Exchange {
             //         "status" => 200
             //     }
             //
-            $data = $this->safe_value($response, 'attachment');
+            $data = $this->safe_dict($response, 'attachment');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -699,7 +704,7 @@ class ace extends Exchange {
             //         "status" => 200
             //     }
             //
-            $data = $this->safe_value($response, 'attachment');
+            $data = $this->safe_dict($response, 'attachment');
             return $this->parse_order($data, null);
         }) ();
     }
@@ -895,7 +900,7 @@ class ace extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'attachment');
-            $trades = $this->safe_value($data, 'trades', array());
+            $trades = $this->safe_list($data, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -955,7 +960,7 @@ class ace extends Exchange {
             //         "status" => 200
             //     }
             //
-            $trades = $this->safe_value($response, 'attachment', array());
+            $trades = $this->safe_list($response, 'attachment', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }

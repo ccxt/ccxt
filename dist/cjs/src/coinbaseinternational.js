@@ -76,6 +76,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -89,8 +90,10 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -117,10 +120,10 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 },
                 'www': 'https://international.coinbase.com',
                 'doc': [
-                    'https://docs.cloud.coinbaseinternational.com/intx/docs',
+                    'https://docs.cloud.coinbase.com/intx/docs',
                 ],
                 'fees': [
-                    'https://help.coinbaseinternational.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
+                    'https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
                 ],
                 'referral': '',
             },
@@ -1830,9 +1833,9 @@ class coinbaseinternational extends coinbaseinternational$1 {
         if (since !== undefined) {
             request['time_from'] = this.iso8601(since);
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeStringN(params, ['until']);
         if (until !== undefined) {
-            params = this.omit(params, ['until', 'till']);
+            params = this.omit(params, ['until']);
             request['ref_datetime'] = this.iso8601(until);
         }
         const response = await this.v1PrivateGetPortfoliosFills(this.extend(request, params));

@@ -445,7 +445,7 @@ class bitfinex extends Exchange {
         //        }
         //    }
         //
-        $withdraw = $this->safe_value($response, 'withdraw');
+        $withdraw = $this->safe_list($response, 'withdraw');
         return $this->parse_deposit_withdraw_fees($withdraw, $codes);
     }
 
@@ -467,7 +467,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-summary
@@ -547,7 +547,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bitfinex
          * @see https://docs.bitfinex.com/v1/reference/rest-public-symbols
@@ -1305,6 +1305,8 @@ class bitfinex extends Exchange {
         $this->load_markets();
         if ($limit === null) {
             $limit = 100;
+        } else {
+            $limit = min ($limit, 10000);
         }
         $market = $this->market($symbol);
         $v2id = 't' . $market['id'];
@@ -1521,7 +1523,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-withdrawal

@@ -71,7 +71,13 @@ export default class alpaca extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
@@ -291,7 +297,7 @@ export default class alpaca extends Exchange {
         return iso;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name alpaca#fetchMarkets

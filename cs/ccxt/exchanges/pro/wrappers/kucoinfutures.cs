@@ -10,7 +10,7 @@ public partial class kucoinfutures
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -25,6 +25,50 @@ public partial class kucoinfutures
     {
         var res = await this.watchTicker(symbol, parameters);
         return new Ticker(res);
+    }
+    /// <summary>
+    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker-v2"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Dictionary<string, object>> WatchMultiRequest(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMultiRequest(methodName, channelName, symbols, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// watch open positions for a specific symbol

@@ -127,6 +127,7 @@ interface Exchange {
     privateGetV5AccountFeeRate(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountTransactionLog(params?: {}): Promise<implicitReturnType>;
+    privateGetV5AccountContractTransactionLog(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountSmpGroup(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountMmpState(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeOrderRecord(params?: {}): Promise<implicitReturnType>;
@@ -154,6 +155,7 @@ interface Exchange {
     privateGetV5UserGetMemberType(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserAffCustomerInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserDelSubmember(params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserSubmembers(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo(params?: {}): Promise<implicitReturnType>;
@@ -171,6 +173,7 @@ interface Exchange {
     privateGetV5BrokerEarningRecord(params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerEarningsInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAccountInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerAssetQuerySubMemberDepositRecord(params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(params?: {}): Promise<implicitReturnType>;
     privatePostOptionUsdcOpenapiPrivateV1CancelOrder(params?: {}): Promise<implicitReturnType>;
@@ -290,6 +293,7 @@ interface Exchange {
     privatePostV5LendingRedeemCancel(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetCollateralSwitch(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetCollateralSwitchBatch(params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountDemoApplyMoney(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

@@ -80,7 +80,13 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchStatus': False,
                 'fetchTicker': False,
                 'fetchTickers': False,
@@ -296,7 +302,7 @@ class alpaca(Exchange, ImplicitAPI):
         iso = self.parse8601(localTime) - self.parse_to_numeric(jetlag) * 3600 * 1000
         return iso
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for alpaca
         :see: https://docs.alpaca.markets/reference/get-v2-assets

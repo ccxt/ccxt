@@ -2621,6 +2621,6 @@ public partial class htx : ccxt.htx
             };
             this.watch(url, messageHash, request, messageHash, subscription);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 }

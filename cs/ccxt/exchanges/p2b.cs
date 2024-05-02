@@ -73,8 +73,11 @@ public partial class p2b : Exchange
                 { "fetchOrderTrades", true },
                 { "fetchPermissions", false },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
                 { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -563,7 +566,7 @@ public partial class p2b : Exchange
         //        current_time: '1699255571.413828'
         //    }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseTrades(result, market, since, limit);
     }
 
@@ -688,7 +691,7 @@ public partial class p2b : Exchange
         //        current_time: '1699256375.030494'
         //    }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOHLCVs(result, market, timeframe, since, limit);
     }
 
@@ -828,7 +831,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
     }
 
@@ -878,7 +881,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result);
     }
 
@@ -938,7 +941,7 @@ public partial class p2b : Exchange
         //        ]
         //    }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -994,7 +997,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object records = this.safeValue(result, "records", new List<object>() {});
+        object records = this.safeList(result, "records", new List<object>() {});
         return this.parseTrades(records, market, since, limit);
     }
 
@@ -1079,7 +1082,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object deals = this.safeValue(result, "deals", new List<object>() {});
+        object deals = this.safeList(result, "deals", new List<object>() {});
         return this.parseTrades(deals, market, since, limit);
     }
 

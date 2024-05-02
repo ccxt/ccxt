@@ -6,7 +6,7 @@ import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ export default class coinbasepro extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbasepro',
-            'name': 'Coinbase Pro',
+            'name': 'Coinbase Pro(Deprecated)',
             'countries': [ 'US' ],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome'],
@@ -55,7 +55,13 @@ export default class coinbasepro extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -231,7 +237,7 @@ export default class coinbasepro extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name coinbasepro#fetchCurrencies
@@ -303,7 +309,7 @@ export default class coinbasepro extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinbasepro#fetchMarkets
@@ -870,7 +876,7 @@ export default class coinbasepro extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name coinbasepro#fetchTradingFees
@@ -1375,7 +1381,7 @@ export default class coinbasepro extends Exchange {
         return await this.privateGetPaymentMethods (params);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#withdraw
