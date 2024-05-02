@@ -13,14 +13,15 @@ class woo extends woo$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
-                'watchMyTrades': false,
+                'watchBalance': true,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -45,10 +46,21 @@ class woo extends woo$1 {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'requestId': {},
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true,
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {
                 'ping': this.ping,
                 'keepAlive': 10000,
+            },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'Auth is needed.': errors.AuthenticationError,
+                    },
+                },
             },
         });
     }
@@ -60,7 +72,6 @@ class woo extends woo$1 {
         return newValue;
     }
     async watchPublic(messageHash, message) {
-        this.checkRequiredUid();
         const url = this.urls['api']['ws']['public'] + '/' + this.uid;
         const requestId = this.requestId(url);
         const subscribe = {
@@ -70,6 +81,16 @@ class woo extends woo$1 {
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOrderBook
+         * @see https://docs.woo.org/#orderbook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets();
         const name = 'orderbook';
         const market = this.market(symbol);
@@ -85,17 +106,17 @@ class woo extends woo$1 {
     handleOrderBook(client, message) {
         //
         //     {
-        //         topic: 'PERP_BTC_USDT@orderbook',
-        //         ts: 1650121915308,
-        //         data: {
-        //             symbol: 'PERP_BTC_USDT',
-        //             bids: [
+        //         "topic": "PERP_BTC_USDT@orderbook",
+        //         "ts": 1650121915308,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "bids": [
         //                 [
         //                     0.30891,
         //                     2469.98
         //                 ]
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [
         //                     0.31075,
         //                     2379.63
@@ -119,9 +140,18 @@ class woo extends woo$1 {
         client.resolve(orderbook, topic);
     }
     async watchTicker(symbol, params = {}) {
+        /**
+         * @method
+         * @name woo#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets();
         const name = 'ticker';
         const market = this.market(symbol);
+        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request = {
             'event': 'subscribe',
@@ -133,21 +163,20 @@ class woo extends woo$1 {
     parseWsTicker(ticker, market = undefined) {
         //
         //     {
-        //         symbol: 'PERP_BTC_USDT',
-        //         open: 19441.5,
-        //         close: 20147.07,
-        //         high: 20761.87,
-        //         low: 19320.54,
-        //         volume: 2481.103,
-        //         amount: 50037935.0286,
-        //         count: 3689
+        //         "symbol": "PERP_BTC_USDT",
+        //         "open": 19441.5,
+        //         "close": 20147.07,
+        //         "high": 20761.87,
+        //         "low": 19320.54,
+        //         "volume": 2481.103,
+        //         "amount": 50037935.0286,
+        //         "count": 3689
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'date', this.milliseconds());
         return this.safeTicker({
             'symbol': this.safeSymbol(undefined, market),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': undefined,
@@ -170,17 +199,17 @@ class woo extends woo$1 {
     handleTicker(client, message) {
         //
         //     {
-        //         topic: 'PERP_BTC_USDT@ticker',
-        //         ts: 1657120017000,
-        //         data: {
-        //             symbol: 'PERP_BTC_USDT',
-        //             open: 19441.5,
-        //             close: 20147.07,
-        //             high: 20761.87,
-        //             low: 19320.54,
-        //             volume: 2481.103,
-        //             amount: 50037935.0286,
-        //             count: 3689
+        //         "topic": "PERP_BTC_USDT@ticker",
+        //         "ts": 1657120017000,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "open": 19441.5,
+        //             "close": 20147.07,
+        //             "high": 20761.87,
+        //             "low": 19320.54,
+        //             "volume": 2481.103,
+        //             "amount": 50037935.0286,
+        //             "count": 3689
         //         }
         //     }
         //
@@ -197,7 +226,17 @@ class woo extends woo$1 {
         return message;
     }
     async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchTickers
+         * @see https://docs.woo.org/#24h-tickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
         const name = 'tickers';
         const topic = name;
         const request = {
@@ -252,6 +291,18 @@ class woo extends woo$1 {
         client.resolve(result, topic);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.woo.org/#k-line
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets();
         if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
             throw new errors.ExchangeError(this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
@@ -316,8 +367,20 @@ class woo extends woo$1 {
         client.resolve(stored, topic);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @see https://docs.woo.org/#trade
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
         await this.loadMarkets();
         const market = this.market(symbol);
+        symbol = market['symbol'];
         const topic = market['id'] + '@trade';
         const request = {
             'event': 'subscribe',
@@ -370,17 +433,60 @@ class woo extends woo$1 {
         //         "side":"BUY",
         //         "source":0
         //     }
+        // private trade
+        //    {
+        //     "msgType": 0,  // execution report
+        //     "symbol": "SPOT_BTC_USDT",
+        //     "clientOrderId": 0,
+        //     "orderId": 54774393,
+        //     "type": "MARKET",
+        //     "side": "BUY",
+        //     "quantity": 0.0,
+        //     "price": 0.0,
+        //     "tradeId": 56201985,
+        //     "executedPrice": 23534.06,
+        //     "executedQuantity": 0.00040791,
+        //     "fee": 2.1E-7,
+        //     "feeAsset": "BTC",
+        //     "totalExecutedQuantity": 0.00040791,
+        //     "avgPrice": 23534.06,
+        //     "status": "FILLED",
+        //     "reason": "",
+        //     "orderTag": "default",
+        //     "totalFee": 2.1E-7,
+        //     "feeCurrency": "BTC",
+        //     "totalRebate": 0,
+        //     "rebateCurrency": "USDT",
+        //     "visible": 0.0,
+        //     "timestamp": 1675406261689,
+        //     "reduceOnly": false,
+        //     "maker": false
+        //   }
         //
         const marketId = this.safeString(trade, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString(trade, 'price');
-        const amount = this.safeString(trade, 'size');
+        const price = this.safeString(trade, 'executedPrice', 'price');
+        const amount = this.safeString2(trade, 'executedQuantity', 'size');
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const timestamp = this.safeInteger(trade, 'timestamp');
+        const maker = this.safeBool(trade, 'marker');
+        let takerOrMaker = undefined;
+        if (maker !== undefined) {
+            takerOrMaker = maker ? 'maker' : 'taker';
+        }
+        const type = this.safeStringLower(trade, 'type');
+        let fee = undefined;
+        const feeCost = this.safeNumber(trade, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency')),
+            };
+        }
         return this.safeTrade({
-            'id': undefined,
+            'id': this.safeString(trade, 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
@@ -388,10 +494,10 @@ class woo extends woo$1 {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'order': undefined,
-            'takerOrMaker': undefined,
-            'type': undefined,
-            'fee': undefined,
+            'order': this.safeString(trade, 'orderId'),
+            'takerOrMaker': takerOrMaker,
+            'type': type,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -406,14 +512,15 @@ class woo extends woo$1 {
         }
         return true;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.urls['api']['ws']['private'] + '/' + this.uid;
         const client = this.client(url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const ts = this.nonce().toString();
             const auth = '|' + ts;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
@@ -426,10 +533,9 @@ class woo extends woo$1 {
                 },
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchPrivate(messageHash, message, params = {}) {
         await this.authenticate(params);
@@ -442,6 +548,18 @@ class woo extends woo$1 {
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOrders
+         * @see https://docs.woo.org/#executionreport
+         * @see https://docs.woo.org/#algoexecutionreportv2
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets();
         const topic = 'executionreport';
         let messageHash = topic;
@@ -461,30 +579,61 @@ class woo extends woo$1 {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
+    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOrders
+         * @see https://docs.woo.org/#executionreport
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const topic = 'executionreport';
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend(request, params);
+        const trades = await this.watchPrivate(messageHash, message);
+        if (this.newUpdates) {
+            limit = trades.getLimit(symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+    }
     parseWsOrder(order, market = undefined) {
         //
         //     {
-        //         symbol: 'PERP_BTC_USDT',
-        //         clientOrderId: 0,
-        //         orderId: 52952826,
-        //         type: 'LIMIT',
-        //         side: 'SELL',
-        //         quantity: 0.01,
-        //         price: 22000,
-        //         tradeId: 0,
-        //         executedPrice: 0,
-        //         executedQuantity: 0,
-        //         fee: 0,
-        //         feeAsset: 'USDT',
-        //         totalExecutedQuantity: 0,
-        //         status: 'NEW',
-        //         reason: '',
-        //         orderTag: 'default',
-        //         totalFee: 0,
-        //         visible: 0.01,
-        //         timestamp: 1657515556799,
-        //         reduceOnly: false,
-        //         maker: false
+        //         "symbol": "PERP_BTC_USDT",
+        //         "clientOrderId": 0,
+        //         "orderId": 52952826,
+        //         "type": "LIMIT",
+        //         "side": "SELL",
+        //         "quantity": 0.01,
+        //         "price": 22000,
+        //         "tradeId": 0,
+        //         "executedPrice": 0,
+        //         "executedQuantity": 0,
+        //         "fee": 0,
+        //         "feeAsset": "USDT",
+        //         "totalExecutedQuantity": 0,
+        //         "status": "NEW",
+        //         "reason": '',
+        //         "orderTag": "default",
+        //         "totalFee": 0,
+        //         "visible": 0.01,
+        //         "timestamp": 1657515556799,
+        //         "reduceOnly": false,
+        //         "maker": false
         //     }
         //
         const orderId = this.safeString(order, 'orderId');
@@ -542,34 +691,38 @@ class woo extends woo$1 {
     handleOrderUpdate(client, message) {
         //
         //     {
-        //         topic: 'executionreport',
-        //         ts: 1657515556799,
-        //         data: {
-        //             symbol: 'PERP_BTC_USDT',
-        //             clientOrderId: 0,
-        //             orderId: 52952826,
-        //             type: 'LIMIT',
-        //             side: 'SELL',
-        //             quantity: 0.01,
-        //             price: 22000,
-        //             tradeId: 0,
-        //             executedPrice: 0,
-        //             executedQuantity: 0,
-        //             fee: 0,
-        //             feeAsset: 'USDT',
-        //             totalExecutedQuantity: 0,
-        //             status: 'NEW',
-        //             reason: '',
-        //             orderTag: 'default',
-        //             totalFee: 0,
-        //             visible: 0.01,
-        //             timestamp: 1657515556799,
-        //             reduceOnly: false,
-        //             maker: false
+        //         "topic": "executionreport",
+        //         "ts": 1657515556799,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "clientOrderId": 0,
+        //             "orderId": 52952826,
+        //             "type": "LIMIT",
+        //             "side": "SELL",
+        //             "quantity": 0.01,
+        //             "price": 22000,
+        //             "tradeId": 0,
+        //             "executedPrice": 0,
+        //             "executedQuantity": 0,
+        //             "fee": 0,
+        //             "feeAsset": "USDT",
+        //             "totalExecutedQuantity": 0,
+        //             "status": "NEW",
+        //             "reason": '',
+        //             "orderTag": "default",
+        //             "totalFee": 0,
+        //             "visible": 0.01,
+        //             "timestamp": 1657515556799,
+        //             "reduceOnly": false,
+        //             "maker": false
         //         }
         //     }
         //
-        const order = this.safeValue(message, 'data');
+        const order = this.safeDict(message, 'data');
+        const tradeId = this.safeString(order, 'tradeId');
+        if ((tradeId !== undefined) && (tradeId !== '0')) {
+            this.handleMyTrade(client, order);
+        }
         this.handleOrder(client, order);
     }
     handleOrder(client, message) {
@@ -604,7 +757,276 @@ class woo extends woo$1 {
             client.resolve(this.orders, messageHashSymbol);
         }
     }
+    handleMyTrade(client, message) {
+        //
+        //    {
+        //     "msgType": 0,  // execution report
+        //     "symbol": "SPOT_BTC_USDT",
+        //     "clientOrderId": 0,
+        //     "orderId": 54774393,
+        //     "type": "MARKET",
+        //     "side": "BUY",
+        //     "quantity": 0.0,
+        //     "price": 0.0,
+        //     "tradeId": 56201985,
+        //     "executedPrice": 23534.06,
+        //     "executedQuantity": 0.00040791,
+        //     "fee": 2.1E-7,
+        //     "feeAsset": "BTC",
+        //     "totalExecutedQuantity": 0.00040791,
+        //     "avgPrice": 23534.06,
+        //     "status": "FILLED",
+        //     "reason": "",
+        //     "orderTag": "default",
+        //     "totalFee": 2.1E-7,
+        //     "feeCurrency": "BTC",
+        //     "totalRebate": 0,
+        //     "rebateCurrency": "USDT",
+        //     "visible": 0.0,
+        //     "timestamp": 1675406261689,
+        //     "reduceOnly": false,
+        //     "maker": false
+        //   }
+        //
+        let myTrades = this.myTrades;
+        if (myTrades === undefined) {
+            const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            myTrades = new Cache.ArrayCacheBySymbolById(limit);
+        }
+        const trade = this.parseWsTrade(message);
+        myTrades.append(trade);
+        let messageHash = 'myTrades:' + trade['symbol'];
+        client.resolve(myTrades, messageHash);
+        messageHash = 'myTrades';
+        client.resolve(myTrades, messageHash);
+    }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchPositions
+         * @see https://docs.woo.org/#position-push
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        let messageHash = '';
+        symbols = this.marketSymbols(symbols);
+        if (!this.isEmpty(symbols)) {
+            messageHash = '::' + symbols.join(',');
+        }
+        messageHash = 'positions' + messageHash;
+        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const client = this.client(url);
+        this.setPositionsCache(client, symbols);
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        const request = {
+            'event': 'subscribe',
+            'topic': 'position',
+        };
+        const newPositions = await this.watchPrivate(messageHash, request, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+    }
+    setPositionsCache(client, type, symbols = undefined) {
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, client, messageHash);
+            }
+        }
+        else {
+            this.positions = new Cache.ArrayCacheBySymbolBySide();
+        }
+    }
+    async loadPositionsSnapshot(client, messageHash) {
+        const positions = await this.fetchPositions();
+        this.positions = new Cache.ArrayCacheBySymbolBySide();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve(cache);
+        client.resolve(cache, 'positions');
+    }
+    handlePositions(client, message) {
+        //
+        //    {
+        //        "topic":"position",
+        //        "ts":1705292345255,
+        //        "data":{
+        //           "positions":{
+        //              "PERP_LTC_USDT":{
+        //                 "holding":1,
+        //                 "pendingLongQty":0,
+        //                 "pendingShortQty":0,
+        //                 "averageOpenPrice":71.53,
+        //                 "pnl24H":0,
+        //                 "fee24H":0.07153,
+        //                 "settlePrice":71.53,
+        //                 "markPrice":71.32098452065145,
+        //                 "version":7886,
+        //                 "openingTime":1705292304267,
+        //                 "pnl24HPercentage":0,
+        //                 "adlQuantile":1,
+        //                 "positionSide":"BOTH"
+        //              }
+        //           }
+        //        }
+        //    }
+        //
+        const data = this.safeValue(message, 'data', {});
+        const rawPositions = this.safeValue(data, 'positions', {});
+        const postitionsIds = Object.keys(rawPositions);
+        if (this.positions === undefined) {
+            this.positions = new Cache.ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < postitionsIds.length; i++) {
+            const marketId = postitionsIds[i];
+            const market = this.safeMarket(marketId);
+            const rawPosition = rawPositions[marketId];
+            const position = this.parsePosition(rawPosition, market);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, 'positions');
+    }
+    async watchBalance(params = {}) {
+        /**
+         * @method
+         * @see https://docs.woo.org/#balance
+         * @name woo#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets();
+        const topic = 'balance';
+        const messageHash = topic;
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend(request, params);
+        return await this.watchPrivate(messageHash, message);
+    }
+    handleBalance(client, message) {
+        //
+        //   {
+        //       "topic": "balance",
+        //       "ts": 1695716888789,
+        //       "data": {
+        //          "balances": {
+        //             "USDT": {
+        //                "holding": 266.56059176,
+        //                "frozen": 0,
+        //                "interest": 0,
+        //                "pendingShortQty": 0,
+        //                "pendingExposure": 0,
+        //                "pendingLongQty": 0,
+        //                "pendingLongExposure": 0,
+        //                "version": 37,
+        //                "staked": 0,
+        //                "unbonding": 0,
+        //                "vault": 0,
+        //                "averageOpenPrice": 0,
+        //                "pnl24H": 0,
+        //                "fee24H": 0,
+        //                "markPrice": 1,
+        //                "pnl24HPercentage": 0
+        //             }
+        //          }
+        //
+        //    }
+        //
+        const data = this.safeValue(message, 'data');
+        const balances = this.safeValue(data, 'balances');
+        const keys = Object.keys(balances);
+        const ts = this.safeInteger(message, 'ts');
+        this.balance['info'] = data;
+        this.balance['timestamp'] = ts;
+        this.balance['datetime'] = this.iso8601(ts);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = balances[key];
+            const code = this.safeCurrencyCode(key);
+            const account = (code in this.balance) ? this.balance[code] : this.account();
+            const total = this.safeString(value, 'holding');
+            const used = this.safeString(value, 'frozen');
+            account['total'] = total;
+            account['used'] = used;
+            account['free'] = Precise["default"].stringSub(total, used);
+            this.balance[code] = account;
+        }
+        this.balance = this.safeBalance(this.balance);
+        client.resolve(this.balance, 'balance');
+    }
+    handleErrorMessage(client, message) {
+        //
+        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
+        //
+        if (!('success' in message)) {
+            return false;
+        }
+        const success = this.safeBool(message, 'success');
+        if (success) {
+            return false;
+        }
+        const errorMessage = this.safeString(message, 'errorMsg');
+        try {
+            if (errorMessage !== undefined) {
+                const feedback = this.id + ' ' + this.json(message);
+                this.throwExactlyMatchedException(this.exceptions['exact'], errorMessage, feedback);
+            }
+            return false;
+        }
+        catch (error) {
+            if (error instanceof errors.AuthenticationError) {
+                const messageHash = 'authenticated';
+                client.reject(error, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
+            }
+            else {
+                client.reject(error);
+            }
+            return true;
+        }
+    }
     handleMessage(client, message) {
+        if (this.handleErrorMessage(client, message)) {
+            return;
+        }
         const methods = {
             'ping': this.handlePing,
             'pong': this.handlePong,
@@ -616,17 +1038,21 @@ class woo extends woo$1 {
             'auth': this.handleAuth,
             'executionreport': this.handleOrderUpdate,
             'trade': this.handleTrade,
+            'balance': this.handleBalance,
+            'position': this.handlePositions,
         };
         const event = this.safeString(message, 'event');
         let method = this.safeValue(methods, event);
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
+            return;
         }
         const topic = this.safeString(message, 'topic');
         if (topic !== undefined) {
             method = this.safeValue(methods, topic);
             if (method !== undefined) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
+                return;
             }
             const splitTopic = topic.split('@');
             const splitLength = splitTopic.length;
@@ -634,19 +1060,19 @@ class woo extends woo$1 {
                 const name = this.safeString(splitTopic, 1);
                 method = this.safeValue(methods, name);
                 if (method !== undefined) {
-                    return method.call(this, client, message);
+                    method.call(this, client, message);
+                    return;
                 }
                 const splitName = name.split('_');
                 const splitNameLength = splitTopic.length;
                 if (splitNameLength === 2) {
                     method = this.safeValue(methods, this.safeString(splitName, 0));
                     if (method !== undefined) {
-                        return method.call(this, client, message);
+                        method.call(this, client, message);
                     }
                 }
             }
         }
-        return message;
     }
     ping(client) {
         return { 'event': 'ping' };
@@ -656,7 +1082,7 @@ class woo extends woo$1 {
     }
     handlePong(client, message) {
         //
-        // { event: 'pong', ts: 1657117026090 }
+        // { event: "pong", ts: 1657117026090 }
         //
         client.lastPong = this.milliseconds();
         return message;
@@ -664,10 +1090,10 @@ class woo extends woo$1 {
     handleSubscribe(client, message) {
         //
         //     {
-        //         id: '666888',
-        //         event: 'subscribe',
-        //         success: true,
-        //         ts: 1657117712212
+        //         "id": "666888",
+        //         "event": "subscribe",
+        //         "success": true,
+        //         "ts": 1657117712212
         //     }
         //
         return message;
@@ -675,15 +1101,17 @@ class woo extends woo$1 {
     handleAuth(client, message) {
         //
         //     {
-        //         event: 'auth',
-        //         success: true,
-        //         ts: 1657463158812
+        //         "event": "auth",
+        //         "success": true,
+        //         "ts": 1657463158812
         //     }
         //
         const messageHash = 'authenticated';
         const success = this.safeValue(message, 'success');
         if (success) {
-            client.resolve(message, messageHash);
+            // client.resolve (message, messageHash);
+            const future = this.safeValue(client.futures, 'authenticated');
+            future.resolve(true);
         }
         else {
             const error = new errors.AuthenticationError(this.json(message));

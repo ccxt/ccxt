@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexRest from '../poloniex.js';
-import { BadRequest, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -24,6 +24,15 @@ export default class poloniex extends poloniexRest {
                 'watchStatus': false,
                 'watchOrders': true,
                 'watchMyTrades': true,
+                'createOrderWs': true,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': true,
+                'cancelOrdersWs': true,
+                'cancelAllOrdersWs': true,
+                'fetchTradesWs': false,
+                'fetchBalanceWs': false,
             },
             'urls': {
                 'api': {
@@ -34,6 +43,7 @@ export default class poloniex extends poloniexRest {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -96,7 +106,7 @@ export default class poloniex extends poloniexRest {
                 },
             };
             const message = this.extend (request, params);
-            future = await this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {
@@ -122,7 +132,7 @@ export default class poloniex extends poloniexRest {
         return future;
     }
 
-    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: string[] = undefined, params = {}) {
+    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -152,10 +162,175 @@ export default class poloniex extends poloniexRest {
             subscribe['symbols'] = marketIds;
         }
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, name);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async tradeRequest (name: string, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description Connects to a websocket channel
+         * @param {string} name name of the channel
+         * @param {string[]|undefined} symbols CCXT market symbols
+         * @param {object} [params] extra parameters specific to the poloniex api
+         * @returns {object} data from the websocket stream
+         */
+        const url = this.urls['api']['ws']['private'];
+        const messageHash = this.nonce ().toString ();
+        const subscribe = {
+            'id': messageHash,
+            'event': name,
+            'params': params,
+        };
+        return await this.watch (url, messageHash, subscribe, messageHash);
+    }
+
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name poloniex#createOrderWs
+         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {string} [params.timeInForce] GTC (default), IOC, FOK
+         * @param {string} [params.clientOrderId] Maximum 64-character length.*
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.amount] quote units for the order
+         * @param {boolean} [params.allowBorrow] allow order to be placed by borrowing funds (Default: false)
+         * @param {string} [params.stpMode] self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
+         * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        let uppercaseType = type.toUpperCase ();
+        const uppercaseSide = side.toUpperCase ();
+        const isPostOnly = this.isPostOnly (uppercaseType === 'MARKET', uppercaseType === 'LIMIT_MAKER', params);
+        if (isPostOnly) {
+            uppercaseType = 'LIMIT_MAKER';
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'type': type.toUpperCase (),
+        };
+        if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (params, 'cost');
+            params = this.omit (params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision (symbol, cost);
+            } else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const costRequest = Precise.stringMul (amountString, priceString);
+                    quoteAmount = this.costToPrecision (symbol, costRequest);
+                }
+            } else {
+                quoteAmount = this.costToPrecision (symbol, amount);
+            }
+            request['amount'] = quoteAmount;
+        } else {
+            request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        return await this.tradeRequest ('createOrder', this.extend (request, params));
+    }
+
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#cancelOrderWs
+         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+         * @description cancel multiple orders
+         * @param {string} id order id
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {string} [params.clientOrderId] client order id
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            const clientOrderIds = this.safeValue (params, 'clientOrderId', []);
+            params['clientOrderIds'] = this.arrayConcat (clientOrderIds, [ clientOrderId ]);
+        }
+        return await this.cancelOrdersWs ([ id ], symbol, params);
+    }
+
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#cancelOrdersWs
+         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+         * @description cancel multiple orders
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const request = {
+            'orderIds': ids,
+        };
+        return await this.tradeRequest ('cancelOrders', this.extend (request, params));
+    }
+
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#cancelAllOrdersWs
+         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
+         * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        return await this.tradeRequest ('cancelAllOrders', params);
+    }
+
+    handleOrderRequest (client: Client, message) {
+        //
+        //    {
+        //        "id": "1234567",
+        //        "data": [{
+        //           "orderId": 205343650954092544,
+        //           "clientOrderId": "",
+        //           "message": "",
+        //           "code": 200
+        //        }]
+        //    }
+        //
+        const messageHash = this.safeInteger (message, 'id');
+        const data = this.safeValue (message, 'data', []);
+        const orders = [];
+        for (let i = 0; i < data.length; i++) {
+            const order = data[i];
+            const parsedOrder = this.parseWsOrder (order);
+            orders.push (parsedOrder);
+        }
+        client.resolve (orders, messageHash);
+    }
+
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name poloniex#watchOHLCV
@@ -165,7 +340,7 @@ export default class poloniex extends poloniexRest {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -181,15 +356,15 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name poloniex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -197,15 +372,15 @@ export default class poloniex extends poloniexRest {
         return this.safeValue (tickers, symbol);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name poloniex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const name = 'ticker';
@@ -217,7 +392,7 @@ export default class poloniex extends poloniexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniex#watchTrades
@@ -226,8 +401,8 @@ export default class poloniex extends poloniexRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -239,7 +414,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name poloniex#watchOrderBook
@@ -247,8 +422,8 @@ export default class poloniex extends poloniexRest {
          * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by poloniex watchOrderBook
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const watchOrderBookOptions = this.safeValue (this.options, 'watchOrderBook');
@@ -258,7 +433,7 @@ export default class poloniex extends poloniexRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniex#watchOrders
@@ -267,8 +442,8 @@ export default class poloniex extends poloniexRest {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] not used by poloniex watchOrders
          * @param {int} [limit] not used by poloniex watchOrders
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const name = 'orders';
@@ -284,7 +459,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniex#watchMyTrades
@@ -311,17 +486,14 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name poloniex#watchOrders
-         * @description watches information on multiple orders made by the user
+         * @name poloniex#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-         * @param {string} symbol not used by poloniex watchBalance
-         * @param {int} [since] not used by poloniex watchBalance
-         * @param {int} [limit] not used by poloniex watchBalance
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const name = 'balances';
@@ -329,20 +501,20 @@ export default class poloniex extends poloniexRest {
         return await this.subscribe (name, name, true, undefined, params);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
-        //        symbol: 'BTC_USDT',
-        //        amount: '840.7240416',
-        //        high: '24832.35',
-        //        quantity: '0.033856',
-        //        tradeCount: 1,
-        //        low: '24832.35',
-        //        closeTime: 1676942519999,
-        //        startTime: 1676942460000,
-        //        close: '24832.35',
-        //        open: '24832.35',
-        //        ts: 1676942492072
+        //        "symbol": "BTC_USDT",
+        //        "amount": "840.7240416",
+        //        "high": "24832.35",
+        //        "quantity": "0.033856",
+        //        "tradeCount": 1,
+        //        "low": "24832.35",
+        //        "closeTime": 1676942519999,
+        //        "startTime": 1676942460000,
+        //        "close": "24832.35",
+        //        "open": "24832.35",
+        //        "ts": 1676942492072
         //    }
         //
         return [
@@ -358,20 +530,20 @@ export default class poloniex extends poloniexRest {
     handleOHLCV (client: Client, message) {
         //
         //    {
-        //        channel: 'candles_minute_1',
-        //        data: [
+        //        "channel": "candles_minute_1",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                amount: '840.7240416',
-        //                high: '24832.35',
-        //                quantity: '0.033856',
-        //                tradeCount: 1,
-        //                low: '24832.35',
-        //                closeTime: 1676942519999,
-        //                startTime: 1676942460000,
-        //                close: '24832.35',
-        //                open: '24832.35',
-        //                ts: 1676942492072
+        //                "symbol": "BTC_USDT",
+        //                "amount": "840.7240416",
+        //                "high": "24832.35",
+        //                "quantity": "0.033856",
+        //                "tradeCount": 1,
+        //                "low": "24832.35",
+        //                "closeTime": 1676942519999,
+        //                "startTime": 1676942460000,
+        //                "close": "24832.35",
+        //                "open": "24832.35",
+        //                "ts": 1676942492072
         //            }
         //        ]
         //    }
@@ -382,7 +554,8 @@ export default class poloniex extends poloniexRest {
         const marketId = this.safeString (data, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (symbol);
-        const timeframe = this.findTimeframe (channel);
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe (channel, timeframes);
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -402,17 +575,17 @@ export default class poloniex extends poloniexRest {
     handleTrade (client: Client, message) {
         //
         //    {
-        //        channel: 'trades',
-        //        data: [
+        //        "channel": "trades",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                amount: '13.41634893',
-        //                quantity: '0.000537',
-        //                takerSide: 'buy',
-        //                createTime: 1676950548834,
-        //                price: '24983.89',
-        //                id: '62486976',
-        //                ts: 1676950548839
+        //                "symbol": "BTC_USDT",
+        //                "amount": "13.41634893",
+        //                "quantity": "0.000537",
+        //                "takerSide": "buy",
+        //                "createTime": 1676950548834,
+        //                "price": "24983.89",
+        //                "id": "62486976",
+        //                "ts": 1676950548839
         //            }
         //        ]
         //    }
@@ -444,14 +617,14 @@ export default class poloniex extends poloniexRest {
         // handleTrade
         //
         //    {
-        //        symbol: 'BTC_USDT',
-        //        amount: '13.41634893',
-        //        quantity: '0.000537',
-        //        takerSide: 'buy',
-        //        createTime: 1676950548834,
-        //        price: '24983.89',
-        //        id: '62486976',
-        //        ts: 1676950548839
+        //        "symbol": "BTC_USDT",
+        //        "amount": "13.41634893",
+        //        "quantity": "0.000537",
+        //        "takerSide": "buy",
+        //        "createTime": 1676950548834,
+        //        "price": "24983.89",
+        //        "id": "62486976",
+        //        "ts": 1676950548839
         //    }
         //
         // private trade
@@ -577,8 +750,8 @@ export default class poloniex extends poloniexRest {
         // Order is created
         //
         //    {
-        //        channel: 'orders',
-        //        data: [
+        //        "channel": "orders",
+        //        "data": [
         //            {
         //                "symbol": "BTC_USDT",
         //                "type": "LIMIT",
@@ -640,8 +813,8 @@ export default class poloniex extends poloniexRest {
                     let totalCost = '0';
                     let totalAmount = '0';
                     const previousOrderTrades = previousOrder['trades'];
-                    for (let i = 0; i < previousOrderTrades.length; i++) {
-                        const previousOrderTrade = previousOrderTrades[i];
+                    for (let j = 0; j < previousOrderTrades.length; j++) {
+                        const previousOrderTrade = previousOrderTrades[j];
                         const cost = this.numberToString (previousOrderTrade['cost']);
                         const amount = this.numberToString (previousOrderTrade['amount']);
                         totalCost = Precise.stringAdd (totalCost, cost);
@@ -678,8 +851,8 @@ export default class poloniex extends poloniexRest {
                     previousOrder['status'] = state;
                     // update the newUpdates count
                     orders.append (previousOrder);
-                    marketIds.push (marketId);
                 }
+                marketIds.push (marketId);
             }
         }
         for (let i = 0; i < marketIds.length; i++) {
@@ -687,7 +860,7 @@ export default class poloniex extends poloniexRest {
             const market = this.market (marketId);
             const symbol = market['symbol'];
             const messageHash = 'orders::' + symbol;
-            client.resolve (orders[symbol], messageHash);
+            client.resolve (orders, messageHash);
         }
         client.resolve (orders, 'orders');
         return message;
@@ -767,28 +940,28 @@ export default class poloniex extends poloniexRest {
     handleTicker (client: Client, message) {
         //
         //    {
-        //        channel: 'ticker',
-        //        data: [
+        //        "channel": "ticker",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                startTime: 1677280800000,
-        //                open: '23154.32',
-        //                high: '23212.21',
-        //                low: '22761.01',
-        //                close: '23148.86',
-        //                quantity: '105.179566',
-        //                amount: '2423161.17436702',
-        //                tradeCount: 17582,
-        //                dailyChange: '-0.0002',
-        //                markPrice: '23151.09',
-        //                closeTime: 1677367197924,
-        //                ts: 1677367251090
+        //                "symbol": "BTC_USDT",
+        //                "startTime": 1677280800000,
+        //                "open": "23154.32",
+        //                "high": "23212.21",
+        //                "low": "22761.01",
+        //                "close": "23148.86",
+        //                "quantity": "105.179566",
+        //                "amount": "2423161.17436702",
+        //                "tradeCount": 17582,
+        //                "dailyChange": "-0.0002",
+        //                "markPrice": "23151.09",
+        //                "closeTime": 1677367197924,
+        //                "ts": 1677367251090
         //            }
         //        ]
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString (item, 'symbol');
@@ -796,7 +969,7 @@ export default class poloniex extends poloniexRest {
                 const ticker = this.parseTicker (item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                newTickers.push (ticker);
+                newTickers[symbol] = ticker;
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker::');
@@ -819,11 +992,11 @@ export default class poloniex extends poloniexRest {
         // snapshot
         //
         //    {
-        //        channel: 'book_lv2',
-        //        data: [
+        //        "channel": "book_lv2",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                createTime: 1677368876253,
+        //                "symbol": "BTC_USDT",
+        //                "createTime": 1677368876253,
         //                "asks": [
         //                    ["5.65", "0.02"],
         //                    ...
@@ -832,34 +1005,34 @@ export default class poloniex extends poloniexRest {
         //                    ["6.16", "0.6"],
         //                    ...
         //                ],
-        //                lastId: 164148724,
-        //                id: 164148725,
-        //                ts: 1677368876316
+        //                "lastId": 164148724,
+        //                "id": 164148725,
+        //                "ts": 1677368876316
         //            }
         //        ],
-        //        action: 'snapshot'
+        //        "action": "snapshot"
         //    }
         //
         // update
         //
         //    {
-        //        channel: 'book_lv2',
-        //        data: [
+        //        "channel": "book_lv2",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                createTime: 1677368876882,
+        //                "symbol": "BTC_USDT",
+        //                "createTime": 1677368876882,
         //                "asks": [
         //                    ["6.35", "3"]
         //                ],
         //                "bids": [
         //                    ["5.65", "0.02"]
         //                ],
-        //                lastId: 164148725,
-        //                id: 164148726,
-        //                ts: 1677368876890
+        //                "lastId": 164148725,
+        //                "id": 164148726,
+        //                "ts": 1677368876890
         //            }
         //        ],
-        //        action: 'update'
+        //        "action": "update"
         //    }
         //
         const data = this.safeValue (message, 'data', []);
@@ -884,19 +1057,21 @@ export default class poloniex extends poloniexRest {
                 }
                 const orderbook = this.orderbooks[symbol];
                 if (bids !== undefined) {
-                    for (let i = 0; i < bids.length; i++) {
-                        const bid = this.safeValue (bids, i);
+                    for (let j = 0; j < bids.length; j++) {
+                        const bid = this.safeValue (bids, j);
                         const price = this.safeNumber (bid, 0);
                         const amount = this.safeNumber (bid, 1);
-                        orderbook['bids'].store (price, amount);
+                        const bidsSide = orderbook['bids'];
+                        bidsSide.store (price, amount);
                     }
                 }
                 if (asks !== undefined) {
-                    for (let i = 0; i < asks.length; i++) {
-                        const ask = this.safeValue (asks, i);
+                    for (let j = 0; j < asks.length; j++) {
+                        const ask = this.safeValue (asks, j);
                         const price = this.safeNumber (ask, 0);
                         const amount = this.safeNumber (ask, 1);
-                        orderbook['asks'].store (price, amount);
+                        const asksSide = orderbook['asks'];
+                        asksSide.store (price, amount);
                     }
                 }
                 orderbook['symbol'] = symbol;
@@ -984,6 +1159,10 @@ export default class poloniex extends poloniexRest {
         client.resolve (trades, symbolMessageHash);
     }
 
+    handlePong (client: Client) {
+        client.lastPong = this.milliseconds ();
+    }
+
     handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
@@ -1014,24 +1193,54 @@ export default class poloniex extends poloniexRest {
             'trades': this.handleTrade,
             'orders': this.handleOrder,
             'balances': this.handleBalance,
+            'createOrder': this.handleOrderRequest,
+            'cancelOrder': this.handleOrderRequest,
+            'cancelAllOrders': this.handleOrderRequest,
+            'auth': this.handleAuthenticate,
         };
         const method = this.safeValue (methods, type);
         if (type === 'auth') {
             this.handleAuthenticate (client, message);
+        } else if (type === undefined) {
+            const data = this.safeValue (message, 'data');
+            const item = this.safeValue (data, 0);
+            const orderId = this.safeString (item, 'orderId');
+            if (orderId === '0') {
+                this.handleErrorMessage (client, item);
+            } else {
+                this.handleOrderRequest (client, message);
+            }
         } else {
             const data = this.safeValue (message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }
 
     handleErrorMessage (client: Client, message) {
         //
-        // { message: 'Invalid channel value ["ordersss"]', event: 'error' }
+        //    {
+        //        message: 'Invalid channel value ["ordersss"]',
+        //        event: 'error'
+        //    }
+        //
+        //    {
+        //        "orderId": 0,
+        //        "clientOrderId": null,
+        //        "message": "Currency trade disabled",
+        //        "code": 21352
+        //    }
+        //
+        //    {
+        //       "event": "error",
+        //       "message": "Platform in maintenance mode"
+        //    }
+        //
         const event = this.safeString (message, 'event');
-        if (event === 'error') {
+        const orderId = this.safeString (message, 'orderId');
+        if ((event === 'error') || (orderId === '0')) {
             const error = this.safeString (message, 'message');
             throw new ExchangeError (this.id + ' error: ' + this.json (error));
         }
@@ -1041,10 +1250,10 @@ export default class poloniex extends poloniexRest {
     handleAuthenticate (client: Client, message) {
         //
         //    {
-        //        success: true,
-        //        ret_msg: '',
-        //        op: 'auth',
-        //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        //        "success": true,
+        //        "ret_msg": '',
+        //        "op": "auth",
+        //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
         const data = this.safeValue (message, 'data');

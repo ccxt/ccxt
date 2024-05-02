@@ -1,8 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
-use React\Async;
-use React\Promise;
 
 // ----------------------------------------------------------------------------
 
@@ -10,23 +7,33 @@ use React\Promise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_ticker.php';
+use React\Async;
+use React\Promise;
+include_once PATH_TO_CCXT . '/test/base/test_ticker.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
+        $without_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, null);
+        $with_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol]);
+        Async\await(Promise\all([$with_symbol, $without_symbol]));
+    }) ();
+}
+
+
+function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols, $arg_params = array()) {
+    return Async\async(function () use ($exchange, $skipped_properties, $arg_symbols, $arg_params) {
         $method = 'fetchTickers';
-        // log ('fetching all tickers at once...')
-        $tickers = null;
+        $response = Async\await($exchange->fetch_tickers($arg_symbols, $arg_params));
+        assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
+        $values = is_array($response) ? array_values($response) : array();
         $checked_symbol = null;
-        try {
-            $tickers = Async\await($exchange->fetch_tickers());
-        } catch(Exception $e) {
-            $tickers = Async\await($exchange->fetch_tickers([$symbol]));
-            $checked_symbol = $symbol;
+        if ($arg_symbols !== null && count($arg_symbols) === 1) {
+            $checked_symbol = $arg_symbols[0];
         }
-        assert(is_array($tickers), $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' must return an object. ' . $exchange->json($tickers));
-        $values = is_array($tickers) ? array_values($tickers) : array();
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
         for ($i = 0; $i < count($values); $i++) {
+            // todo: symbol check here
             $ticker = $values[$i];
             test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
         }

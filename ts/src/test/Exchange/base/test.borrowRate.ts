@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testBorrowRate (exchange, skippedProperties, method, entry, requestedCode) {
+function testBorrowRate (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string) {
     const format = {
         'info': {}, // Or []
         'currency': 'USDT',
@@ -11,7 +11,7 @@ function testBorrowRate (exchange, skippedProperties, method, entry, requestedCo
         'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format);
-    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
+    testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day

@@ -10,7 +10,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 /**
  * @class timex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class timex extends Exchange {
     describe() {
@@ -37,20 +37,24 @@ export default class timex extends Exchange {
                 'createStopOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -63,12 +67,16 @@ export default class timex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchWithdrawal': false,
@@ -97,7 +105,7 @@ export default class timex extends Exchange {
                     'rest': 'https://plasma-relay-backend.timex.io',
                 },
                 'www': 'https://timex.io',
-                'doc': 'https://docs.timex.io',
+                'doc': 'https://plasma-relay-backend.timex.io/swagger-ui/index.html',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
@@ -264,12 +272,27 @@ export default class timex extends Exchange {
             },
         });
     }
+    async fetchTime(params = {}) {
+        /**
+         * @method
+         * @name timex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.tradingviewGetTime(params);
+        //
+        //     1708682617
+        //
+        return this.parseToInt(response) * 1000;
+    }
     async fetchMarkets(params = {}) {
         /**
          * @method
          * @name timex#fetchMarkets
          * @description retrieves data on all markets for timex
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listMarkets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
@@ -294,18 +317,15 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            result.push(this.parseMarket(response[i]));
-        }
-        return result;
+        return this.parseMarkets(response);
     }
     async fetchCurrencies(params = {}) {
         /**
          * @method
          * @name timex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCurrencies
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetCurrencies(params);
@@ -346,10 +366,11 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getDeposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const address = this.safeString(params, 'address');
@@ -381,10 +402,11 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchWithdrawals
          * @description fetch all withdrawals made to an account
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getWithdraws
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of transaction structures to retrieve
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const address = this.safeString(params, 'address');
@@ -455,6 +477,8 @@ export default class timex extends Exchange {
             'currency': this.safeCurrencyCode(undefined, currency),
             'status': 'ok',
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': undefined,
         };
     }
@@ -462,9 +486,10 @@ export default class timex extends Exchange {
         /**
          * @method
          * @name timex#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -497,8 +522,9 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -526,7 +552,7 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        const ticker = this.safeValue(response, 0);
+        const ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -534,9 +560,10 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/orderbookV2
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -580,11 +607,12 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the timex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -627,11 +655,12 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCandles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -692,8 +721,9 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the timex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getBalances
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.tradingGetBalances(params);
@@ -713,19 +743,20 @@ export default class timex extends Exchange {
          * @method
          * @name timex#createOrder
          * @description create a trade order
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/createOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const uppercaseSide = side.toUpperCase();
         let uppercaseType = type.toUpperCase();
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         if (postOnly) {
             uppercaseType = 'POST_ONLY';
             params = this.omit(params, ['postOnly']);
@@ -782,7 +813,7 @@ export default class timex extends Exchange {
         //     }
         //
         const orders = this.safeValue(response, 'orders', []);
-        const order = this.safeValue(orders, 0, {});
+        const order = this.safeDict(orders, 0, {});
         return this.parseOrder(order, market);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -833,7 +864,7 @@ export default class timex extends Exchange {
         }
         const orders = this.safeValue(response, 'changedOrders', []);
         const firstOrder = this.safeValue(orders, 0, {});
-        const order = this.safeValue(firstOrder, 'newOrder', {});
+        const order = this.safeDict(firstOrder, 'newOrder', {});
         return this.parseOrder(order, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -841,9 +872,10 @@ export default class timex extends Exchange {
          * @method
          * @name timex#cancelOrder
          * @description cancels an open order
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
          * @param {string} id order id
          * @param {string} symbol not used by timex cancelOrder ()
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -854,9 +886,10 @@ export default class timex extends Exchange {
          * @method
          * @name timex#cancelOrders
          * @description cancel multiple orders
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -895,8 +928,9 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrderDetails
          * @param {string} symbol not used by timex fetchOrder
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -938,7 +972,7 @@ export default class timex extends Exchange {
         //     }
         //
         const order = this.safeValue(response, 'order', {});
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseOrder(this.extend(order, { 'trades': trades }));
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -946,10 +980,11 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getOpenOrders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -992,7 +1027,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1000,10 +1035,11 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1051,7 +1087,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1059,10 +1095,11 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getTrades_1
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -1113,7 +1150,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTradingFee(fee, market = undefined) {
@@ -1130,6 +1167,8 @@ export default class timex extends Exchange {
             'symbol': this.safeSymbol(marketId, market),
             'maker': rate,
             'taker': rate,
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -1137,8 +1176,9 @@ export default class timex extends Exchange {
          * @method
          * @name timex#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getFees
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the timex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -1188,7 +1228,7 @@ export default class timex extends Exchange {
         const minBase = this.safeString(market, 'baseMinSize');
         const minAmount = Precise.stringMax(amountIncrement, minBase);
         const priceIncrement = this.safeString(market, 'tickSize');
-        const minCost = this.safeString(market, 'quoteMinSize');
+        const minCost = this.safeNumber(market, 'quoteMinSize');
         return {
             'id': id,
             'symbol': base + '/' + quote,
@@ -1237,6 +1277,7 @@ export default class timex extends Exchange {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -1487,7 +1528,7 @@ export default class timex extends Exchange {
         const amount = this.safeString(order, 'quantity');
         const filled = this.safeString(order, 'filledQuantity');
         const canceledQuantity = this.omitZero(this.safeString(order, 'cancelledQuantity'));
-        let status = undefined;
+        let status;
         if (Precise.stringEquals(filled, amount)) {
             status = 'closed';
         }
@@ -1524,12 +1565,75 @@ export default class timex extends Exchange {
             'trades': rawTrades,
         }, market);
     }
+    async fetchDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account, does not accept params["network"]
+         * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Currency/selectCurrencyBySymbol
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'symbol': currency['code'],
+        };
+        const response = await this.currenciesGetSSymbol(this.extend(request, params));
+        //
+        //    {
+        //        id: '1',
+        //        currency: {
+        //            symbol: 'BTC',
+        //            name: 'Bitcoin',
+        //            address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //            decimals: '8',
+        //            tradeDecimals: '20',
+        //            fiatSymbol: 'BTC',
+        //            depositEnabled: true,
+        //            withdrawalEnabled: true,
+        //            transferEnabled: true,
+        //            active: true
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'currency', {});
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        symbol: 'BTC',
+        //        name: 'Bitcoin',
+        //        address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //        decimals: '8',
+        //        tradeDecimals: '20',
+        //        fiatSymbol: 'BTC',
+        //        depositEnabled: true,
+        //        withdrawalEnabled: true,
+        //        transferEnabled: true,
+        //        active: true
+        //    }
+        //
+        const currencyId = this.safeString(depositAddress, 'symbol');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'address': this.safeString(depositAddress, 'address'),
+            'tag': undefined,
+            'network': undefined,
+        };
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const paramsToExtract = this.extractParams(path);
+        path = this.implodeParams(path, params);
+        params = this.omit(params, paramsToExtract);
         let url = this.urls['api']['rest'] + '/' + api + '/' + path;
         if (Object.keys(params).length) {
             url += '?' + this.urlencodeWithArrayRepeat(params);
         }
-        if (api !== 'public') {
+        if (api !== 'public' && api !== 'tradingview') {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
             const secret = 'Basic ' + auth;

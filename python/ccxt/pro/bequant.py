@@ -5,11 +5,17 @@
 
 from ccxt.pro.hitbtc import hitbtc
 
+import ccxt.async_support.hitbtc as hitbtcRest
+
+import ccxt.async_support.bequant as bequantRest
+
 
 class bequant(hitbtc):
 
     def describe(self):
-        return self.deep_extend(super(bequant, self).describe(), {
+        # eslint-disable-next-line new-cap
+        describeExtended = self.get_describe_for_extended_ws_exchange(bequantRest(), hitbtcRest(), super(bequant, self).describe())
+        return self.deep_extend(describeExtended, {
             'id': 'bequant',
             'name': 'Bequant',
             'countries': ['MT'],  # Malta
@@ -17,8 +23,8 @@ class bequant(hitbtc):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
                 'api': {
-                    'public': 'https://api.bequant.io',
-                    'private': 'https://api.bequant.io',
+                    'public': 'https://api.bequant.io/api/3',
+                    'private': 'https://api.bequant.io/api/3',
                 },
                 'www': 'https://bequant.io',
                 'doc': [

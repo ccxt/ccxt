@@ -6,18 +6,18 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -40,12 +40,13 @@ class ascendex(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': True,
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -62,18 +63,22 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
-                'fetchLeverage': False,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': True,
                 'fetchLeverageTiers': True,
-                'fetchMarginMode': False,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -91,7 +96,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactionFee': False,
                 'fetchTransactionFees': False,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
@@ -163,7 +168,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'get': {
                             'info': 1,
                             'wallet/transactions': 1,
-                            'wallet/deposit/address': 1,  # not documented
+                            'wallet/deposit/address': 1,
                             'data/balance/snapshot': 1,
                             'data/balance/history': 1,
                         },
@@ -231,6 +236,7 @@ class ascendex(Exchange, ImplicitAPI):
                                 'futures/position': 1,
                                 'futures/free-margin': 1,
                                 'futures/order/hist/current': 1,
+                                'futures/funding-payments': 1,
                                 'futures/order/open': 1,
                                 'futures/order/status': 1,
                             },
@@ -269,24 +275,26 @@ class ascendex(Exchange, ImplicitAPI):
                 'account-category': 'cash',  # 'cash', 'margin', 'futures'  # obsolete
                 'account-group': None,
                 'fetchClosedOrders': {
-                    'method': 'v2PrivateDataGetOrderHist',  # 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method': 'v2PrivateDataGetOrderHist',  # 'v1PrivateAccountCategoryGetOrderHistCurrent'
                 },
                 'defaultType': 'spot',  # 'spot', 'margin', 'swap'
                 'accountsByType': {
                     'spot': 'cash',
                     'swap': 'futures',
-                    'future': 'futures',
                     'margin': 'margin',
                 },
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
                 'networks': {
-                    'BSC': 'BEP20(BSC)',
+                    'BSC': 'BEP20 ' + '(BSC)',
                     'ARB': 'arbitrum',
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
+                    'TRC': 'TRC20',
+                    'TRX': 'TRC20',
+                    'ERC': 'ERC20',
                 },
                 'networksById': {
                     'BEP20(BSC)': 'BSC',
@@ -294,6 +302,16 @@ class ascendex(Exchange, ImplicitAPI):
                     'Solana': 'SOL',
                     'avalanche C chain': 'AVAX',
                     'Omni': 'OMNI',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'GO20': 'GO20',
+                    'BEP2': 'BEP2',
+                    'Bitcoin': 'BTC',
+                    'Bitcoin ABC': 'BCH',
+                    'Litecoin': 'LTC',
+                    'Matic Network': 'MATIC',
+                    'xDai': 'STAKE',
+                    'Akash': 'AKT',
                 },
             },
             'exceptions': {
@@ -351,7 +369,7 @@ class ascendex(Exchange, ImplicitAPI):
                     '300013': InvalidOrder,  # INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
                     '300014': InvalidOrder,  # {"code":300014,"message":"Order price doesn't conform to the required tick size: 0.1","reason":"TICK_SIZE_VIOLATION"}
                     '300020': InvalidOrder,  # TRADING_RESTRICTED There is some trading restriction on account or asset
-                    '300021': InvalidOrder,  # TRADING_DISABLED Trading is disabled on account or asset
+                    '300021': AccountSuspended,  # {"code":300021,"message":"Trading disabled for self account.","reason":"TRADING_DISABLED"}
                     '300031': InvalidOrder,  # NO_MARKET_PRICE No market price for market type order trading
                     '310001': InsufficientFunds,  # INVALID_MARGIN_BALANCE No enough margin balance
                     '310002': InvalidOrder,  # INVALID_MARGIN_ACCOUNT Not a valid account for margin trading
@@ -378,10 +396,10 @@ class ascendex(Exchange, ImplicitAPI):
         lowercaseAccount = account.lower()
         return self.capitalize(lowercaseAccount)
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         assets = await self.v1PublicGetAssets(params)
@@ -483,10 +501,10 @@ class ascendex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ascendex
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         products = await self.v1PublicGetProducts(params)
@@ -603,7 +621,7 @@ class ascendex(Exchange, ImplicitAPI):
             minQty = self.safe_number(market, 'minQty')
             maxQty = self.safe_number(market, 'maxQty')
             minPrice = self.safe_number(market, 'tickSize')
-            maxPrice = None
+            maxPrice: Num = None
             underlying = self.safe_string_2(market, 'underlying', 'symbol')
             parts = underlying.split('/')
             baseId = self.safe_string(parts, 0)
@@ -620,7 +638,7 @@ class ascendex(Exchange, ImplicitAPI):
                 maxPrice = self.safe_number(priceFilter, 'maxPrice')
                 symbol = base + '/' + quote + ':' + settle
             fee = self.safe_number(market, 'commissionReserveRate')
-            marginTradable = self.safe_value(market, 'marginTradable', False)
+            marginTradable = self.safe_bool(market, 'marginTradable', False)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -669,6 +687,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maxNotional'),
                     },
                 },
+                'created': self.safe_integer(market, 'tradingStartTime'),
                 'info': market,
             })
         return result
@@ -676,7 +695,7 @@ class ascendex(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the ascendex server
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the ascendex server
         """
         request = {
@@ -696,10 +715,10 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.safe_integer(data, 'requestReceiveAt')
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
         accountGroup = self.safe_string(self.options, 'account-group')
@@ -729,17 +748,16 @@ class ascendex(Exchange, ImplicitAPI):
             {
                 'id': accountGroup,
                 'type': None,
-                'currency': None,
+                'code': None,
                 'info': response,
             },
         ]
 
-    def parse_balance(self, response):
-        timestamp = self.milliseconds()
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -752,11 +770,10 @@ class ascendex(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def parse_margin_balance(self, response):
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -772,11 +789,10 @@ class ascendex(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def parse_swap_balance(self, response):
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         data = self.safe_value(response, 'data', {})
         collaterals = self.safe_value(data, 'collaterals', [])
@@ -788,21 +804,27 @@ class ascendex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :see: https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
+        :see: https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: wallet type, 'spot', 'margin', or 'swap'
+        :param str [params.marginMode]: 'cross' or None, for spot margin trading, value of 'isolated' is invalid
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         await self.load_accounts()
-        query = None
         marketType = None
-        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
-        isMargin = self.safe_value(params, 'margin', False)
-        marketType = 'margin' if isMargin else marketType
+        marginMode = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
+        isMargin = self.safe_bool(params, 'margin', False)
+        isCross = marginMode == 'cross'
+        marketType = 'margin' if (isMargin or isCross) else marketType
         params = self.omit(params, 'margin')
-        options = self.safe_value(self.options, 'fetchBalance', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, marketType, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -810,25 +832,27 @@ class ascendex(Exchange, ImplicitAPI):
         request = {
             'account-group': accountGroup,
         }
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetBalance')
-        method = self.get_supported_mapping(marketType, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesPosition',
-        })
+        if (marginMode == 'isolated') and (marketType != 'swap'):
+            raise BadRequest(self.id + ' does not supported isolated margin trading')
         if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if (marketType == 'spot') or (marketType == 'margin'):
+            response = await self.v1PrivateAccountCategoryGetBalance(self.extend(request, params))
+        elif marketType == 'swap':
+            response = await self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets')
         #
         # cash
         #
         #     {
-        #         'code': 0,
-        #         'data': [
+        #         "code": 0,
+        #         "data": [
         #             {
-        #                 'asset': 'BCHSV',
-        #                 'totalBalance': '64.298000048',
-        #                 'availableBalance': '64.298000048',
+        #                 "asset": "BCHSV",
+        #                 "totalBalance": "64.298000048",
+        #                 "availableBalance": "64.298000048",
         #             },
         #         ]
         #     }
@@ -836,14 +860,14 @@ class ascendex(Exchange, ImplicitAPI):
         # margin
         #
         #     {
-        #         'code': 0,
-        #         'data': [
+        #         "code": 0,
+        #         "data": [
         #             {
-        #                 'asset': 'BCHSV',
-        #                 'totalBalance': '64.298000048',
-        #                 'availableBalance': '64.298000048',
-        #                 'borrowed': '0',
-        #                 'interest': '0',
+        #                 "asset": "BCHSV",
+        #                 "totalBalance": "64.298000048",
+        #                 "availableBalance": "64.298000048",
+        #                 "borrowed": "0",
+        #                 "interest": "0",
         #             },
         #         ]
         #     }
@@ -869,12 +893,12 @@ class ascendex(Exchange, ImplicitAPI):
         else:
             return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -913,7 +937,7 @@ class ascendex(Exchange, ImplicitAPI):
         result['nonce'] = self.safe_integer(orderbook, 'seqnum')
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol":"QTUM/BTC",
@@ -959,11 +983,11 @@ class ascendex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -988,16 +1012,16 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://ascendex.github.io/ascendex-pro-api/#ticker
-        see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://ascendex.github.io/ascendex-pro-api/#ticker
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -1038,7 +1062,7 @@ class ascendex(Exchange, ImplicitAPI):
             return self.parse_tickers([data], symbols)
         return self.parse_tickers(data, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "m":"bar",
@@ -1064,14 +1088,14 @@ class ascendex(Exchange, ImplicitAPI):
             self.safe_number(data, 'v'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1115,10 +1139,10 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1133,7 +1157,7 @@ class ascendex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'ts')
         priceString = self.safe_string_2(trade, 'price', 'p')
         amountString = self.safe_string(trade, 'q')
-        buyerIsMaker = self.safe_value(trade, 'bm', False)
+        buyerIsMaker = self.safe_bool(trade, 'bm', False)
         side = 'sell' if buyerIsMaker else 'buy'
         market = self.safe_market(None, market)
         return self.safe_trade({
@@ -1152,15 +1176,15 @@ class ascendex(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        see https://ascendex.github.io/ascendex-pro-api/#market-trades
+        :see: https://ascendex.github.io/ascendex-pro-api/#market-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1185,7 +1209,7 @@ class ascendex(Exchange, ImplicitAPI):
         #     }
         #
         records = self.safe_value(response, 'data', [])
-        trades = self.safe_value(records, 'data', [])
+        trades = self.safe_list(records, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_order_status(self, status):
@@ -1199,7 +1223,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1371,10 +1395,10 @@ class ascendex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -1387,15 +1411,15 @@ class ascendex(Exchange, ImplicitAPI):
         response = await self.v1PrivateAccountGroupGetSpotFee(self.extend(request, params))
         #
         #      {
-        #         code: '0',
-        #         data: {
-        #           domain: 'spot',
-        #           userUID: 'U1479576458',
-        #           vipLevel: '0',
-        #           fees: [
-        #             {symbol: 'HT/USDT', fee: {taker: '0.001', maker: '0.001'}},
-        #             {symbol: 'LAMB/BTC', fee: {taker: '0.002', maker: '0.002'}},
-        #             {symbol: 'STOS/USDT', fee: {taker: '0.002', maker: '0.002'}},
+        #         "code": "0",
+        #         "data": {
+        #           "domain": "spot",
+        #           "userUID": "U1479576458",
+        #           "vipLevel": "0",
+        #           "fees": [
+        #             {symbol: 'HT/USDT', fee: {taker: '0.001', maker: "0.001"}},
+        #             {symbol: 'LAMB/BTC', fee: {taker: '0.002', maker: "0.002"}},
+        #             {symbol: 'STOS/USDT', fee: {taker: '0.002', maker: "0.002"}},
         #             ...
         #           ]
         #         }
@@ -1414,31 +1438,35 @@ class ascendex(Exchange, ImplicitAPI):
                 'symbol': symbol,
                 'maker': self.safe_number(takerMaker, 'maker'),
                 'taker': self.safe_number(takerMaker, 'taker'),
+                'percentage': None,
+                'tierBased': None,
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-        Create an order on the exchange
-        :param str symbol: Unified CCXT market symbol
-        :param str type: "limit" or "market"
-        :param str side: "buy" or "sell"
-        :param float amount: the amount of currency to trade
-        :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-        :param dict [params]: Extra parameters specific to the exchange API endpoint
+         * @ignore
+        helper function to build request
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
-        :returns: `An order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :returns dict: request to be sent to the exchange
         """
-        await self.load_markets()
-        await self.load_accounts()
         market = self.market(symbol)
+        marginMode = None
         marketType = None
-        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
-        options = self.safe_value(self.options, 'createOrder', {})
+        marginMode, params = self.handle_margin_mode_and_params('createOrderRequest', params)
+        marketType, params = self.handle_market_type_and_params('createOrderRequest', market, params)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, marketType, 'cash')
+        if marginMode is not None:
+            accountCategory = 'margin'
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
@@ -1457,13 +1485,8 @@ class ascendex(Exchange, ImplicitAPI):
         isLimitOrder = ((type == 'limit') or (type == 'stop_limit'))
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice'])
-        if reduceOnly:
-            if marketType != 'swap':
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only')
-            request['execInst'] = 'ReduceOnly'
         if isLimitOrder:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         if timeInForce == 'IOC':
@@ -1480,18 +1503,47 @@ class ascendex(Exchange, ImplicitAPI):
                 request['orderType'] = 'stop_market'
         if clientOrderId is not None:
             request['id'] = clientOrderId
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryPostOrder')
-        method = self.get_supported_mapping(marketType, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupPostFuturesOrder',
-        })
-        if method == 'v1PrivateAccountCategoryPostOrder':
+        if market['spot']:
             if accountCategory is not None:
                 request['category'] = accountCategory
         else:
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, params))
+            if reduceOnly:
+                request['execInst'] = 'ReduceOnly'
+            if postOnly:
+                request['execInst'] = 'Post'
+        params = self.omit(params, ['reduceOnly', 'triggerPrice'])
+        return self.extend(request, params)
+
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order on the exchange
+        :see: https://ascendex.github.io/ascendex-pro-api/#place-order
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
+        :param str symbol: unified CCXT market symbol
+        :param str type: "limit" or "market"
+        :param str side: "buy" or "sell"
+        :param float amount: the amount of currency to trade
+        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
+        :param bool [params.postOnly]: True or False
+        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered(perpetual swap markets only)
+        :param float [params.takeProfit.triggerPrice]: *swap only* take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float [params.stopLoss.triggerPrice]: *swap only* stop loss trigger price
+        :returns: `An order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.load_accounts()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        response = None
+        if market['swap']:
+            response = await self.v2PrivateAccountGroupPostFuturesOrder(request)
+        else:
+            response = await self.v1PrivateAccountCategoryPostOrder(request)
         #
         # spot
         #
@@ -1511,7 +1563,6 @@ class ascendex(Exchange, ImplicitAPI):
         #              }
         #          }
         #      }
-        #
         #
         # swap
         #
@@ -1560,11 +1611,99 @@ class ascendex(Exchange, ImplicitAPI):
         order = self.safe_value_2(data, 'order', 'info', {})
         return self.parse_order(order, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
+        :param bool [params.postOnly]: True or False
+        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.load_accounts()
+        ordersRequests = []
+        symbol = None
+        marginMode = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
+            currentMarginMode = marginResult[0]
+            if currentMarginMode is not None:
+                if marginMode is None:
+                    marginMode = currentMarginMode
+                else:
+                    if marginMode != currentMarginMode:
+                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        market = self.market(symbol)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountCategory = self.safe_string(accountsByType, market['type'], 'cash')
+        if marginMode is not None:
+            accountCategory = 'margin'
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_value(account, 'id')
+        request = {}
+        response = None
+        if market['swap']:
+            raise NotSupported(self.id + ' createOrders() is not currently supported for swap markets on ascendex')
+            # request['account-group'] = accountGroup
+            # request['category'] = accountCategory
+            # request['orders'] = ordersRequests
+            # response = await self.v2PrivateAccountGroupPostFuturesOrderBatch(request)
+        else:
+            request['account-group'] = accountGroup
+            request['account-category'] = accountCategory
+            request['orders'] = ordersRequests
+            response = await self.v1PrivateAccountCategoryPostOrderBatch(request)
+        #
+        # spot
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "cshdAKBO43TKIh2kJtq7FVVb42KIePyS",
+        #             "ac": "CASH",
+        #             "action": "batch-place-order",
+        #             "status": "Ack",
+        #             "info": [
+        #                 {
+        #                     "symbol": "BTC/USDT",
+        #                     "orderType": "Limit",
+        #                     "timestamp": 1699326589344,
+        #                     "id": "",
+        #                     "orderId": "a18ba7c1f6efU0711043490p3HvjjN5x"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        info = self.safe_list(data, 'info', [])
+        return self.parse_orders(info, market)
+
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://ascendex.github.io/ascendex-pro-api/#query-order
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1573,7 +1712,6 @@ class ascendex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        options = self.safe_value(self.options, 'fetchOrder', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -1583,18 +1721,14 @@ class ascendex(Exchange, ImplicitAPI):
             'account-category': accountCategory,
             'orderId': id,
         }
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetOrderStatus')
-        method = self.get_supported_mapping(type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
-        })
-        if method == 'v1PrivateAccountCategoryGetOrderStatus':
-            if accountCategory is not None:
-                request['category'] = accountCategory
-        else:
+        response = None
+        if (type == 'spot') or (type == 'margin'):
+            response = await self.v1PrivateAccountCategoryGetOrderStatus(self.extend(request, query))
+        elif type == 'swap':
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, query))
+            response = await self.v2PrivateAccountGroupGetFuturesOrderStatus(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOrder() is not currently supported for ' + type + ' markets')
         #
         # AccountCategoryGetOrderStatus
         #
@@ -1662,16 +1796,18 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://ascendex.github.io/ascendex-pro-api/#list-open-orders
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1689,19 +1825,14 @@ class ascendex(Exchange, ImplicitAPI):
             'account-group': accountGroup,
             'account-category': accountCategory,
         }
-        options = self.safe_value(self.options, 'fetchOpenOrders', {})
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetOrderOpen')
-        method = self.get_supported_mapping(type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesOrderOpen',
-        })
-        if method == 'v1PrivateAccountCategoryGetOrderOpen':
-            if accountCategory is not None:
-                request['category'] = accountCategory
-        else:
+        response = None
+        if (type == 'spot') or (type == 'margin'):
+            response = await self.v1PrivateAccountCategoryGetOrderOpen(self.extend(request, query))
+        elif type == 'swap':
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, query))
+            response = await self.v2PrivateAccountGroupGetFuturesOrderOpen(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOpenOrders() is not currently supported for ' + type + ' markets')
         #
         # AccountCategoryGetOrderOpen
         #
@@ -1779,14 +1910,15 @@ class ascendex(Exchange, ImplicitAPI):
             orders.append(order)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+        :see: https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1795,7 +1927,6 @@ class ascendex(Exchange, ImplicitAPI):
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         request = {
-            'account-group': accountGroup,
             # 'category': accountCategory,
             # 'symbol': market['id'],
             # 'orderType': 'market',  # optional, string
@@ -1818,22 +1949,33 @@ class ascendex(Exchange, ImplicitAPI):
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         })
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        accountCategory = self.safe_string(accountsByType, type, 'cash')  # margin, futures
-        if method == 'v2PrivateDataGetOrderHist':
-            request['account'] = accountCategory
-            if limit is not None:
-                request['limit'] = limit
-        else:
-            request['account-category'] = accountCategory
-            if limit is not None:
-                request['pageSize'] = limit
         if since is not None:
             request['startTime'] = since
         until = self.safe_string(params, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await getattr(self, method)(self.extend(request, query))
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountCategory = self.safe_string(accountsByType, type, 'cash')  # margin, futures
+        response = None
+        if method == 'v1PrivateAccountCategoryGetOrderHistCurrent':
+            request['account-group'] = accountGroup
+            request['account-category'] = accountCategory
+            if limit is not None:
+                request['limit'] = limit
+            response = await self.v1PrivateAccountCategoryGetOrderHistCurrent(self.extend(request, query))
+        elif method == 'v2PrivateDataGetOrderHist':
+            request['account'] = accountCategory
+            if limit is not None:
+                request['limit'] = limit
+            response = await self.v2PrivateDataGetOrderHist(self.extend(request, query))
+        elif method == 'v2PrivateAccountGroupGetFuturesOrderHistCurrent':
+            request['account-group'] = accountGroup
+            request['account-category'] = accountCategory
+            if limit is not None:
+                request['pageSize'] = limit
+            response = await self.v2PrivateAccountGroupGetFuturesOrderHistCurrent(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchClosedOrders() is not currently supported for ' + type + ' markets')
         #
         # accountCategoryGetOrderHistCurrent
         #
@@ -1931,12 +2073,14 @@ class ascendex(Exchange, ImplicitAPI):
             data = self.safe_value(data, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://ascendex.github.io/ascendex-pro-api/#cancel-order
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1945,7 +2089,6 @@ class ascendex(Exchange, ImplicitAPI):
         await self.load_accounts()
         market = self.market(symbol)
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        options = self.safe_value(self.options, 'cancelOrder', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -1957,24 +2100,20 @@ class ascendex(Exchange, ImplicitAPI):
             'time': self.milliseconds(),
             'id': 'foobar',
         }
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryDeleteOrder')
-        method = self.get_supported_mapping(type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupDeleteFuturesOrder',
-        })
-        if method == 'v1PrivateAccountCategoryDeleteOrder':
-            if accountCategory is not None:
-                request['category'] = accountCategory
-        else:
-            request['account-category'] = accountCategory
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
         if clientOrderId is None:
             request['orderId'] = id
         else:
             request['id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'id'])
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if (type == 'spot') or (type == 'margin'):
+            response = await self.v1PrivateAccountCategoryDeleteOrder(self.extend(request, query))
+        elif type == 'swap':
+            request['account-category'] = accountCategory
+            response = await self.v2PrivateAccountGroupDeleteFuturesOrder(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' cancelOrder() is not currently supported for ' + type + ' markets')
         #
         # AccountCategoryDeleteOrder
         #
@@ -2042,11 +2181,13 @@ class ascendex(Exchange, ImplicitAPI):
         order = self.safe_value_2(data, 'order', 'info', {})
         return self.parse_order(order, market)
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+        :see: https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2055,7 +2196,6 @@ class ascendex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        options = self.safe_value(self.options, 'cancelAllOrders', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -2067,18 +2207,14 @@ class ascendex(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             request['symbol'] = market['id']
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryDeleteOrderAll')
-        method = self.get_supported_mapping(type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupDeleteFuturesOrderAll',
-        })
-        if method == 'v1PrivateAccountCategoryDeleteOrderAll':
-            if accountCategory is not None:
-                request['category'] = accountCategory
-        else:
+        response = None
+        if (type == 'spot') or (type == 'margin'):
+            response = await self.v1PrivateAccountCategoryDeleteOrderAll(self.extend(request, query))
+        elif type == 'swap':
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, query))
+            response = await self.v2PrivateAccountGroupDeleteFuturesOrderAll(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' cancelAllOrders() is not currently supported for ' + type + ' markets')
         #
         # AccountCategoryDeleteOrderAll
         #
@@ -2115,18 +2251,18 @@ class ascendex(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
-        #         address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        #         destTag: "",
-        #         tagType: "",
-        #         tagId: "",
-        #         chainName: "ERC20",
-        #         numConfirmations: 20,
-        #         withdrawalFee: 1,
-        #         nativeScale: 4,
-        #         tips: []
+        #         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        #         "destTag": "",
+        #         "tagType": "",
+        #         "tagId": "",
+        #         "chainName": "ERC20",
+        #         "numConfirmations": 20,
+        #         "withdrawalFee": 1,
+        #         "nativeScale": 4,
+        #         "tips": []
         #     }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -2134,8 +2270,8 @@ class ascendex(Exchange, ImplicitAPI):
         tag = self.safe_string(depositAddress, tagId)
         self.check_address(address)
         code = None if (currency is None) else currency['code']
-        chainName = self.safe_string(depositAddress, 'chainName')
-        network = self.safe_network(chainName)
+        chainName = self.safe_string(depositAddress, 'blockchain')
+        network = self.network_id_to_code(chainName, code)
         return {
             'currency': code,
             'address': address,
@@ -2145,35 +2281,26 @@ class ascendex(Exchange, ImplicitAPI):
         }
 
     def safe_network(self, networkId):
-        networksById = {
-            'TRC20': 'TRC20',
-            'ERC20': 'ERC20',
-            'GO20': 'GO20',
-            'BEP2': 'BEP2',
-            'BEP20(BSC)': 'BEP20',
-            'Bitcoin': 'BTC',
-            'Bitcoin ABC': 'BCH',
-            'Litecoin': 'LTC',
-            'Matic Network': 'MATIC',
-            'Solana': 'SOL',
-            'xDai': 'STAKE',
-            'Akash': 'AKT',
-        }
+        networksById = self.safe_dict(self.options, 'networksById')
         return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: unified network code for deposit chain
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
-        chainName = self.safe_string(params, 'chainName')
-        params = self.omit(params, 'chainName')
+        networkCode = self.safe_string_2(params, 'network', 'chainName')
+        networkId = self.network_code_to_id(networkCode)
+        params = self.omit(params, ['chainName'])
         request = {
             'asset': currency['id'],
+            'blockchain': networkId,
         }
         response = await self.v1PrivateGetWalletDepositAddress(self.extend(request, params))
         #
@@ -2209,32 +2336,32 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        addresses = self.safe_value(data, 'address', [])
+        data = self.safe_dict(response, 'data', {})
+        addresses = self.safe_list(data, 'address', [])
         numAddresses = len(addresses)
         address = None
         if numAddresses > 1:
             addressesByChainName = self.index_by(addresses, 'chainName')
-            if chainName is None:
+            if networkId is None:
                 chainNames = list(addressesByChainName.keys())
                 chains = ', '.join(chainNames)
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains)
-            address = self.safe_value(addressesByChainName, chainName, {})
+            address = self.safe_dict(addressesByChainName, networkId, {})
         else:
             # first address
-            address = self.safe_value(addresses, 0, {})
+            address = self.safe_dict(addresses, 0, {})
         result = self.parse_deposit_address(address, currency)
         return self.extend(result, {
             'info': response,
         })
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         request = {
@@ -2242,13 +2369,13 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         request = {
@@ -2256,14 +2383,13 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
-    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        fetch history of deposits and withdrawals
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -2286,31 +2412,31 @@ class ascendex(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetWalletTransactions(self.extend(request, params))
         #
         #     {
-        #         code: 0,
-        #         data: {
-        #             data: [
+        #         "code": 0,
+        #         "data": {
+        #             "data": [
         #                 {
-        #                     requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
-        #                     time: 1591606166000,
-        #                     asset: "USDT",
-        #                     transactionType: "deposit",
-        #                     amount: "25",
-        #                     commission: "0",
-        #                     networkTransactionId: "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        #                     status: "pending",
-        #                     numConfirmed: 8,
-        #                     numConfirmations: 20,
-        #                     destAddress: {address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722"}
+        #                     "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        #                     "time": 1591606166000,
+        #                     "asset": "USDT",
+        #                     "transactionType": "deposit",
+        #                     "amount": "25",
+        #                     "commission": "0",
+        #                     "networkTransactionId": "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        #                     "status": "pending",
+        #                     "numConfirmed": 8,
+        #                     "numConfirmations": 20,
+        #                     "destAddress": {address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722"}
         #                 }
         #             ],
-        #             page: 1,
-        #             pageSize: 20,
-        #             hasNext: False
+        #             "page": 1,
+        #             "pageSize": 20,
+        #             "hasNext": False
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        transactions = self.safe_value(data, 'data', [])
+        transactions = self.safe_list(data, 'data', [])
         return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
@@ -2322,22 +2448,22 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
-        #         requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
-        #         time: 1591606166000,
-        #         asset: "USDT",
-        #         transactionType: "deposit",
-        #         amount: "25",
-        #         commission: "0",
-        #         networkTransactionId: "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        #         status: "pending",
-        #         numConfirmed: 8,
-        #         numConfirmations: 20,
-        #         destAddress: {
-        #             address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        #             destTag: "..."  # for currencies that have it
+        #         "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        #         "time": 1591606166000,
+        #         "asset": "USDT",
+        #         "transactionType": "deposit",
+        #         "amount": "25",
+        #         "commission": "0",
+        #         "networkTransactionId": "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        #         "status": "pending",
+        #         "numConfirmed": 8,
+        #         "numConfirmations": 20,
+        #         "destAddress": {
+        #             "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        #             "destTag": "..."  # for currencies that have it
         #         }
         #     }
         #
@@ -2374,13 +2500,14 @@ class ascendex(Exchange, ImplicitAPI):
                 'cost': self.parse_number(feeCostString),
                 'rate': None,
             },
+            'internal': False,
         }
 
-    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -2436,9 +2563,9 @@ class ascendex(Exchange, ImplicitAPI):
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
         symbols = self.market_symbols(symbols)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     {
         #         "symbol": "BTC-PERP",
@@ -2466,7 +2593,8 @@ class ascendex(Exchange, ImplicitAPI):
         notional = self.safe_string(position, 'buyOpenOrderNotional')
         if Precise.string_eq(notional, '0'):
             notional = self.safe_string(position, 'sellOpenOrderNotional')
-        marginMode = self.safe_string(position, 'marginType')
+        marginType = self.safe_string(position, 'marginType')
+        marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
         collateral = None
         if marginMode == 'isolated':
             collateral = self.safe_string(position, 'isolatedMargin')
@@ -2496,9 +2624,11 @@ class ascendex(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': self.safe_integer(position, 'leverage'),
             'marginRatio': None,
+            'stopLossPrice': self.safe_number(position, 'stopLossPrice'),
+            'takeProfitPrice': self.safe_number(position, 'takeProfitPrice'),
         })
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #      {
         #          "time": 1640061364830,
@@ -2535,11 +2665,11 @@ class ascendex(Exchange, ImplicitAPI):
             'fundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 
-    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
         await self.load_markets()
@@ -2574,7 +2704,7 @@ class ascendex(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(contracts)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
@@ -2601,44 +2731,56 @@ class ascendex(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+        #
+        # addMargin/reduceMargin
+        #
+        #     {
+        #          "code": 0
+        #     }
+        #
         errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '0') else 'failed'
         return {
             'info': data,
-            'type': None,
-            'amount': None,
-            'code': market['quote'],
             'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': market['quote'],
             'status': status,
+            'timestamp': None,
+            'datetime': None,
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
-        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+        return await self.modify_margin_helper(symbol, -amount, 'reduce', params)
 
-    async def add_margin(self, symbol: str, amount, params={}):
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -2648,8 +2790,8 @@ class ascendex(Exchange, ImplicitAPI):
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
-        if market['type'] != 'future':
-            raise BadSymbol(self.id + ' setLeverage() supports futures contracts only')
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
         request = {
@@ -2659,14 +2801,17 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return await self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
-    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         marginMode = marginMode.lower()
         if marginMode == 'cross':
             marginMode = 'crossed'
@@ -2680,17 +2825,17 @@ class ascendex(Exchange, ImplicitAPI):
         request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginMode': marginMode,
+            'marginType': marginMode,
         }
-        if market['type'] != 'future':
-            raise BadSymbol(self.id + ' setMarginMode() supports futures contracts only')
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
         return await self.v2PrivateAccountGroupPostFuturesMarginType(self.extend(request, params))
 
-    async def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
@@ -2727,7 +2872,7 @@ class ascendex(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         """
         :param dict info: Exchange market response for 1 market
         :param dict market: CCXT market
@@ -2773,7 +2918,7 @@ class ascendex(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         # {
         #     "assetCode":      "USDT",
@@ -2821,27 +2966,27 @@ class ascendex(Exchange, ImplicitAPI):
                 result['withdraw']['percentage'] = False
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+        :see: https://ascendex.github.io/ascendex-pro-api/#list-all-assets
         :param str[]|None codes: list of unified currency codes
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         response = await self.v2PublicGetAssets(params)
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'assetCode')
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :param str code: unified currency code
+        :param str code: unified currency codeåå
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
@@ -2854,7 +2999,7 @@ class ascendex(Exchange, ImplicitAPI):
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId != 'cash' and toId != 'cash':
-            raise ExchangeError(self.id + ' transfer() only supports direct balance transfer between spot and future, spot and margin')
+            raise ExchangeError(self.id + ' transfer() only supports direct balance transfer between spot and swap, spot and margin')
         request = {
             'account-group': accountGroup,
             'amount': amount,
@@ -2864,10 +3009,10 @@ class ascendex(Exchange, ImplicitAPI):
         }
         response = await self.v1PrivateAccountGroupPostTransfer(self.extend(request, params))
         #
-        #    {code: '0'}
+        #    {"code": "0"}
         #
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         transfer = self.parse_transfer(response, currency)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
@@ -2876,18 +3021,17 @@ class ascendex(Exchange, ImplicitAPI):
             transfer['currency'] = code
         return transfer
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
-        #    {code: '0'}
+        #    {"code": "0"}
         #
         status = self.safe_integer(transfer, 'code')
         currencyCode = self.safe_currency_code(None, currency)
-        timestamp = self.milliseconds()
         return {
             'info': transfer,
             'id': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'currency': currencyCode,
             'amount': None,
             'fromAccount': None,
@@ -2899,6 +3043,219 @@ class ascendex(Exchange, ImplicitAPI):
         if status == 0:
             return 'ok'
         return 'failed'
+
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        await self.load_markets()
+        await self.load_accounts()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 25)
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        request = {
+            'account-group': accountGroup,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        response = await self.v2PrivateAccountGroupGetFuturesFundingPayments(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "data": [
+        #                 {
+        #                     "timestamp": 1640476800000,
+        #                     "symbol": "BTC-PERP",
+        #                     "paymentInUSDT": "-0.013991178",
+        #                     "fundingRate": "0.000173497"
+        #                 },
+        #             ],
+        #             "page": 1,
+        #             "pageSize": 3,
+        #             "hasNext": True
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_list(data, 'data', [])
+        return self.parse_incomes(rows, market, since, limit)
+
+    def parse_income(self, income, market: Market = None):
+        #
+        #     {
+        #         "timestamp": 1640476800000,
+        #         "symbol": "BTC-PERP",
+        #         "paymentInUSDT": "-0.013991178",
+        #         "fundingRate": "0.000173497"
+        #     }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        timestamp = self.safe_integer(income, 'timestamp')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
+            'code': 'USDT',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.safe_number(income, 'paymentInUSDT'),
+        }
+
+    async def fetch_margin_modes(self, symbols: List[str] = None, params={}) -> MarginModes:
+        """
+        fetches the set margin mode of the user
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        await self.load_markets()
+        await self.load_accounts()
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        request = {
+            'account-group': accountGroup,
+        }
+        response = await self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "ac": "FUTURES",
+        #             "collaterals": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "balance": "44.570287262",
+        #                     "referencePrice": "1",
+        #                     "discountFactor": "1"
+        #                 }
+        #             ],
+        #             "contracts": [
+        #                 {
+        #                     "symbol": "BTC-PERP",
+        #                     "side": "LONG",
+        #                     "position": "0.0001",
+        #                     "referenceCost": "-3.12277254",
+        #                     "unrealizedPnl": "-0.001700233",
+        #                     "realizedPnl": "0",
+        #                     "avgOpenPrice": "31209",
+        #                     "marginType": "isolated",
+        #                     "isolatedMargin": "1.654972977",
+        #                     "leverage": "2",
+        #                     "takeProfitPrice": "0",
+        #                     "takeProfitTrigger": "market",
+        #                     "stopLossPrice": "0",
+        #                     "stopLossTrigger": "market",
+        #                     "buyOpenOrderNotional": "0",
+        #                     "sellOpenOrderNotional": "0",
+        #                     "markPrice": "31210.723063672",
+        #                     "indexPrice": "31223.148857925"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        marginModes = self.safe_list(data, 'contracts', [])
+        return self.parse_margin_modes(marginModes, symbols, 'symbol')
+
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        marketId = self.safe_string(marginMode, 'symbol')
+        marginType = self.safe_string(marginMode, 'marginType')
+        margin = 'cross' if (marginType == 'crossed') else 'isolated'
+        return {
+            'info': marginMode,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': margin,
+        }
+
+    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all contract markets
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        await self.load_accounts()
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        request = {
+            'account-group': accountGroup,
+        }
+        response = await self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "ac": "FUTURES",
+        #             "collaterals": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "balance": "44.570287262",
+        #                     "referencePrice": "1",
+        #                     "discountFactor": "1"
+        #                 }
+        #             ],
+        #             "contracts": [
+        #                 {
+        #                     "symbol": "BTC-PERP",
+        #                     "side": "LONG",
+        #                     "position": "0.0001",
+        #                     "referenceCost": "-3.12277254",
+        #                     "unrealizedPnl": "-0.001700233",
+        #                     "realizedPnl": "0",
+        #                     "avgOpenPrice": "31209",
+        #                     "marginType": "isolated",
+        #                     "isolatedMargin": "1.654972977",
+        #                     "leverage": "2",
+        #                     "takeProfitPrice": "0",
+        #                     "takeProfitTrigger": "market",
+        #                     "stopLossPrice": "0",
+        #                     "stopLossTrigger": "market",
+        #                     "buyOpenOrderNotional": "0",
+        #                     "sellOpenOrderNotional": "0",
+        #                     "markPrice": "31210.723063672",
+        #                     "indexPrice": "31223.148857925"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        leverages = self.safe_list(data, 'contracts', [])
+        return self.parse_leverages(leverages, symbols, 'symbol')
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        marginType = self.safe_string(leverage, 'marginType')
+        marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = api[0]
@@ -2956,8 +3313,8 @@ class ascendex(Exchange, ImplicitAPI):
         if response is None:
             return None  # fallback to default error handler
         #
-        #     {'code': 6010, 'message': 'Not enough balance.'}
-        #     {'code': 60060, 'message': 'The order is already filled or canceled.'}
+        #     {"code": 6010, "message": "Not enough balance."}
+        #     {"code": 60060, "message": "The order is already filled or canceled."}
         #     {"code":2100,"message":"ApiKeyFailure"}
         #     {"code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
         #

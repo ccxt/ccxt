@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
+function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
     const format = {
         'info': { },
         'id': '12345-67890:09876/54321', // string trade id
@@ -19,16 +19,16 @@ function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
     };
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    const emptyAllowedFor = [ 'fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker' ];
+    const emptyAllowedFor = [ 'fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker', 'timestamp', 'datetime' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'buy', 'sell' ]);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
     testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
     if (!('fees' in skippedProperties)) {
-        // todo: remove undefined check
+        // todo: remove undefined check and probably non-empty array check later
         if (entry['fees'] !== undefined) {
             for (let i = 0; i < entry['fees'].length; i++) {
                 testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fees'], i);

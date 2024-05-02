@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.base.types import Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 
@@ -40,14 +41,14 @@ class independentreserve(ccxt.async_support.independentreserve):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the independentreserve api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -60,20 +61,20 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_trades(self, client: Client, message):
         #
         #    {
-        #        Channel: 'ticker-btc-usd',
-        #        Nonce: 130,
-        #        Data: {
-        #          TradeGuid: '7a669f2a-d564-472b-8493-6ef982eb1e96',
-        #          Pair: 'btc-aud',
-        #          TradeDate: '2023-02-12T10:04:13.0804889+11:00',
-        #          Price: 31640,
-        #          Volume: 0.00079029,
-        #          BidGuid: 'ba8a78b5-be69-4d33-92bb-9df0daa6314e',
-        #          OfferGuid: '27d20270-f21f-4c25-9905-152e70b2f6ec',
-        #          Side: 'Buy'
+        #        "Channel": "ticker-btc-usd",
+        #        "Nonce": 130,
+        #        "Data": {
+        #          "TradeGuid": "7a669f2a-d564-472b-8493-6ef982eb1e96",
+        #          "Pair": "btc-aud",
+        #          "TradeDate": "2023-02-12T10:04:13.0804889+11:00",
+        #          "Price": 31640,
+        #          "Volume": 0.00079029,
+        #          "BidGuid": "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
+        #          "OfferGuid": "27d20270-f21f-4c25-9905-152e70b2f6ec",
+        #          "Side": "Buy"
         #        },
-        #        Time: 1676156653111,
-        #        Event: 'Trade'
+        #        "Time": 1676156653111,
+        #        "Event": "Trade"
         #    }
         #
         data = self.safe_value(message, 'Data', {})
@@ -121,12 +122,12 @@ class independentreserve(ccxt.async_support.independentreserve):
             'datetime': datetime,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the independentreserve api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -146,24 +147,24 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_order_book(self, client: Client, message):
         #
         #    {
-        #        Channel: "orderbook/1/eth/aud",
-        #        Data: {
-        #          Bids: [
+        #        "Channel": "orderbook/1/eth/aud",
+        #        "Data": {
+        #          "Bids": [
         #            {
-        #              Price: 2198.09,
-        #              Volume: 0.16143952,
+        #              "Price": 2198.09,
+        #              "Volume": 0.16143952,
         #            },
         #          ],
-        #          Offers: [
+        #          "Offers": [
         #            {
-        #              Price: 2201.25,
-        #              Volume: 15,
+        #              "Price": 2201.25,
+        #              "Volume": 15,
         #            },
         #          ],
-        #          Crc32: 1519697650,
+        #          "Crc32": 1519697650,
         #        },
-        #        Time: 1676150558254,
-        #        Event: "OrderBookSnapshot",
+        #        "Time": 1676150558254,
+        #        "Event": "OrderBookSnapshot",
         #    }
         #
         event = self.safe_string(message, 'Event')
@@ -178,27 +179,27 @@ class independentreserve(ccxt.async_support.independentreserve):
         orderBook = self.safe_value(message, 'Data', {})
         messageHash = 'orderbook:' + symbol + ':' + depth
         subscription = self.safe_value(client.subscriptions, messageHash, {})
-        receivedSnapshot = self.safe_value(subscription, 'receivedSnapshot', False)
+        receivedSnapshot = self.safe_bool(subscription, 'receivedSnapshot', False)
         timestamp = self.safe_integer(message, 'Time')
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
-            self.orderbooks[symbol] = storedOrderBook
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
         if event == 'OrderBookSnapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume')
-            storedOrderBook.reset(snapshot)
+            orderbook.reset(snapshot)
             subscription['receivedSnapshot'] = True
         else:
             asks = self.safe_value(orderBook, 'Offers', [])
             bids = self.safe_value(orderBook, 'Bids', [])
-            self.handle_deltas(storedOrderBook['asks'], asks)
-            self.handle_deltas(storedOrderBook['bids'], bids)
-            storedOrderBook['timestamp'] = timestamp
-            storedOrderBook['datetime'] = self.iso8601(timestamp)
-        checksum = self.safe_value(self.options, 'checksum', True)
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+        checksum = self.safe_bool(self.options, 'checksum', True)
         if checksum and receivedSnapshot:
-            storedAsks = storedOrderBook['asks']
-            storedBids = storedOrderBook['bids']
+            storedAsks = orderbook['asks']
+            storedBids = orderbook['bids']
             asksLength = len(storedAsks)
             bidsLength = len(storedBids)
             payload = ''
@@ -214,7 +215,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 error = InvalidNonce(self.id + ' invalid checksum')
                 client.reject(error, messageHash)
         if receivedSnapshot:
-            client.resolve(storedOrderBook, messageHash)
+            client.resolve(orderbook, messageHash)
 
     def value_to_checksum(self, value):
         result = format(value, '.8f')
@@ -235,8 +236,8 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_heartbeat(self, client: Client, message):
         #
         #    {
-        #        Time: 1676156208182,
-        #        Event: 'Heartbeat'
+        #        "Time": 1676156208182,
+        #        "Event": "Heartbeat"
         #    }
         #
         return message
@@ -244,9 +245,9 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_subscriptions(self, client: Client, message):
         #
         #    {
-        #        Data: ['ticker-btc-sgd'],
-        #        Time: 1676157556223,
-        #        Event: 'Subscriptions'
+        #        "Data": ["ticker-btc-sgd"],
+        #        "Time": 1676157556223,
+        #        "Event": "Subscriptions"
         #    }
         #
         return message
@@ -262,5 +263,6 @@ class independentreserve(ccxt.async_support.independentreserve):
         }
         handler = self.safe_value(handlers, event)
         if handler is not None:
-            return handler(client, message)
+            handler(client, message)
+            return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))

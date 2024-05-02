@@ -7,11 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
@@ -21,7 +20,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -43,9 +41,13 @@ class cex(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
@@ -73,7 +75,13 @@ class cex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -215,14 +223,7 @@ class cex(Exchange, ImplicitAPI):
                     'ERC20': 'Ethereum',
                     'BTC': 'BTC',
                     'BEP20': 'Binance Smart Chain',
-                    'BSC': 'Binance Smart Chain',
                     'TRC20': 'Tron',
-                },
-                'networksById': {
-                    'Ethereum': 'ERC20',
-                    'BTC': 'BTC',
-                    'Binance Smart Chain': 'BEP20',
-                    'Tron': 'TRC20',
                 },
             },
         })
@@ -242,10 +243,10 @@ class cex(Exchange, ImplicitAPI):
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = await self.fetch_currencies_from_cache(params)
@@ -345,10 +346,10 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for cex
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         currenciesResponse = await self.fetch_currencies_from_cache(params)
@@ -450,11 +451,12 @@ class cex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         ommited = ['username', 'timestamp']
         balances = self.omit(response, ommited)
@@ -470,22 +472,24 @@ class cex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
+        :see: https://docs.cex.io/#account-balance
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privatePostBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://docs.cex.io/#orderbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -499,7 +503,7 @@ class cex(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         1591403940,
@@ -519,14 +523,15 @@ class cex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
+        :see: https://docs.cex.io/#historical-ohlcv-chart
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -557,7 +562,7 @@ class cex(Exchange, ImplicitAPI):
                 return []
         return None
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         volume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'high')
@@ -589,11 +594,11 @@ class cex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -611,13 +616,14 @@ class cex(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, None, ':')
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
+        :see: https://docs.cex.io/#ticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -628,7 +634,7 @@ class cex(Exchange, ImplicitAPI):
         ticker = await self.publicGetTickerPair(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -663,14 +669,15 @@ class cex(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
+        :see: https://docs.cex.io/#trade-history
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -680,21 +687,22 @@ class cex(Exchange, ImplicitAPI):
         response = await self.publicGetTradeHistoryPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
+        :see: https://docs.cex.io/#get-my-fee
         fetch the trading fees for multiple markets
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privatePostGetMyfee(params)
         #
         #      {
-        #          e: 'get_myfee',
-        #          ok: 'ok',
-        #          data: {
-        #            'BTC:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15'},
-        #            'ETH:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15'},
+        #          "e": "get_myfee",
+        #          "ok": "ok",
+        #          "data": {
+        #            'BTC:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15"},
+        #            'ETH:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15"},
         #            ..
         #          }
         #      }
@@ -718,33 +726,50 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
+        :see: https://docs.cex.io/#place-order
         create a trade order
+        :see: https://cex.io/rest-api#place-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        # for market buy it requires the amount of quote currency to spend
-        if (type == 'market') and (side == 'buy'):
-            if self.options['createMarketBuyOrderRequiresPrice']:
-                if price is None:
-                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
-                else:
-                    amount = amount * price
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
             'type': side,
-            'amount': amount,
         }
+        # for market buy it requires the amount of quote currency to spend
+        if (type == 'market') and (side == 'buy'):
+            quoteAmount = None
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_string(params, 'cost')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                quoteAmount = self.cost_to_precision(symbol, cost)
+            elif createMarketBuyOrderRequiresPrice:
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
+            else:
+                quoteAmount = self.cost_to_precision(symbol, amount)
+            request['amount'] = quoteAmount
+        else:
+            request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit':
-            request['price'] = price
+            request['price'] = self.number_to_string(price)
         else:
             request['order_type'] = type
         response = await self.privatePostPlaceOrderPair(self.extend(request, params))
@@ -759,15 +784,15 @@ class cex(Exchange, ImplicitAPI):
         #         "complete": False
         #     }
         #
-        placedAmount = self.safe_number(response, 'amount')
-        remaining = self.safe_number(response, 'pending')
+        placedAmount = self.safe_string(response, 'amount')
+        remaining = self.safe_string(response, 'pending')
         timestamp = self.safe_value(response, 'time')
         complete = self.safe_value(response, 'complete')
         status = 'closed' if complete else 'open'
         filled = None
         if (placedAmount is not None) and (remaining is not None):
-            filled = max(placedAmount - remaining, 0)
-        return {
+            filled = Precise.string_max(Precise.string_sub(placedAmount, remaining), '0')
+        return self.safe_order({
             'id': self.safe_string(response, 'id'),
             'info': response,
             'clientOrderId': None,
@@ -778,7 +803,7 @@ class cex(Exchange, ImplicitAPI):
             'side': self.safe_string(response, 'type'),
             'symbol': market['symbol'],
             'status': status,
-            'price': self.safe_number(response, 'price'),
+            'price': self.safe_string(response, 'price'),
             'amount': placedAmount,
             'cost': None,
             'average': None,
@@ -786,85 +811,119 @@ class cex(Exchange, ImplicitAPI):
             'filled': filled,
             'fee': None,
             'trades': None,
-        }
+        })
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
+        :see: https://docs.cex.io/#cancel-order
         cancels an open order
         :param str id: order id
         :param str symbol: not used by cex cancelOrder()
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
             'id': id,
         }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        # 'true'
+        return self.extend(self.parse_order({}), {'info': response, 'type': None, 'id': id, 'status': 'canceled'})
 
-    def parse_order(self, order, market=None):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
+        """
+        :see: https://docs.cex.io/#cancel-all-orders-for-given-pair
+        cancel all open orders in a market
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol.')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        orders = await self.privatePostCancelOrdersPair(self.extend(request, params))
+        #
+        #  {
+        #      "e":"cancel_orders",
+        #      "ok":"ok",
+        #      "data":[
+        #      ]
+        #   }
+        #
+        return orders
+
+    def parse_order(self, order, market: Market = None) -> Order:
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
         timestamp = self.safe_value(order, 'time')
         if isinstance(timestamp, str) and timestamp.find('T') >= 0:
             # ISO8601 string
             timestamp = self.parse8601(timestamp)
-        else:
+        elif timestamp is not None:
             # either integer or string integer
             timestamp = int(timestamp)
         symbol = None
-        if market is None:
-            baseId = self.safe_string(order, 'symbol1')
-            quoteId = self.safe_string(order, 'symbol2')
+        baseId = self.safe_string(order, 'symbol1')
+        quoteId = self.safe_string(order, 'symbol2')
+        if market is None and baseId is not None and quoteId is not None:
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            if (base is not None) and (quote is not None):
+                symbol = base + '/' + quote
             if symbol in self.markets:
                 market = self.market(symbol)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
+        price = self.safe_string(order, 'price')
+        amount = self.omit_zero(self.safe_string(order, 'amount'))
         # sell orders can have a negative amount
         # https://github.com/ccxt/ccxt/issues/5338
         if amount is not None:
-            amount = abs(amount)
-        remaining = self.safe_number_2(order, 'pending', 'remains')
-        filled = amount - remaining
+            amount = Precise.string_abs(amount)
+        elif market is not None:
+            amountKey = 'a:' + market['base'] + 'cds:'
+            amount = Precise.string_abs(self.safe_string(order, amountKey))
+        remaining = self.safe_string_2(order, 'pending', 'remains')
+        filled = Precise.string_sub(amount, remaining)
         fee = None
         cost = None
         if market is not None:
             symbol = market['symbol']
-            taCost = self.safe_number(order, 'ta:' + market['quote'])
-            ttaCost = self.safe_number(order, 'tta:' + market['quote'])
-            cost = self.sum(taCost, ttaCost)
+            taCost = self.safe_string(order, 'ta:' + market['quote'])
+            ttaCost = self.safe_string(order, 'tta:' + market['quote'])
+            cost = Precise.string_add(taCost, ttaCost)
             baseFee = 'fa:' + market['base']
             baseTakerFee = 'tfa:' + market['base']
             quoteFee = 'fa:' + market['quote']
             quoteTakerFee = 'tfa:' + market['quote']
-            feeRate = self.safe_number(order, 'tradingFeeMaker')
+            feeRate = self.safe_string(order, 'tradingFeeMaker')
             if not feeRate:
-                feeRate = self.safe_number(order, 'tradingFeeTaker', feeRate)
+                feeRate = self.safe_string(order, 'tradingFeeTaker', feeRate)
             if feeRate:
-                feeRate = feeRate / 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = Precise.string_div(feeRate, '100')  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
             if (baseFee in order) or (baseTakerFee in order):
                 baseFeeCost = self.safe_number_2(order, baseFee, baseTakerFee)
                 fee = {
                     'currency': market['base'],
-                    'rate': feeRate,
+                    'rate': self.parse_number(feeRate),
                     'cost': baseFeeCost,
                 }
             elif (quoteFee in order) or (quoteTakerFee in order):
                 quoteFeeCost = self.safe_number_2(order, quoteFee, quoteTakerFee)
                 fee = {
                     'currency': market['quote'],
-                    'rate': feeRate,
+                    'rate': self.parse_number(feeRate),
                     'cost': quoteFeeCost,
                 }
         if not cost:
-            cost = price * filled
-        side = order['type']
+            cost = Precise.string_mul(price, filled)
+        side = self.safe_string(order, 'type')
         trades = None
-        orderId = order['id']
+        orderId = self.safe_string(order, 'id')
         if 'vtx' in order:
             trades = []
             for i in range(0, len(order['vtx'])):
@@ -872,25 +931,25 @@ class cex(Exchange, ImplicitAPI):
                 tradeSide = self.safe_string(item, 'type')
                 if tradeSide == 'cancel':
                     # looks like self might represent the cancelled part of an order
-                    #   {id: '4426729543',
-                    #     type: 'cancel',
-                    #     time: '2017-09-22T00:24:30.476Z',
-                    #     user: 'up106404164',
-                    #     c: 'user:up106404164:a:BCH',
-                    #     d: 'order:4426728375:a:BCH',
-                    #     a: '0.09935956',
-                    #     amount: '0.09935956',
-                    #     balance: '0.42580261',
-                    #     symbol: 'BCH',
-                    #     order: '4426728375',
-                    #     buy: null,
-                    #     sell: null,
-                    #     pair: null,
-                    #     pos: null,
-                    #     cs: '0.42580261',
-                    #     ds: 0}
+                    #   {"id": "4426729543",
+                    #     "type": "cancel",
+                    #     "time": "2017-09-22T00:24:30.476Z",
+                    #     "user": "up106404164",
+                    #     "c": "user:up106404164:a:BCH",
+                    #     "d": "order:4426728375:a:BCH",
+                    #     "a": "0.09935956",
+                    #     "amount": "0.09935956",
+                    #     "balance": "0.42580261",
+                    #     "symbol": "BCH",
+                    #     "order": "4426728375",
+                    #     "buy": null,
+                    #     "sell": null,
+                    #     "pair": null,
+                    #     "pos": null,
+                    #     "cs": "0.42580261",
+                    #     "ds": 0}
                     continue
-                tradePrice = self.safe_number(item, 'price')
+                tradePrice = self.safe_string(item, 'price')
                 if tradePrice is None:
                     # self represents the order
                     #   {
@@ -992,34 +1051,35 @@ class cex(Exchange, ImplicitAPI):
                 #     "fee_amount": "0.03"
                 #   }
                 tradeTimestamp = self.parse8601(self.safe_string(item, 'time'))
-                tradeAmount = self.safe_number(item, 'amount')
-                feeCost = self.safe_number(item, 'fee_amount')
-                absTradeAmount = -tradeAmount if (tradeAmount < 0) else tradeAmount
+                tradeAmount = self.safe_string(item, 'amount')
+                feeCost = self.safe_string(item, 'fee_amount')
+                absTradeAmount = Precise.string_abs(tradeAmount)
                 tradeCost = None
                 if tradeSide == 'sell':
                     tradeCost = absTradeAmount
-                    absTradeAmount = self.sum(feeCost, tradeCost) / tradePrice
+                    absTradeAmount = Precise.string_div(Precise.string_add(feeCost, tradeCost), tradePrice)
                 else:
-                    tradeCost = absTradeAmount * tradePrice
+                    tradeCost = Precise.string_mul(absTradeAmount, tradePrice)
                 trades.append({
                     'id': self.safe_string(item, 'id'),
                     'timestamp': tradeTimestamp,
                     'datetime': self.iso8601(tradeTimestamp),
                     'order': orderId,
                     'symbol': symbol,
-                    'price': tradePrice,
-                    'amount': absTradeAmount,
-                    'cost': tradeCost,
+                    'price': self.parse_number(tradePrice),
+                    'amount': self.parse_number(absTradeAmount),
+                    'cost': self.parse_number(tradeCost),
                     'side': tradeSide,
                     'fee': {
-                        'cost': feeCost,
+                        'cost': self.parse_number(feeCost),
                         'currency': market['quote'],
                     },
                     'info': item,
                     'type': None,
                     'takerOrMaker': None,
                 })
-        return {
+        return self.safe_order({
+            'info': order,
             'id': orderId,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -1040,55 +1100,57 @@ class cex(Exchange, ImplicitAPI):
             'remaining': remaining,
             'trades': trades,
             'fee': fee,
-            'info': order,
             'average': None,
-        }
+        })
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        :see: https://docs.cex.io/#open-orders
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
-        method = 'privatePostOpenOrders'
         market = None
+        orders = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method += 'Pair'
-        orders = await getattr(self, method)(self.extend(request, params))
+            orders = await self.privatePostOpenOrdersPair(self.extend(request, params))
+        else:
+            orders = await self.privatePostOpenOrders(self.extend(request, params))
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        :see: https://docs.cex.io/#archived-orders
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        await self.load_markets()
-        method = 'privatePostArchivedOrdersPair'
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        await self.load_markets()
         market = self.market(symbol)
         request = {'pair': market['id']}
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await self.privatePostArchivedOrdersPair(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
+        :see: https://docs.cex.io/?python#get-order-details
         fetches information on an order made by the user
         :param str symbol: not used by cex fetchOrder
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1199,13 +1261,14 @@ class cex(Exchange, ImplicitAPI):
         #
         return self.parse_order(data)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        :see: https://docs.cex.io/#archived-orders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1219,95 +1282,95 @@ class cex(Exchange, ImplicitAPI):
         results = []
         for i in range(0, len(response)):
             # cancelled(unfilled):
-            #    {id: '4005785516',
-            #     type: 'sell',
-            #     time: '2017-07-18T19:08:34.223Z',
-            #     lastTxTime: '2017-07-18T19:08:34.396Z',
-            #     lastTx: '4005785522',
-            #     pos: null,
-            #     status: 'c',
-            #     symbol1: 'ETH',
-            #     symbol2: 'GBP',
-            #     amount: '0.20000000',
-            #     price: '200.5625',
-            #     remains: '0.20000000',
-            #     'a:ETH:cds': '0.20000000',
-            #     tradingFeeMaker: '0',
-            #     tradingFeeTaker: '0.16',
-            #     tradingFeeUserVolumeAmount: '10155061217',
-            #     orderId: '4005785516'}
+            #    {"id": "4005785516",
+            #     "type": "sell",
+            #     "time": "2017-07-18T19:08:34.223Z",
+            #     "lastTxTime": "2017-07-18T19:08:34.396Z",
+            #     "lastTx": "4005785522",
+            #     "pos": null,
+            #     "status": "c",
+            #     "symbol1": "ETH",
+            #     "symbol2": "GBP",
+            #     "amount": "0.20000000",
+            #     "price": "200.5625",
+            #     "remains": "0.20000000",
+            #     'a:ETH:cds': "0.20000000",
+            #     "tradingFeeMaker": "0",
+            #     "tradingFeeTaker": "0.16",
+            #     "tradingFeeUserVolumeAmount": "10155061217",
+            #     "orderId": "4005785516"}
             # --
             # cancelled(partially filled buy):
-            #    {id: '4084911657',
-            #     type: 'buy',
-            #     time: '2017-08-05T03:18:39.596Z',
-            #     lastTxTime: '2019-03-19T17:37:46.404Z',
-            #     lastTx: '8459265833',
-            #     pos: null,
-            #     status: 'cd',
-            #     symbol1: 'BTC',
-            #     symbol2: 'GBP',
-            #     amount: '0.05000000',
-            #     price: '2241.4692',
-            #     tfacf: '1',
-            #     remains: '0.03910535',
-            #     'tfa:GBP': '0.04',
-            #     'tta:GBP': '24.39',
-            #     'a:BTC:cds': '0.01089465',
-            #     'a:GBP:cds': '112.26',
-            #     'f:GBP:cds': '0.04',
-            #     tradingFeeMaker: '0',
-            #     tradingFeeTaker: '0.16',
-            #     tradingFeeUserVolumeAmount: '13336396963',
-            #     orderId: '4084911657'}
+            #    {"id": "4084911657",
+            #     "type": "buy",
+            #     "time": "2017-08-05T03:18:39.596Z",
+            #     "lastTxTime": "2019-03-19T17:37:46.404Z",
+            #     "lastTx": "8459265833",
+            #     "pos": null,
+            #     "status": "cd",
+            #     "symbol1": "BTC",
+            #     "symbol2": "GBP",
+            #     "amount": "0.05000000",
+            #     "price": "2241.4692",
+            #     "tfacf": "1",
+            #     "remains": "0.03910535",
+            #     'tfa:GBP': "0.04",
+            #     'tta:GBP': "24.39",
+            #     'a:BTC:cds': "0.01089465",
+            #     'a:GBP:cds': "112.26",
+            #     'f:GBP:cds': "0.04",
+            #     "tradingFeeMaker": "0",
+            #     "tradingFeeTaker": "0.16",
+            #     "tradingFeeUserVolumeAmount": "13336396963",
+            #     "orderId": "4084911657"}
             # --
             # cancelled(partially filled sell):
-            #    {id: '4426728375',
-            #     type: 'sell',
-            #     time: '2017-09-22T00:24:20.126Z',
-            #     lastTxTime: '2017-09-22T00:24:30.476Z',
-            #     lastTx: '4426729543',
-            #     pos: null,
-            #     status: 'cd',
-            #     symbol1: 'BCH',
-            #     symbol2: 'BTC',
-            #     amount: '0.10000000',
-            #     price: '0.11757182',
-            #     tfacf: '1',
-            #     remains: '0.09935956',
-            #     'tfa:BTC': '0.00000014',
-            #     'tta:BTC': '0.00007537',
-            #     'a:BCH:cds': '0.10000000',
-            #     'a:BTC:cds': '0.00007537',
-            #     'f:BTC:cds': '0.00000014',
-            #     tradingFeeMaker: '0',
-            #     tradingFeeTaker: '0.18',
-            #     tradingFeeUserVolumeAmount: '3466715450',
-            #     orderId: '4426728375'}
+            #    {"id": "4426728375",
+            #     "type": "sell",
+            #     "time": "2017-09-22T00:24:20.126Z",
+            #     "lastTxTime": "2017-09-22T00:24:30.476Z",
+            #     "lastTx": "4426729543",
+            #     "pos": null,
+            #     "status": "cd",
+            #     "symbol1": "BCH",
+            #     "symbol2": "BTC",
+            #     "amount": "0.10000000",
+            #     "price": "0.11757182",
+            #     "tfacf": "1",
+            #     "remains": "0.09935956",
+            #     'tfa:BTC': "0.00000014",
+            #     'tta:BTC': "0.00007537",
+            #     'a:BCH:cds': "0.10000000",
+            #     'a:BTC:cds': "0.00007537",
+            #     'f:BTC:cds': "0.00000014",
+            #     "tradingFeeMaker": "0",
+            #     "tradingFeeTaker": "0.18",
+            #     "tradingFeeUserVolumeAmount": "3466715450",
+            #     "orderId": "4426728375"}
             # --
             # filled:
-            #    {id: '5342275378',
-            #     type: 'sell',
-            #     time: '2018-01-04T00:28:12.992Z',
-            #     lastTxTime: '2018-01-04T00:28:12.992Z',
-            #     lastTx: '5342275393',
-            #     pos: null,
-            #     status: 'd',
-            #     symbol1: 'BCH',
-            #     symbol2: 'BTC',
-            #     amount: '0.10000000',
-            #     kind: 'api',
-            #     price: '0.17',
-            #     remains: '0.00000000',
-            #     'tfa:BTC': '0.00003902',
-            #     'tta:BTC': '0.01699999',
-            #     'a:BCH:cds': '0.10000000',
-            #     'a:BTC:cds': '0.01699999',
-            #     'f:BTC:cds': '0.00003902',
-            #     tradingFeeMaker: '0.15',
-            #     tradingFeeTaker: '0.23',
-            #     tradingFeeUserVolumeAmount: '1525951128',
-            #     orderId: '5342275378'}
+            #    {"id": "5342275378",
+            #     "type": "sell",
+            #     "time": "2018-01-04T00:28:12.992Z",
+            #     "lastTxTime": "2018-01-04T00:28:12.992Z",
+            #     "lastTx": "5342275393",
+            #     "pos": null,
+            #     "status": "d",
+            #     "symbol1": "BCH",
+            #     "symbol2": "BTC",
+            #     "amount": "0.10000000",
+            #     "kind": "api",
+            #     "price": "0.17",
+            #     "remains": "0.00000000",
+            #     'tfa:BTC': "0.00003902",
+            #     'tta:BTC': "0.01699999",
+            #     'a:BCH:cds': "0.10000000",
+            #     'a:BTC:cds': "0.01699999",
+            #     'f:BTC:cds': "0.00003902",
+            #     "tradingFeeMaker": "0.15",
+            #     "tradingFeeTaker": "0.23",
+            #     "tradingFeeUserVolumeAmount": "1525951128",
+            #     "orderId": "5342275378"}
             # --
             # market order(buy):
             #    {"id": "6281946200",
@@ -1362,10 +1425,10 @@ class cex(Exchange, ImplicitAPI):
             baseAmount = self.safe_number(order, 'a:' + baseId + ':cds')
             quoteAmount = self.safe_number(order, 'a:' + quoteId + ':cds')
             fee = self.safe_number(order, 'f:' + quoteId + ':cds')
-            amount = self.safe_number(order, 'amount')
-            price = self.safe_number(order, 'price')
-            remaining = self.safe_number(order, 'remains')
-            filled = amount - remaining
+            amount = self.safe_string(order, 'amount')
+            price = self.safe_string(order, 'price')
+            remaining = self.safe_string(order, 'remains')
+            filled = Precise.string_sub(amount, remaining)
             orderAmount = None
             cost = None
             average = None
@@ -1374,23 +1437,24 @@ class cex(Exchange, ImplicitAPI):
                 type = 'market'
                 orderAmount = baseAmount
                 cost = quoteAmount
-                average = orderAmount / cost
+                average = Precise.string_div(orderAmount, cost)
             else:
-                ta = self.safe_number(order, 'ta:' + quoteId, 0)
-                tta = self.safe_number(order, 'tta:' + quoteId, 0)
-                fa = self.safe_number(order, 'fa:' + quoteId, 0)
-                tfa = self.safe_number(order, 'tfa:' + quoteId, 0)
+                ta = self.safe_string(order, 'ta:' + quoteId, '0')
+                tta = self.safe_string(order, 'tta:' + quoteId, '0')
+                fa = self.safe_string(order, 'fa:' + quoteId, '0')
+                tfa = self.safe_string(order, 'tfa:' + quoteId, '0')
                 if side == 'sell':
-                    cost = self.sum(self.sum(ta, tta), self.sum(fa, tfa))
+                    cost = Precise.string_add(Precise.string_add(ta, tta), Precise.string_add(fa, tfa))
                 else:
-                    cost = self.sum(ta, tta) - self.sum(fa, tfa)
+                    cost = Precise.string_sub(Precise.string_add(ta, tta), Precise.string_add(fa, tfa))
                 type = 'limit'
                 orderAmount = amount
-                average = cost / filled
+                average = Precise.string_div(cost, filled)
             time = self.safe_string(order, 'time')
             lastTxTime = self.safe_string(order, 'lastTxTime')
             timestamp = self.parse8601(time)
-            results.append({
+            safeOrder = self.safe_order({
+                'info': order,
                 'id': self.safe_string(order, 'id'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -1409,14 +1473,26 @@ class cex(Exchange, ImplicitAPI):
                     'cost': fee,
                     'currency': quote,
                 },
-                'info': order,
             })
+            results.append(safeOrder)
         return results
 
     def parse_order_status(self, status):
         return self.safe_string(self.options['order']['status'], status, status)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+        :see: https://docs.cex.io/#cancel-replace-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the cex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a amount argument')
         if price is None:
@@ -1436,9 +1512,10 @@ class cex(Exchange, ImplicitAPI):
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
+        :see: https://docs.cex.io/#get-crypto-address
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()

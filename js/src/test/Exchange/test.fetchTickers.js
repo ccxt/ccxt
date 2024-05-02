@@ -6,21 +6,24 @@
 
 import assert from 'assert';
 import testTicker from './base/test.ticker.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchTickers(exchange, skippedProperties, symbol) {
+    const withoutSymbol = testFetchTickersHelper(exchange, skippedProperties, undefined);
+    const withSymbol = testFetchTickersHelper(exchange, skippedProperties, [symbol]);
+    await Promise.all([withSymbol, withoutSymbol]);
+}
+async function testFetchTickersHelper(exchange, skippedProperties, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
-    // log ('fetching all tickers at once...')
-    let tickers = undefined;
+    const response = await exchange.fetchTickers(argSymbols, argParams);
+    assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return an object. ' + exchange.json(response));
+    const values = Object.values(response);
     let checkedSymbol = undefined;
-    try {
-        tickers = await exchange.fetchTickers();
+    if (argSymbols !== undefined && argSymbols.length === 1) {
+        checkedSymbol = argSymbols[0];
     }
-    catch (e) {
-        tickers = await exchange.fetchTickers([symbol]);
-        checkedSymbol = symbol;
-    }
-    assert(typeof tickers === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json(tickers));
-    const values = Object.values(tickers);
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
     for (let i = 0; i < values.length; i++) {
+        // todo: symbol check here
         const ticker = values[i];
         testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
     }

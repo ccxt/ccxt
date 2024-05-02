@@ -9,7 +9,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class bitbank
- * @extends Exchange
+ * @augments Exchange
  */
 class bitbank extends bitbank$1 {
     describe() {
@@ -26,21 +26,25 @@ class bitbank extends bitbank$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -52,8 +56,11 @@ class bitbank extends bitbank$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -103,6 +110,7 @@ class bitbank extends bitbank$1 {
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
                         '{pair}/candlestick/{candletype}/{yyyymmdd}',
+                        '{pair}/circuit_break_info',
                     ],
                 },
                 'private': {
@@ -133,21 +141,23 @@ class bitbank extends bitbank$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
-                '20001': errors.AuthenticationError,
-                '20002': errors.AuthenticationError,
-                '20003': errors.AuthenticationError,
-                '20005': errors.AuthenticationError,
-                '20004': errors.InvalidNonce,
-                '40020': errors.InvalidOrder,
-                '40021': errors.InvalidOrder,
-                '40025': errors.ExchangeError,
-                '40013': errors.OrderNotFound,
-                '40014': errors.OrderNotFound,
-                '50008': errors.PermissionDenied,
-                '50009': errors.OrderNotFound,
-                '50010': errors.OrderNotFound,
-                '60001': errors.InsufficientFunds,
-                '60005': errors.InvalidOrder,
+                'exact': {
+                    '20001': errors.AuthenticationError,
+                    '20002': errors.AuthenticationError,
+                    '20003': errors.AuthenticationError,
+                    '20005': errors.AuthenticationError,
+                    '20004': errors.InvalidNonce,
+                    '40020': errors.InvalidOrder,
+                    '40021': errors.InvalidOrder,
+                    '40025': errors.ExchangeError,
+                    '40013': errors.OrderNotFound,
+                    '40014': errors.OrderNotFound,
+                    '50008': errors.PermissionDenied,
+                    '50009': errors.OrderNotFound,
+                    '50010': errors.OrderNotFound,
+                    '60001': errors.InsufficientFunds,
+                    '60005': errors.InvalidOrder,
+                },
             },
         });
     }
@@ -156,7 +166,8 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchMarkets
          * @description retrieves data on all markets for bitbank
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.marketsGetSpotPairs(params);
@@ -189,66 +200,65 @@ class bitbank extends bitbank$1 {
         //
         const data = this.safeValue(response, 'data');
         const pairs = this.safeValue(data, 'pairs', []);
-        const result = [];
-        for (let i = 0; i < pairs.length; i++) {
-            const entry = pairs[i];
-            const id = this.safeString(entry, 'name');
-            const baseId = this.safeString(entry, 'base_asset');
-            const quoteId = this.safeString(entry, 'quote_asset');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': this.safeValue(entry, 'is_enabled'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber(entry, 'taker_fee_rate_quote'),
-                'maker': this.safeNumber(entry, 'maker_fee_rate_quote'),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(entry, 'amount_digits'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(entry, 'price_digits'))),
+        return this.parseMarkets(pairs);
+    }
+    parseMarket(entry) {
+        const id = this.safeString(entry, 'name');
+        const baseId = this.safeString(entry, 'base_asset');
+        const quoteId = this.safeString(entry, 'quote_asset');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': this.safeValue(entry, 'is_enabled'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber(entry, 'taker_fee_rate_quote'),
+            'maker': this.safeNumber(entry, 'maker_fee_rate_quote'),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(entry, 'amount_digits'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(entry, 'price_digits'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(entry, 'unit_amount'),
-                        'max': this.safeNumber(entry, 'limit_max_amount'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber(entry, 'unit_amount'),
+                    'max': this.safeNumber(entry, 'limit_max_amount'),
                 },
-                'info': entry,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': entry,
+        };
     }
     parseTicker(ticker, market = undefined) {
         const symbol = this.safeSymbol(undefined, market);
@@ -282,8 +292,9 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -292,7 +303,7 @@ class bitbank extends bitbank$1 {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTicker(this.extend(request, params));
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -300,9 +311,10 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -316,6 +328,17 @@ class bitbank extends bitbank$1 {
         return this.parseOrderBook(orderbook, market['symbol'], timestamp);
     }
     parseTrade(trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //    {
+        //        "transaction_id": "1143247037",
+        //        "side": "buy",
+        //        "price": "3836025",
+        //        "amount": "0.0005",
+        //        "executed_at": "1694249441593"
+        //    }
+        //
         const timestamp = this.safeInteger(trade, 'executed_at');
         market = this.safeMarket(undefined, market);
         const priceString = this.safeString(trade, 'price');
@@ -354,11 +377,12 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#transactions
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -367,7 +391,7 @@ class bitbank extends bitbank$1 {
         };
         const response = await this.publicGetPairTransactions(this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'transactions', []);
+        const trades = this.safeList(data, 'transactions', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTradingFees(params = {}) {
@@ -375,33 +399,34 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.marketsGetSpotPairs(params);
         //
         //     {
-        //         success: '1',
-        //         data: {
-        //           pairs: [
+        //         "success": "1",
+        //         "data": {
+        //           "pairs": [
         //             {
-        //               name: 'btc_jpy',
-        //               base_asset: 'btc',
-        //               quote_asset: 'jpy',
-        //               maker_fee_rate_base: '0',
-        //               taker_fee_rate_base: '0',
-        //               maker_fee_rate_quote: '-0.0002',
-        //               taker_fee_rate_quote: '0.0012',
-        //               unit_amount: '0.0001',
-        //               limit_max_amount: '1000',
-        //               market_max_amount: '10',
-        //               market_allowance_rate: '0.2',
-        //               price_digits: '0',
-        //               amount_digits: '4',
-        //               is_enabled: true,
-        //               stop_order: false,
-        //               stop_order_and_cancel: false
+        //               "name": "btc_jpy",
+        //               "base_asset": "btc",
+        //               "quote_asset": "jpy",
+        //               "maker_fee_rate_base": "0",
+        //               "taker_fee_rate_base": "0",
+        //               "maker_fee_rate_quote": "-0.0002",
+        //               "taker_fee_rate_quote": "0.0012",
+        //               "unit_amount": "0.0001",
+        //               "limit_max_amount": "1000",
+        //               "market_max_amount": "10",
+        //               "market_allowance_rate": "0.2",
+        //               "price_digits": "0",
+        //               "amount_digits": "4",
+        //               "is_enabled": true,
+        //               "stop_order": false,
+        //               "stop_order_and_cancel": false
         //             },
         //             ...
         //           ]
@@ -452,11 +477,12 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#candlestick
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if (since === undefined) {
@@ -495,7 +521,7 @@ class bitbank extends bitbank$1 {
         const data = this.safeValue(response, 'data', {});
         const candlestick = this.safeValue(data, 'candlestick', []);
         const first = this.safeValue(candlestick, 0, {});
-        const ohlcv = this.safeValue(first, 'ohlcv', []);
+        const ohlcv = this.safeList(first, 'ohlcv', []);
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
     parseBalance(response) {
@@ -523,8 +549,9 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetUserAssets(params);
@@ -616,12 +643,13 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#createOrder
          * @description create a trade order
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#create-new-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -636,7 +664,7 @@ class bitbank extends bitbank$1 {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const response = await this.privatePostUserSpotOrder(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -644,9 +672,10 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -664,8 +693,9 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -675,7 +705,7 @@ class bitbank extends bitbank$1 {
             'pair': market['id'],
         };
         const response = await this.privateGetUserSpotOrder(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -683,10 +713,11 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-active-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -702,7 +733,7 @@ class bitbank extends bitbank$1 {
         }
         const response = await this.privateGetUserSpotActiveOrders(this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(data, 'orders', []);
+        const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -710,10 +741,11 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-trade-history
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -731,7 +763,7 @@ class bitbank extends bitbank$1 {
         }
         const response = await this.privateGetUserSpotTradeHistory(this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'trades', []);
+        const trades = this.safeList(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -739,8 +771,9 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-withdrawal-accounts
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
@@ -767,11 +800,12 @@ class bitbank extends bitbank$1 {
          * @method
          * @name bitbank#withdraw
          * @description make a withdrawal
+         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-request
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
-         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
@@ -802,7 +836,7 @@ class bitbank extends bitbank$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -842,6 +876,7 @@ class bitbank extends bitbank$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };
@@ -953,16 +988,10 @@ class bitbank extends bitbank$1 {
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
-            const errorClasses = this.exceptions;
             const code = this.safeString(data, 'code');
             const message = this.safeString(errorMessages, code, 'Error');
-            const ErrorClass = this.safeValue(errorClasses, code);
-            if (ErrorClass !== undefined) {
-                throw new errorClasses[code](message);
-            }
-            else {
-                throw new errors.ExchangeError(this.id + ' ' + this.json(response));
-            }
+            this.throwExactlyMatchedException(this.exceptions['exact'], code, message);
+            throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
         return undefined;
     }

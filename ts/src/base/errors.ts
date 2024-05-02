@@ -1,59 +1,12 @@
 /* eslint-disable max-classes-per-file */
 
-// import { errorHierarchy } from './errorHierarchy.js';
-// Commented out since I'm not sure this is mandatory anymore
-// and does not work out of the box with esm
-
-// /*  ------------------------------------------------------------------------ */
-
-// function subclass (BaseClass, classes, namespace = {}) {
-
-//     for (const [className, subclasses] of Object.entries (classes)) {
-
-//         const Class = Object.assign (namespace, {
-
-//         /*  By creating a named property, we trick compiler to assign our class constructor function a name.
-//             Otherwise, all our error constructors would be shown as [Function: Error] in the debugger! And
-//             the super-useful `e.constructor.name` magic wouldn't work — we then would have no chance to
-//             obtain a error type string from an error instance programmatically!                               */
-
-//             [className]: class extends BaseClass {
-
-//                 constructor (message) {
-
-//                     super (message)
-
-//                 /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
-//                     See my blog post for the explanation of this hack:
-
-//                     https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
-
-//                     this.constructor = Class
-//                     this.__proto__   = Class.prototype
-//                     this.name        = className
-//                     this.message     = message
-
-//                     // https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work
-
-//                     Object.setPrototypeOf (this, Class.prototype)
-//                 }
-//             }
-
-//         })[className]
-
-//         subclass (Class, subclasses, namespace)
-//     }
-
-//     return namespace
-// }
 class BaseError extends Error {
     constructor (message) {
         super (message);
         this.name = 'BaseError';
     }
 }
-// Exchange Error errors
-class ExchangeError extends Error {
+class ExchangeError extends BaseError {
     constructor (message) {
         super (message);
         this.name = 'ExchangeError';
@@ -65,19 +18,19 @@ class AuthenticationError extends ExchangeError {
         this.name = 'AuthenticationError';
     }
 }
-class PermissionDenied extends ExchangeError {
+class PermissionDenied extends AuthenticationError {
     constructor (message) {
         super (message);
         this.name = 'PermissionDenied';
     }
 }
-class AccountNotEnabled extends ExchangeError {
+class AccountNotEnabled extends PermissionDenied {
     constructor (message) {
         super (message);
         this.name = 'AccountNotEnabled';
     }
 }
-class AccountSuspended extends ExchangeError {
+class AccountSuspended extends AuthenticationError {
     constructor (message) {
         super (message);
         this.name = 'AccountSuspended';
@@ -101,7 +54,19 @@ class BadSymbol extends BadRequest {
         this.name = 'BadSymbol';
     }
 }
-class MarginModeAlreadySet extends BadRequest {
+class OperationRejected extends ExchangeError {
+    constructor (message) {
+        super (message);
+        this.name = 'OperationRejected';
+    }
+}
+class NoChange extends OperationRejected {
+    constructor (message) {
+        super (message);
+        this.name = 'NoChange';
+    }
+}
+class MarginModeAlreadySet extends NoChange {
     constructor (message) {
         super (message);
         this.name = 'MarginModeAlreadySet';
@@ -113,7 +78,7 @@ class BadResponse extends ExchangeError {
         this.name = 'BadResponse';
     }
 }
-class NullResponse extends ExchangeError {
+class NullResponse extends BadResponse {
     constructor (message) {
         super (message);
         this.name = 'NullResponse';
@@ -179,14 +144,37 @@ class DuplicateOrderId extends InvalidOrder {
         this.name = 'DuplicateOrderId';
     }
 }
+class ContractUnavailable extends InvalidOrder {
+    constructor (message) {
+        super (message);
+        this.name = 'ContractUnavailable';
+    }
+}
 class NotSupported extends ExchangeError {
     constructor (message) {
         super (message);
         this.name = 'NotSupported';
     }
 }
-// Network error
-class NetworkError extends BaseError {
+class ProxyError extends ExchangeError {
+    constructor (message) {
+        super (message);
+        this.name = 'ProxyError';
+    }
+}
+class ExchangeClosedByUser extends ExchangeError {
+    constructor (message) {
+        super (message);
+        this.name = 'ExchangeClosedByUser';
+    }
+}
+class OperationFailed extends BaseError {
+    constructor (message) {
+        super (message);
+        this.name = 'OperationFailed';
+    }
+}
+class NetworkError extends OperationFailed {
     constructor (message) {
         super (message);
         this.name = 'NetworkError';
@@ -198,7 +186,7 @@ class DDoSProtection extends NetworkError {
         this.name = 'DDoSProtection';
     }
 }
-class RateLimitExceeded extends DDoSProtection {
+class RateLimitExceeded extends NetworkError {
     constructor (message) {
         super (message);
         this.name = 'RateLimitExceeded';
@@ -228,15 +216,7 @@ class RequestTimeout extends NetworkError {
         this.name = 'RequestTimeout';
     }
 }
-/*  ------------------------------------------------------------------------ */
-// export default subclass (
-//     // Root class
-//     Error,
-//     // Derived class hierarchy
-//     errorHierarchy
-// )
-const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
 
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
 
-export default errors;
+export default { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };

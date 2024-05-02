@@ -1,13 +1,13 @@
 import Exchange from './abstract/wazirx.js';
-import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, PermissionDenied, InsufficientFunds, InvalidOrder, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class wazirx
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wazirx extends Exchange {
     describe () {
@@ -21,21 +21,30 @@ export default class wazirx extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': false,
-                'fetchCurrencies': false,
-                'fetchDepositAddress': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -44,7 +53,13 @@ export default class wazirx extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
@@ -54,7 +69,13 @@ export default class wazirx extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -66,7 +87,14 @@ export default class wazirx extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -84,7 +112,7 @@ export default class wazirx extends Exchange {
                 'public': {
                     'get': {
                         'exchangeInfo': 1,
-                        'depth': 1,
+                        'depth': 0.5,
                         'ping': 1,
                         'systemStatus': 1,
                         'tickers/24hr': 1,
@@ -103,6 +131,11 @@ export default class wazirx extends Exchange {
                         'openOrders': 1,
                         'order': 0.5,
                         'myTrades': 0.5,
+                        'coins': 12,
+                        'crypto/withdraws': 12,
+                        'crypto/deposits/address': 60,
+                        'sub_account/fund_transfer/history': 1,
+                        'sub_account/accounts': 1,
                     },
                     'post': {
                         'order': 0.1,
@@ -148,17 +181,20 @@ export default class wazirx extends Exchange {
             'options': {
                 // 'fetchTradesMethod': 'privateGetHistoricalTrades',
                 'recvWindow': 10000,
+                'networks': {
+                    // You can get network from fetchCurrencies
+                },
             },
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name wazirx#fetchMarkets
          * @see https://docs.wazirx.com/#exchange-info
          * @description retrieves data on all markets for wazirx
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetExchangeInfo (params);
@@ -189,85 +225,85 @@ export default class wazirx extends Exchange {
         //     },
         //
         const markets = this.safeValue (response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const isSpot = this.safeValue (market, 'isSpotTradingAllowed');
-            const filters = this.safeValue (market, 'filters');
-            let minPrice = undefined;
-            for (let j = 0; j < filters.length; j++) {
-                const filter = filters[j];
-                const filterType = this.safeString (filter, 'filterType');
-                if (filterType === 'PRICE_FILTER') {
-                    minPrice = this.safeNumber (filter, 'minPrice');
-                }
-            }
-            const fee = this.safeValue (this.fees, quote, {});
-            let takerString = this.safeString (fee, 'taker', '0.2');
-            takerString = Precise.stringDiv (takerString, '100');
-            let makerString = this.safeString (fee, 'maker', '0.2');
-            makerString = Precise.stringDiv (makerString, '100');
-            const status = this.safeString (market, 'status');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': isSpot,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'trading'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.parseNumber (takerString),
-                'maker': this.parseNumber (makerString),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteAssetPrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
-        }
-        return result;
+        return this.parseMarkets (markets);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const isSpot = this.safeValue (market, 'isSpotTradingAllowed');
+        const filters = this.safeValue (market, 'filters');
+        let minPrice: Num = undefined;
+        for (let j = 0; j < filters.length; j++) {
+            const filter = filters[j];
+            const filterType = this.safeString (filter, 'filterType');
+            if (filterType === 'PRICE_FILTER') {
+                minPrice = this.safeNumber (filter, 'minPrice');
+            }
+        }
+        const fee = this.safeValue (this.fees, quote, {});
+        let takerString: Str = this.safeString (fee, 'taker', '0.2');
+        takerString = Precise.stringDiv (takerString, '100');
+        let makerString: Str = this.safeString (fee, 'maker', '0.2');
+        makerString = Precise.stringDiv (makerString, '100');
+        const status = this.safeString (market, 'status');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': isSpot,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'trading'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.parseNumber (takerString),
+            'maker': this.parseNumber (makerString),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteAssetPrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name wazirx#fetchOHLCV
@@ -277,7 +313,7 @@ export default class wazirx extends Exchange {
          * @param {string} timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in s of the latest candle to fetch
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -288,7 +324,7 @@ export default class wazirx extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 2000);
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
@@ -308,7 +344,7 @@ export default class wazirx extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    [1669014300,1402001,1402001,1402001,1402001,0],
         //
@@ -322,7 +358,7 @@ export default class wazirx extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name wazirx#fetchOrderBook
@@ -330,7 +366,7 @@ export default class wazirx extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -359,14 +395,14 @@ export default class wazirx extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name wazirx#fetchTicker
          * @see https://docs.wazirx.com/#24hr-ticker-price-change-statistics
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -393,14 +429,14 @@ export default class wazirx extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name wazirx#fetchTickers
          * @see https://docs.wazirx.com/#24hr-tickers-price-change-statistics
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -429,10 +465,10 @@ export default class wazirx extends Exchange {
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
-        return result;
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name wazirx#fetchTrades
@@ -441,8 +477,8 @@ export default class wazirx extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -450,10 +486,15 @@ export default class wazirx extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // Default 500; max 1000.
+            request['limit'] = Math.min (limit, 1000); // Default 500; max 1000.
         }
         const method = this.safeString (this.options, 'fetchTradesMethod', 'publicGetTrades');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetHistoricalTrades') {
+            response = await this.privateGetHistoricalTrades (this.extend (request, params));
+        } else {
+            response = await this.publicGetTrades (this.extend (request, params));
+        }
         // [
         //     {
         //         "id":322307791,
@@ -467,7 +508,7 @@ export default class wazirx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //         "id":322307791,
@@ -510,7 +551,7 @@ export default class wazirx extends Exchange {
          * @name wazirx#fetchStatus
          * @see https://docs.wazirx.com/#system-status
          * @description the latest known information on the availability of the exchange API
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.publicGetSystemStatus (params);
@@ -536,7 +577,7 @@ export default class wazirx extends Exchange {
          * @name wazirx#fetchTime
          * @see https://docs.wazirx.com/#check-server-time
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetTime (params);
@@ -548,7 +589,7 @@ export default class wazirx extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //        "symbol":"btcinr",
@@ -599,8 +640,8 @@ export default class wazirx extends Exchange {
         }, market);
     }
 
-    parseBalance (response) {
-        const result = { };
+    parseBalance (response): Balances {
+        const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString (balance, 'asset');
@@ -613,14 +654,14 @@ export default class wazirx extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name wazirx#fetchBalance
          * @see https://docs.wazirx.com/#fund-details-user_data
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetFunds (params);
@@ -636,7 +677,7 @@ export default class wazirx extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wazirx#fetchOrders
@@ -644,12 +685,12 @@ export default class wazirx extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -693,11 +734,11 @@ export default class wazirx extends Exchange {
         //   ]
         //
         let orders = this.parseOrders (response, market, since, limit);
-        orders = this.filterBy (orders, 'symbol', symbol);
+        orders = this.filterBy (orders, 'symbol', symbol) as Order[];
         return orders;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wazirx#fetchOpenOrders
@@ -706,12 +747,12 @@ export default class wazirx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -748,18 +789,18 @@ export default class wazirx extends Exchange {
         return orders;
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#cancelAllOrders
          * @see https://docs.wazirx.com/#cancel-all-open-orders-on-a-symbol-trade
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -769,7 +810,7 @@ export default class wazirx extends Exchange {
         return await this.privateDeleteOpenOrders (this.extend (request, params));
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#cancelOrder
@@ -777,11 +818,11 @@ export default class wazirx extends Exchange {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -793,7 +834,7 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#createOrder
@@ -803,8 +844,8 @@ export default class wazirx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         type = type.toLowerCase ();
@@ -826,6 +867,7 @@ export default class wazirx extends Exchange {
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
             request['type'] = 'stop_limit';
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
         const response = await this.privatePostOrder (this.extend (request, params));
         // {
@@ -843,7 +885,7 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market: Market = undefined): Order {
         // {
         //     "id":1949417813,
         //     "symbol":"ltcusdt",
@@ -898,6 +940,313 @@ export default class wazirx extends Exchange {
             'cancel': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name wazirx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.wazirx.com/#all-coins-39-information-user_data
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const response = await this.privateGetCoins (params);
+        //
+        //     [
+        //         {
+        //             "currency": "btc",
+        //             "name": "Bitcoin",
+        //             "networkList": [
+        //                 {
+        //                     "addressRegex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^(bc1)[0-9A-Za-z]{39,59}$",
+        //                     "confirmations": 4,
+        //                     "depositDesc": {
+        //                         "description": ""
+        //                     },
+        //                     "depositDust": "0.00000001",
+        //                     "depositEnable": true,
+        //                     "disclaimer": "• \u003cb\u003eSend only using the Bitcoin network.\u003c/b\u003e Using any other network will result in loss of funds.\u003cbr/\u003e• \u003cb\u003eDeposit only BTC to this deposit address.\u003c/b\u003e Depositing any other asset will result in a loss of funds.\u003cbr/\u003e",
+        //                     "fullName": null,
+        //                     "hidden": {
+        //                         "deposit": false,
+        //                         "withdraw": false
+        //                     },
+        //                     "isDefault": true,
+        //                     "maxWithdrawAmount": "3",
+        //                     "minConfirm": 4,
+        //                     "minWithdrawAmount": "0.003",
+        //                     "name": "Bitcoin",
+        //                     "network": "btc",
+        //                     "order": 3,
+        //                     "precision": 8,
+        //                     "requestId": "6d67a13d-26f7-4941-9856-94eba4adfe78",
+        //                     "shortName": "BTC",
+        //                     "specialTip": "Please ensure to select \u003cb\u003eBitcoin\u003c/b\u003e network at sender's wallet.",
+        //                     "withdrawConsent": {
+        //                         "helpUrl": null,
+        //                         "message": "I confirm that this withdrawal of crypto assets is being done to my own wallet, as specified above. I authorize you to share travel rule information with the destination wallet service provider wherever applicable."
+        //                     },
+        //                     "withdrawDesc": {
+        //                         "description": ""
+        //                     },
+        //                     "withdrawEnable": true,
+        //                     "withdrawFee": "0.0015"
+        //                 }
+        //             ],
+        //             "rapidListed": false
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const currencyId = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const name = this.safeString (currency, 'name');
+            const chains = this.safeList (currency, 'networkList', []);
+            const networks = {};
+            let minPrecision = undefined;
+            let minWithdrawFeeString = undefined;
+            let minWithdrawString = undefined;
+            let maxWithdrawString = undefined;
+            let minDepositString = undefined;
+            let deposit = false;
+            let withdraw = false;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'network');
+                const networkCode = this.networkIdToCode (networkId);
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'precision')));
+                minPrecision = (minPrecision === undefined) ? precision : Math.min (minPrecision, precision);
+                const depositAllowed = this.safeBool (chain, 'depositEnable');
+                deposit = (depositAllowed) ? depositAllowed : deposit;
+                const withdrawAllowed = this.safeBool (chain, 'withdrawEnable');
+                withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+                const withdrawFeeString = this.safeString (chain, 'withdrawFee');
+                if (withdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                }
+                const minNetworkWithdrawString = this.safeString (chain, 'minWithdrawAmount');
+                if (minNetworkWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+                }
+                const maxNetworkWithdrawString = this.safeString (chain, 'maxWithdrawAmount');
+                if (maxNetworkWithdrawString !== undefined) {
+                    maxWithdrawString = (maxWithdrawString === undefined) ? maxNetworkWithdrawString : Precise.stringMin (maxNetworkWithdrawString, maxWithdrawString);
+                }
+                const minNetworkDepositString = this.safeString (chain, 'depositDust');
+                if (minNetworkDepositString !== undefined) {
+                    minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin (minNetworkDepositString, minDepositString);
+                }
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': depositAllowed && withdrawAllowed,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': this.parseNumber (withdrawFeeString),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.parseNumber (minNetworkWithdrawString),
+                            'max': this.parseNumber (maxNetworkWithdrawString),
+                        },
+                        'deposit': {
+                            'min': this.parseNumber (minNetworkDepositString),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': deposit && withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': this.parseNumber (minWithdrawFeeString),
+                'precision': minPrecision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.parseNumber (minWithdrawString),
+                        'max': this.parseNumber (maxWithdrawString),
+                    },
+                    'deposit': {
+                        'min': this.parseNumber (minDepositString),
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name wazirx#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.wazirx.com/#deposit-address-supporting-network-user_data
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code, you can get network from fetchCurrencies
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networkCode = this.safeString (params, 'network');
+        params = this.omit (params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter');
+        }
+        const request = {
+            'coin': currency['id'],
+            'network': this.networkCodeToId (networkCode, code),
+        };
+        const response = await this.privateGetCryptoDepositsAddress (this.extend (request, params));
+        //
+        //     {
+        //         "address": "bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3",
+        //         "coin": "btc",
+        //         "url": "https: //live.blockcypher.com/btc/address/bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3"
+        //     }
+        //
+        return {
+            'currency': code,
+            'address': this.safeString (response, 'address'),
+            'tag': undefined,
+            'network': this.networkCodeToId (networkCode, code),
+            'info': response,
+        };
+    }
+
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name wazirx#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @see https://docs.wazirx.com/#withdraw-history-supporting-network-user_data
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetCryptoWithdraws (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        //             "amount": "8.91000000",
+        //             "createdAt": "2019-10-12 09:12:02",
+        //             "lastUpdated": "2019-10-12 11:12:02",
+        //             "coin": "USDT",
+        //             "id": "b6ae22b3aa844210a7041aee7589627c",
+        //             "withdrawOrderId": "WITHDRAWtest123",
+        //             "network": "ETH",
+        //             "status": 1,
+        //             "transactionFee": "0.004",
+        //             "failureInfo":"The address is not valid. Please confirm with the recipient",
+        //             "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'ok',
+            '1': 'fail',
+            '2': 'pending',
+            '3': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        //         "amount": "8.91000000",
+        //         "createdAt": "2019-10-12 09:12:02",
+        //         "lastUpdated": "2019-10-12 11:12:02",
+        //         "coin": "USDT",
+        //         "id": "b6ae22b3aa844210a7041aee7589627c",
+        //         "withdrawOrderId": "WITHDRAWtest123",
+        //         "network": "ETH",
+        //         "status": 1,
+        //         "transactionFee": "0.004",
+        //         "failureInfo": "The address is not valid. Please confirm with the recipient",
+        //         "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        //     }
+        //
+        const currencyId = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const updated = this.parse8601 (this.safeString (transaction, 'lastUpdated'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const feeCost = this.safeNumber (transaction, 'transactionFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
+            'address': this.safeString (transaction, 'address'),
+            'addressTo': this.safeString (transaction, 'address'),
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': 'withdrawal',
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
