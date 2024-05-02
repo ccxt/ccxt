@@ -1,11 +1,7 @@
 import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-<<<<<<< HEAD
-function testTrade (exchange, skippedProperties, method, entry, symbol, now, isPublicTrade) {
-=======
-function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
->>>>>>> e0f7ad0526268457c6f919972351c81d991580ed
+function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number, isPublicTrade: boolean) {
     const format = {
         'info': { },
         'id': '12345-67890:09876/54321', // string trade id

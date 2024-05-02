@@ -290,12 +290,8 @@
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
             },
             "watchTrades":{
-<<<<<<< HEAD
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
                 "sortedTimestamp": "messed order coming from exchange"
-=======
-                "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
-                "timestamp": "messed order coming from exchange"
             },
             "watchTradesForSymbols":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3602",
@@ -303,7 +299,6 @@
             },
             "ohlcv": {
                 "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
->>>>>>> e0f7ad0526268457c6f919972351c81d991580ed
             }
         }
     },
@@ -459,15 +454,13 @@
                 "info": "null"
             },
             "fetchTrades": {
-<<<<<<< HEAD
                 "side": "side is undefined",
                 "requireBothSides": "same"
-=======
-                "side": "side is undefined"
             },
             "orderBook": {
-                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4831"
->>>>>>> e0f7ad0526268457c6f919972351c81d991580ed
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4831",
+                "side": "side is undefined",
+                "requireBothSides": "same"
             }
         }
     },
@@ -518,12 +511,9 @@
                 "info": "null"
             },
             "orderBook": {
-<<<<<<< HEAD
-                "bid":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)"
-=======
+                "bid":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)",
                 "spread":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)",
                 "timestamp":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4820"
->>>>>>> e0f7ad0526268457c6f919972351c81d991580ed
             },
             "ticker": {
                 "bid":"broken bid-ask"
@@ -683,18 +673,14 @@
     "coinmetro": {
         "skipMethods": {
             "fetchTrades": {
-<<<<<<< HEAD
                 "side":"side is undefined",
                 "requireBothSides": "same"
-=======
-                "side":"side is undefined"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5064"
             },
             "ticker": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745"
->>>>>>> e0f7ad0526268457c6f919972351c81d991580ed
             }
         }
     },
@@ -752,15 +738,11 @@
                 "deposit": "not provided",
                 "networks": "missing"
             },
-<<<<<<< HEAD
+            "watchOHLCV": "does not work for 1min",
             "fetchOHLCV": "unexpected issue",
             "watchTrades": {
                 "sortedTimestamp": "broken sequence"
             }
-=======
-            "watchOHLCV": "does not work for 1min",
-            "fetchOHLCV": "unexpected issue"
->>>>>>> e0f7ad0526268457c6f919972351c81d991580ed
         }
     },
     "coinex": {
@@ -779,14 +761,12 @@
                 "active":"is undefined"
             },
             "orderBook": {
-<<<<<<< HEAD
                 "bid":"ask should be less than next ask"
             },
             "fetchTrades": {
-                "emptyResponse": "sometimes response is empty"
-=======
-                "compareToNextItem":"ask should be less than next ask"
->>>>>>> e0f7ad0526268457c6f919972351c81d991580ed
+                "emptyResponse": "sometimes response is empty",
+                "compareToNextItem":"ask should be less than next ask",
+                "bid":"ask should be less than next ask"
             }
         }
     },
@@ -1483,10 +1463,7 @@
                 "deposit": "undefined"
             },
             "watchTrades": {
-<<<<<<< HEAD
                 "sortedTimestamp": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3697"
-=======
-                "timestamp": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3681"
             },
             "watchBidsAsks": {
                 "bidVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269878519#L3759",
@@ -1497,7 +1474,6 @@
             },
             "watchOrderBookForSymbols.cs": {
                 "bid": "same as above"
->>>>>>> e0f7ad0526268457c6f919972351c81d991580ed
             }
         },
         "timeout": 120000
