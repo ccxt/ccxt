@@ -882,7 +882,9 @@ export default class Exchange {
 
         this.afterConstruct ();
         const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
-        this.setSandboxMode (isSandbox);
+        if (isSandbox) {
+            this.setSandboxMode (isSandbox);
+        }
     }
 
     encodeURIComponent (...args) {
