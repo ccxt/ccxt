@@ -69,7 +69,7 @@ function numberToString (x: any): string | undefined { // avoids scientific nota
 //-----------------------------------------------------------------------------
 // expects non-scientific notation
 
-const truncate_regExpCache = [];  // TODO: Variable 'truncate_regExpCache' implicitly has type 'any[]' in some locations where its type cannot be determined.ts(7034)
+const truncate_regExpCache: any[] = [];
 const truncate_to_string = (num: number | string, precision = 0) => {
     num = numberToString (num) as string;
     if (precision > 0) {
