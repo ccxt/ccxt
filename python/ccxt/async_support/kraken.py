@@ -1794,14 +1794,15 @@ class kraken(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-        if since is not None:
-            request['start'] = since
-        if limit is not None:
-            request['count'] = limit    
         request['trades'] = True
         open_orders_response = await self.privatePostOpenOrders(self.extend(request, params))
-        closed_orders_response = await self.privatePostClosedOrders(self.extend(request, params))
         open_orders = self.parse_orders(open_orders_response['result']['open'], market, since, limit)
+        # open orders request doesn't have start and count param
+        if limit is not None:
+            request['count'] = limit    
+        if since is not None:
+            request['start'] = since
+        closed_orders_response = await self.privatePostClosedOrders(self.extend(request, params))
         closed_orders = self.parse_orders(closed_orders_response['result']['closed'], market, since, limit)
         return open_orders + closed_orders
 
