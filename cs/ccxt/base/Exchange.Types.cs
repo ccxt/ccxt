@@ -178,7 +178,7 @@ public struct Trade
     public double? price;
     public double? cost;
     public string? id;
-    public string? orderId;
+    public string? order;
     public Dictionary<string, object>? info;
     public Int64? timestamp;
     public string? datetime;
@@ -194,7 +194,7 @@ public struct Trade
         price = Exchange.SafeFloat(trade, "price");
         cost = Exchange.SafeFloat(trade, "cost");
         id = Exchange.SafeString(trade, "id");
-        orderId = Exchange.SafeString(trade, "orderId");
+        order = Exchange.SafeString(trade, "orderId");
         // info = trade.ContainsKey("info") ? (Dictionary<string, object>)trade["info"] : null;
         timestamp = Exchange.SafeInteger(trade, "timestamp");
         datetime = Exchange.SafeString(trade, "datetime");
