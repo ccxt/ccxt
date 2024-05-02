@@ -112,10 +112,10 @@ export default class woofipro extends woofiproRest {
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         "topic": "PERP_BTC_USDT@orderbook",
+        //         "topic": "PERP_BTC_USDC@orderbook",
         //         "ts": 1650121915308,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
+        //             "symbol": "PERP_BTC_USDC",
         //             "bids": [
         //                 [
         //                     0.30891,
@@ -172,7 +172,7 @@ export default class woofipro extends woofiproRest {
     parseWsTicker (ticker, market = undefined) {
         //
         //     {
-        //         "symbol": "PERP_BTC_USDT",
+        //         "symbol": "PERP_BTC_USDC",
         //         "open": 19441.5,
         //         "close": 20147.07,
         //         "high": 20761.87,
@@ -209,10 +209,10 @@ export default class woofipro extends woofiproRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         "topic": "PERP_BTC_USDT@ticker",
+        //         "topic": "PERP_BTC_USDC@ticker",
         //         "ts": 1657120017000,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
+        //             "symbol": "PERP_BTC_USDC",
         //             "open": 19441.5,
         //             "close": 20147.07,
         //             "high": 20761.87,
@@ -329,10 +329,10 @@ export default class woofipro extends woofiproRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         "topic":"PERP_BTC_USDT@kline_1m",
+        //         "topic":"PERP_BTC_USDC@kline_1m",
         //         "ts":1618822432146,
         //         "data":{
-        //             "symbol":"PERP_BTC_USDT",
+        //             "symbol":"PERP_BTC_USDC",
         //             "type":"1m",
         //             "open":56948.97,
         //             "close":56891.76,
@@ -369,6 +369,99 @@ export default class woofipro extends woofiproRest {
         }
         stored.append (parsed);
         client.resolve (stored, topic);
+    }
+
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name woofipro#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = market['id'] + '@trade';
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        const trades = await this.watchPublic (topic, message);
+        if (this.newUpdates) {
+            limit = trades.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleTrade (client: Client, message) {
+        //
+        // {
+        //     "topic":"PERP_ADA_USDC@trade",
+        //     "ts":1618820361552,
+        //     "data":{
+        //         "symbol":"PERP_ADA_USDC",
+        //         "price":1.27988,
+        //         "size":300,
+        //         "side":"BUY",
+        //     }
+        // }
+        //
+        const topic = this.safeString (message, 'topic');
+        const timestamp = this.safeInteger (message, 'ts');
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            tradesArray = new ArrayCache (limit);
+        }
+        tradesArray.append (trade);
+        this.trades[symbol] = tradesArray;
+        client.resolve (tradesArray, topic);
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "symbol":"PERP_ADA_USDC",
+        //         "timestamp":1618820361552,
+        //         "price":1.27988,
+        //         "size":300,
+        //         "side":"BUY",
+        //     }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'size');
+        const cost = Precise.stringMul (price, amount);
+        const side = this.safeStringLower (trade, 'side');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        return this.safeTrade ({
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'type': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     checkRequiredUid (error = true) {
@@ -426,6 +519,7 @@ export default class woofipro extends woofiproRest {
             'ticker': this.handleTicker,
             'tickers': this.handleTickers,
             'kline': this.handleOHLCV,
+            'trade': this.handleTrade,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
