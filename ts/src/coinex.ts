@@ -3677,10 +3677,13 @@ export default class coinex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeString2 (params, 'chain', 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' createDepositAddress() requires a network parameter');
+        }
         params = this.omit (params, 'network');
         const request = {
             'ccy': currency['id'],
-            'chain': network,
+            'chain': this.networkCodeToId (network, currency['code']),
         };
         const response = await this.v2PrivatePostAssetsRenewalDepositAddress (this.extend (request, params));
         //
