@@ -5,7 +5,8 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position } from '../base/types.js';
+import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -730,7 +731,7 @@ export default class woofipro extends woofiproRest {
         const data = this.safeValue (message, 'data');
         if (Array.isArray (data)) {
             // algoexecutionreport
-            for (let i=0; i<data.length; i++) {
+            for (let i = 0; i < data.length; i++) {
                 const order = data[i];
                 this.handleOrder (client, order, topic);
             }
