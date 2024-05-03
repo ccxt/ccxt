@@ -10,27 +10,39 @@
     "methods": {
         "fetchMyTrades": [
             {
-                "description": "Spot private trades",
+                "description": "Spot fetch my trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.coinex.com/v1/order/user/deals?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=5&market=LTCUSDT&offset=0&page=1&tonce=1699458294212",
+                "url": "https://api.coinex.com/v2/spot/user-deals?limit=1&market=BTCUSDT&market_type=SPOT",
                 "input": [
-                    "LTC/USDT",
-                    1699457638000,
-                    5
+                  "BTC/USDT",
+                  null,
+                  1
                 ]
             },
             {
-                "description": "spot-margin trades",
+                "description": "Spot margin fetch my trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.coinex.com/v1/order/user/deals?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&account_id=6&limit=100&market=LTCUSDT&offset=0&page=1&tonce=1706032695073",
+                "url": "https://api.coinex.com/v2/spot/user-deals?limit=1&market=BTCUSDT&market_type=MARGIN",
                 "input": [
-                    "LTC/USDT",
-                    null,
-                    null,
-                    {
-                        "marginMode": "isolated",
-                        "account_id": 6
-                    }
+                  "BTC/USDT",
+                  null,
+                  1,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            },
+            {
+                "description": "Swap fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.coinex.com/v2/futures/user-deals?limit=1&market=BTCUSDT&market_type=FUTURES&side=buy",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  1,
+                  {
+                    "side": "buy"
+                  }
                 ]
             }
         ],
