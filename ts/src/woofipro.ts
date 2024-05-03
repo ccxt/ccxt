@@ -1439,8 +1439,22 @@ export default class woofipro extends Exchange {
         if (isStop) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
         } else {
+            request['side'] = side.toUpperCase ();
+            const orderType = type.toUpperCase ();
+            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            const isMarket = orderType === 'MARKET';
+            const postOnly = this.isPostOnly (isMarket, undefined, params);
+            if (postOnly) {
+                request['order_type'] = 'POST_ONLY';
+            } else if (timeInForce === 'fok') {
+                request['order_type'] = 'FOK';
+            } else if (timeInForce === 'ioc') {
+                request['order_type'] = 'IOC';
+            } else {
+                request['order_type'] = orderType;
+            }
             const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ]);
             if (clientOrderId !== undefined) {
                 request['client_order_id'] = clientOrderId;
             }
@@ -2569,7 +2583,7 @@ export default class woofipro extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
+            if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order')) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
                     // TODO: set the default broker id
