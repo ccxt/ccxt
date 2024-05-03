@@ -106,7 +106,7 @@
                         "order": "136915589622",
                         "type": null,
                         "side": "buy",
-                        "takerOrMaker": "taker",
+                        "takerOrMaker": null,
                         "price": 64376,
                         "amount": 0.0001,
                         "cost": 6.4376,
