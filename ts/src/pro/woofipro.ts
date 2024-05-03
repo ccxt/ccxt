@@ -772,6 +772,135 @@ export default class woofipro extends woofiproRest {
         }
     }
 
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name woofipro#watchPositions
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        let messageHash = '';
+        symbols = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbols)) {
+            messageHash = '::' + symbols.join (',');
+        }
+        messageHash = 'positions' + messageHash;
+        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const client = this.client (url);
+        this.setPositionsCache (client, symbols);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const request = {
+            'event': 'subscribe',
+            'topic': 'position',
+        };
+        const newPositions = await this.watchPrivate (messageHash, request, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash) {
+        const positions = await this.fetchPositions ();
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, 'positions');
+    }
+
+    handlePositions (client, message) {
+        //
+        //    {
+        //        "topic":"position",
+        //        "ts":1705292345255,
+        //        "data":{
+        //           "positions":[
+        //              {
+        //                     "symbol":"PERP_ETH_USDC",
+        //                     "positionQty":3.1408,
+        //                     "costPosition":5706.51952,
+        //                     "lastSumUnitaryFunding":0.804,
+        //                     "sumUnitaryFundingVersion":0,
+        //                     "pendingLongQty":0.0,
+        //                     "pendingShortQty":-1.0,
+        //                     "settlePrice":1816.9,
+        //                     "averageOpenPrice":1804.51490427,
+        //                     "unsettledPnl":-2.79856,
+        //                     "pnl24H":-338.90179488,
+        //                     "fee24H":4.242423,
+        //                     "markPrice":1816.2,
+        //                     "estLiqPrice":0.0,
+        //                     "version":179967,
+        //                     "imrwithOrders":0.1,
+        //                     "mmrwithOrders":0.05,
+        //                     "mmr":0.05,
+        //                     "imr":0.1,
+        //                     "timestamp":1685154032762
+        //              }
+        //           ]
+        //        }
+        //    }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const rawPositions = this.safeList (data, 'positions', []);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const marketId = this.safeString (rawPosition, 'symbol');
+            const market = this.safeMarket (marketId);
+            const position = this.parsePosition (rawPosition, market);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'positions');
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
@@ -820,6 +949,7 @@ export default class woofipro extends woofiproRest {
             'auth': this.handleAuth,
             'executionreport': this.handleOrderUpdate,
             'algoexecutionreport': this.handleOrderUpdate,
+            'position': this.handlePositions,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
