@@ -15,6 +15,7 @@ const errorHierarchy = {
                 'NoChange': {
                     'MarginModeAlreadySet': {},
                 },
+                'MarketClosed': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -46,7 +47,6 @@ const errorHierarchy = {
                 'InvalidNonce': {},
                 'RequestTimeout': {},
             },
-            'MarketClosed': {},
         },
     },
 };
