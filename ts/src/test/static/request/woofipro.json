@@ -66,6 +66,22 @@
                     }
                 ],
                 "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"CCXT\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\",\"reduce_only\":true}"
+            },
+            {
+                "description": "postOnly order",
+                "method": "createOrder",
+                "url": "https://api-evm.orderly.org/v1/order",
+                "input": [
+                  "XRP/USDC:USDC",
+                  "limit",
+                  "buy",
+                  20,
+                  0.5,
+                  {
+                    "postOnly": true
+                  }
+                ],
+                "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"POST_ONLY\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             }
         ],
         "fetchOrders": [

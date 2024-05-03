@@ -633,6 +633,69 @@
                   ]
                 }
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "btc orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                  "BTC/USDC:USDC",
+                  2
+                ],
+                "httpResponse": {
+                  "success": true,
+                  "data": {
+                    "timestamp": "1714747608260",
+                    "asks": [
+                      {
+                        "price": "61780.9",
+                        "quantity": "0.68926"
+                      },
+                      {
+                        "price": "61781.0",
+                        "quantity": "0.00024"
+                      }
+                    ],
+                    "bids": [
+                      {
+                        "price": "61780.8",
+                        "quantity": "5.06451"
+                      },
+                      {
+                        "price": "61780.7",
+                        "quantity": "0.56028"
+                      }
+                    ]
+                  },
+                  "timestamp": "1714747608581"
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USDC:USDC",
+                  "bids": [
+                    [
+                      61780.8,
+                      5.06451
+                    ],
+                    [
+                      61780.7,
+                      0.56028
+                    ]
+                  ],
+                  "asks": [
+                    [
+                      61780.9,
+                      0.68926
+                    ],
+                    [
+                      61781,
+                      0.00024
+                    ]
+                  ],
+                  "timestamp": 1714747608260,
+                  "datetime": "2024-05-03T14:46:48.260Z",
+                  "nonce": null
+                }
+            }
         ]
     }
 }
