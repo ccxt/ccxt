@@ -2022,13 +2022,7 @@ class Transpiler {
 
     transpileExchangeTests () {
 
-        this.transpileMainTests ({
-            'tsFile': './ts/src/test/base/test.base_auto.ts',
-            'pyFileAsync': './python/ccxt/test/base/test.base_auto.py',
-            'phpFileAsync': './php/test/base/test.base_auto.php',
-            'pyFileSync': './python/ccxt/test/base/test.base_auto.py',
-            'phpFileSync': './php/test/base/test.base_auto.php',
-        });
+        this.baseFunctionalitiesTests ();
 
         this.transpileMainTests ({
             'tsFile': './ts/src/test/test.ts',
@@ -2082,6 +2076,34 @@ class Transpiler {
         }
         this.transpileAndSaveExchangeTests (tests);
     }
+
+    baseFunctionalitiesTests () {
+        
+        const baseFolders = {
+            tsFolder: './ts/src/test/base/functions_auto/',
+            pyFolder: './python/ccxt/test/base/functions_auto/',
+            phpFolder: './php/test/base/functions_auto/',
+        };
+
+        let baseFunctionTests = fs.readdirSync ().filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+
+        const tests = [];
+        for (const testName of baseFunctionTests) {
+            const unCamelCasedFileName = this.uncamelcaseName(testName);
+            const test = {
+                base: false,
+                name: testName,
+                tsFile: baseFolders.ts + testName + '.ts',
+                pyFileSync: baseFolders.py + 'sync/' + unCamelCasedFileName + '.py',
+                pyFileAsync: baseFolders.py + 'async/' + unCamelCasedFileName + '.py',
+                phpFileSync: baseFolders.php + 'sync/' + unCamelCasedFileName + '.php',
+                phpFileAsync: baseFolders.php + 'async/' + unCamelCasedFileName + '.php',
+            };
+            tests.push(test);
+        }
+        this.transpileAndSaveExchangeTests (tests);
+    }
+
 
     createBaseInitFile (pyPath, tests) {
         const finalPath = pyPath + '__init__.py';
