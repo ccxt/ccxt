@@ -1059,6 +1059,7 @@
         }
     },
     "idex": {
+        "skip": "seems down",
         "skipWs": "timeouts",
         "skipCSharp": "for some reasons, frequent rate limits only in C#",
         "skipMethods": {
