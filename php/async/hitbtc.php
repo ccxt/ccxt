@@ -623,6 +623,7 @@ class hitbtc extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'funding' => 'wallet',
+                    'swap' => 'derivatives',
                     'future' => 'derivatives',
                 ),
                 'withdraw' => array(
