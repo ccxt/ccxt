@@ -6731,19 +6731,19 @@ export default class bybit extends Exchange {
         const isUsdcSettled = market['settle'] === 'USDC';
         // engage in leverage setting
         // we reuse the code here instead of having two methods
-        leverage = this.numberToString (leverage);
+        const leverageString = this.numberToString (leverage);
         const request = {
             'symbol': market['id'],
-            'buyLeverage': leverage,
-            'sellLeverage': leverage,
+            'buyLeverage': leverageString,
+            'sellLeverage': leverageString,
         };
         let response = undefined;
         if (isUsdcSettled && !isUnifiedAccount) {
-            request['leverage'] = leverage;
+            request['leverage'] = leverageString;
             response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave (this.extend (request, params));
         } else {
-            request['buyLeverage'] = leverage;
-            request['sellLeverage'] = leverage;
+            request['buyLeverage'] = leverageString;
+            request['sellLeverage'] = leverageString;
             if (market['linear']) {
                 request['category'] = 'linear';
             } else if (market['inverse']) {
