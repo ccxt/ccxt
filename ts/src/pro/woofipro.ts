@@ -883,7 +883,7 @@ export default class woofipro extends woofiproRest {
             const rawPosition = rawPositions[i];
             const marketId = this.safeString (rawPosition, 'symbol');
             const market = this.safeMarket (marketId);
-            const position = this.parsePosition (rawPosition, market);
+            const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
         }
@@ -899,6 +899,79 @@ export default class woofipro extends woofiproRest {
             }
         }
         client.resolve (newPositions, 'positions');
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        //     {
+        //         "symbol":"PERP_ETH_USDC",
+        //         "positionQty":3.1408,
+        //         "costPosition":5706.51952,
+        //         "lastSumUnitaryFunding":0.804,
+        //         "sumUnitaryFundingVersion":0,
+        //         "pendingLongQty":0.0,
+        //         "pendingShortQty":-1.0,
+        //         "settlePrice":1816.9,
+        //         "averageOpenPrice":1804.51490427,
+        //         "unsettledPnl":-2.79856,
+        //         "pnl24H":-338.90179488,
+        //         "fee24H":4.242423,
+        //         "markPrice":1816.2,
+        //         "estLiqPrice":0.0,
+        //         "version":179967,
+        //         "imrwithOrders":0.1,
+        //         "mmrwithOrders":0.05,
+        //         "mmr":0.05,
+        //         "imr":0.1,
+        //         "timestamp":1685154032762
+        //     }
+        //
+        const contract = this.safeString (position, 'symbol');
+        market = this.safeMarket (contract, market);
+        let size = this.safeString (position, 'positionQty');
+        let side: Str = undefined;
+        if (Precise.stringGt (size, '0')) {
+            side = 'long';
+        } else {
+            side = 'short';
+        }
+        const contractSize = this.safeString (market, 'contractSize');
+        const markPrice = this.safeString (position, 'markPrice');
+        const timestamp = this.safeInteger (position, 'timestamp');
+        const entryPrice = this.safeString (position, 'averageOpenPrice');
+        const unrealisedPnl = this.safeString (position, 'unsettledPnl');
+        size = Precise.stringAbs (size);
+        const notional = Precise.stringMul (size, markPrice);
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.parseNumber (entryPrice),
+            'notional': this.parseNumber (notional),
+            'leverage': undefined,
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'estLiqPrice'),
+            'markPrice': this.parseNumber (markPrice),
+            'lastPrice': undefined,
+            'collateral': undefined,
+            'marginMode': 'cross',
+            'marginType': undefined,
+            'side': side,
+            'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     handleErrorMessage (client: Client, message) {
