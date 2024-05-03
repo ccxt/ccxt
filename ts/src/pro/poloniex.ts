@@ -319,7 +319,7 @@ export default class poloniex extends poloniexRest {
         //        }]
         //    }
         //
-        const messageHash = this.safeInteger (message, 'id');
+        const messageHash = this.safeString (message, 'id');
         const data = this.safeValue (message, 'data', []);
         const orders = [];
         for (let i = 0; i < data.length; i++) {
