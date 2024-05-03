@@ -1283,7 +1283,6 @@ export default class woofipro extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': orderSide,
-            'order_tag': this.safeString (this.options, 'orderTag', 'CCXT'),
         };
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
@@ -2574,14 +2573,8 @@ export default class woofipro extends Exchange {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
                     // TODO: set the default broker id
-                    const applicationId = '';
-                    const brokerId = this.safeString (this.options, 'brokerId', applicationId);
-                    const isStop = path.indexOf ('algo') > -1;
-                    if (isStop) {
-                        params['order_tag'] = brokerId;
-                    } else {
-                        params['order_tag'] = brokerId;
-                    }
+                    const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+                    params['order_tag'] = brokerId;
                 }
                 params = this.keysort (params);
             }

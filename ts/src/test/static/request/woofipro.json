@@ -16,7 +16,7 @@
                     "buy",
                     0.1
                 ],
-                "output": "{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"\"}"
+                "output": "{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXT\"}"
             },
             {
                 "description": "Swap market sell with reduceOnly",
@@ -32,7 +32,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"\",\"reduce_only\":true}"
+                "output": "{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXT\",\"reduce_only\":true}"
             },
             {
                 "description": "Swap stop reduceOnly order",
@@ -48,7 +48,7 @@
                         "triggerPrice": "50000"
                     }
                 ],
-                "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\"}"
+                "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"CCXT\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\"}"
             },
             {
                 "description": "Swap stop reduceOnly order",
@@ -65,7 +65,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\",\"reduce_only\":true}"
+                "output": "{\"quantity\":\"0.0001\",\"type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDC\",\"order_tag\":\"CCXT\",\"algo_type\":\"STOP\",\"trigger_price\":\"50000\",\"reduce_only\":true}"
             }
         ],
         "fetchOrders": [
