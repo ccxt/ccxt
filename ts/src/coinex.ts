@@ -1150,112 +1150,50 @@ export default class coinex extends Exchange {
         //
         // Spot and Margin fetchMyTrades (private)
         //
-        //      {
-        //          "id": 2611520950,
-        //          "order_id": 63286573298,
-        //          "account_id": 0,
-        //          "create_time": 1638990636,
-        //          "type": "sell",
-        //          "role": "taker",
-        //          "price": "192.29",
-        //          "amount": "0.098",
-        //          "fee": "0.03768884",
-        //          "fee_asset": "USDT",
-        //          "market": "AAVEUSDT",
-        //          "deal_money": "18.84442"
-        //      }
+        //     {
+        //         "amount": "0.00010087",
+        //         "created_at": 1714618087585,
+        //         "deal_id": 4161200602,
+        //         "margin_market": "",
+        //         "market": "BTCUSDT",
+        //         "order_id": 117654919342,
+        //         "price": "57464.04",
+        //         "side": "sell"
+        //     }
         //
         // Swap fetchMyTrades (private)
         //
         //     {
-        //         "amount": "0.0012",
-        //         "deal_fee": "0.0237528",
-        //         "deal_insurance": "0",
-        //         "deal_margin": "15.8352",
-        //         "deal_order_id": 17797031903,
-        //         "deal_profit": "0",
-        //         "deal_stock": "47.5056",
-        //         "deal_type": 1,
-        //         "deal_user_id": 2969195,
-        //         "fee_asset": "",
-        //         "fee_discount": "0",
-        //         "fee_price": "0",
-        //         "fee_rate": "0.0005",
-        //         "fee_real_rate": "0.0005",
-        //         "id": 379044296,
-        //         "leverage": "3",
-        //         "margin_amount": "15.8352",
+        //         "deal_id": 1180222387,
+        //         "created_at": 1714119054558,
         //         "market": "BTCUSDT",
-        //         "open_price": "39588",
-        //         "order_id": 17797092987,
-        //         "position_amount": "0.0012",
-        //         "position_id": 62052321,
-        //         "position_type": 1,
-        //         "price": "39588",
-        //         "role": 2,
-        //         "side": 2,
-        //         "time": 1650675936.016103,
-        //         "user_id": 3620173
+        //         "side": "buy",
+        //         "order_id": 136915589622,
+        //         "price": "64376",
+        //         "amount": "0.0001"
         //     }
         //
-        let timestamp = this.safeTimestamp2 (trade, 'create_time', 'time');
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'created_at');
+        const timestamp = this.safeInteger (trade, 'created_at');
+        let defaultType = this.safeString (this.options, 'defaultType');
+        if (market !== undefined) {
+            defaultType = market['type'];
         }
-        const tradeId = this.safeString2 (trade, 'id', 'deal_id');
-        const orderId = this.safeString (trade, 'order_id');
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
-        const marketType = this.safeString (trade, 'market_type');
-        const defaultType = (marketType === undefined) ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        const symbol = market['symbol'];
-        const costString = this.safeString (trade, 'deal_money');
-        let fee = undefined;
-        const feeCostString = this.safeString2 (trade, 'fee', 'deal_fee');
-        if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fee_asset');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCostString,
-                'currency': feeCurrencyCode,
-            };
-        }
-        let takerOrMaker = this.safeString (trade, 'role');
-        if (takerOrMaker === '1') {
-            takerOrMaker = 'maker';
-        } else if (takerOrMaker === '2') {
-            takerOrMaker = 'taker';
-        }
-        let side: Str = undefined;
-        if (market['type'] === 'swap') {
-            const rawSide = this.safeInteger (trade, 'side');
-            if (rawSide === 1) {
-                side = 'sell';
-            } else if (rawSide === 2) {
-                side = 'buy';
-            }
-            if (side === undefined) {
-                side = this.safeString2 (trade, 'type', 'side');
-            }
-        } else {
-            side = this.safeString2 (trade, 'type', 'side');
-        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': tradeId,
-            'order': orderId,
+            'symbol': market['symbol'],
+            'id': this.safeString (trade, 'deal_id'),
+            'order': this.safeString (trade, 'order_id'),
             'type': undefined,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': fee,
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'amount'),
+            'cost': this.safeString (trade, 'deal_money'),
+            'fee': undefined,
         }, market);
     }
 
@@ -3800,134 +3738,92 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchMyTrades
          * @description fetch all trades made by the user
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http013_user_deals
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade014_user_deals
+         * @see https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals
+         * @see https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trades
+         * @param {string} [params.side] the side of the trades, either 'buy' or 'sell', required for swap
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = undefined;
-        if (limit === undefined) {
-            limit = 100;
-        }
-        const request = {
-            'limit': limit, // SPOT and SWAP
-            'offset': 0, // SWAP, means query from a certain record
-            // 'page': 1, // SPOT
-            // 'side': 2, // SWAP, 0 for no limit, 1 for sell, 2 for buy
-            // 'start_time': since, // SWAP
-            // 'end_time': 1524228297, // SWAP
+        const market = this.market (symbol);
+        let request = {
+            'market': market['id'],
         };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        if (type !== 'spot' && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for non-spot markets');
+        if (since !== undefined) {
+            request['start_time'] = since;
         }
-        const swap = (type === 'swap');
-        const accountId = this.safeInteger (params, 'account_id');
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        if (marginMode !== undefined) {
-            if (accountId === undefined) {
-                throw new BadRequest (this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
-            }
-            request['account_id'] = accountId;
-            params = this.omit (params, 'account_id');
-        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
         let response = undefined;
-        if (swap) {
-            if (since !== undefined) {
-                request['start_time'] = since;
+        if (market['swap']) {
+            request['market_type'] = 'FUTURES';
+            const side = this.safeString (params, 'side');
+            if (side === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a side parameter');
             }
-            request['side'] = 0;
-            response = await this.v1PerpetualPrivateGetMarketUserDeals (this.extend (request, params));
+            response = await this.v2PrivateGetFuturesUserDeals (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "deal_id": 1180222387,
+            //                 "created_at": 1714119054558,
+            //                 "market": "BTCUSDT",
+            //                 "side": "buy",
+            //                 "order_id": 136915589622,
+            //                 "price": "64376",
+            //                 "amount": "0.0001"
+            //             }
+            //         ],
+            //         "message": "OK",
+            //         "pagination": {
+            //             "has_next": true
+            //         }
+            //     }
+            //
         } else {
-            request['page'] = 1;
-            response = await this.v1PrivateGetOrderUserDeals (this.extend (request, params));
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            if (marginMode !== undefined) {
+                request['market_type'] = 'MARGIN';
+            } else {
+                request['market_type'] = 'SPOT';
+            }
+            response = await this.v2PrivateGetSpotUserDeals (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "amount": "0.00010087",
+            //                 "created_at": 1714618087585,
+            //                 "deal_id": 4161200602,
+            //                 "margin_market": "",
+            //                 "market": "BTCUSDT",
+            //                 "order_id": 117654919342,
+            //                 "price": "57464.04",
+            //                 "side": "sell"
+            //             }
+            //         ],
+            //         "message": "OK",
+            //         "pagination": {
+            //             "has_next": true
+            //         }
+            //     }
+            //
         }
-        //
-        // Spot and Margin
-        //
-        //      {
-        //          "code": 0,
-        //          "data": {
-        //              "data": [
-        //                  {
-        //                      "id": 2611520950,
-        //                      "order_id": 63286573298,
-        //                      "account_id": 0,
-        //                      "create_time": 1638990636,
-        //                      "type": "sell",
-        //                      "role": "taker",
-        //                      "price": "192.29",
-        //                      "amount": "0.098",
-        //                      "fee": "0.03768884",
-        //                      "fee_asset": "USDT",
-        //                      "market": "AAVEUSDT",
-        //                      "deal_money": "18.84442"
-        //                          },
-        //                      ],
-        //              "curr_page": 1,
-        //              "has_next": false,
-        //              "count": 3
-        //              },
-        //          "message": "Success"
-        //      }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "limit": 100,
-        //             "offset": 0,
-        //             "records": [
-        //                 {
-        //                     "amount": "0.0012",
-        //                     "deal_fee": "0.0237528",
-        //                     "deal_insurance": "0",
-        //                     "deal_margin": "15.8352",
-        //                     "deal_order_id": 17797031903,
-        //                     "deal_profit": "0",
-        //                     "deal_stock": "47.5056",
-        //                     "deal_type": 1,
-        //                     "deal_user_id": 2969195,
-        //                     "fee_asset": "",
-        //                     "fee_discount": "0",
-        //                     "fee_price": "0",
-        //                     "fee_rate": "0.0005",
-        //                     "fee_real_rate": "0.0005",
-        //                     "id": 379044296,
-        //                     "leverage": "3",
-        //                     "margin_amount": "15.8352",
-        //                     "market": "BTCUSDT",
-        //                     "open_price": "39588",
-        //                     "order_id": 17797092987,
-        //                     "position_amount": "0.0012",
-        //                     "position_id": 62052321,
-        //                     "position_type": 1,
-        //                     "price": "39588",
-        //                     "role": 2,
-        //                     "side": 2,
-        //                     "time": 1650675936.016103,
-        //                     "user_id": 3620173
-        //                 }
-        //             ]
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        const tradeRequest = swap ? 'records' : 'data';
-        const data = this.safeValue (response, 'data');
-        const trades = this.safeList (data, tradeRequest, []);
-        return this.parseTrades (trades, market, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
