@@ -297,7 +297,7 @@ export default class woofipro extends Exchange {
             },
             'options': {
                 'sandboxMode': false,
-                'brokerId': '',
+                'brokerId': 'CCXT',
                 'verifyingContractAddress': '0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203',
             },
             'commonCurrencies': {},
@@ -1283,6 +1283,7 @@ export default class woofipro extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': orderSide,
+            'order_tag': this.safeString (this.options, 'orderTag', 'CCXT'),
         };
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
