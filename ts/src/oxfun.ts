@@ -22,10 +22,10 @@ export default class oxfun extends Exchange {
             'pro': true,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false,
                 'margin': false,
                 'swap': false,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': false,
@@ -76,7 +76,7 @@ export default class oxfun extends Exchange {
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -260,8 +260,85 @@ export default class oxfun extends Exchange {
         //             ]
         //         }
         //
-        const markets = this.safeValue (response, 'data', []);
-        return markets;
+        const markets = this.safeList (response, 'data', []);
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'referencePair');
+        const parts = id.split ('/');
+        const baseId = this.safeString (parts, 0);
+        const quoteId = this.safeString (parts, 1);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let symbol = base + '/' + quote;
+        const type = this.safeString (market, 'type').toLowerCase ();
+        const isFuture = type === 'future';
+        let settleId = undefined;
+        let settle = undefined;
+        if (isFuture) {
+            settleId = this.safeString (parts, 1);
+            settle = this.safeCurrencyCode (settleId);
+            if (settle !== undefined) {
+                symbol += ':' + settle;
+            }
+        }
+        const isSpot = type === 'spot';
+        let isContract = false;
+        if (type === 'future') {
+            isContract = true;
+        }
+        const contractSize = this.safeInteger (market, 'tickSize');
+        return this.safeMarketStructure ({
+            'id': id,
+            'numericId': undefined,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': isSpot,
+            'margin': false,
+            'swap': false,
+            'future': isFuture,
+            'option': false,
+            'active': true,
+            'contract': isContract,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeFloat (market, 'minSize'),
+                'price': this.safeFloat (market, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.safeFloat (market, 'lowerPriceBound'),
+                    'max': this.safeFloat (market, 'upperPriceBound'),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
