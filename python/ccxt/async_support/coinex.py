@@ -3488,48 +3488,49 @@ class coinex(Exchange, ImplicitAPI):
     async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account019_update_deposit_address
+        :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/update-deposit-address
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the blockchain network to create a deposit address on
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
+        network = self.safe_string_2(params, 'chain', 'network')
+        if network is None:
+            raise ArgumentsRequired(self.id + ' createDepositAddress() requires a network parameter')
+        params = self.omit(params, 'network')
         request = {
-            'coin_type': currency['id'],
+            'ccy': currency['id'],
+            'chain': self.network_code_to_id(network, currency['code']),
         }
-        if 'network' in params:
-            network = self.safe_string(params, 'network')
-            params = self.omit(params, 'network')
-            request['smart_contract_name'] = network
-        response = await self.v1PrivatePutBalanceDepositAddressCoinType(self.extend(request, params))
+        response = await self.v2PrivatePostAssetsRenewalDepositAddress(self.extend(request, params))
         #
         #     {
         #         "code": 0,
         #         "data": {
-        #             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
-        #             "is_bitcoin_cash": False
+        #             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        #             "memo": ""
         #         },
-        #         "message": "Success"
+        #         "message": "OK"
         #     }
+        #
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account020_query_deposit_address
+        :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the blockchain network to create a deposit address on
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
-            'coin_type': currency['id'],
-        }
-        networks = self.safe_value(currency, 'networks', {})
-        network = self.safe_string(params, 'network')
+        networks = self.safe_dict(currency, 'networks', {})
+        network = self.safe_string_2(params, 'network', 'chain')
         params = self.omit(params, 'network')
         networksKeys = list(networks.keys())
         numOfNetworks = len(networksKeys)
@@ -3538,23 +3539,24 @@ class coinex(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() ' + code + ' requires a network parameter')
             if not (network in networks):
                 raise ExchangeError(self.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code)
-        if network is not None:
-            request['smart_contract_name'] = network
-        response = await self.v1PrivateGetBalanceDepositAddressCoinType(self.extend(request, params))
+        request = {
+            'ccy': currency['id'],
+            'chain': network,
+        }
+        response = await self.v2PrivateGetAssetsDepositAddress(self.extend(request, params))
         #
-        #      {
-        #          "code": 0,
-        #          "data": {
-        #            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        #            # coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy",  # with embedded tag/memo
-        #            "is_bitcoin_cash": False
-        #          },
-        #          "message": "Success"
-        #      }
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        #             "memo": ""
+        #         },
+        #         "message": "OK"
+        #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         depositAddress = self.parse_deposit_address(data, currency)
-        options = self.safe_value(self.options, 'fetchDepositAddress', {})
+        options = self.safe_dict(self.options, 'fetchDepositAddress', {})
         fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             depositAddress['network'] = self.safe_network_code(network, currency)
@@ -3578,11 +3580,11 @@ class coinex(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
-        #         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        #         "is_bitcoin_cash": False
+        #         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        #         "memo": ""
         #     }
         #
-        coinAddress = self.safe_string(depositAddress, 'coin_address')
+        coinAddress = self.safe_string(depositAddress, 'address')
         parts = coinAddress.split(':')
         address = None
         tag = None

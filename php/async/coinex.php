@@ -3685,31 +3685,34 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account019_update_deposit_address
+             * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/update-deposit-address
              * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network] the blockchain $network to create a deposit address on
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $request = array(
-                'coin_type' => $currency['id'],
-            );
-            if (is_array($params) && array_key_exists('network', $params)) {
-                $network = $this->safe_string($params, 'network');
-                $params = $this->omit($params, 'network');
-                $request['smart_contract_name'] = $network;
+            $network = $this->safe_string_2($params, 'chain', 'network');
+            if ($network === null) {
+                throw new ArgumentsRequired($this->id . ' createDepositAddress() requires a $network parameter');
             }
-            $response = Async\await($this->v1PrivatePutBalanceDepositAddressCoinType (array_merge($request, $params)));
+            $params = $this->omit($params, 'network');
+            $request = array(
+                'ccy' => $currency['id'],
+                'chain' => $this->network_code_to_id($network, $currency['code']),
+            );
+            $response = Async\await($this->v2PrivatePostAssetsRenewalDepositAddress (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
             //         "data" => array(
-            //             "coin_address" => "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
-            //             "is_bitcoin_cash" => false
+            //             "address" => "0x321bd6479355142334f45653ad5d8b76105a1234",
+            //             "memo" => ""
             //         ),
-            //         "message" => "Success"
+            //         "message" => "OK"
             //     }
+            //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
         }) ();
@@ -3719,18 +3722,16 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
-             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account020_query_deposit_address
+             * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network] the blockchain $network to create a deposit address on
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $request = array(
-                'coin_type' => $currency['id'],
-            );
-            $networks = $this->safe_value($currency, 'networks', array());
-            $network = $this->safe_string($params, 'network');
+            $networks = $this->safe_dict($currency, 'networks', array());
+            $network = $this->safe_string_2($params, 'network', 'chain');
             $params = $this->omit($params, 'network');
             $networksKeys = is_array($networks) ? array_keys($networks) : array();
             $numOfNetworks = count($networksKeys);
@@ -3742,24 +3743,24 @@ class coinex extends Exchange {
                     throw new ExchangeError($this->id . ' fetchDepositAddress() ' . $network . ' $network not supported for ' . $code);
                 }
             }
-            if ($network !== null) {
-                $request['smart_contract_name'] = $network;
-            }
-            $response = Async\await($this->v1PrivateGetBalanceDepositAddressCoinType (array_merge($request, $params)));
+            $request = array(
+                'ccy' => $currency['id'],
+                'chain' => $network,
+            );
+            $response = Async\await($this->v2PrivateGetAssetsDepositAddress (array_merge($request, $params)));
             //
-            //      {
-            //          "code" => 0,
-            //          "data" => array(
-            //            "coin_address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-            //            // coin_address => "xxxxxxxxxxxxxx:yyyyyyyyy", // with embedded tag/memo
-            //            "is_bitcoin_cash" => false
-            //          ),
-            //          "message" => "Success"
-            //      }
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             "address" => "0x321bd6479355142334f45653ad5d8b76105a1234",
+            //             "memo" => ""
+            //         ),
+            //         "message" => "OK"
+            //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $depositAddress = $this->parse_deposit_address($data, $currency);
-            $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
+            $options = $this->safe_dict($this->options, 'fetchDepositAddress', array());
             $fillResponseFromRequest = $this->safe_bool($options, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $depositAddress['network'] = $this->safe_network_code($network, $currency);
@@ -3789,11 +3790,11 @@ class coinex extends Exchange {
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
-        //         "coin_address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        //         "is_bitcoin_cash" => false
+        //         "address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //         "memo" => ""
         //     }
         //
-        $coinAddress = $this->safe_string($depositAddress, 'coin_address');
+        $coinAddress = $this->safe_string($depositAddress, 'address');
         $parts = explode(':', $coinAddress);
         $address = null;
         $tag = null;

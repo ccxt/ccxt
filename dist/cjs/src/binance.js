@@ -2396,7 +2396,7 @@ class binance extends binance$1 {
                     'Rest API trading is not enabled.': errors.PermissionDenied,
                     'This account may not place or cancel orders.': errors.PermissionDenied,
                     "You don't have permission.": errors.PermissionDenied,
-                    'Market is closed.': errors.OperationRejected,
+                    'Market is closed.': errors.MarketClosed,
                     'Too many requests. Please try again later.': errors.RateLimitExceeded,
                     'This action is disabled on this account.': errors.AccountSuspended,
                     'Limit orders require GTC for this phase.': errors.BadRequest,

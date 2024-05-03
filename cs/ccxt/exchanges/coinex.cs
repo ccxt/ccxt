@@ -2787,33 +2787,36 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#createDepositAddress
         * @description create a currency deposit address
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account019_update_deposit_address
+        * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/update-deposit-address
         * @param {string} code unified currency code of the currency for the deposit address
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.network] the blockchain network to create a deposit address on
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "coin_type", getValue(currency, "id") },
-        };
-        if (isTrue(inOp(parameters, "network")))
+        object network = this.safeString2(parameters, "chain", "network");
+        if (isTrue(isEqual(network, null)))
         {
-            object network = this.safeString(parameters, "network");
-            parameters = this.omit(parameters, "network");
-            ((IDictionary<string,object>)request)["smart_contract_name"] = network;
+            throw new ArgumentsRequired ((string)add(this.id, " createDepositAddress() requires a network parameter")) ;
         }
-        object response = await this.v1PrivatePutBalanceDepositAddressCoinType(this.extend(request, parameters));
+        parameters = this.omit(parameters, "network");
+        object request = new Dictionary<string, object>() {
+            { "ccy", getValue(currency, "id") },
+            { "chain", this.networkCodeToId(network, getValue(currency, "code")) },
+        };
+        object response = await this.v2PrivatePostAssetsRenewalDepositAddress(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
         //         "data": {
-        //             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
-        //             "is_bitcoin_cash": false
+        //             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        //             "memo": ""
         //         },
-        //         "message": "Success"
+        //         "message": "OK"
         //     }
+        //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
@@ -2824,19 +2827,17 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account020_query_deposit_address
+        * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.network] the blockchain network to create a deposit address on
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "coin_type", getValue(currency, "id") },
-        };
-        object networks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString(parameters, "network");
+        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        object network = this.safeString2(parameters, "network", "chain");
         parameters = this.omit(parameters, "network");
         object networksKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         object numOfNetworks = getArrayLength(networksKeys);
@@ -2851,25 +2852,24 @@ public partial class coinex : Exchange
                 throw new ExchangeError ((string)add(add(add(add(this.id, " fetchDepositAddress() "), network), " network not supported for "), code)) ;
             }
         }
-        if (isTrue(!isEqual(network, null)))
-        {
-            ((IDictionary<string,object>)request)["smart_contract_name"] = network;
-        }
-        object response = await this.v1PrivateGetBalanceDepositAddressCoinType(this.extend(request, parameters));
+        object request = new Dictionary<string, object>() {
+            { "ccy", getValue(currency, "id") },
+            { "chain", network },
+        };
+        object response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters));
         //
-        //      {
-        //          "code": 0,
-        //          "data": {
-        //            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        //            // coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy", // with embedded tag/memo
-        //            "is_bitcoin_cash": false
-        //          },
-        //          "message": "Success"
-        //      }
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        //             "memo": ""
+        //         },
+        //         "message": "OK"
+        //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object depositAddress = this.parseDepositAddress(data, currency);
-        object options = this.safeValue(this.options, "fetchDepositAddress", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchDepositAddress", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(options, "fillResponseFromRequest", true);
         if (isTrue(fillResponseFromRequest))
         {
@@ -2903,11 +2903,11 @@ public partial class coinex : Exchange
     {
         //
         //     {
-        //         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        //         "is_bitcoin_cash": false
+        //         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //         "memo": ""
         //     }
         //
-        object coinAddress = this.safeString(depositAddress, "coin_address");
+        object coinAddress = this.safeString(depositAddress, "address");
         object parts = ((string)coinAddress).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object address = null;
         object tag = null;

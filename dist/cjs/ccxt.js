@@ -385,6 +385,7 @@ exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
+exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;
 exports.NoChange = errors.NoChange;
 exports.NotSupported = errors.NotSupported;
