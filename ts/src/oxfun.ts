@@ -256,6 +256,22 @@ export default class oxfun extends Exchange {
         //                     indexPrice: '61813',
         //                     lastUpdatedAt: '1714762234765'
         //                 },
+        //                 {
+        //                     "marketCode": "MILK-OX",
+        //                     "name": "MILK/OX",
+        //                     "referencePair": "MILK/OX",
+        //                     "base": "MILK",
+        //                     "counter": "OX",
+        //                     "type": "SPOT",
+        //                     "tickSize": "0.0001",
+        //                     "minSize": "1",
+        //                     "listedAt": "1706608500000",
+        //                     "upperPriceBound": "1.0000",
+        //                     "lowerPriceBound": "-1.0000",
+        //                     "markPrice": "0.0269",
+        //                     "indexPrice": "0.0269",
+        //                     "lastUpdatedAt": "1714757402185"
+        //                 },
         //                 ...
         //             ]
         //         }
