@@ -23,7 +23,7 @@ export default class oxfun extends Exchange {
             'pro': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -220,12 +220,13 @@ export default class oxfun extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
+        let url = this.urls['api'][api];
+        let query = this.omit (params, this.extractParams (path));
+        const endpoint = this.implodeParams (path, params);
+        url = url + '/' + endpoint;
+        query = this.urlencode (query);
+        if (query.length !== 0) {
+            url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
