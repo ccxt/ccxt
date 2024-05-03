@@ -974,6 +974,77 @@ export default class woofipro extends woofiproRest {
         });
     }
 
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name woofipro#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const topic = 'balance';
+        const messageHash = topic;
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        return await this.watchPrivate (messageHash, message);
+    }
+
+    handleBalance (client, message) {
+        //
+        //     {
+        //         "topic":"balance",
+        //         "ts":1651836695254,
+        //         "data":{
+        //             "balances":{
+        //                 "USDC":{
+        //                     "holding":5555815.47398272,
+        //                     "frozen":0,
+        //                     "interest":0,
+        //                     "pendingShortQty":0,
+        //                     "pendingExposure":0,
+        //                     "pendingLongQty":0,
+        //                     "pendingLongExposure":0,
+        //                     "version":894,
+        //                     "staked":51370692,
+        //                     "unbonding":0,
+        //                     "vault":0,
+        //                     "averageOpenPrice":0.00000574,
+        //                     "pnl24H":0,
+        //                     "fee24H":0.01914,
+        //                     "markPrice":0.31885
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const balances = this.safeDict (data, 'balances', {});
+        const keys = Object.keys (balances);
+        const ts = this.safeInteger (message, 'ts');
+        this.balance['info'] = data;
+        this.balance['timestamp'] = ts;
+        this.balance['datetime'] = this.iso8601 (ts);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = balances[key];
+            const code = this.safeCurrencyCode (key);
+            const account = (code in this.balance) ? this.balance[code] : this.account ();
+            const total = this.safeString (value, 'holding');
+            const used = this.safeString (value, 'frozen');
+            account['total'] = total;
+            account['used'] = used;
+            account['free'] = Precise.stringSub (total, used);
+            this.balance[code] = account;
+        }
+        this.balance = this.safeBalance (this.balance);
+        client.resolve (this.balance, 'balance');
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
@@ -1023,6 +1094,7 @@ export default class woofipro extends woofiproRest {
             'executionreport': this.handleOrderUpdate,
             'algoexecutionreport': this.handleOrderUpdate,
             'position': this.handlePositions,
+            'balance': this.handleBalance,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
