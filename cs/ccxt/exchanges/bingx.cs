@@ -378,6 +378,7 @@ public partial class bingx : Exchange
                     { "100202", typeof(InsufficientFunds) },
                     { "100204", typeof(BadRequest) },
                     { "100400", typeof(BadRequest) },
+                    { "100410", typeof(OperationFailed) },
                     { "100421", typeof(BadSymbol) },
                     { "100440", typeof(ExchangeError) },
                     { "100500", typeof(OperationFailed) },

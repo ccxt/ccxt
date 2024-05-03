@@ -386,6 +386,7 @@ class bingx extends bingx$1 {
                     '100202': errors.InsufficientFunds,
                     '100204': errors.BadRequest,
                     '100400': errors.BadRequest,
+                    '100410': errors.OperationFailed,
                     '100421': errors.BadSymbol,
                     '100440': errors.ExchangeError,
                     '100500': errors.OperationFailed,

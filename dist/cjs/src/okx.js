@@ -5575,7 +5575,7 @@ class okx extends okx$1 {
         //    }
         //
         const marketId = this.safeString(position, 'instId');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const pos = this.safeString(position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise["default"].stringAbs(pos);

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/binance.js';
-import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -96,8 +96,8 @@ export default class binance extends Exchange {
                 'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedBorrowRate': false,
-                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedBorrowRate': 'emulated',
+                'fetchIsolatedBorrowRates': true,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
@@ -2399,7 +2399,7 @@ export default class binance extends Exchange {
                     'Rest API trading is not enabled.': PermissionDenied,
                     'This account may not place or cancel orders.': PermissionDenied,
                     "You don't have permission.": PermissionDenied,
-                    'Market is closed.': OperationRejected,
+                    'Market is closed.': MarketClosed,
                     'Too many requests. Please try again later.': RateLimitExceeded,
                     'This action is disabled on this account.': AccountSuspended,
                     'Limit orders require GTC for this phase.': BadRequest,
@@ -11340,6 +11340,70 @@ export default class binance extends Exchange {
         const rate = this.safeDict(response, 0);
         return this.parseBorrowRate(rate);
     }
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchIsolatedBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+         * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+         */
+        const request = {
+            'symbol': symbol,
+        };
+        const borrowRates = await this.fetchIsolatedBorrowRates(this.extend(request, params));
+        return this.safeDict(borrowRates, symbol);
+    }
+    async fetchIsolatedBorrowRates(params = {}) {
+        /**
+         * @method
+         * @name binance#fetchIsolatedBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.symbol] unified market symbol
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        const symbol = this.safeString(params, 'symbol');
+        params = this.omit(params, 'symbol');
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.sapiGetMarginIsolatedMarginData(this.extend(request, params));
+        //
+        //    [
+        //        {
+        //            "vipLevel": 0,
+        //            "symbol": "BTCUSDT",
+        //            "leverage": "10",
+        //            "data": [
+        //                {
+        //                    "coin": "BTC",
+        //                    "dailyInterest": "0.00026125",
+        //                    "borrowLimit": "270"
+        //                },
+        //                {
+        //                    "coin": "USDT",
+        //                    "dailyInterest": "0.000475",
+        //                    "borrowLimit": "2100000"
+        //                }
+        //            ]
+        //        }
+        //    ]
+        //
+        return this.parseIsolatedBorrowRates(response);
+    }
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -11412,6 +11476,43 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
+        };
+    }
+    parseIsolatedBorrowRate(info, market = undefined) {
+        //
+        //    {
+        //        "vipLevel": 0,
+        //        "symbol": "BTCUSDT",
+        //        "leverage": "10",
+        //        "data": [
+        //            {
+        //                "coin": "BTC",
+        //                "dailyInterest": "0.00026125",
+        //                "borrowLimit": "270"
+        //            },
+        //            {
+        //                "coin": "USDT",
+        //                "dailyInterest": "0.000475",
+        //                "borrowLimit": "2100000"
+        //            }
+        //        ]
+        //    }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'spot');
+        const data = this.safeList(info, 'data');
+        const baseInfo = this.safeDict(data, 0);
+        const quoteInfo = this.safeDict(data, 1);
+        return {
+            'info': info,
+            'symbol': this.safeString(market, 'symbol'),
+            'base': this.safeString(baseInfo, 'coin'),
+            'baseRate': this.safeNumber(baseInfo, 'dailyInterest'),
+            'quote': this.safeString(quoteInfo, 'coin'),
+            'quoteRate': this.safeNumber(quoteInfo, 'dailyInterest'),
+            'period': 86400000,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async createGiftCode(code, amount, params = {}) {

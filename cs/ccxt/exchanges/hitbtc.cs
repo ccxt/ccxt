@@ -417,6 +417,7 @@ public partial class hitbtc : Exchange
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "spot" },
                     { "funding", "wallet" },
+                    { "swap", "derivatives" },
                     { "future", "derivatives" },
                 } },
                 { "withdraw", new Dictionary<string, object>() {

@@ -74,7 +74,7 @@ export default class zonda extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+        url: string;
         method: string;
         body: any;
         headers: any;

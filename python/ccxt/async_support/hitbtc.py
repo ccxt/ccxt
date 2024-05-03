@@ -632,6 +632,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {

@@ -34,6 +34,9 @@ declare class NoChange extends OperationRejected {
 declare class MarginModeAlreadySet extends NoChange {
     constructor(message: any);
 }
+declare class MarketClosed extends OperationRejected {
+    constructor(message: any);
+}
 declare class BadResponse extends ExchangeError {
     constructor(message: any);
 }
@@ -106,7 +109,7 @@ declare class InvalidNonce extends NetworkError {
 declare class RequestTimeout extends NetworkError {
     constructor(message: any);
 }
-export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
 declare const _default: {
     BaseError: typeof BaseError;
     ExchangeError: typeof ExchangeError;
@@ -120,6 +123,7 @@ declare const _default: {
     OperationRejected: typeof OperationRejected;
     NoChange: typeof NoChange;
     MarginModeAlreadySet: typeof MarginModeAlreadySet;
+    MarketClosed: typeof MarketClosed;
     BadResponse: typeof BadResponse;
     NullResponse: typeof NullResponse;
     InsufficientFunds: typeof InsufficientFunds;

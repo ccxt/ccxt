@@ -345,7 +345,7 @@ public partial class poloniex : ccxt.poloniex
         //        }]
         //    }
         //
-        object messageHash = this.safeInteger(message, "id");
+        object messageHash = this.safeString(message, "id");
         object data = this.safeValue(message, "data", new List<object>() {});
         object orders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
@@ -725,8 +725,8 @@ public partial class poloniex : ccxt.poloniex
             { "type", this.safeStringLower(trade, "type") },
             { "side", this.safeStringLower2(trade, "takerSide", "side") },
             { "takerOrMaker", takerMaker },
-            { "price", this.omitZero(this.safeNumber2(trade, "tradePrice", "price")) },
-            { "amount", this.omitZero(this.safeNumber2(trade, "filledQuantity", "quantity")) },
+            { "price", this.omitZero(this.safeString2(trade, "tradePrice", "price")) },
+            { "amount", this.omitZero(this.safeString2(trade, "filledQuantity", "quantity")) },
             { "cost", this.safeString2(trade, "amount", "filledAmount") },
             { "fee", new Dictionary<string, object>() {
                 { "rate", null },

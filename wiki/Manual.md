@@ -6680,13 +6680,13 @@ From `BaseError` derives two different families of errors: `OperationFailed` and
 ### OperationFailed
 <a name="NetworkError" id="NetworkError"></a>
 
-An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but an non-deterministic problem occurred. In such cases, you might consider retrying after some time.
+An `OperationFailed` might happen when user sends **correctly constructed & valid request** to exchange, but a non-deterministic problem occurred:
 - maintenance ongoing
 - internet/network connectivitiy issues
 - DDoS protections
 - "Server busy, try again"...
 
-Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
+Such exceptions are temporary and re-trying the request again might be enough. However, if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
 `OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
 
@@ -6733,7 +6733,7 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
 
 ### ExchangeError
 
-In contrast to `NetworkError`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly.
+In contrast to `OperationFailed`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly.
 
 Possible reasons for this exception:
 
@@ -6747,7 +6747,7 @@ Possible reasons for this exception:
 
   - `NotSupported`: when the endpoint/operation is not offered or supported by the exchange API.
   - `BadRequest`: user sends an **incorrectly** constructed request/parameter/action that is invalid/unallowed (i.e.: "invalid number", "forbidden symbol", "size beyond min/max limits", "incorrect precision", etc). Retrying would not help in this case, the request needs to be fixed/adjusted first.
-  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by the exchange), but your current account status does not allow it. (i.e. "please close existing positions before changing the leverage", "too many pending orders"). Please notice how this exception differs from [**OperationFailed**](#operationfailed)
+  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by the exchange in a typical case), but some deterministic factor prevents your request to succeed. For example, your current account status might not allow it (i.e. "please close existing positions before changing the leverage", "too many pending orders", "your account in wrong position/margin mode") or at the give moment symbol is not tradable (i.e. "MarketClosed") or some explained factors, where you need to take a specific action (i.e. change some setting at first, or wait till specific moment). So, once again: [**OperationFailed**](#operationfailed) can be blindly re-tried and should success, while `OperationRejected` is a failure that depends on specific exact factors that need to be considered, before request can be retried.
   - `AuthenticationError`: when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password` if exchange API requires it.
   - `PermissionDenied`: when there's no access for specified action or insufficient permissions on the specified `apiKey`.
   - `InsufficientFunds`: when you don't have enough currency on your account balance to place an order.

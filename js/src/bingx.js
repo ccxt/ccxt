@@ -389,6 +389,7 @@ export default class bingx extends Exchange {
                     '100202': InsufficientFunds,
                     '100204': BadRequest,
                     '100400': BadRequest,
+                    '100410': OperationFailed,
                     '100421': BadSymbol,
                     '100440': ExchangeError,
                     '100500': OperationFailed,
