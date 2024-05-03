@@ -5,12 +5,12 @@ import { implicitReturnType, Int, Str, IndexType, Num, Dictionary } from '../typ
 const isNumber = Number.isFinite;
 const isInteger = Number.isInteger;
 const isArray = Array.isArray;
-const hasProps = (o) => ((o !== undefined) && (o !== null));  // TODO: Parameter 'o' implicitly has an 'any' type.ts(7006)
+const hasProps = (o: any) => ((o !== undefined) && (o !== null));
 const isString = (s: any) => (typeof s === 'string');
 const isObject = (o: any) => ((o !== null) && (typeof o === 'object'));
 const isRegExp = (o: any) => (o instanceof RegExp);
 const isDictionary = (o: any) => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o));
-const isStringCoercible = (x) => ((hasProps (x) && x.toString) || isNumber (x));  // TODO: Parameter 'x' implicitly has an 'any' type.ts(7006)
+const isStringCoercible = (x: any) => ((hasProps (x) && x.toString) || isNumber (x));
 
 /*  .............................................   */
 
