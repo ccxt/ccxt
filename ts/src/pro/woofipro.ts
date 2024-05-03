@@ -552,10 +552,13 @@ export default class woofipro extends woofiproRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.stop] true if stop order
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const topic = 'executionreport';
+        const stop = this.safeBool (params, 'stop', false);
+        const topic = (stop) ? 'algoexecutionreport' : 'executionreport';
+        params = this.omit (params, 'stop');
         let messageHash = topic;
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -667,6 +670,7 @@ export default class woofipro extends woofiproRest {
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const triggerPrice = this.safeNumber (order, 'triggerPrice');
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -680,8 +684,8 @@ export default class woofipro extends woofiproRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
@@ -722,12 +726,21 @@ export default class woofipro extends woofiproRest {
         //         }
         //     }
         //
-        const order = this.safeValue (message, 'data');
-        this.handleOrder (client, order);
+        const topic = this.safeString (message, 'topic');
+        const data = this.safeValue (message, 'data');
+        if (Array.isArray (data)) {
+            // algoexecutionreport
+            for (let i=0; i<data.length; i++) {
+                const order = data[i];
+                this.handleOrder (client, order, topic);
+            }
+        } else {
+            // executionreport
+            this.handleOrder (client, data, topic);
+        }
     }
 
-    handleOrder (client: Client, message) {
-        const topic = 'executionreport';
+    handleOrder (client: Client, message, topic) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -806,6 +819,7 @@ export default class woofipro extends woofiproRest {
             'trade': this.handleTrade,
             'auth': this.handleAuth,
             'executionreport': this.handleOrderUpdate,
+            'algoexecutionreport': this.handleOrderUpdate,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
