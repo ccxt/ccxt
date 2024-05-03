@@ -19,7 +19,6 @@ export default class oxfun extends Exchange {
             'countries': [ 'PA' ], // Panama but need to be confirmed
             'version': 'v3',
             'rateLimit': 300, // 500 per minute
-            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -215,8 +214,47 @@ export default class oxfun extends Exchange {
          */
         const response = await this.publicGetV3Markets (params);
         //
+        //         {
+        //             success: true,
+        //             data: [
+        //                 {
+        //                     marketCode: 'OX-USD-SWAP-LIN',
+        //                     name: 'OX/USD Perp',
+        //                     referencePair: 'OX/USDT',
+        //                     base: 'OX',
+        //                     counter: 'USD',
+        //                     type: 'FUTURE',
+        //                     tickSize: '0.00001',
+        //                     minSize: '1',
+        //                     listedAt: '1704766320000',
+        //                     upperPriceBound: '0.02122',
+        //                     lowerPriceBound: '0.01142',
+        //                     markPrice: '0.01632',
+        //                     indexPrice: '0.01564',
+        //                     lastUpdatedAt: '1714762235569'
+        //                 },
+        //                 {
+        //                     marketCode: 'BTC-USD-SWAP-LIN',
+        //                     name: 'BTC/USD Perp',
+        //                     referencePair: 'BTC/USDT',
+        //                     base: 'BTC',
+        //                     counter: 'USD',
+        //                     type: 'FUTURE',
+        //                     tickSize: '1',
+        //                     minSize: '0.0001',
+        //                     listedAt: '1704686640000',
+        //                     upperPriceBound: '67983',
+        //                     lowerPriceBound: '55621',
+        //                     markPrice: '61802',
+        //                     indexPrice: '61813',
+        //                     lastUpdatedAt: '1714762234765'
+        //                 },
+        //                 ...
+        //             ]
+        //         }
         //
-        return response;
+        const markets = this.safeValue (response, 'data', []);
+        return markets;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
