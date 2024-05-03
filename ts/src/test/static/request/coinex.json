@@ -1099,6 +1099,33 @@
                 ],
                 "output": "{\"amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"price\":\"61000\",\"stop_id\":137091809783,\"trigger_price\":\"61500\"}"
             }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "Create a deposit address",
+                "method": "createDepositAddress",
+                "url": "https://api.coinex.com/v2/assets/renewal-deposit-address",
+                "input": [
+                  "ETH",
+                  {
+                    "network": "ERC20"
+                  }
+                ],
+                "output": "{\"ccy\":\"ETH\",\"chain\":\"ERC20\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch a deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.coinex.com/v2/assets/deposit-address?ccy=ETH&chain=ERC20",
+                "input": [
+                  "ETH",
+                  {
+                    "network": "ERC20"
+                  }
+                ]
+            }
         ]
     },
     "disabledTests": {}
