@@ -1200,7 +1200,7 @@ export default class woofipro extends Exchange {
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': this.parseOrderStatus (status),
             'symbol': symbol,
-            'type': orderType,
+            'type': this.parseOrderType (orderType),
             'timeInForce': this.parseTimeInForce (orderType),
             'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeBool (order, 'reduce_only'),
@@ -1249,6 +1249,15 @@ export default class woofipro extends Exchange {
             return this.safeString (statuses, status, status);
         }
         return status;
+    }
+
+    parseOrderType (type) {
+        const types = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'POST_ONLY': 'limit',
+        };
+        return this.safeStringLower (types, type, type);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

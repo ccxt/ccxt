@@ -203,7 +203,7 @@
                         "triggerPrice": 1
                     }
                 ],
-                "output": "{\"order_id\":\"1111779\",\"quantity\":\"0.0001\",\"triggerPrice\":\"1\"}"
+                "output": "{\"order_tag\":\"CCXT\",\"order_id\":\"1111779\",\"quantity\":\"0.0001\",\"triggerPrice\":\"1\"}"
             },
             {
                 "description": "edit limit order",
@@ -381,6 +381,29 @@
                 "method": "fetchClosedOrders",
                 "url": "https://api-evm.orderly.org/v1/orders?size=500&status=COMPLETED",
                 "input": []
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://api-evm.orderly.org/v1/position/PERP_BTC_USDC",
+                "input": [
+                  "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://api-evm.orderly.org/v1/batch-order?order_ids=1088558009%2C1088643232",
+                "input": [
+                  [
+                    "1088558009",
+                    "1088643232"
+                  ]
+                ]
             }
         ]
     }
