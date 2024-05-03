@@ -103,7 +103,7 @@ class poloniex extends poloniex$1 {
                 },
             };
             const message = this.extend(request, params);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {
@@ -172,7 +172,7 @@ class poloniex extends poloniex$1 {
          * @returns {object} data from the websocket stream
          */
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce();
+        const messageHash = this.nonce().toString();
         const subscribe = {
             'id': messageHash,
             'event': name,
@@ -314,7 +314,7 @@ class poloniex extends poloniex$1 {
         //        }]
         //    }
         //
-        const messageHash = this.safeInteger(message, 'id');
+        const messageHash = this.safeString(message, 'id');
         const data = this.safeValue(message, 'data', []);
         const orders = [];
         for (let i = 0; i < data.length; i++) {
@@ -652,8 +652,8 @@ class poloniex extends poloniex$1 {
             'type': this.safeStringLower(trade, 'type'),
             'side': this.safeStringLower2(trade, 'takerSide', 'side'),
             'takerOrMaker': takerMaker,
-            'price': this.omitZero(this.safeNumber2(trade, 'tradePrice', 'price')),
-            'amount': this.omitZero(this.safeNumber2(trade, 'filledQuantity', 'quantity')),
+            'price': this.omitZero(this.safeString2(trade, 'tradePrice', 'price')),
+            'amount': this.omitZero(this.safeString2(trade, 'filledQuantity', 'quantity')),
             'cost': this.safeString2(trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': undefined,
@@ -1039,7 +1039,8 @@ class poloniex extends poloniex$1 {
                         const bid = this.safeValue(bids, j);
                         const price = this.safeNumber(bid, 0);
                         const amount = this.safeNumber(bid, 1);
-                        orderbook['bids'].store(price, amount);
+                        const bidsSide = orderbook['bids'];
+                        bidsSide.store(price, amount);
                     }
                 }
                 if (asks !== undefined) {
@@ -1047,7 +1048,8 @@ class poloniex extends poloniex$1 {
                         const ask = this.safeValue(asks, j);
                         const price = this.safeNumber(ask, 0);
                         const amount = this.safeNumber(ask, 1);
-                        orderbook['asks'].store(price, amount);
+                        const asksSide = orderbook['asks'];
+                        asksSide.store(price, amount);
                     }
                 }
                 orderbook['symbol'] = symbol;
@@ -1181,14 +1183,14 @@ class poloniex extends poloniex$1 {
                 this.handleErrorMessage(client, item);
             }
             else {
-                return this.handleOrderRequest(client, message);
+                this.handleOrderRequest(client, message);
             }
         }
         else {
             const data = this.safeValue(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }

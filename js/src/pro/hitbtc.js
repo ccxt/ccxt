@@ -116,9 +116,9 @@ export default class hitbtc extends hitbtcRest {
             //    }
             //
         }
-        return future;
+        return await future;
     }
-    async subscribePublic(name, symbols = undefined, params = {}) {
+    async subscribePublic(name, messageHashPrefix, symbols = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -128,7 +128,7 @@ export default class hitbtc extends hitbtcRest {
          */
         await this.loadMarkets();
         const url = this.urls['api']['ws']['public'];
-        let messageHash = name;
+        let messageHash = messageHashPrefix;
         if (symbols !== undefined) {
             messageHash = messageHash + '::' + symbols.join(',');
         }
@@ -174,7 +174,7 @@ export default class hitbtc extends hitbtcRest {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce();
+        const messageHash = this.nonce().toString();
         const subscribe = {
             'method': name,
             'params': params,
@@ -223,7 +223,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [market['id']],
             },
         };
-        const orderbook = await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        const orderbook = await this.subscribePublic(name, 'orderbooks', [symbol], this.deepExtend(request, params));
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
@@ -250,27 +250,35 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const data = this.safeValue2(message, 'snapshot', 'update', {});
+        const snapshot = this.safeDict(message, 'snapshot');
+        const update = this.safeDict(message, 'update');
+        const data = snapshot ? snapshot : update;
+        const type = snapshot ? 'snapshot' : 'update';
         const marketIds = Object.keys(data);
-        const channel = this.safeString(message, 'ch');
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const item = data[marketId];
-            const messageHash = channel + '::' + symbol;
+            const messageHash = 'orderbooks::' + symbol;
             if (!(symbol in this.orderbooks)) {
-                const subscription = this.safeValue(client.subscriptions, messageHash, {});
+                const subscription = this.safeDict(client.subscriptions, messageHash, {});
                 const limit = this.safeInteger(subscription, 'limit');
                 this.orderbooks[symbol] = this.orderBook({}, limit);
             }
+            const orderbook = this.orderbooks[symbol];
             const timestamp = this.safeInteger(item, 't');
             const nonce = this.safeInteger(item, 's');
-            const orderbook = this.orderbooks[symbol];
-            const asks = this.safeValue(item, 'a', []);
-            const bids = this.safeValue(item, 'b', []);
-            this.handleDeltas(orderbook['asks'], asks);
-            this.handleDeltas(orderbook['bids'], bids);
+            if (type === 'snapshot') {
+                const parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, 'b', 'a');
+                orderbook.reset(parsedSnapshot);
+            }
+            else {
+                const asks = this.safeList(item, 'a', []);
+                const bids = this.safeList(item, 'b', []);
+                this.handleDeltas(orderbook['asks'], asks);
+                this.handleDeltas(orderbook['bids'], bids);
+            }
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
             orderbook['nonce'] = nonce;
@@ -316,7 +324,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [market['id']],
             },
         };
-        const result = await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        const result = await this.subscribePublic(name, 'tickers', [symbol], this.deepExtend(request, params));
         return this.safeValue(result, symbol);
     }
     async watchTickers(symbols = undefined, params = {}) {
@@ -352,7 +360,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': marketIds,
             },
         };
-        const tickers = await this.subscribePublic(name, symbols, this.deepExtend(request, params));
+        const tickers = await this.subscribePublic(name, 'tickers', symbols, this.deepExtend(request, params));
         if (this.newUpdates) {
             return tickers;
         }
@@ -399,7 +407,6 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue(message, 'data', {});
         const marketIds = Object.keys(data);
-        const channel = this.safeString(message, 'ch');
         const newTickers = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -408,10 +415,9 @@ export default class hitbtc extends hitbtcRest {
             const ticker = this.parseWsTicker(data[marketId], market);
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
-            const messageHash = channel + '::' + symbol;
-            client.resolve(newTickers, messageHash);
         }
-        const messageHashes = this.findMessageHashes(client, channel + '::');
+        client.resolve(newTickers, 'tickers');
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split('::');
@@ -424,7 +430,6 @@ export default class hitbtc extends hitbtcRest {
                 client.resolve(tickers, messageHash);
             }
         }
-        client.resolve(this.tickers, channel);
         return message;
     }
     parseWsTicker(ticker, market = undefined) {
@@ -504,7 +509,8 @@ export default class hitbtc extends hitbtcRest {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await this.subscribePublic('trades', [symbol], this.deepExtend(request, params));
+        const name = 'trades';
+        const trades = await this.subscribePublic(name, 'trades', [symbol], this.deepExtend(request, params));
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -633,7 +639,7 @@ export default class hitbtc extends hitbtcRest {
         if (limit !== undefined) {
             request['params']['limit'] = limit;
         }
-        const ohlcv = await this.subscribePublic(name, [symbol], this.deepExtend(request, params));
+        const ohlcv = await this.subscribePublic(name, 'candles', [symbol], this.deepExtend(request, params));
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
@@ -694,7 +700,7 @@ export default class hitbtc extends hitbtcRest {
             for (let j = 0; j < ohlcvs.length; j++) {
                 stored.append(ohlcvs[j]);
             }
-            const messageHash = channel + '::' + symbol;
+            const messageHash = 'candles::' + symbol;
             client.resolve(stored, messageHash);
         }
         return message;
@@ -1192,7 +1198,7 @@ export default class hitbtc extends hitbtcRest {
         //        "id": 1700233093414
         //    }
         //
-        const messageHash = this.safeInteger(message, 'id');
+        const messageHash = this.safeString(message, 'id');
         const result = this.safeValue(message, 'result', {});
         if (Array.isArray(result)) {
             const parsedOrders = [];

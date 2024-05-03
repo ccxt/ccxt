@@ -50,14 +50,14 @@
                 "method": "createOrder",
                 "url": "https://api.pro.coins.ph/openapi/v1/order?symbol=BTCUSDT&type=MARKET&side=BUY&quoteOrderQty=2&newOrderRespType=FULL&timestamp=1702186727894&&signature=d1031c5fb2f8afe32eff6af331904522bc703e6de4f785cf18b50603b906fd62",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  2,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
                 ]
             },
             {
@@ -65,14 +65,14 @@
                 "method": "createOrder",
                 "url": "https://api.pro.coins.ph/openapi/v1/order?symbol=BTCUSDT&type=MARKET&side=BUY&quoteOrderQty=2.19&newOrderRespType=FULL&timestamp=1702189547198&&signature=3546694e8823c70c439a82945977e389089ad68015d19a824cabccce52684263",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  0.00005,
-                  43964.92,
-                  {
-                    "createMarketBuyOrderRequiresPrice": true
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.00005,
+                    43964.92,
+                    {
+                        "createMarketBuyOrderRequiresPrice": true
+                    }
                 ]
             },
             {
@@ -80,14 +80,14 @@
                 "method": "createOrder",
                 "url": "https://api.pro.coins.ph/openapi/v1/order?symbol=BTCUSDT&type=MARKET&side=BUY&quoteOrderQty=2&newOrderRespType=FULL&timestamp=1702189330305&&signature=6ef187d65548da4edffea284e4a250702e5ae378ed0d376906a75ea15d7b1c22",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  null,
-                  null,
-                  {
-                    "cost": 2
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 2
+                    }
                 ]
             },
             {
@@ -95,11 +95,11 @@
                 "method": "createOrder",
                 "url": "https://api.pro.coins.ph/openapi/v1/order?symbol=BTCUSDT&type=LIMIT&side=BUY&price=40000&quantity=0.00005&timeInForce=GTC&newOrderRespType=FULL&timestamp=1702189604069&&signature=5d1c98c77e37c1279a2e1fe0d7dc650d05936056ba59415b6007bf4cacbbeba3",
                 "input": [
-                  "BTC/USDT",
-                  "limit",
-                  "buy",
-                  0.00005,
-                  40000
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.00005,
+                    40000
                 ]
             },
             {
@@ -107,11 +107,11 @@
                 "method": "createOrder",
                 "url": "https://api.pro.coins.ph/openapi/v1/order?symbol=BTCUSDT&type=LIMIT&side=SELL&price=50000&quantity=0.00005&timeInForce=GTC&newOrderRespType=FULL&timestamp=1702189639303&&signature=ed9e0f27e821dd3fd92cbee96a79411838cafe76f5590e4b0ce7081ddc83e8bc",
                 "input": [
-                  "BTC/USDT",
-                  "limit",
-                  "sell",
-                  0.00005,
-                  50000
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.00005,
+                    50000
                 ]
             },
             {
@@ -119,11 +119,26 @@
                 "method": "createOrder",
                 "url": "https://api.pro.coins.ph/openapi/v1/order?symbol=BTCUSDT&type=MARKET&side=SELL&quantity=0.0001854&newOrderRespType=FULL&timestamp=1702189732038&&signature=b19f78019ac7d7c0fe197963d5d15b812f667bc7279c9d4bc60e32df07e856e0",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "sell",
-                  0.00018544,
-                  null
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.00018544,
+                    null
+                ]
+            },
+            {
+                "description": "test create order",
+                "method": "createOrder",
+                "url": "https://api.pro.coins.ph/openapi/v1/order/test?symbol=BTCUSDT&type=MARKET&side=SELL&quantity=0.0001854&newOrderRespType=FULL&timestamp=1702189732038&&signature=b19f78019ac7d7c0fe197963d5d15b812f667bc7279c9d4bc60e32df07e856e0",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.00018544,
+                    null,
+                    {
+                        "test": true
+                    }
                 ]
             }
         ],
@@ -133,8 +148,8 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api.pro.coins.ph/openapi/v1/order?symbol=BTCUSDT&type=MARKET&side=BUY&quoteOrderQty=2&newOrderRespType=FULL&timestamp=1702189422251&&signature=5cd28d7b59d7fe0cf6f1bb747d312759cd5c77d7878cdb24aef1840fc1f4ca5c",
                 "input": [
-                  "BTC/USDT",
-                  2
+                    "BTC/USDT",
+                    2
                 ]
             }
         ],
@@ -143,8 +158,17 @@
                 "description": "Fetch tickers",
                 "method": "fetchTickers",
                 "url": "https://api.pro.coins.ph/openapi/quote/v1/ticker/24hr",
+                "input": []
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/ticker/24hr?symbols=%5B\"BTCUSDT\",\"ETHUSDT\"%5D",
                 "input": [
-                    
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
                 ]
             }
         ],
@@ -153,6 +177,52 @@
                 "description": "Fetch ticker",
                 "method": "fetchTicker",
                 "url": "https://api.pro.coins.ph/openapi/quote/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/ticker/24hr?symbol=BTCUSDT&",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.pro.coins.ph/openapi/v1/time",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/trades?symbol=BTCUSDT&",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/depth?symbol=BTCUSDT&",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.pro.coins.ph/openapi/quote/v1/klines?symbol=BTCUSDT&interval=1m&",
                 "input": [
                     "BTC/USDT"
                 ]

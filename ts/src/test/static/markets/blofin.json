@@ -1,0 +1,230 @@
+{
+    "LTC/USDT:USDT": {
+        "id": "LTC-USDT",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 75
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1669869031390,
+        "info": {
+            "instId": "LTC-USDT",
+            "baseCurrency": "LTC",
+            "quoteCurrency": "USDT",
+            "contractValue": "1",
+            "listTime": "1669869031390",
+            "expireTime": "1890748800000",
+            "maxLeverage": "75",
+            "minSize": "1",
+            "lotSize": "1",
+            "tickSize": "0.01",
+            "instType": "SWAP",
+            "contractType": "linear",
+            "maxLimitSize": "100000000",
+            "maxMarketSize": "3500",
+            "state": "live"
+        }
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC-USDT",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 0.001,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 150
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1669869031395,
+        "info": {
+            "instId": "BTC-USDT",
+            "baseCurrency": "BTC",
+            "quoteCurrency": "USDT",
+            "contractValue": "0.001",
+            "listTime": "1669869031395",
+            "expireTime": "1890748800000",
+            "maxLeverage": "150",
+            "minSize": "1",
+            "lotSize": "1",
+            "tickSize": "0.1",
+            "instType": "SWAP",
+            "contractType": "linear",
+            "maxLimitSize": "100000000",
+            "maxMarketSize": "100000",
+            "state": "live"
+        }
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADA-USDT",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 100,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1669869031390,
+        "info": {
+            "instId": "ADA-USDT",
+            "baseCurrency": "ADA",
+            "quoteCurrency": "USDT",
+            "contractValue": "100",
+            "listTime": "1669869031390",
+            "expireTime": "1890748800000",
+            "maxLeverage": "50",
+            "minSize": "1",
+            "lotSize": "1",
+            "tickSize": "0.0001",
+            "instType": "SWAP",
+            "contractType": "linear",
+            "maxLimitSize": "100000000",
+            "maxMarketSize": "4500",
+            "state": "live"
+        }
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 0.01,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 150
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1669869031395,
+        "info": {
+            "instId": "ETH-USDT",
+            "baseCurrency": "ETH",
+            "quoteCurrency": "USDT",
+            "contractValue": "0.01",
+            "listTime": "1669869031395",
+            "expireTime": "1890748800000",
+            "maxLeverage": "150",
+            "minSize": "1",
+            "lotSize": "1",
+            "tickSize": "0.01",
+            "instType": "SWAP",
+            "contractType": "linear",
+            "maxLimitSize": "100000000",
+            "maxMarketSize": "150000",
+            "state": "live"
+        }
+    }
+}

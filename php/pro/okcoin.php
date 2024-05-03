@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -738,7 +738,8 @@ class okcoin extends \ccxt\async\okcoin {
         // }
         //
         if ($message === 'pong') {
-            return $this->handle_pong($client, $message);
+            $this->handle_pong($client, $message);
+            return;
         }
         $table = $this->safe_string($message, 'table');
         if ($table === null) {
@@ -751,10 +752,8 @@ class okcoin extends \ccxt\async\okcoin {
                     'subscribe' => array($this, 'handle_subscription_status'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         } else {
@@ -775,10 +774,8 @@ class okcoin extends \ccxt\async\okcoin {
             if (mb_strpos($name, 'candle') !== false) {
                 $method = array($this, 'handle_ohlcv');
             }
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

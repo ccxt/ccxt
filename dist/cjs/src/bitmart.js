@@ -347,6 +347,7 @@ class bitmart extends bitmart$1 {
                     '70000': errors.ExchangeError,
                     '70001': errors.BadRequest,
                     '70002': errors.BadSymbol,
+                    '70003': errors.NetworkError,
                     '71001': errors.BadRequest,
                     '71002': errors.BadRequest,
                     '71003': errors.BadRequest,
@@ -512,6 +513,7 @@ class bitmart extends bitmart$1 {
                 },
                 'networks': {
                     'ERC20': 'ERC20',
+                    'SOL': 'SOL',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
                     // todo: should be TRX after unification
@@ -534,7 +536,6 @@ class bitmart extends bitmart$1 {
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -1123,7 +1124,7 @@ class bitmart extends bitmart$1 {
     }
     parseTicker(ticker, market = undefined) {
         //
-        // spot
+        // spot (REST)
         //
         //      {
         //          "symbol": "SOLAR_USDT",
@@ -1143,6 +1144,17 @@ class bitmart extends bitmart$1 {
         //          "timestamp": 1667403439367
         //      }
         //
+        // spot (WS)
+        //      {
+        //          "symbol":"BTC_USDT",
+        //          "last_price":"146.24",
+        //          "open_24h":"147.17",
+        //          "high_24h":"147.48",
+        //          "low_24h":"143.88",
+        //          "base_volume_24h":"117387.58", // NOT base, but quote currency!!!
+        //          "s_t": 1610936002
+        //      }
+        //
         // swap
         //
         //      {
@@ -1158,7 +1170,11 @@ class bitmart extends bitmart$1 {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp');
+        let timestamp = this.safeInteger(ticker, 'timestamp');
+        if (timestamp === undefined) {
+            // ticker from WS has a different field (in seconds)
+            timestamp = this.safeIntegerProduct(ticker, 's_t', 1000);
+        }
         const marketId = this.safeString2(ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -1174,9 +1190,20 @@ class bitmart extends bitmart$1 {
                 percentage = '0';
             }
         }
-        const baseVolume = this.safeString(ticker, 'base_volume_24h');
+        let baseVolume = this.safeString(ticker, 'base_volume_24h');
         let quoteVolume = this.safeString(ticker, 'quote_volume_24h');
-        quoteVolume = this.safeString(ticker, 'volume_24h', quoteVolume);
+        if (quoteVolume === undefined) {
+            if (baseVolume === undefined) {
+                // this is swap
+                quoteVolume = this.safeString(ticker, 'volume_24h', quoteVolume);
+            }
+            else {
+                // this is a ticker from websockets
+                // contrary to name and documentation, base_volume_24h is actually the quote volume
+                quoteVolume = baseVolume;
+                baseVolume = undefined;
+            }
+        }
         const average = this.safeString2(ticker, 'avg_price', 'index_price');
         const high = this.safeString2(ticker, 'high_24h', 'high_price');
         const low = this.safeString2(ticker, 'low_24h', 'low_price');
@@ -1290,7 +1317,7 @@ class bitmart extends bitmart$1 {
         else if (market['swap']) {
             tickersById = this.indexBy(tickers, 'contract_symbol');
         }
-        const ticker = this.safeValue(tickersById, market['id']);
+        const ticker = this.safeDict(tickersById, market['id']);
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1557,7 +1584,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'trades', []);
+        const trades = this.safeList(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1727,7 +1754,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        const ohlcv = this.safeValue(response, 'data', []);
+        const ohlcv = this.safeList(response, 'data', []);
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1843,7 +1870,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1864,7 +1891,7 @@ class bitmart extends bitmart$1 {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades(this.extend(request, params));
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, undefined, since, limit);
     }
     customParseBalance(response, marketType) {
@@ -1936,7 +1963,7 @@ class bitmart extends bitmart$1 {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const marginMode = this.safeString(params, 'marginMode');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, ['margin', 'marginMode']);
         if (marginMode !== undefined || isMargin) {
             marketType = 'margin';
@@ -2068,6 +2095,8 @@ class bitmart extends bitmart$1 {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'maker_fee_rate'),
             'taker': this.safeNumber(fee, 'taker_fee_rate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -2416,7 +2445,7 @@ class bitmart extends bitmart$1 {
         }
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
         const isTriggerOrder = triggerPrice !== undefined;
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', this.numberToString(price));
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callback_rate');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         if (isLimitOrder) {
@@ -2750,7 +2779,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(data, 'orders', []);
+        const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2810,7 +2839,7 @@ class bitmart extends bitmart$1 {
                 response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, params));
             }
             else {
-                const trailing = this.safeValue(params, 'trailing', false);
+                const trailing = this.safeBool(params, 'trailing', false);
                 let orderType = this.safeString(params, 'orderType');
                 params = this.omit(params, ['orderType', 'trailing']);
                 if (trailing) {
@@ -2879,7 +2908,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2933,7 +2962,7 @@ class bitmart extends bitmart$1 {
         else {
             response = await this.privateGetContractPrivateOrderHistory(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2990,7 +3019,7 @@ class bitmart extends bitmart$1 {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
             }
-            const trailing = this.safeValue(params, 'trailing', false);
+            const trailing = this.safeBool(params, 'trailing', false);
             let orderType = this.safeString(params, 'orderType');
             params = this.omit(params, ['orderType', 'trailing']);
             if (trailing) {
@@ -3053,7 +3082,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -3061,6 +3090,7 @@ class bitmart extends bitmart$1 {
          * @method
          * @name bitmart#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -3083,40 +3113,57 @@ class bitmart extends bitmart$1 {
         }
         const response = await this.privateGetAccountV1DepositAddress(this.extend(request, params));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //        "data": {
+        //            currency: 'ETH',
+        //            chain: 'Ethereum',
+        //            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //            address_memo: ''
+        //        }
+        //    }
         //
-        const data = this.safeValue(response, 'data', {});
-        const address = this.safeString(data, 'address');
-        const tag = this.safeString(data, 'address_memo');
-        const chain = this.safeString(data, 'chain');
+        const data = this.safeDict(response, 'data', {});
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        currency: 'ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
+        const currencyId = this.safeString(depositAddress, 'currency');
+        const address = this.safeString(depositAddress, 'address');
+        const chain = this.safeString(depositAddress, 'chain');
         let network = undefined;
+        currency = this.safeCurrency(currencyId, currency);
         if (chain !== undefined) {
             const parts = chain.split('-');
-            const networkId = this.safeString(parts, 1);
-            network = this.safeNetwork(networkId);
+            const partsLength = parts.length;
+            const networkId = this.safeString(parts, partsLength - 1);
+            network = this.safeNetworkCode(networkId, currency);
         }
         this.checkAddress(address);
         return {
-            'currency': code,
+            'info': depositAddress,
+            'currency': this.safeString(currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': this.safeString(depositAddress, 'address_memo'),
             'network': network,
-            'info': response,
         };
     }
-    safeNetwork(networkId) {
-        // TODO: parse
-        return networkId;
+    safeNetworkCode(networkId, currency = undefined) {
+        const name = this.safeString(currency, 'name');
+        if (networkId === name) {
+            const code = this.safeString(currency, 'code');
+            return code;
+        }
+        return this.networkIdToCode(networkId);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
@@ -3226,7 +3273,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const records = this.safeValue(data, 'records', []);
+        const records = this.safeList(data, 'records', []);
         return this.parseTransactions(records, currency, since, limit);
     }
     async fetchDeposit(id, code = undefined, params = {}) {
@@ -3267,7 +3314,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const record = this.safeValue(data, 'record', {});
+        const record = this.safeDict(data, 'record', {});
         return this.parseTransaction(record);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3321,7 +3368,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const record = this.safeValue(data, 'record', {});
+        const record = this.safeDict(data, 'record', {});
         return this.parseTransaction(record);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3663,12 +3710,7 @@ class bitmart extends bitmart$1 {
         //
         const data = this.safeValue(response, 'data', {});
         const symbols = this.safeValue(data, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = this.safeValue(symbols, i);
-            result.push(this.parseIsolatedBorrowRate(symbol));
-        }
-        return result;
+        return this.parseIsolatedBorrowRates(symbols);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**
@@ -3844,9 +3886,9 @@ class bitmart extends bitmart$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'time_end', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['till', 'until']);
+        params = this.omit(params, ['until']);
         if (endTime !== undefined) {
             request['time_end'] = endTime;
         }
@@ -3871,7 +3913,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const records = this.safeValue(data, 'records', []);
+        const records = this.safeList(data, 'records', []);
         return this.parseTransfers(records, currency, since, limit);
     }
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3988,7 +4030,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOpenInterest(data, market);
     }
     parseOpenInterest(interest, market = undefined) {
@@ -4153,7 +4195,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const first = this.safeDict(data, 0, {});
         return this.parsePosition(first, market);
     }
     async fetchPositions(symbols = undefined, params = {}) {

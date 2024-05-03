@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, Order, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -31,10 +31,12 @@ class coinbase(ccxt.async_support.coinbase):
                 'watchMyTrades': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
             },
             'urls': {
                 'api': {
@@ -52,7 +54,7 @@ class coinbase(ccxt.async_support.coinbase):
             },
         })
 
-    async def subscribe(self, name, symbol=None, params={}):
+    async def subscribe(self, name: str, isPrivate: bool, symbol=None, params={}):
         """
          * @ignore
         subscribes to a websocket channel
@@ -63,7 +65,6 @@ class coinbase(ccxt.async_support.coinbase):
         :returns dict: subscription to a websocket channel
         """
         await self.load_markets()
-        self.check_required_credentials()
         market = None
         messageHash = name
         productIds = []
@@ -77,19 +78,73 @@ class coinbase(ccxt.async_support.coinbase):
             messageHash = name + '::' + market['id']
             productIds = [market['id']]
         url = self.urls['api']['ws']
-        timestamp = self.number_to_string(self.seconds())
-        auth = timestamp + name + ','.join(productIds)
         subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channel': name,
-            'api_key': self.apiKey,
-            'timestamp': timestamp,
-            'signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
+            # 'api_key': self.apiKey,
+            # 'timestamp': timestamp,
+            # 'signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
         }
+        if isPrivate:
+            subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def watch_ticker(self, symbol, params={}) -> Ticker:
+    async def subscribe_multiple(self, name: str, isPrivate: bool, symbols: Strings = None, params={}):
+        """
+         * @ignore
+        subscribes to a websocket channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+        :param str name: the name of the channel
+        :param str[] [symbols]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: subscription to a websocket channel
+        """
+        await self.load_markets()
+        productIds = []
+        messageHashes = []
+        symbols = self.market_symbols(symbols, None, False)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            marketId = market['id']
+            productIds.append(marketId)
+            messageHashes.append(name + '::' + marketId)
+        url = self.urls['api']['ws']
+        subscribe = {
+            'type': 'subscribe',
+            'product_ids': productIds,
+            'channel': name,
+        }
+        if isPrivate:
+            subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
+        return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
+
+    def create_ws_auth(self, name: str, productIds: List[str]):
+        subscribe = {}
+        timestamp = self.number_to_string(self.seconds())
+        self.check_required_credentials()
+        isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
+        auth = timestamp + name + ','.join(productIds)
+        if not isCloudAPiKey:
+            subscribe['api_key'] = self.apiKey
+            subscribe['timestamp'] = timestamp
+            subscribe['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+        else:
+            if self.apiKey.startswith('-----BEGIN'):
+                raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
+            currentToken = self.safe_string(self.options, 'wsToken')
+            tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
+            seconds = self.seconds()
+            if currentToken is None or tokenTimestamp + 120 < seconds:
+                # we should generate new token
+                token = self.create_auth_token(seconds)
+                self.options['wsToken'] = token
+                self.options['wsTokenTimestamp'] = seconds
+            subscribe['jwt'] = self.safe_string(self.options, 'wsToken')
+        return subscribe
+
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
@@ -98,7 +153,7 @@ class coinbase(ccxt.async_support.coinbase):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         name = 'ticker'
-        return await self.subscribe(name, symbol, params)
+        return await self.subscribe(name, False, symbol, params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -109,9 +164,9 @@ class coinbase(ccxt.async_support.coinbase):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         if symbols is None:
-            raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
+            symbols = self.symbols
         name = 'ticker_batch'
-        tickers = await self.subscribe(name, symbols, params)
+        tickers = await self.subscribe(name, False, symbols, params)
         if self.newUpdates:
             return tickers
         return self.tickers
@@ -137,6 +192,11 @@ class coinbase(ccxt.async_support.coinbase):
         #                        "low_52_w": "15460",
         #                        "high_52_w": "48240",
         #                        "price_percent_chg_24_h": "-4.15775596190603"
+        # new 2024-04-12
+        #                        "best_bid":"21835.29",
+        #                        "best_bid_quantity": "0.02000000",
+        #                        "best_ask":"23011.18",
+        #                        "best_ask_quantity": "0.01500000"
         #                    }
         #                ]
         #            }
@@ -162,6 +222,11 @@ class coinbase(ccxt.async_support.coinbase):
         #                        "low_52_w": "0.04908",
         #                        "high_52_w": "0.1801",
         #                        "price_percent_chg_24_h": "0.50177456859626"
+        # new 2024-04-12
+        #                        "best_bid":"0.07989",
+        #                        "best_bid_quantity": "500.0",
+        #                        "best_ask":"0.08308",
+        #                        "best_ask_quantity": "300.0"
         #                    }
         #                ]
         #            }
@@ -183,6 +248,8 @@ class coinbase(ccxt.async_support.coinbase):
                 messageHash = channel + '::' + wsMarketId
                 newTickers.append(result)
                 client.resolve(result, messageHash)
+                if messageHash.endswith('USD'):
+                    client.resolve(result, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         messageHashes = self.find_message_hashes(client, 'ticker_batch::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -192,6 +259,8 @@ class coinbase(ccxt.async_support.coinbase):
             tickers = self.filter_by_array(newTickers, 'symbol', symbols)
             if not self.is_empty(tickers):
                 client.resolve(tickers, messageHash)
+                if messageHash.endswith('USD'):
+                    client.resolve(tickers, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         return message
 
     def parse_ws_ticker(self, ticker, market=None):
@@ -206,6 +275,11 @@ class coinbase(ccxt.async_support.coinbase):
         #         "low_52_w": "0.04908",
         #         "high_52_w": "0.1801",
         #         "price_percent_chg_24_h": "0.50177456859626"
+        # new 2024-04-12
+        #         "best_bid":"0.07989",
+        #         "best_bid_quantity": "500.0",
+        #         "best_ask":"0.08308",
+        #         "best_ask_quantity": "300.0"
         #     }
         #
         marketId = self.safe_string(ticker, 'product_id')
@@ -218,10 +292,10 @@ class coinbase(ccxt.async_support.coinbase):
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high_24_h'),
             'low': self.safe_string(ticker, 'low_24_h'),
-            'bid': None,
-            'bidVolume': None,
-            'ask': None,
-            'askVolume': None,
+            'bid': self.safe_string(ticker, 'best_bid'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_quantity'),
+            'ask': self.safe_string(ticker, 'best_ask'),
+            'askVolume': self.safe_string(ticker, 'best_ask_quantity'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -247,12 +321,31 @@ class coinbase(ccxt.async_support.coinbase):
         await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'market_trades'
-        trades = await self.subscribe(name, symbol, params)
+        trades = await self.subscribe(name, False, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}) -> List[Order]:
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        name = 'market_trades'
+        trades = await self.subscribe_multiple(name, False, symbols, params)
+        if self.newUpdates:
+            first = self.safe_dict(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
@@ -264,7 +357,7 @@ class coinbase(ccxt.async_support.coinbase):
         """
         await self.load_markets()
         name = 'user'
-        orders = await self.subscribe(name, symbol, params)
+        orders = await self.subscribe(name, True, symbol, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
@@ -282,7 +375,21 @@ class coinbase(ccxt.async_support.coinbase):
         name = 'level2'
         market = self.market(symbol)
         symbol = market['symbol']
-        orderbook = await self.subscribe(name, symbol, params)
+        orderbook = await self.subscribe(name, False, symbol, params)
+        return orderbook.limit()
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        name = 'level2'
+        orderbook = await self.subscribe_multiple(name, False, symbols, params)
         return orderbook.limit()
 
     def handle_trade(self, client, message):
@@ -328,6 +435,8 @@ class coinbase(ccxt.async_support.coinbase):
                 item = currentTrades[i]
                 tradesArray.append(self.parse_trade(item))
         client.resolve(tradesArray, messageHash)
+        if marketId.endswith('USD'):
+            client.resolve(tradesArray, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         return message
 
     def handle_order(self, client, message):
@@ -379,6 +488,8 @@ class coinbase(ccxt.async_support.coinbase):
             marketId = marketIds[i]
             messageHash = 'user::' + marketId
             client.resolve(self.orders, messageHash)
+            if messageHash.endswith('USD'):
+                client.resolve(self.orders, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
         client.resolve(self.orders, 'user')
         return message
 
@@ -438,7 +549,8 @@ class coinbase(ccxt.async_support.coinbase):
             side = self.safe_string(self.options['sides'], sideId)
             price = self.safe_number(trade, 'price_level')
             amount = self.safe_number(trade, 'new_quantity')
-            orderbook[side].store(price, amount)
+            orderbookSide = orderbook[side]
+            orderbookSide.store(price, amount)
 
     def handle_order_book(self, client, message):
         #
@@ -484,10 +596,12 @@ class coinbase(ccxt.async_support.coinbase):
                 self.orderbooks[symbol] = self.order_book({}, limit)
                 orderbook = self.orderbooks[symbol]
                 self.handle_order_book_helper(orderbook, updates)
-                orderbook['timestamp'] = None
-                orderbook['datetime'] = None
+                orderbook['timestamp'] = self.parse8601(datetime)
+                orderbook['datetime'] = datetime
                 orderbook['symbol'] = symbol
                 client.resolve(orderbook, messageHash)
+                if messageHash.endswith('USD'):
+                    client.resolve(orderbook, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
             elif type == 'update':
                 orderbook = self.orderbooks[symbol]
                 self.handle_order_book_helper(orderbook, updates)
@@ -495,7 +609,8 @@ class coinbase(ccxt.async_support.coinbase):
                 orderbook['timestamp'] = self.parse8601(datetime)
                 orderbook['symbol'] = symbol
                 client.resolve(orderbook, messageHash)
-        return message
+                if messageHash.endswith('USD'):
+                    client.resolve(orderbook, messageHash + 'C')  # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
 
     def handle_subscription_status(self, client, message):
         #
@@ -526,4 +641,4 @@ class coinbase(ccxt.async_support.coinbase):
             errorMessage = self.safe_string(message, 'message')
             raise ExchangeError(errorMessage)
         method = self.safe_value(methods, channel)
-        return method(client, message)
+        method(client, message)

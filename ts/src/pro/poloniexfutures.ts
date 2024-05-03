@@ -1,9 +1,7 @@
-'use strict';
-
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -65,18 +63,21 @@ export default class poloniexfutures extends poloniexfuturesRest {
         });
     }
 
-    negotiate (privateChannel, params = {}) {
+    async negotiate (privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue (this.options, 'urls', {});
         if (connectId in urls) {
-            return urls[connectId];
+            // return urls[connectId];
+            const storedFuture = urls[connectId];
+            return await storedFuture;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
         this.options['urls'] = urls;
-        return urls[connectId];
+        const future = urls[connectId];
+        return await future;
     }
 
     async negotiateHelper (privateChannel, params = {}) {
@@ -732,7 +733,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const messageHash = this.safeString (message, 'topic');
         const subject = this.safeString (message, 'subject');
         if (subject === 'received') {
-            return message;
+            return;
         }
         // At the time of writting this, there is no implementation to easily convert each order into the orderbook so raw messages are returned
         client.resolve (message, messageHash);
@@ -752,9 +753,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const topic = this.safeString (message, 'topic');
         const isSnapshot = topic.indexOf ('Depth') >= 0;
         if (isSnapshot) {
-            return this.handeL2Snapshot (client, message);
+            this.handeL2Snapshot (client, message);
+            return;
         }
-        return this.handleL2OrderBook (client, message);
+        this.handleL2OrderBook (client, message);
     }
 
     handleL2OrderBook (client: Client, message) {
@@ -792,7 +794,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
                 const limit = 0;
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             orderBook.cache.push (data);
             return;
@@ -875,7 +877,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const sequence = this.safeInteger (delta, 'sequence');
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce !== sequence - 1) {
-            throw new ExchangeError (this.id + ' watchOrderBook received an out-of-order nonce');
+            const checksum = this.safeBool (this.options, 'checksum', true);
+            if (checksum) {
+                // todo: client.reject from handleOrderBookMessage properly
+                throw new InvalidNonce (this.id + ' watchOrderBook received an out-of-order nonce');
+            }
         }
         const change = this.safeString (delta, 'change');
         const splitChange = change.split (',');
@@ -987,7 +993,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 
@@ -1027,7 +1033,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         };
         const method = this.safeValue (methods, type);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 

@@ -57,8 +57,11 @@ class coinspot extends coinspot$1 {
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -175,6 +178,7 @@ class coinspot extends coinspot$1 {
          * @method
          * @name coinspot#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.coinspot.com.au/api#listmybalance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -204,6 +208,7 @@ class coinspot extends coinspot$1 {
          * @method
          * @name coinspot#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.coinspot.com.au/api#listopenorders
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -257,6 +262,7 @@ class coinspot extends coinspot$1 {
          * @method
          * @name coinspot#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.coinspot.com.au/api#latestprices
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -279,7 +285,7 @@ class coinspot extends coinspot$1 {
         //         }
         //     }
         //
-        const ticker = this.safeValue(prices, id);
+        const ticker = this.safeDict(prices, id);
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -330,6 +336,7 @@ class coinspot extends coinspot$1 {
          * @method
          * @name coinspot#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.coinspot.com.au/api#orderhistory
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -350,7 +357,7 @@ class coinspot extends coinspot$1 {
         //         ],
         //     }
         //
-        const trades = this.safeValue(response, 'orders', []);
+        const trades = this.safeList(response, 'orders', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -358,6 +365,7 @@ class coinspot extends coinspot$1 {
          * @method
          * @name coinspot#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.coinspot.com.au/api#rotransaction
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -513,6 +521,8 @@ class coinspot extends coinspot$1 {
          * @method
          * @name coinspot#cancelOrder
          * @description cancels an open order
+         * @see https://www.coinspot.com.au/api#cancelbuyorder
+         * @see https://www.coinspot.com.au/api#cancelsellorder
          * @param {string} id order id
          * @param {string} symbol not used by coinspot cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint

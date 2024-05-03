@@ -6,9 +6,9 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ExchangeError;
-use ccxt\BadRequest;
 use ccxt\AuthenticationError;
+use ccxt\BadRequest;
+use ccxt\InvalidNonce;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -69,17 +69,22 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     }
 
     public function negotiate($privateChannel, $params = array ()) {
-        $connectId = $privateChannel ? 'private' : 'public';
-        $urls = $this->safe_value($this->options, 'urls', array());
-        if (is_array($urls) && array_key_exists($connectId, $urls)) {
-            return $urls[$connectId];
-        }
-        // we store an awaitable to the url
-        // so that multiple calls don't asynchronously
-        // fetch different $urls and overwrite each other
-        $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
-        $this->options['urls'] = $urls;
-        return $urls[$connectId];
+        return Async\async(function () use ($privateChannel, $params) {
+            $connectId = $privateChannel ? 'private' : 'public';
+            $urls = $this->safe_value($this->options, 'urls', array());
+            if (is_array($urls) && array_key_exists($connectId, $urls)) {
+                // return $urls[$connectId];
+                $storedFuture = $urls[$connectId];
+                return Async\await($storedFuture);
+            }
+            // we store an awaitable to the url
+            // so that multiple calls don't asynchronously
+            // fetch different $urls and overwrite each other
+            $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
+            $this->options['urls'] = $urls;
+            $future = $urls[$connectId];
+            return Async\await($future);
+        }) ();
     }
 
     public function negotiate_helper($privateChannel, $params = array ()) {
@@ -739,7 +744,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $messageHash = $this->safe_string($message, 'topic');
         $subject = $this->safe_string($message, 'subject');
         if ($subject === 'received') {
-            return $message;
+            return;
         }
         // At the time of writting this, there is no implementation to easily convert each order into the orderbook so raw messages are returned
         $client->resolve ($message, $messageHash);
@@ -759,9 +764,10 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $topic = $this->safe_string($message, 'topic');
         $isSnapshot = mb_strpos($topic, 'Depth') !== false;
         if ($isSnapshot) {
-            return $this->hande_l2_snapshot($client, $message);
+            $this->hande_l2_snapshot($client, $message);
+            return;
         }
-        return $this->handle_l2_order_book($client, $message);
+        $this->handle_l2_order_book($client, $message);
     }
 
     public function handle_l2_order_book(Client $client, $message) {
@@ -799,7 +805,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
             if ($cacheLength === $snapshotDelay) {
                 $limit = 0;
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
             }
             $orderBook->cache[] = $data;
             return;
@@ -882,7 +888,11 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $sequence = $this->safe_integer($delta, 'sequence');
         $nonce = $this->safe_integer($orderbook, 'nonce');
         if ($nonce !== $sequence - 1) {
-            throw new ExchangeError($this->id . ' watchOrderBook received an out-of-order nonce');
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
+            if ($checksum) {
+                // todo => client.reject from handleOrderBookMessage properly
+                throw new InvalidNonce($this->id . ' watchOrderBook received an out-of-order nonce');
+            }
         }
         $change = $this->safe_string($delta, 'change');
         $splitChange = explode(',', $change);
@@ -994,7 +1004,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         );
         $method = $this->safe_value($methods, $subject);
         if ($method !== null) {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 
@@ -1034,7 +1044,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         );
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 

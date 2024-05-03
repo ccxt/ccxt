@@ -53,6 +53,7 @@ export default class bybit extends bybitRest {
                             },
                             'contract': 'wss://stream.{hostname}/v5/private',
                             'usdc': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
+                            'trade': 'wss://stream-testnet.bybit.com/v5/trade',
                         },
                     },
                 },
@@ -71,6 +72,7 @@ export default class bybit extends bybitRest {
                             },
                             'contract': 'wss://stream-testnet.{hostname}/v5/private',
                             'usdc': 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1',
+                            'trade': 'wss://stream-testnet.bybit.com/v5/trade',
                         },
                     },
                 },
@@ -120,7 +122,7 @@ export default class bybit extends bybitRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 20000,
+                'keepAlive': 19000,
             },
         });
     }
@@ -172,6 +174,133 @@ export default class bybit extends bybitRest {
         params = this.omit(params, ['type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin']);
         return params;
     }
+    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#createOrderWs
+         * @description create a trade order
+         * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {string} [params.positionIdx] *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+         * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
+         * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+         * @param {string} [params.mmp] *option only* market maker protection
+         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+         * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, true);
+        const url = this.urls['api']['ws']['private']['trade'];
+        await this.authenticate(url);
+        const requestId = this.requestId().toString();
+        const request = {
+            'op': 'order.create',
+            'reqId': requestId,
+            'args': [
+                orderRequest,
+            ],
+            'header': {
+                'X-BAPI-TIMESTAMP': this.milliseconds().toString(),
+                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
+            },
+        };
+        return await this.watch(url, requestId, request, requestId, true);
+    }
+    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#editOrderWs
+         * @description edit a trade order
+         * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+         * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+         * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
+        const url = this.urls['api']['ws']['private']['trade'];
+        await this.authenticate(url);
+        const requestId = this.requestId().toString();
+        const request = {
+            'op': 'order.amend',
+            'reqId': requestId,
+            'args': [
+                orderRequest,
+            ],
+            'header': {
+                'X-BAPI-TIMESTAMP': this.milliseconds().toString(),
+                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
+            },
+        };
+        return await this.watch(url, requestId, request, requestId, true);
+    }
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#cancelOrderWs
+         * @description cancels an open order
+         * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] *spot only* whether the order is a stop order
+         * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const orderRequest = this.cancelOrderRequest(id, symbol, params);
+        const url = this.urls['api']['ws']['private']['trade'];
+        await this.authenticate(url);
+        const requestId = this.requestId().toString();
+        delete orderRequest['orderFilter'];
+        const request = {
+            'op': 'order.cancel',
+            'reqId': requestId,
+            'args': [
+                orderRequest,
+            ],
+            'header': {
+                'X-BAPI-TIMESTAMP': this.milliseconds().toString(),
+                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
+            },
+        };
+        return await this.watch(url, requestId, request, requestId, true);
+    }
     async watchTicker(symbol, params = {}) {
         /**
          * @method
@@ -187,7 +316,7 @@ export default class bybit extends bybitRest {
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
-        const url = this.getUrlByMarketType(symbol, false, params);
+        const url = this.getUrlByMarketType(symbol, false, 'watchTicker', params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTicker', {});
         let topic = this.safeString(options, 'name', 'tickers');
@@ -202,7 +331,7 @@ export default class bybit extends bybitRest {
         /**
          * @method
          * @name bybit#watchTickers
-         * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -212,7 +341,7 @@ export default class bybit extends bybitRest {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchTickers', params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTickers', {});
         const topic = this.safeString(options, 'name', 'tickers');
@@ -331,15 +460,29 @@ export default class bybit extends bybitRest {
         //             "price24hPcnt": "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":{
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         },
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         const topic = this.safeString(message, 'topic', '');
         const updateType = this.safeString(message, 'type', '');
-        const data = this.safeValue(message, 'data', {});
-        const isSpot = this.safeString(data, 'fundingRate') === undefined;
+        const data = this.safeDict(message, 'data', {});
+        const isSpot = this.safeString(data, 'usdIndexPrice') !== undefined;
         const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;
-        if ((updateType === 'snapshot') || isSpot) {
+        if ((updateType === 'snapshot')) {
             parsed = this.parseTicker(data);
             symbol = parsed['symbol'];
         }
@@ -350,8 +493,8 @@ export default class bybit extends bybitRest {
             const market = this.safeMarket(marketId, undefined, undefined, type);
             symbol = market['symbol'];
             // update the info in place
-            const ticker = this.safeValue(this.tickers, symbol, {});
-            const rawTicker = this.safeValue(ticker, 'info', {});
+            const ticker = this.safeDict(this.tickers, symbol, {});
+            const rawTicker = this.safeDict(ticker, 'info', {});
             const merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged);
         }
@@ -379,7 +522,7 @@ export default class bybit extends bybitRest {
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType(symbol, false, params);
+        const url = this.getUrlByMarketType(symbol, false, 'watchOHLCV', params);
         params = this.cleanParams(params);
         let ohlcv = undefined;
         const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
@@ -497,7 +640,7 @@ export default class bybit extends bybitRest {
             throw new ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         symbols = this.marketSymbols(symbols);
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchOrderBook', params);
         params = this.cleanParams(params);
         const market = this.market(symbols[0]);
         if (limit === undefined) {
@@ -629,7 +772,7 @@ export default class bybit extends bybitRest {
             throw new ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         params = this.cleanParams(params);
-        const url = this.getUrlByMarketType(symbols[0], false, params);
+        const url = this.getUrlByMarketType(symbols[0], false, 'watchTrades', params);
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -909,7 +1052,7 @@ export default class bybit extends bybitRest {
          * @name bybit#watchPositions
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
          * @description watch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
@@ -928,7 +1071,7 @@ export default class bybit extends bybitRest {
         this.setPositionsCache(client, symbols);
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -942,7 +1085,7 @@ export default class bybit extends bybitRest {
     }
     setPositionsCache(client, symbols = undefined) {
         if (this.positions !== undefined) {
-            return this.positions;
+            return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         if (fetchPositionsSnapshot) {
@@ -1026,8 +1169,23 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition(rawPosition);
+            const side = this.safeString(position, 'side');
+            // hacky solution to handle closing positions
+            // without crashing, we should handle this properly later
             newPositions.push(position);
-            cache.append(position);
+            if (side === undefined || side === '') {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which side is being closed
+                position['side'] = 'long';
+                cache.append(position);
+                position['side'] = 'short';
+                cache.append(position);
+                position['side'] = undefined;
+            }
+            else {
+                // regular update
+                cache.append(position);
+            }
         }
         const messageHashes = this.findMessageHashes(client, 'positions::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -1075,7 +1233,33 @@ export default class bybit extends bybitRest {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrder(client, message, subscription = undefined) {
+    handleOrderWs(client, message) {
+        //
+        //    {
+        //        "reqId":"1",
+        //        "retCode":0,
+        //        "retMsg":"OK",
+        //        "op":"order.create",
+        //        "data":{
+        //            "orderId":"1673523595617593600",
+        //            "orderLinkId":"1673523595617593601"
+        //        },
+        //        "header":{
+        //            "X-Bapi-Limit":"20",
+        //            "X-Bapi-Limit-Status":"19",
+        //            "X-Bapi-Limit-Reset-Timestamp":"1714235558880",
+        //            "Traceid":"584a06d373f2fdcb3a4dfdd81d27df11",
+        //            "Timenow":"1714235558881"
+        //        },
+        //        "connId":"cojidqec0hv9fgvhtbt0-40e"
+        //    }
+        //
+        const messageHash = this.safeString(message, 'reqId');
+        const data = this.safeDict(message, 'data');
+        const order = this.parseOrder(data);
+        client.resolve(order, messageHash);
+    }
+    handleOrder(client, message) {
         //
         //     spot
         //     {
@@ -1345,8 +1529,8 @@ export default class bybit extends bybitRest {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchBalance', undefined, params);
         const unified = await this.isUnifiedEnabled();
-        const isUnifiedMargin = this.safeValue(unified, 0, false);
-        const isUnifiedAccount = this.safeValue(unified, 1, false);
+        const isUnifiedMargin = this.safeBool(unified, 0, false);
+        const isUnifiedAccount = this.safeBool(unified, 1, false);
         const url = this.getUrlByMarketType(undefined, true, method, params);
         await this.authenticate(url);
         const topicByMarket = {
@@ -1641,7 +1825,7 @@ export default class bybit extends bybitRest {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const expiresInt = this.milliseconds() + 10000;
-            const expires = expiresInt.toString();
+            const expires = this.numberToString(expiresInt);
             const path = 'GET/realtime';
             const auth = path + expires;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, 'hex');
@@ -1654,7 +1838,7 @@ export default class bybit extends bybitRest {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleErrorMessage(client, message) {
         //
@@ -1682,11 +1866,32 @@ export default class bybit extends bybitRest {
         //
         //   { code: '-10009', desc: "Invalid period!" }
         //
-        const code = this.safeString2(message, 'code', 'ret_code');
+        //   {
+        //       "reqId":"1",
+        //       "retCode":170131,
+        //       "retMsg":"Insufficient balance.",
+        //       "op":"order.create",
+        //       "data":{
+        //
+        //       },
+        //       "header":{
+        //           "X-Bapi-Limit":"20",
+        //           "X-Bapi-Limit-Status":"19",
+        //           "X-Bapi-Limit-Reset-Timestamp":"1714236608944",
+        //           "Traceid":"3d7168a137bf32a947b7e5e6a575ac7f",
+        //           "Timenow":"1714236608946"
+        //       },
+        //       "connId":"cojifin88smerbj9t560-406"
+        //   }
+        //
+        const code = this.safeStringN(message, ['code', 'ret_code', 'retCode']);
         try {
-            if (code !== undefined) {
+            if (code !== undefined && code !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                const msg = this.safeString2(message, 'retMsg', 'ret_msg');
+                this.throwBroadlyMatchedException(this.exceptions['broad'], msg, feedback);
+                throw new ExchangeError(feedback);
             }
             const success = this.safeValue(message, 'success');
             if (success !== undefined && !success) {
@@ -1711,7 +1916,8 @@ export default class bybit extends bybitRest {
                 }
             }
             else {
-                client.reject(error);
+                const messageHash = this.safeString(message, 'reqId');
+                client.reject(error, messageHash);
             }
             return true;
         }
@@ -1733,17 +1939,12 @@ export default class bybit extends bybitRest {
             return;
         }
         // pong
-        const op = this.safeString(message, 'op');
-        if (op === 'pong') {
-            this.handlePong(client, message);
-            return;
-        }
         const event = this.safeString(message, 'event');
         if (event === 'sub') {
             this.handleSubscriptionStatus(client, message);
             return;
         }
-        const topic = this.safeString(message, 'topic', '');
+        const topic = this.safeString2(message, 'topic', 'op');
         const methods = {
             'orderbook': this.handleOrderBook,
             'kline': this.handleOHLCV,
@@ -1759,6 +1960,11 @@ export default class bybit extends bybitRest {
             'ticketInfo': this.handleMyTrades,
             'user.openapi.perp.trade': this.handleMyTrades,
             'position': this.handlePositions,
+            'pong': this.handlePong,
+            'order.create': this.handleOrderWs,
+            'order.amend': this.handleOrderWs,
+            'order.cancel': this.handleOrderWs,
+            'auth': this.handleAuthenticate,
         };
         const exacMethod = this.safeValue(methods, topic);
         if (exacMethod !== undefined) {
@@ -1776,7 +1982,7 @@ export default class bybit extends bybitRest {
         }
         // unified auth acknowledgement
         const type = this.safeString(message, 'type');
-        if ((op === 'auth') || (type === 'AUTH_RESP')) {
+        if (type === 'AUTH_RESP') {
             this.handleAuthenticate(client, message);
         }
     }
@@ -1809,9 +2015,17 @@ export default class bybit extends bybitRest {
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
+        //    {
+        //        "retCode":0,
+        //        "retMsg":"OK",
+        //        "op":"auth",
+        //        "connId":"cojifin88smerbj9t560-404"
+        //    }
+        //
         const success = this.safeValue(message, 'success');
+        const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success || code === 0) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         }

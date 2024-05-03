@@ -15,6 +15,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'has': {
                 'ws': true,
                 'watchTicker': true,
+                'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -44,9 +46,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
                     'snapshotDelay': 20,
                     'snapshotMaxRetries': 3,
                 },
-                'watchTicker': {
-                    'name': 'contractMarket/tickerV2', // market/ticker
-                },
                 'watchPosition': {
                     'fetchPositionSnapshot': true,
                     'awaitPositionSnapshot': true, // whether to wait for the position snapshot before providing updates
@@ -60,19 +59,20 @@ export default class kucoinfutures extends kucoinfuturesRest {
             },
         });
     }
-    negotiate(privateChannel, params = {}) {
+    async negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
         const spawaned = this.safeValue(urls, connectId);
         if (spawaned !== undefined) {
-            return spawaned;
+            return await spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
-        urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params);
+        urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params); // we have to wait here otherwsie in c# will not work
         this.options['urls'] = urls;
-        return urls[connectId];
+        const future = urls[connectId];
+        return await future;
     }
     async negotiateHelper(privateChannel, params = {}) {
         let response = undefined;
@@ -148,7 +148,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
         return await this.watch(url, messageHash, message, subscriptionHash, subscription);
     }
-    async subscribeMultiple(url, messageHashes, topic, subscriptionHashes, subscription, params = {}) {
+    async subscribeMultiple(url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params = {}) {
         const requestId = this.requestId().toString();
         const request = {
             'id': requestId,
@@ -156,24 +156,14 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'topic': topic,
             'response': true,
         };
-        const message = this.extend(request, params);
-        const subscriptionRequest = {
-            'id': requestId,
-        };
-        if (subscription === undefined) {
-            subscription = subscriptionRequest;
-        }
-        else {
-            subscription = this.extend(subscriptionRequest, subscription);
-        }
-        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), subscriptionHashes, subscriptionArgs);
     }
     async watchTicker(symbol, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -181,30 +171,48 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const url = await this.negotiate(false);
-        const options = this.safeValue(this.options, 'watchTicker', {});
-        const channel = this.safeString(options, 'name', 'contractMarket/tickerV2');
-        const topic = '/' + channel + ':' + market['id'];
-        const messageHash = 'ticker:' + symbol;
-        return await this.subscribe(url, messageHash, topic, undefined, params);
+        params['callerMethodName'] = 'watchTicker';
+        const tickers = await this.watchTickers([symbol], params);
+        return tickers[symbol];
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const ticker = await this.watchMultiRequest('watchTickers', '/contractMarket/ticker:', symbols, params);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
-        // market/tickerV2
+        // ticker (v1)
         //
         //    {
-        //        "type": "message",
-        //        "topic": "/contractMarket/tickerV2:ADAUSDTM",
-        //        "subject": "tickerV2",
-        //        "data": {
-        //            "symbol": "ADAUSDTM",
-        //            "sequence": 1668007800439,
-        //            "bestBidSize": 178,
-        //            "bestBidPrice": "0.35959",
-        //            "bestAskPrice": "0.35981",
-        //            "ts": "1668141430037124460",
-        //            "bestAskSize": 134
-        //        }
+        //     "subject": "ticker",
+        //     "topic": "/contractMarket/ticker:XBTUSDM",
+        //     "data": {
+        //         "symbol": "XBTUSDM", //Market of the symbol
+        //         "sequence": 45, //Sequence number which is used to judge the continuity of the pushed messages
+        //         "side": "sell", //Transaction side of the last traded taker order
+        //         "price": "3600.0", //Filled price
+        //         "size": 16, //Filled quantity
+        //         "tradeId": "5c9dcf4170744d6f5a3d32fb", //Order ID
+        //         "bestBidSize": 795, //Best bid size
+        //         "bestBidPrice": "3200.0", //Best bid
+        //         "bestAskPrice": "3600.0", //Best ask size
+        //         "bestAskSize": 284, //Best ask
+        //         "ts": 1553846081210004941 //Filled time - nanosecond
+        //     }
         //    }
         //
         const data = this.safeValue(message, 'data', {});
@@ -212,9 +220,95 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.safeMarket(marketId, undefined, '-');
         const ticker = this.parseTicker(data, market);
         this.tickers[market['symbol']] = ticker;
-        const messageHash = 'ticker:' + market['symbol'];
-        client.resolve(ticker, messageHash);
-        return message;
+        client.resolve(ticker, this.getMessageHash('ticker', market['symbol']));
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#watchBidsAsks
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker-v2
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const ticker = await this.watchMultiRequest('watchBidsAsks', '/contractMarket/tickerV2:', symbols, params);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    async watchMultiRequest(methodName, channelName, symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        [methodName, params] = this.handleParamString(params, 'callerMethodName', methodName);
+        const isBidsAsks = (methodName === 'watchBidsAsks');
+        symbols = this.marketSymbols(symbols, undefined, false, true, false);
+        const length = symbols.length;
+        if (length > 100) {
+            throw new ArgumentsRequired(this.id + ' ' + methodName + '() accepts a maximum of 100 symbols');
+        }
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const prefix = isBidsAsks ? 'bidask' : 'ticker';
+            messageHashes.push(this.getMessageHash(prefix, market['symbol']));
+        }
+        const url = await this.negotiate(false);
+        const marketIds = this.marketIds(symbols);
+        const joined = marketIds.join(',');
+        const requestId = this.requestId().toString();
+        const request = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': channelName + joined,
+            'response': true,
+        };
+        const subscription = {
+            'id': requestId,
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscription);
+    }
+    handleBidAsk(client, message) {
+        //
+        // arrives one symbol dict
+        //
+        // {
+        //   "subject": "tickerV2",
+        //   "topic": "/contractMarket/tickerV2:XBTUSDM",
+        //   "data": {
+        //     "symbol": "XBTUSDM", //Market of the symbol
+        //     "bestBidSize": 795, // Best bid size
+        //     "bestBidPrice": 3200.0, // Best bid
+        //     "bestAskPrice": 3600.0, // Best ask
+        //     "bestAskSize": 284, // Best ask size
+        //     "ts": 1553846081210004941 // Filled time - nanosecond
+        //   }
+        // }
+        //
+        const parsedTicker = this.parseWsBidAsk(message);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        client.resolve(parsedTicker, this.getMessageHash('bidask', symbol));
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const data = this.safeDict(ticker, 'data', {});
+        const marketId = this.safeString(data, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.safeIntegerProduct(data, 'ts', 0.000001);
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeNumber(data, 'bestAskPrice'),
+            'askVolume': this.safeNumber(data, 'bestAskSize'),
+            'bid': this.safeNumber(data, 'bestBidPrice'),
+            'bidVolume': this.safeNumber(data, 'bestBidSize'),
+            'info': ticker,
+        }, market);
     }
     async watchPosition(symbol = undefined, params = {}) {
         /**
@@ -240,7 +334,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const client = this.client(url);
         this.setPositionCache(client, symbol);
         const fetchPositionSnapshot = this.handleOption('watchPosition', 'fetchPositionSnapshot', true);
-        const awaitPositionSnapshot = this.safeValue('watchPosition', 'awaitPositionSnapshot', true);
+        const awaitPositionSnapshot = this.safeBool('watchPosition', 'awaitPositionSnapshot', true);
         const currentPosition = this.getCurrentPosition(symbol);
         if (fetchPositionSnapshot && awaitPositionSnapshot && currentPosition === undefined) {
             const snapshot = await client.future('fetchPositionSnapshot:' + symbol);
@@ -433,7 +527,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push('trades:' + symbol);
             subscriptionHashes.push('/contractMarket/execution:' + marketId);
         }
-        const trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params);
+        const trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, undefined, params);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -519,9 +613,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketIds = this.marketIds(symbols);
         const url = await this.negotiate(false);
         const topic = '/contractMarket/level2:' + marketIds.join(',');
-        const subscription = {
-            'method': this.handleOrderBookSubscription,
-            'symbols': symbols,
+        const subscriptionArgs = {
             'limit': limit,
         };
         const subscriptionHashes = [];
@@ -532,7 +624,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push('orderbook:' + symbol);
             subscriptionHashes.push('/contractMarket/level2:' + marketId);
         }
-        const orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, subscription, params);
+        const orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params);
         return orderbook.limit();
     }
     handleDelta(orderbook, delta) {
@@ -583,7 +675,12 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketId = this.safeString(topicParts, 1);
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            const subscriptionArgs = this.safeDict(client.subscriptions, topic, {});
+            const limit = this.safeInteger(subscriptionArgs, 'limit');
+            this.orderbooks[symbol] = this.orderBook({}, limit);
+        }
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         const deltaEnd = this.safeInteger(data, 'sequence');
         if (nonce === undefined) {
@@ -603,7 +700,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             const limit = this.safeInteger(subscription, 'limit');
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push(data);
             return;
@@ -629,39 +726,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
             }
         }
         return cache.length;
-    }
-    handleOrderBookSubscription(client, message, subscription) {
-        const limit = this.safeInteger(subscription, 'limit');
-        const symbols = this.safeValue(subscription, 'symbols');
-        if (symbols === undefined) {
-            const symbol = this.safeString(subscription, 'symbol');
-            this.orderbooks[symbol] = this.orderBook({}, limit);
-        }
-        else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                this.orderbooks[symbol] = this.orderBook({}, limit);
-            }
-        }
-        // moved snapshot initialization to handleOrderBook to fix
-        // https://github.com/ccxt/ccxt/issues/6820
-        // the general idea is to fetch the snapshot after the first delta
-        // but not before, because otherwise we cannot synchronize the feed
-    }
-    handleSubscriptionStatus(client, message) {
-        //
-        //     {
-        //         "id": "1578090438322",
-        //         "type": "ack"
-        //     }
-        //
-        const id = this.safeString(message, 'id');
-        const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeValue(subscriptionsById, id, {});
-        const method = this.safeValue(subscription, 'method');
-        if (method !== undefined) {
-            method.call(this, client, message, subscription);
-        }
     }
     handleSystemStatus(client, message) {
         //
@@ -921,7 +985,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const subject = this.safeString(message, 'subject');
         const methods = {
             'level2': this.handleOrderBook,
-            'tickerV2': this.handleTicker,
+            'ticker': this.handleTicker,
+            'tickerV2': this.handleBidAsk,
             'availableBalance.change': this.handleBalance,
             'match': this.handleTrade,
             'orderChange': this.handleOrder,
@@ -931,11 +996,17 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'position.adjustRiskLimit': this.handlePosition,
         };
         const method = this.safeValue(methods, subject);
-        if (method === undefined) {
-            return message;
+        if (method !== undefined) {
+            method.call(this, client, message);
+        }
+    }
+    getMessageHash(elementName, symbol = undefined) {
+        // elementName can be 'ticker', 'bidask', ...
+        if (symbol !== undefined) {
+            return elementName + '@' + symbol;
         }
         else {
-            return method.call(this, client, message);
+            return elementName + 's@all';
         }
     }
     ping(client) {
@@ -977,14 +1048,13 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const methods = {
             // 'heartbeat': this.handleHeartbeat,
             'welcome': this.handleSystemStatus,
-            'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,
             'pong': this.handlePong,
             'error': this.handleErrorMessage,
         };
         const method = this.safeValue(methods, type);
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

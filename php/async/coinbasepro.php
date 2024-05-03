@@ -8,9 +8,9 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\coinbasepro as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidAddress;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -20,7 +20,7 @@ class coinbasepro extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbasepro',
-            'name' => 'Coinbase Pro',
+            'name' => 'Coinbase Pro(Deprecated)',
             'countries' => array( 'US' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome'],
@@ -57,7 +57,13 @@ class coinbasepro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -151,6 +157,7 @@ class coinbasepro extends Exchange {
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions/fees',
                     ),
                     'post' => array(
                         'conversions',
@@ -232,7 +239,7 @@ class coinbasepro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -304,7 +311,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinbasepro
@@ -426,7 +433,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -871,7 +878,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -1225,7 +1232,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
@@ -1378,7 +1385,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

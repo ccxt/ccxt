@@ -184,7 +184,7 @@ class lbank extends \ccxt\async\lbank {
         //          ),
         //          type => 'kbar',
         //          pair => 'btc_usdt',
-        //          TS => '2022-10-02T12:44:15.864'
+        //          TS => '2022-10-02T12:44:15.865'
         //      }
         //
         $marketId = $this->safe_string($message, 'pair');
@@ -240,7 +240,7 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function fetch_ticker_ws($symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
@@ -264,7 +264,7 @@ class lbank extends \ccxt\async\lbank {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://www.lbank.com/en-US/docs/index.html#$market
@@ -444,7 +444,7 @@ class lbank extends \ccxt\async\lbank {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell",
+        //             "direction":"sell", // or "sell_market"
         //             "TS":"2019-06-28T19:55:49.460"
         //         ),
         //         "type":"trade",
@@ -485,7 +485,7 @@ class lbank extends \ccxt\async\lbank {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell",
+        //        "direction":"sell", // or "sell_market"
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -494,6 +494,8 @@ class lbank extends \ccxt\async\lbank {
         if ($timestamp === null) {
             $timestamp = $this->parse8601($datetime);
         }
+        $side = $this->safe_string_2($trade, 'direction', 3);
+        $side = str_replace('_market', '', $side);
         return $this->safe_trade(array(
             'timestamp' => $timestamp,
             'datetime' => $datetime,
@@ -502,7 +504,7 @@ class lbank extends \ccxt\async\lbank {
             'order' => null,
             'type' => null,
             'takerOrMaker' => null,
-            'side' => $this->safe_string_2($trade, 'direction', 3),
+            'side' => $side,
             'price' => $this->safe_string_2($trade, 'price', 1),
             'amount' => $this->safe_string_2($trade, 'volume', 2),
             'cost' => $this->safe_string($trade, 'amount'),
@@ -800,17 +802,17 @@ class lbank extends \ccxt\async\lbank {
         $orderBook = $this->safe_value($message, 'depth', $message);
         $datetime = $this->safe_string($message, 'TS');
         $timestamp = $this->parse8601($datetime);
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book(array());
+            $this->orderbooks[$symbol] = $orderbook;
         }
         $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bids', 'asks');
-        $storedOrderBook->reset ($snapshot);
+        $orderbook->reset ($snapshot);
         $messageHash = 'orderbook:' . $symbol;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve ($orderbook, $messageHash);
         $messageHash = 'fetchOrderbook:' . $symbol;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_error_message($client, $message) {
@@ -843,7 +845,8 @@ class lbank extends \ccxt\async\lbank {
     public function handle_message($client, $message) {
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
-            return $this->handle_error_message($client, $message);
+            $this->handle_error_message($client, $message);
+            return;
         }
         $type = $this->safe_string_2($message, 'type', 'action');
         if ($type === 'ping') {
@@ -859,9 +862,8 @@ class lbank extends \ccxt\async\lbank {
         );
         $handler = $this->safe_value($handlers, $type);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
         }
-        return $message;
     }
 
     public function authenticate($params = array ()) {

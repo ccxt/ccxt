@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.23'
+__version__ = '4.3.14'
 
 # -----------------------------------------------------------------------------
 
@@ -29,9 +29,10 @@ from ccxt.base.errors import AccountSuspended                         # noqa: F4
 from ccxt.base.errors import ArgumentsRequired                        # noqa: F401
 from ccxt.base.errors import BadRequest                               # noqa: F401
 from ccxt.base.errors import BadSymbol                                # noqa: F401
-from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
-from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import OperationRejected                        # noqa: F401
+from ccxt.base.errors import NoChange                                 # noqa: F401
+from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
+from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
@@ -47,6 +48,7 @@ from ccxt.base.errors import DuplicateOrderId                         # noqa: F4
 from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
 from ccxt.base.errors import ProxyError                               # noqa: F401
+from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
 from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401
 from ccxt.base.errors import DDoSProtection                           # noqa: F401
@@ -55,7 +57,6 @@ from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F4
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
-from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
@@ -77,7 +78,6 @@ from ccxt.async_support.bitcoincom import bitcoincom                            
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
 from ccxt.async_support.bitfinex2 import bitfinex2                              # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
-from ccxt.async_support.bitforex import bitforex                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
 from ccxt.async_support.bitmart import bitmart                                  # noqa: F401
@@ -91,6 +91,7 @@ from ccxt.async_support.bitteam import bitteam                                  
 from ccxt.async_support.bitvavo import bitvavo                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                        # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
+from ccxt.async_support.blofin import blofin                                    # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
@@ -98,11 +99,13 @@ from ccxt.async_support.btcturk import btcturk                                  
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
+from ccxt.async_support.coinbaseinternational import coinbaseinternational      # noqa: F401
 from ccxt.async_support.coinbasepro import coinbasepro                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinlist import coinlist                                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
+from ccxt.async_support.coinmetro import coinmetro                              # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
@@ -122,6 +125,7 @@ from ccxt.async_support.hollaex import hollaex                                  
 from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
 from ccxt.async_support.huobijp import huobijp                                  # noqa: F401
+from ccxt.async_support.hyperliquid import hyperliquid                          # noqa: F401
 from ccxt.async_support.idex import idex                                        # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
@@ -150,6 +154,7 @@ from ccxt.async_support.poloniexfutures import poloniexfutures                  
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
+from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
 from ccxt.async_support.wazirx import wazirx                                    # noqa: F401
@@ -178,7 +183,6 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitflyer',
-    'bitforex',
     'bitget',
     'bithumb',
     'bitmart',
@@ -192,6 +196,7 @@ exchanges = [
     'bitvavo',
     'bl3p',
     'blockchaincom',
+    'blofin',
     'btcalpha',
     'btcbox',
     'btcmarkets',
@@ -199,11 +204,13 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseinternational',
     'coinbasepro',
     'coincheck',
     'coinex',
     'coinlist',
     'coinmate',
+    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',
@@ -223,6 +230,7 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
+    'hyperliquid',
     'idex',
     'independentreserve',
     'indodax',
@@ -251,6 +259,7 @@ exchanges = [
     'probit',
     'timex',
     'tokocrypto',
+    'tradeogre',
     'upbit',
     'wavesexchange',
     'wazirx',

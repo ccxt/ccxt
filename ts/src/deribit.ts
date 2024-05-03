@@ -6,8 +6,8 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import totp from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface } from './base/types.js';
+import { totp } from './base/functions/totp.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,6 +72,8 @@ export default class deribit extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
+                'fetchOptionChain': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -405,75 +407,7 @@ export default class deribit extends Exchange {
         });
     }
 
-    convertExpireDate (date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice (0, 2);
-        const month = date.slice (2, 4);
-        const day = date.slice (4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
-
-    convertMarketIdExpireDate (date) {
-        // parse 19JAN24 to 240119
-        const monthMappping = {
-            'JAN': '01',
-            'FEB': '02',
-            'MAR': '03',
-            'APR': '04',
-            'MAY': '05',
-            'JUN': '06',
-            'JUL': '07',
-            'AUG': '08',
-            'SEP': '09',
-            'OCT': '10',
-            'NOV': '11',
-            'DEC': '12',
-        };
-        const year = date.slice (0, 2);
-        const monthName = date.slice (2, 5);
-        const month = this.safeString (monthMappping, monthName);
-        const day = date.slice (5, 7);
-        const reconstructedDate = day + month + year;
-        return reconstructedDate;
-    }
-
-    convertExpireDateToMarketIdDate (date) {
-        // parse 240119 to 19JAN24
-        const year = date.slice (0, 2);
-        const monthRaw = date.slice (2, 4);
-        let month = undefined;
-        const day = date.slice (4, 6);
-        if (monthRaw === '01') {
-            month = 'JAN';
-        } else if (monthRaw === '02') {
-            month = 'FEB';
-        } else if (monthRaw === '03') {
-            month = 'MAR';
-        } else if (monthRaw === '04') {
-            month = 'APR';
-        } else if (monthRaw === '05') {
-            month = 'MAY';
-        } else if (monthRaw === '06') {
-            month = 'JUN';
-        } else if (monthRaw === '07') {
-            month = 'JUL';
-        } else if (monthRaw === '08') {
-            month = 'AUG';
-        } else if (monthRaw === '09') {
-            month = 'SEP';
-        } else if (monthRaw === '10') {
-            month = 'OCT';
-        } else if (monthRaw === '11') {
-            month = 'NOV';
-        } else if (monthRaw === '12') {
-            month = 'DEC';
-        }
-        const reconstructedDate = day + month + year;
-        return reconstructedDate;
-    }
-
-    createExpiredOptionMarket (symbol) {
+    createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         let quote = 'USD';
         let settle = undefined;
@@ -552,7 +486,7 @@ export default class deribit extends Exchange {
         } as MarketInterface;
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')));
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
@@ -566,6 +500,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.deribit.com/#public-get_time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -583,7 +518,7 @@ export default class deribit extends Exchange {
         return this.safeInteger (response, 'result');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name deribit#fetchCurrencies
@@ -664,6 +599,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchStatus
          * @description the latest known information on the availability of the exchange API
+         * @see https://docs.deribit.com/#public-status
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
@@ -692,11 +628,12 @@ export default class deribit extends Exchange {
         };
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name deribit#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://docs.deribit.com/#private-get_subaccounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -763,122 +700,135 @@ export default class deribit extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name deribit#fetchMarkets
          * @description retrieves data on all markets for deribit
+         * @see https://docs.deribit.com/#public-get_currencies
+         * @see https://docs.deribit.com/#public-get_instruments
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const currenciesResponse = await this.publicGetGetCurrencies (params);
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "result": [
-        //             {
-        //                 "withdrawal_priorities": [
-        //                     { value: 0.15, name: "very_low" },
-        //                     { value: 1.5, name: "very_high" },
-        //                 ],
-        //                 "withdrawal_fee": 0.0005,
-        //                 "min_withdrawal_fee": 0.0005,
-        //                 "min_confirmations": 1,
-        //                 "fee_precision": 4,
-        //                 "currency_long": "Bitcoin",
-        //                 "currency": "BTC",
-        //                 "coin_type": "BITCOIN"
-        //             }
-        //         ],
-        //         "usIn": 1583761588590479,
-        //         "usOut": 1583761588590544,
-        //         "usDiff": 65,
-        //         "testnet": false
-        //     }
-        //
-        const parsedMarkets = {};
-        const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
+        const instrumentsResponses = [];
         const result = [];
-        for (let i = 0; i < currenciesResult.length; i++) {
-            const currencyId = this.safeString (currenciesResult[i], 'currency');
-            const request = {
-                'currency': currencyId,
-            };
-            const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
+        const parsedMarkets = {};
+        let fetchAllMarkets = undefined;
+        [ fetchAllMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
+        if (fetchAllMarkets) {
+            const instrumentsResponse = await this.publicGetGetInstruments (params);
+            instrumentsResponses.push (instrumentsResponse);
+        } else {
+            const currenciesResponse = await this.publicGetGetCurrencies (params);
             //
             //     {
-            //         "jsonrpc":"2.0",
-            //         "result":[
+            //         "jsonrpc": "2.0",
+            //         "result": [
             //             {
-            //                 "tick_size":0.0005,
-            //                 "taker_commission":0.0003,
-            //                 "strike":52000.0,
-            //                 "settlement_period":"month",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"BTC",
-            //                 "option_type":"put", // put, call
-            //                 "min_trade_amount":0.1,
-            //                 "maker_commission":0.0003,
-            //                 "kind":"option",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-24JUN22-52000-P",
-            //                 "expiration_timestamp":1656057600000,
-            //                 "creation_timestamp":1648199543000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":1.0,
-            //                 "block_trade_commission":0.0003,
-            //                 "base_currency":"BTC"
-            //             },
-            //             {
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"month", // month, week
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-27MAY22",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":1653638400000,
-            //                 "creation_timestamp":1648195209000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             },
-            //             {
-            //                 "tick_size":0.5,
-            //                 "taker_commission":0.0005,
-            //                 "settlement_period":"perpetual",
-            //                 "settlement_currency":"BTC",
-            //                 "quote_currency":"USD",
-            //                 "min_trade_amount":10.0,
-            //                 "max_liquidation_commission":0.0075,
-            //                 "max_leverage":50,
-            //                 "maker_commission":0.0,
-            //                 "kind":"future",
-            //                 "is_active":true,
-            //                 "instrument_name":"BTC-PERPETUAL",
-            //                 "future_type":"reversed",
-            //                 "expiration_timestamp":32503708800000,
-            //                 "creation_timestamp":1534242287000,
-            //                 "counter_currency":"USD",
-            //                 "contract_size":10.0,
-            //                 "block_trade_commission":0.0001,
-            //                 "base_currency":"BTC"
-            //             },
+            //                 "withdrawal_priorities": [
+            //                     { value: 0.15, name: "very_low" },
+            //                     { value: 1.5, name: "very_high" },
+            //                 ],
+            //                 "withdrawal_fee": 0.0005,
+            //                 "min_withdrawal_fee": 0.0005,
+            //                 "min_confirmations": 1,
+            //                 "fee_precision": 4,
+            //                 "currency_long": "Bitcoin",
+            //                 "currency": "BTC",
+            //                 "coin_type": "BITCOIN"
+            //             }
             //         ],
-            //         "usIn":1648691472831791,
-            //         "usOut":1648691472831896,
-            //         "usDiff":105,
-            //         "testnet":false
+            //         "usIn": 1583761588590479,
+            //         "usOut": 1583761588590544,
+            //         "usDiff": 65,
+            //         "testnet": false
             //     }
             //
-            const instrumentsResult = this.safeValue (instrumentsResponse, 'result', []);
+            const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
+            for (let i = 0; i < currenciesResult.length; i++) {
+                const currencyId = this.safeString (currenciesResult[i], 'currency');
+                const request = {
+                    'currency': currencyId,
+                };
+                const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
+                //
+                //     {
+                //         "jsonrpc":"2.0",
+                //         "result":[
+                //             {
+                //                 "tick_size":0.0005,
+                //                 "taker_commission":0.0003,
+                //                 "strike":52000.0,
+                //                 "settlement_period":"month",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"BTC",
+                //                 "option_type":"put", // put, call
+                //                 "min_trade_amount":0.1,
+                //                 "maker_commission":0.0003,
+                //                 "kind":"option",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-24JUN22-52000-P",
+                //                 "expiration_timestamp":1656057600000,
+                //                 "creation_timestamp":1648199543000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":1.0,
+                //                 "block_trade_commission":0.0003,
+                //                 "base_currency":"BTC"
+                //             },
+                //             {
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"month", // month, week
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-27MAY22",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":1653638400000,
+                //                 "creation_timestamp":1648195209000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             },
+                //             {
+                //                 "tick_size":0.5,
+                //                 "taker_commission":0.0005,
+                //                 "settlement_period":"perpetual",
+                //                 "settlement_currency":"BTC",
+                //                 "quote_currency":"USD",
+                //                 "min_trade_amount":10.0,
+                //                 "max_liquidation_commission":0.0075,
+                //                 "max_leverage":50,
+                //                 "maker_commission":0.0,
+                //                 "kind":"future",
+                //                 "is_active":true,
+                //                 "instrument_name":"BTC-PERPETUAL",
+                //                 "future_type":"reversed",
+                //                 "expiration_timestamp":32503708800000,
+                //                 "creation_timestamp":1534242287000,
+                //                 "counter_currency":"USD",
+                //                 "contract_size":10.0,
+                //                 "block_trade_commission":0.0001,
+                //                 "base_currency":"BTC"
+                //             },
+                //         ],
+                //         "usIn":1648691472831791,
+                //         "usOut":1648691472831896,
+                //         "usDiff":105,
+                //         "testnet":false
+                //     }
+                //
+                instrumentsResponses.push (instrumentsResponse);
+            }
+        }
+        for (let i = 0; i < instrumentsResponses.length; i++) {
+            const instrumentsResult = this.safeValue (instrumentsResponses[i], 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
                 const kind = this.safeString (market, 'kind');
@@ -1003,6 +953,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.deribit.com/#private-get_account_summary
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1064,6 +1015,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.deribit.com/#private-create_deposit_address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1102,6 +1054,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.deribit.com/#private-get_current_deposit_address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1222,6 +1175,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.deribit.com/#public-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1260,7 +1214,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseTicker (result, market);
     }
 
@@ -1269,13 +1223,19 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const code = this.codeFromOptions ('fetchTickers', params);
+        const code = this.safeString2 (params, 'code', 'currency');
+        params = this.omit (params, [ 'code' ]);
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
+        }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
@@ -1311,7 +1271,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         const tickers = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
@@ -1326,14 +1286,22 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.deribit.com/#public-get_tradingview_chart_data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] whether to paginate the results, set to false by default
+         * @param {int} [params.until] the latest time in ms to fetch ohlcv for
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000) as OHLCV[];
+        }
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
@@ -1348,12 +1316,18 @@ export default class deribit extends Exchange {
             request['start_timestamp'] = now - (limit - 1) * duration * 1000;
             request['end_timestamp'] = now;
         } else {
+            since = Math.max (since - 1, 0);
             request['start_timestamp'] = since;
             if (limit === undefined) {
                 request['end_timestamp'] = now;
             } else {
                 request['end_timestamp'] = this.sum (since, limit * duration * 1000);
             }
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end_timestamp'] = until;
         }
         const response = await this.publicGetGetTradingviewChartData (this.extend (request, params));
         //
@@ -1474,12 +1448,14 @@ export default class deribit extends Exchange {
         /**
          * @method
          * @name deribit#fetchTrades
-         * @see https://docs.deribit.com/#private-get_user_trades_by_currency
+         * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
+         * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
          * @description get the list of most recent trades for a particular symbol.
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
@@ -1494,8 +1470,13 @@ export default class deribit extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min (limit, 1000); // default 10
         }
+        const until = this.safeInteger2 (params, 'until', 'end_timestamp');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until' ]);
+            request['end_timestamp'] = until;
+        }
         let response = undefined;
-        if (since === undefined) {
+        if ((since === undefined) && !('end_timestamp' in request)) {
             response = await this.publicGetGetLastTradesByInstrument (this.extend (request, params));
         } else {
             response = await this.publicGetGetLastTradesByInstrumentAndTime (this.extend (request, params));
@@ -1526,15 +1507,16 @@ export default class deribit extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
+        const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name deribit#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.deribit.com/#private-get_account_summary
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1652,6 +1634,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.deribit.com/#public-get_order_book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1787,7 +1770,7 @@ export default class deribit extends Exchange {
         const amount = this.safeString (order, 'amount');
         let cost = Precise.stringMul (filledString, averageString);
         if (market['inverse']) {
-            if (this.parseNumber (averageString) !== 0) {
+            if (averageString !== '0') {
                 cost = Precise.stringDiv (amount, averageString);
             }
         }
@@ -1847,6 +1830,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.deribit.com/#private-get_order_state
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1888,16 +1872,17 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name deribit#createOrder
          * @description create a trade order
          * @see https://docs.deribit.com/#private-buy
+         * @see https://docs.deribit.com/#private-sell
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2064,7 +2049,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name deribit#editOrder
@@ -2115,6 +2100,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#cancelOrder
          * @description cancels an open order
+         * @see https://docs.deribit.com/#private-cancel
          * @param {string} id order id
          * @param {string} symbol not used by deribit cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2125,7 +2111,7 @@ export default class deribit extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetCancel (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result);
     }
 
@@ -2134,6 +2120,8 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#cancelAllOrders
          * @description cancel all open orders
+         * @see https://docs.deribit.com/#private-cancel_all
+         * @see https://docs.deribit.com/#private-cancel_all_by_instrument
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2156,6 +2144,8 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.deribit.com/#private-get_open_orders_by_currency
+         * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2176,7 +2166,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         }
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2185,6 +2175,8 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.deribit.com/#private-get_order_history_by_currency
+         * @see https://docs.deribit.com/#private-get_order_history_by_instrument
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2205,7 +2197,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOrderHistoryByInstrument (this.extend (request, params));
         }
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2214,6 +2206,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://docs.deribit.com/#private-get_user_trades_by_order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2259,7 +2252,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeList (response, 'result', []);
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -2268,6 +2261,10 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.deribit.com/#private-get_user_trades_by_currency
+         * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
+         * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
+         * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2337,7 +2334,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
+        const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2346,6 +2343,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.deribit.com/#private-get_deposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2385,7 +2383,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2394,6 +2392,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.deribit.com/#private-get_withdrawals
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2437,7 +2436,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2628,7 +2627,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parsePosition (result);
     }
 
@@ -2700,7 +2699,7 @@ export default class deribit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeList (response, 'result');
         return this.parsePositions (result, symbols);
     }
 
@@ -2772,6 +2771,7 @@ export default class deribit extends Exchange {
          * @method
          * @name deribit#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://docs.deribit.com/#private-get_transfers
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -2824,15 +2824,17 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const transfers = this.safeValue (result, 'data', []);
+        const transfers = this.safeList (result, 'data', []);
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name deribit#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.deribit.com/#private-submit_transfer_to_user
+         * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -2876,7 +2878,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTransfer (result, currency);
     }
 
@@ -2922,11 +2924,12 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name deribit#withdraw
          * @description make a withdrawal
+         * @see https://docs.deribit.com/#private-withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -3013,7 +3016,7 @@ export default class deribit extends Exchange {
         //      "testnet": true
         //    }
         //
-        const data = this.safeValue (response, 'result', {});
+        const data = this.safeList (response, 'result', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
@@ -3285,7 +3288,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const settlements = this.safeValue (result, 'settlements', []);
+        const settlements = this.safeList (result, 'settlements', []);
         return this.parseLiquidations (settlements, market, since, limit);
     }
 
@@ -3446,6 +3449,162 @@ export default class deribit extends Exchange {
             'lastPrice': this.safeNumber (greeks, 'last_price'),
             'underlyingPrice': this.safeNumber (greeks, 'underlying_price'),
             'info': greeks,
+        };
+    }
+
+    async fetchOption (symbol: string, params = {}): Promise<Option> {
+        /**
+         * @method
+         * @name deribit#fetchOption
+         * @description fetches option data that is commonly found in an option chain
+         * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicGetGetBookSummaryByInstrument (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "mid_price": 0.04025,
+        //                 "volume_usd": 11045.12,
+        //                 "quote_currency": "BTC",
+        //                 "estimated_delivery_price": 65444.72,
+        //                 "creation_timestamp": 1711100949273,
+        //                 "base_currency": "BTC",
+        //                 "underlying_index": "BTC-27DEC24",
+        //                 "underlying_price": 73742.14,
+        //                 "volume": 4.0,
+        //                 "interest_rate": 0.0,
+        //                 "price_change": -6.9767,
+        //                 "open_interest": 274.2,
+        //                 "ask_price": 0.042,
+        //                 "bid_price": 0.0385,
+        //                 "instrument_name": "BTC-27DEC24-240000-C",
+        //                 "mark_price": 0.04007735,
+        //                 "last": 0.04,
+        //                 "low": 0.04,
+        //                 "high": 0.043
+        //             }
+        //         ],
+        //         "usIn": 1711100949273223,
+        //         "usOut": 1711100949273580,
+        //         "usDiff": 357,
+        //         "testnet": false
+        //     }
+        //
+        const result = this.safeList (response, 'result', []);
+        const chain = this.safeDict (result, 0, {});
+        return this.parseOption (chain, undefined, market);
+    }
+
+    async fetchOptionChain (code: string, params = {}): Promise<OptionChain> {
+        /**
+         * @method
+         * @name deribit#fetchOptionChain
+         * @description fetches data for an underlying asset that is commonly found in an option chain
+         * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+         * @param {string} currency base currency to fetch an option chain for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'kind': 'option',
+        };
+        const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "mid_price": 0.4075,
+        //                 "volume_usd": 2836.83,
+        //                 "quote_currency": "BTC",
+        //                 "estimated_delivery_price": 65479.26,
+        //                 "creation_timestamp": 1711101594477,
+        //                 "base_currency": "BTC",
+        //                 "underlying_index": "BTC-28JUN24",
+        //                 "underlying_price": 68827.27,
+        //                 "volume": 0.1,
+        //                 "interest_rate": 0.0,
+        //                 "price_change": 0.0,
+        //                 "open_interest": 364.1,
+        //                 "ask_price": 0.411,
+        //                 "bid_price": 0.404,
+        //                 "instrument_name": "BTC-28JUN24-42000-C",
+        //                 "mark_price": 0.40752052,
+        //                 "last": 0.423,
+        //                 "low": 0.423,
+        //                 "high": 0.423
+        //             }
+        //         ],
+        //         "usIn": 1711101594456388,
+        //         "usOut": 1711101594484065,
+        //         "usDiff": 27677,
+        //         "testnet": false
+        //     }
+        //
+        const result = this.safeList (response, 'result', []);
+        return this.parseOptionChain (result, 'base_currency', 'instrument_name');
+    }
+
+    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+        //
+        //     {
+        //         "mid_price": 0.04025,
+        //         "volume_usd": 11045.12,
+        //         "quote_currency": "BTC",
+        //         "estimated_delivery_price": 65444.72,
+        //         "creation_timestamp": 1711100949273,
+        //         "base_currency": "BTC",
+        //         "underlying_index": "BTC-27DEC24",
+        //         "underlying_price": 73742.14,
+        //         "volume": 4.0,
+        //         "interest_rate": 0.0,
+        //         "price_change": -6.9767,
+        //         "open_interest": 274.2,
+        //         "ask_price": 0.042,
+        //         "bid_price": 0.0385,
+        //         "instrument_name": "BTC-27DEC24-240000-C",
+        //         "mark_price": 0.04007735,
+        //         "last": 0.04,
+        //         "low": 0.04,
+        //         "high": 0.043
+        //     }
+        //
+        const marketId = this.safeString (chain, 'instrument_name');
+        market = this.safeMarket (marketId, market);
+        const currencyId = this.safeString (chain, 'base_currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (chain, 'timestamp');
+        return {
+            'info': chain,
+            'currency': code,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'impliedVolatility': undefined,
+            'openInterest': this.safeNumber (chain, 'open_interest'),
+            'bidPrice': this.safeNumber (chain, 'bid_price'),
+            'askPrice': this.safeNumber (chain, 'ask_price'),
+            'midPrice': this.safeNumber (chain, 'mid_price'),
+            'markPrice': this.safeNumber (chain, 'mark_price'),
+            'lastPrice': this.safeNumber (chain, 'last'),
+            'underlyingPrice': this.safeNumber (chain, 'underlying_price'),
+            'change': undefined,
+            'percentage': this.safeNumber (chain, 'price_change'),
+            'baseVolume': this.safeNumber (chain, 'volume'),
+            'quoteVolume': this.safeNumber (chain, 'volume_usd'),
         };
     }
 

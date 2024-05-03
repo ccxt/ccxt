@@ -43,8 +43,8 @@ class wazirx extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false,
-                'fetchDepositAddress' => false,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
@@ -70,8 +70,11 @@ class wazirx extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -84,7 +87,7 @@ class wazirx extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
@@ -109,7 +112,7 @@ class wazirx extends Exchange {
                 'public' => array(
                     'get' => array(
                         'exchangeInfo' => 1,
-                        'depth' => 1,
+                        'depth' => 0.5,
                         'ping' => 1,
                         'systemStatus' => 1,
                         'tickers/24hr' => 1,
@@ -128,6 +131,11 @@ class wazirx extends Exchange {
                         'openOrders' => 1,
                         'order' => 0.5,
                         'myTrades' => 0.5,
+                        'coins' => 12,
+                        'crypto/withdraws' => 12,
+                        'crypto/deposits/address' => 60,
+                        'sub_account/fund_transfer/history' => 1,
+                        'sub_account/accounts' => 1,
                     ),
                     'post' => array(
                         'order' => 0.1,
@@ -173,11 +181,14 @@ class wazirx extends Exchange {
             'options' => array(
                 // 'fetchTradesMethod' => 'privateGetHistoricalTrades',
                 'recvWindow' => 10000,
+                'networks' => array(
+                    // You can get network from fetchCurrencies
+                ),
             ),
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#exchange-info
          * retrieves data on all $markets for wazirx
@@ -309,7 +320,7 @@ class wazirx extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 2000);
         }
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'until' ));
@@ -797,7 +808,7 @@ class wazirx extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://docs.wazirx.com/#new-order-trade
          * create a trade order
@@ -901,6 +912,307 @@ class wazirx extends Exchange {
             'cancel' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_currencies($params = array ()): ?array {
+        /**
+         * fetches all available currencies on an exchange
+         * @see https://docs.wazirx.com/#all-coins-39-information-user_data
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        $response = $this->privateGetCoins ($params);
+        //
+        //     [
+        //         {
+        //             "currency" => "btc",
+        //             "name" => "Bitcoin",
+        //             "networkList" => [
+        //                 {
+        //                     "addressRegex" => "^[13][a-km-zA-HJ-NP-Z1-9]array(25,34)$|^(bc1)[0-9A-Za-z]array(39,59)$",
+        //                     "confirmations" => 4,
+        //                     "depositDesc" => array(
+        //                         "description" => ""
+        //                     ),
+        //                     "depositDust" => "0.00000001",
+        //                     "depositEnable" => true,
+        //                     "disclaimer" => "• \u003cb\u003eSend only using the Bitcoin network.\u003c/b\u003e Using any other network will $result in loss of funds.\u003cbr/\u003e• \u003cb\u003eDeposit only BTC to this $deposit address.\u003c/b\u003e Depositing any other asset will $result in a loss of funds.\u003cbr/\u003e",
+        //                     "fullName" => null,
+        //                     "hidden" => array(
+        //                         "deposit" => false,
+        //                         "withdraw" => false
+        //                     ),
+        //                     "isDefault" => true,
+        //                     "maxWithdrawAmount" => "3",
+        //                     "minConfirm" => 4,
+        //                     "minWithdrawAmount" => "0.003",
+        //                     "name" => "Bitcoin",
+        //                     "network" => "btc",
+        //                     "order" => 3,
+        //                     "precision" => 8,
+        //                     "requestId" => "6d67a13d-26f7-4941-9856-94eba4adfe78",
+        //                     "shortName" => "BTC",
+        //                     "specialTip" => "Please ensure to select \u003cb\u003eBitcoin\u003c/b\u003e network at sender's wallet.",
+        //                     "withdrawConsent" => array(
+        //                         "helpUrl" => null,
+        //                         "message" => "I confirm that this withdrawal of crypto assets is being done to my own wallet, above. I authorize you to share travel rule information with the destination wallet service provider wherever applicable."
+        //                     ),
+        //                     "withdrawDesc" => array(
+        //                         "description" => ""
+        //                     ),
+        //                     "withdrawEnable" => true,
+        //                     "withdrawFee" => "0.0015"
+        //                 }
+        //             ],
+        //             "rapidListed" => false
+        //         }
+        //     ]
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $currency = $response[$i];
+            $currencyId = $this->safe_string($currency, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $name = $this->safe_string($currency, 'name');
+            $chains = $this->safe_list($currency, 'networkList', array());
+            $networks = array();
+            $minPrecision = null;
+            $minWithdrawFeeString = null;
+            $minWithdrawString = null;
+            $maxWithdrawString = null;
+            $minDepositString = null;
+            $deposit = false;
+            $withdraw = false;
+            for ($j = 0; $j < count($chains); $j++) {
+                $chain = $chains[$j];
+                $networkId = $this->safe_string($chain, 'network');
+                $networkCode = $this->network_id_to_code($networkId);
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'precision')));
+                $minPrecision = ($minPrecision === null) ? $precision : min ($minPrecision, $precision);
+                $depositAllowed = $this->safe_bool($chain, 'depositEnable');
+                $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
+                $withdrawAllowed = $this->safe_bool($chain, 'withdrawEnable');
+                $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
+                $withdrawFeeString = $this->safe_string($chain, 'withdrawFee');
+                if ($withdrawFeeString !== null) {
+                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+                }
+                $minNetworkWithdrawString = $this->safe_string($chain, 'minWithdrawAmount');
+                if ($minNetworkWithdrawString !== null) {
+                    $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+                }
+                $maxNetworkWithdrawString = $this->safe_string($chain, 'maxWithdrawAmount');
+                if ($maxNetworkWithdrawString !== null) {
+                    $maxWithdrawString = ($maxWithdrawString === null) ? $maxNetworkWithdrawString : Precise::string_min($maxNetworkWithdrawString, $maxWithdrawString);
+                }
+                $minNetworkDepositString = $this->safe_string($chain, 'depositDust');
+                if ($minNetworkDepositString !== null) {
+                    $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
+                }
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => $depositAllowed && $withdrawAllowed,
+                    'deposit' => $depositAllowed,
+                    'withdraw' => $withdrawAllowed,
+                    'fee' => $this->parse_number($withdrawFeeString),
+                    'precision' => $precision,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->parse_number($minNetworkWithdrawString),
+                            'max' => $this->parse_number($maxNetworkWithdrawString),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($minNetworkDepositString),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+            $result[$code] = array(
+                'info' => $currency,
+                'code' => $code,
+                'id' => $currencyId,
+                'name' => $name,
+                'active' => $deposit && $withdraw,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
+                'fee' => $this->parse_number($minWithdrawFeeString),
+                'precision' => $minPrecision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->parse_number($minWithdrawString),
+                        'max' => $this->parse_number($maxWithdrawString),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->parse_number($minDepositString),
+                        'max' => null,
+                    ),
+                ),
+                'networks' => $networks,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://docs.wazirx.com/#deposit-address-supporting-network-user_data
+         * @param {string} $code unified $currency $code of the $currency for the deposit address
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] unified network $code, you can get network from fetchCurrencies
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $networkCode = $this->safe_string($params, 'network');
+        $params = $this->omit($params, 'network');
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter');
+        }
+        $request = array(
+            'coin' => $currency['id'],
+            'network' => $this->network_code_to_id($networkCode, $code),
+        );
+        $response = $this->privateGetCryptoDepositsAddress (array_merge($request, $params));
+        //
+        //     {
+        //         "address" => "bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3",
+        //         "coin" => "btc",
+        //         "url" => "https => //live.blockcypher.com/btc/address/bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3"
+        //     }
+        //
+        return array(
+            'currency' => $code,
+            'address' => $this->safe_string($response, 'address'),
+            'tag' => null,
+            'network' => $this->network_code_to_id($networkCode, $code),
+            'info' => $response,
+        );
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch all withdrawals made from an account
+         * @see https://docs.wazirx.com/#withdraw-history-supporting-network-user_data
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = $this->privateGetCryptoWithdraws (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "address" => "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        //             "amount" => "8.91000000",
+        //             "createdAt" => "2019-10-12 09:12:02",
+        //             "lastUpdated" => "2019-10-12 11:12:02",
+        //             "coin" => "USDT",
+        //             "id" => "b6ae22b3aa844210a7041aee7589627c",
+        //             "withdrawOrderId" => "WITHDRAWtest123",
+        //             "network" => "ETH",
+        //             "status" => 1,
+        //             "transactionFee" => "0.004",
+        //             "failureInfo":"The address is not valid. Please confirm with the recipient",
+        //             "txId" => "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+            '1' => 'fail',
+            '2' => 'pending',
+            '3' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, ?array $currency = null): array {
+        //
+        //     {
+        //         "address" => "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        //         "amount" => "8.91000000",
+        //         "createdAt" => "2019-10-12 09:12:02",
+        //         "lastUpdated" => "2019-10-12 11:12:02",
+        //         "coin" => "USDT",
+        //         "id" => "b6ae22b3aa844210a7041aee7589627c",
+        //         "withdrawOrderId" => "WITHDRAWtest123",
+        //         "network" => "ETH",
+        //         "status" => 1,
+        //         "transactionFee" => "0.004",
+        //         "failureInfo" => "The address is not valid. Please confirm with the recipient",
+        //         "txId" => "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        //     }
+        //
+        $currencyId = $this->safe_string($transaction, 'coin');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'createdAt'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'lastUpdated'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $feeCost = $this->safe_number($transaction, 'transactionFee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $code,
+            );
+        }
+        return array(
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network')),
+            'address' => $this->safe_string($transaction, 'address'),
+            'addressTo' => $this->safe_string($transaction, 'address'),
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => 'withdrawal',
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => $fee,
+            'internal' => null,
+            'comment' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

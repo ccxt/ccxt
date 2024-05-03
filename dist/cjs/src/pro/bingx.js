@@ -17,7 +17,7 @@ class bingx extends bingx$1 {
                 'watchOHLCV': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false,
                 'watchBalance': true,
             },
@@ -71,6 +71,151 @@ class bingx extends bingx$1 {
                 'keepAlive': 1800000, // 30 minutes
             },
         });
+    }
+    async watchTicker(symbol, params = {}) {
+        /**
+         * @method
+         * @name bingx#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const [marketType, query] = this.handleMarketTypeAndParams('watchTrades', market, params);
+        const url = this.safeValue(this.urls['api']['ws'], marketType);
+        if (url === undefined) {
+            throw new errors.BadRequest(this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
+        }
+        const messageHash = market['id'] + '@ticker';
+        const uuid = this.uuid();
+        const request = {
+            'id': uuid,
+            'dataType': messageHash,
+        };
+        if (marketType === 'swap') {
+            request['reqType'] = 'sub';
+        }
+        return await this.watch(url, messageHash, this.extend(request, query), messageHash);
+    }
+    handleTicker(client, message) {
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "dataType": "BTC-USDT@ticker",
+        //         "data": {
+        //             "e": "24hTicker",
+        //             "E": 1706498923556,
+        //             "s": "BTC-USDT",
+        //             "p": "346.4",
+        //             "P": "0.82",
+        //             "c": "42432.5",
+        //             "L": "0.0529",
+        //             "h": "42855.4",
+        //             "l": "41578.3",
+        //             "v": "64310.9754",
+        //             "q": "2728360284.15",
+        //             "o": "42086.1",
+        //             "O": 1706498922655,
+        //             "C": 1706498883023,
+        //             "A": "42437.8",
+        //             "a": "1.4160",
+        //             "B": "42437.1",
+        //             "b": "2.5747"
+        //         }
+        //     }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "timestamp": 1706506795473,
+        //         "data": {
+        //             "e": "24hTicker",
+        //             "E": 1706506795472,
+        //             "s": "BTC-USDT",
+        //             "p": -372.12,
+        //             "P": "-0.87%",
+        //             "o": 42548.95,
+        //             "h": 42696.1,
+        //             "l": 41621.29,
+        //             "c": 42176.83,
+        //             "v": 4943.33,
+        //             "q": 208842236.5,
+        //             "O": 1706420395472,
+        //             "C": 1706506795472,
+        //             "A": 42177.23,
+        //             "a": 5.14484,
+        //             "B": 42176.38,
+        //             "b": 5.36117
+        //         }
+        //     }
+        //
+        const data = this.safeValue(message, 'data', {});
+        const marketId = this.safeString(data, 's');
+        // const marketId = messageHash.split('@')[0];
+        const isSwap = client.url.indexOf('swap') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
+        const market = this.safeMarket(marketId, undefined, undefined, marketType);
+        const symbol = market['symbol'];
+        const ticker = this.parseWsTicker(data, market);
+        this.tickers[symbol] = ticker;
+        const messageHash = market['id'] + '@ticker';
+        client.resolve(ticker, messageHash);
+    }
+    parseWsTicker(message, market = undefined) {
+        //
+        //     {
+        //         "e": "24hTicker",
+        //         "E": 1706498923556,
+        //         "s": "BTC-USDT",
+        //         "p": "346.4",
+        //         "P": "0.82",
+        //         "c": "42432.5",
+        //         "L": "0.0529",
+        //         "h": "42855.4",
+        //         "l": "41578.3",
+        //         "v": "64310.9754",
+        //         "q": "2728360284.15",
+        //         "o": "42086.1",
+        //         "O": 1706498922655,
+        //         "C": 1706498883023,
+        //         "A": "42437.8",
+        //         "a": "1.4160",
+        //         "B": "42437.1",
+        //         "b": "2.5747"
+        //     }
+        //
+        const timestamp = this.safeInteger(message, 'ts');
+        const marketId = this.safeString(message, 's');
+        market = this.safeMarket(marketId, market);
+        const close = this.safeString(message, 'c');
+        return this.safeTicker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString(message, 'h'),
+            'low': this.safeString(message, 'l'),
+            'bid': this.safeString(message, 'B'),
+            'bidVolume': this.safeString(message, 'b'),
+            'ask': this.safeString(message, 'A'),
+            'askVolume': this.safeString(message, 'a'),
+            'vwap': undefined,
+            'open': this.safeString(message, 'o'),
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': this.safeString(message, 'p'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString(message, 'v'),
+            'quoteVolume': this.safeString(message, 'q'),
+            'info': message,
+        }, market);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -411,6 +556,7 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('watchOHLCV', market, params);
         const url = this.safeValue(this.urls['api']['ws'], marketType);
@@ -572,7 +718,7 @@ class bingx extends bingx$1 {
     }
     setBalanceCache(client, type, subscriptionHash, params) {
         if (subscriptionHash in client.subscriptions) {
-            return undefined;
+            return;
         }
         const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
@@ -616,21 +762,44 @@ class bingx extends bingx$1 {
         }
         return true;
     }
-    async authenticate(params = {}) {
-        const time = this.milliseconds();
+    async keepAliveListenKey(params = {}) {
         const listenKey = this.safeString(this.options, 'listenKey');
         if (listenKey === undefined) {
-            const response = await this.userAuthPrivatePostUserDataStream();
-            this.options['listenKey'] = this.safeString(response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
+            // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
+        try {
+            await this.userAuthPrivatePutUserDataStream({ 'listenKey': listenKey }); // extend the expiry
+        }
+        catch (error) {
+            const types = ['spot', 'swap'];
+            for (let i = 0; i < types.length; i++) {
+                const type = types[i];
+                const url = this.urls['api']['ws'][type] + '?listenKey=' + listenKey;
+                const client = this.client(url);
+                const messageHashes = Object.keys(client.futures);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    const messageHash = messageHashes[j];
+                    client.reject(error, messageHash);
+                }
+            }
+            this.options['listenKey'] = undefined;
+            this.options['lastAuthenticatedTime'] = 0;
+            return;
+        }
+        // whether or not to schedule another listenKey keepAlive request
+        const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000);
+        this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+    }
+    async authenticate(params = {}) {
+        const time = this.milliseconds();
         const lastAuthenticatedTime = this.safeInteger(this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPrivatePutUserDataStream({ 'listenKey': listenKey }); // extend the expiry
+            const response = await this.userAuthPrivatePostUserDataStream();
             this.options['listenKey'] = this.safeString(response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
+            this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
     async pong(client, message) {
@@ -908,6 +1077,10 @@ class bingx extends bingx$1 {
             this.handleOrderBook(client, message);
             return;
         }
+        if (dataType.indexOf('@ticker') >= 0) {
+            this.handleTicker(client, message);
+            return;
+        }
         if (dataType.indexOf('@trade') >= 0) {
             this.handleTrades(client, message);
             return;
@@ -937,6 +1110,11 @@ class bingx extends bingx$1 {
             if ((type === 'TRADE') && (status === 'FILLED')) {
                 this.handleMyTrades(client, message);
             }
+        }
+        const msgData = this.safeValue(message, 'data');
+        const msgEvent = this.safeString(msgData, 'e');
+        if (msgEvent === '24hTicker') {
+            this.handleTicker(client, message);
         }
     }
 }

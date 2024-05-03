@@ -75,7 +75,11 @@ class novadax extends novadax$1 {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -396,7 +400,7 @@ class novadax extends novadax$1 {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -594,7 +598,7 @@ class novadax extends novadax$1 {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -650,7 +654,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -829,7 +833,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -857,7 +861,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -896,7 +900,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -956,7 +960,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1162,7 +1166,7 @@ class novadax extends novadax$1 {
         //
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -1357,7 +1361,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransactionStatus(status) {
@@ -1502,7 +1506,7 @@ class novadax extends novadax$1 {
         //          "message": "Success"
         //      }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -472,6 +472,7 @@ export default class htx extends htxRest {
             delete client.subscriptions[messageHash];
             client.reject(e, messageHash);
         }
+        return undefined;
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 0);
@@ -1692,14 +1693,14 @@ export default class htx extends htxRest {
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
-                return method.call(this, client, message, subscription);
+                method.call(this, client, message, subscription);
+                return;
             }
             // clean up
             if (id in client.subscriptions) {
                 delete client.subscriptions[id];
             }
         }
-        return message;
     }
     handleSystemStatus(client, message) {
         //
@@ -1808,11 +1809,9 @@ export default class htx extends htxRest {
                 'kline': this.handleOHLCV,
             };
             const method = this.safeValue(methods, methodName);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
+            if (method !== undefined) {
+                method.call(this, client, message);
+                return;
             }
         }
         // private spot subjects
@@ -2384,6 +2383,6 @@ export default class htx extends htxRest {
             };
             this.watch(url, messageHash, request, messageHash, subscription);
         }
-        return future;
+        return await future;
     }
 }

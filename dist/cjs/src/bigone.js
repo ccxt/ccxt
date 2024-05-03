@@ -437,16 +437,16 @@ class bigone extends bigone$1 {
         //     ],
         // }
         //
-        const currenciesData = this.safeValue(data, 'data', []);
+        const currenciesData = this.safeList(data, 'data', []);
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const currency = currenciesData[i];
             const id = this.safeString(currency, 'symbol');
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
-            const type = this.safeValue(currency, 'is_fiat') ? 'fiat' : 'crypto';
+            const type = this.safeBool(currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks = {};
-            const chains = this.safeValue(currency, 'binding_gateways', []);
+            const chains = this.safeList(currency, 'binding_gateways', []);
             let currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
             let currencyDepositEnabled = undefined;
             let currencyWithdrawEnabled = undefined;
@@ -454,8 +454,8 @@ class bigone extends bigone$1 {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'gateway_name');
                 const networkCode = this.networkIdToCode(networkId);
-                const deposit = this.safeValue(chain, 'is_deposit_enabled');
-                const withdraw = this.safeValue(chain, 'is_withdrawal_enabled');
+                const deposit = this.safeBool(chain, 'is_deposit_enabled');
+                const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
                 const isActive = (deposit && withdraw);
                 const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
@@ -518,6 +518,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchMarkets
          * @description retrieves data on all markets for bigone
+         * @see https://open.big.one/docs/spot_asset_pair.html
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -577,12 +578,12 @@ class bigone extends bigone$1 {
         //        ...
         //    ]
         //
-        const markets = this.safeValue(response, 'data', []);
+        const markets = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseAsset = this.safeValue(market, 'base_asset', {});
-            const quoteAsset = this.safeValue(market, 'quote_asset', {});
+            const baseAsset = this.safeDict(market, 'base_asset', {});
+            const quoteAsset = this.safeDict(market, 'quote_asset', {});
             const baseId = this.safeString(baseAsset, 'symbol');
             const quoteId = this.safeString(quoteAsset, 'symbol');
             const base = this.safeCurrencyCode(baseId);
@@ -647,7 +648,7 @@ class bigone extends bigone$1 {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const settle = this.safeCurrencyCode(settleId);
-            const inverse = this.safeValue(market, 'isInverse');
+            const inverse = this.safeBool(market, 'isInverse');
             result.push(this.safeMarketStructure({
                 'id': marketId,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -663,7 +664,7 @@ class bigone extends bigone$1 {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': this.safeValue(market, 'enable'),
+                'active': this.safeBool(market, 'enable'),
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
@@ -750,8 +751,8 @@ class bigone extends bigone$1 {
         const marketId = this.safeString2(ticker, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol(marketId, market, '-', marketType);
         const close = this.safeString2(ticker, 'close', 'latestPrice');
-        const bid = this.safeValue(ticker, 'bid', {});
-        const ask = this.safeValue(ticker, 'ask', {});
+        const bid = this.safeDict(ticker, 'bid', {});
+        const ask = this.safeDict(ticker, 'ask', {});
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -780,6 +781,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://open.big.one/docs/spot_tickers.html
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -809,7 +811,7 @@ class bigone extends bigone$1 {
             //         }
             //     }
             //
-            const ticker = this.safeValue(response, 'data', {});
+            const ticker = this.safeDict(response, 'data', {});
             return this.parseTicker(ticker, market);
         }
         else {
@@ -822,6 +824,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://open.big.one/docs/spot_tickers.html
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -871,7 +874,7 @@ class bigone extends bigone$1 {
             //        ]
             //    }
             //
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else {
             data = await this.contractPublicGetInstruments(params);
@@ -909,6 +912,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://open.big.one/docs/spot_ping.html
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -920,7 +924,7 @@ class bigone extends bigone$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(data, 'Timestamp');
         return this.parseToInt(timestamp / 1000000);
     }
@@ -929,6 +933,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -993,7 +998,7 @@ class bigone extends bigone$1 {
             //         }
             //     }
             //
-            const orderbook = this.safeValue(response, 'data', {});
+            const orderbook = this.safeDict(response, 'data', {});
             return this.parseOrderBook(orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
         }
     }
@@ -1171,6 +1176,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://open.big.one/docs/spot_asset_pair_trade.html
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1207,7 +1213,7 @@ class bigone extends bigone$1 {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1235,6 +1241,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://open.big.one/docs/spot_asset_pair_candle.html
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1285,7 +1292,7 @@ class bigone extends bigone$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseBalance(response) {
@@ -1294,7 +1301,7 @@ class bigone extends bigone$1 {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeValue(response, 'data', []);
+        const balances = this.safeList(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString(balance, 'asset_symbol');
@@ -1311,6 +1318,8 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://open.big.one/docs/fund_accounts.html
+         * @see https://open.big.one/docs/spot_accounts.html
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1380,7 +1389,7 @@ class bigone extends bigone$1 {
         if (Precise["default"].stringEq(triggerPrice, '0')) {
             triggerPrice = undefined;
         }
-        const immediateOrCancel = this.safeValue(order, 'immediate_or_cancel');
+        const immediateOrCancel = this.safeBool(order, 'immediate_or_cancel');
         let timeInForce = undefined;
         if (immediateOrCancel) {
             timeInForce = 'IOC';
@@ -1407,7 +1416,7 @@ class bigone extends bigone$1 {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': this.safeValue(order, 'post_only'),
+            'postOnly': this.safeBool(order, 'post_only'),
             'side': side,
             'price': price,
             'stopPrice': triggerPrice,
@@ -1469,7 +1478,7 @@ class bigone extends bigone$1 {
         const requestSide = isBuy ? 'BID' : 'ASK';
         let uppercaseType = type.toUpperCase();
         const isLimit = uppercaseType === 'LIMIT';
-        const exchangeSpecificParam = this.safeValue(params, 'post_only', false);
+        const exchangeSpecificParam = this.safeBool(params, 'post_only', false);
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
@@ -1532,7 +1541,11 @@ class bigone extends bigone$1 {
             }
         }
         request['type'] = uppercaseType;
-        params = this.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce']);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        params = this.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId']);
         const response = await this.privatePostOrders(this.extend(request, params));
         //
         //    {
@@ -1548,7 +1561,7 @@ class bigone extends bigone$1 {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        const order = this.safeValue(response, 'data');
+        const order = this.safeDict(response, 'data');
         return this.parseOrder(order, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1556,6 +1569,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#cancelOrder
          * @description cancels an open order
+         * @see https://open.big.one/docs/spot_orders.html#cancel-order
          * @param {string} id order id
          * @param {string} symbol Not used by bigone cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1576,7 +1590,7 @@ class bigone extends bigone$1 {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        const order = this.safeValue(response, 'data');
+        const order = this.safeDict(response, 'data');
         return this.parseOrder(order);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1584,6 +1598,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#cancelAllOrders
          * @description cancel all open orders
+         * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1613,6 +1628,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://open.big.one/docs/spot_orders.html#get-one-order
          * @param {string} symbol not used by bigone fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1620,7 +1636,7 @@ class bigone extends bigone$1 {
         await this.loadMarkets();
         const request = { 'id': id };
         const response = await this.privateGetOrdersId(this.extend(request, params));
-        const order = this.safeValue(response, 'data', {});
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1628,6 +1644,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1670,7 +1687,7 @@ class bigone extends bigone$1 {
         //        "page_token":"dxzef",
         //    }
         //
-        const orders = this.safeValue(response, 'data', []);
+        const orders = this.safeList(response, 'data', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1678,6 +1695,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://open.big.one/docs/spot_trade.html#trades-of-user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1731,7 +1749,7 @@ class bigone extends bigone$1 {
         //         "page_token":"dxfv"
         //     }
         //
-        const trades = this.safeValue(response, 'data', []);
+        const trades = this.safeList(response, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -1747,6 +1765,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1763,6 +1782,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1806,7 +1826,7 @@ class bigone extends bigone$1 {
             }
             else if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
-                body = query;
+                body = this.json(query);
             }
         }
         headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
@@ -1817,6 +1837,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1845,14 +1866,14 @@ class bigone extends bigone$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const dataLength = data.length;
         if (dataLength < 1) {
             throw new errors.ExchangeError(this.id + ' fetchDepositAddress() returned empty address response');
         }
         const chainsIndexedById = this.indexBy(data, 'chain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue(chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString(addressObject, 'value');
         const tag = this.safeString(addressObject, 'memo');
         this.checkAddress(address);
@@ -1938,7 +1959,7 @@ class bigone extends bigone$1 {
         const address = this.safeString(transaction, 'target_address');
         const tag = this.safeString(transaction, 'memo');
         const type = ('customer_id' in transaction) ? 'withdrawal' : 'deposit';
-        const internal = this.safeValue(transaction, 'is_internal');
+        const internal = this.safeBool(transaction, 'is_internal');
         return {
             'info': transaction,
             'id': id,
@@ -1967,6 +1988,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://open.big.one/docs/spot_deposit.html#deposit-of-user
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2010,7 +2032,7 @@ class bigone extends bigone$1 {
         //         ]
         //     }
         //
-        const deposits = this.safeValue(response, 'data', []);
+        const deposits = this.safeList(response, 'data', []);
         return this.parseTransactions(deposits, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2018,6 +2040,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2061,7 +2084,7 @@ class bigone extends bigone$1 {
         //         "page_token":"dxvf"
         //     }
         //
-        const withdrawals = this.safeValue(response, 'data', []);
+        const withdrawals = this.safeList(response, 'data', []);
         return this.parseTransactions(withdrawals, currency, since, limit);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -2079,7 +2102,7 @@ class bigone extends bigone$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         const guid = this.safeString(params, 'guid', this.uuid());
@@ -2100,8 +2123,8 @@ class bigone extends bigone$1 {
         //     }
         //
         const transfer = this.parseTransfer(response, currency);
-        const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const transferOptions = this.safeDict(this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2123,7 +2146,7 @@ class bigone extends bigone$1 {
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': code,
+            'currency': undefined,
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
@@ -2141,6 +2164,7 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#withdraw
          * @description make a withdrawal
+         * @see https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2187,7 +2211,7 @@ class bigone extends bigone$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

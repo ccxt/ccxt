@@ -7,9 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -111,7 +111,7 @@ class poloniex extends \ccxt\async\poloniex {
                     ),
                 );
                 $message = array_merge($request, $params);
-                $future = Async\await($this->watch($url, $messageHash, $message));
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 //
                 //    {
                 //        "data" => array(
@@ -183,7 +183,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @return {array} data from the websocket stream
              */
             $url = $this->urls['api']['ws']['private'];
-            $messageHash = $this->nonce();
+            $messageHash = (string) $this->nonce();
             $subscribe = array(
                 'id' => $messageHash,
                 'event' => $name,
@@ -327,7 +327,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        )]
         //    }
         //
-        $messageHash = $this->safe_integer($message, 'id');
+        $messageHash = $this->safe_string($message, 'id');
         $data = $this->safe_value($message, 'data', array());
         $orders = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -677,8 +677,8 @@ class poloniex extends \ccxt\async\poloniex {
             'type' => $this->safe_string_lower($trade, 'type'),
             'side' => $this->safe_string_lower_2($trade, 'takerSide', 'side'),
             'takerOrMaker' => $takerMaker,
-            'price' => $this->omit_zero($this->safe_number_2($trade, 'tradePrice', 'price')),
-            'amount' => $this->omit_zero($this->safe_number_2($trade, 'filledQuantity', 'quantity')),
+            'price' => $this->omit_zero($this->safe_string_2($trade, 'tradePrice', 'price')),
+            'amount' => $this->omit_zero($this->safe_string_2($trade, 'filledQuantity', 'quantity')),
             'cost' => $this->safe_string_2($trade, 'amount', 'filledAmount'),
             'fee' => array(
                 'rate' => null,
@@ -1069,7 +1069,8 @@ class poloniex extends \ccxt\async\poloniex {
                         $bid = $this->safe_value($bids, $j);
                         $price = $this->safe_number($bid, 0);
                         $amount = $this->safe_number($bid, 1);
-                        $orderbook['bids'].store ($price, $amount);
+                        $bidsSide = $orderbook['bids'];
+                        $bidsSide->store ($price, $amount);
                     }
                 }
                 if ($asks !== null) {
@@ -1077,7 +1078,8 @@ class poloniex extends \ccxt\async\poloniex {
                         $ask = $this->safe_value($asks, $j);
                         $price = $this->safe_number($ask, 0);
                         $amount = $this->safe_number($ask, 1);
-                        $orderbook['asks'].store ($price, $amount);
+                        $asksSide = $orderbook['asks'];
+                        $asksSide->store ($price, $amount);
                     }
                 }
                 $orderbook['symbol'] = $symbol;
@@ -1214,13 +1216,13 @@ class poloniex extends \ccxt\async\poloniex {
             if ($orderId === '0') {
                 $this->handle_error_message($client, $item);
             } else {
-                return $this->handle_order_request($client, $message);
+                $this->handle_order_request($client, $message);
             }
         } else {
             $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength > 0) {
-                return $method($client, $message);
+                $method($client, $message);
             }
         }
     }

@@ -39,6 +39,9 @@ class independentreserve extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -57,8 +60,11 @@ class independentreserve extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -137,7 +143,7 @@ class independentreserve extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for independentreserve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -495,7 +501,7 @@ class independentreserve extends Exchange {
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
         $response = $this->privatePostGetOpenOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -522,11 +528,11 @@ class independentreserve extends Exchange {
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
         $response = $this->privatePostGetClosedOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, $limit = 50, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -613,7 +619,7 @@ class independentreserve extends Exchange {
         return $this->parse_trades($response['Trades'], $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -658,7 +664,7 @@ class independentreserve extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -705,6 +711,51 @@ class independentreserve extends Exchange {
             'orderGuid' => $id,
         );
         return $this->privatePostCancelOrder (array_merge($request, $params));
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'primaryCurrencyCode' => $currency['id'],
+        );
+        $response = $this->privatePostGetDigitalCurrencyDepositAddress (array_merge($request, $params));
+        //
+        //    {
+        //        Tag => '3307446684',
+        //        DepositAddress => 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc => '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc => '2024-02-20T11:14:56.5112394Z'
+        //    }
+        //
+        return $this->parse_deposit_address($response);
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    {
+        //        Tag => '3307446684',
+        //        DepositAddress => 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc => '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc => '2024-02-20T11:14:56.5112394Z'
+        //    }
+        //
+        $address = $this->safe_string($depositAddress, 'DepositAddress');
+        $this->check_address($address);
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_string($currency, 'code'),
+            'address' => $address,
+            'tag' => $this->safe_string($depositAddress, 'Tag'),
+            'network' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

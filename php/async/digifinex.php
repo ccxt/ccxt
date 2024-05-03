@@ -356,7 +356,7 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -422,7 +422,10 @@ class digifinex extends Exchange {
                 $minFoundPrecision = Precise::string_min($feeString, Precise::string_min($minDepositString, $minWithdrawString));
                 $precision = $this->parse_number($minFoundPrecision);
                 $networkId = $this->safe_string($currency, 'chain');
-                $networkCode = $this->network_id_to_code($networkId);
+                $networkCode = null;
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId);
+                }
                 $network = array(
                     'info' => $currency,
                     'id' => $networkId,
@@ -521,7 +524,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for digifinex
@@ -1171,9 +1174,11 @@ class digifinex extends Exchange {
         //         "timestamp" => 1663221614998
         //     }
         //
+        $indexPrice = $this->safe_number($ticker, 'index_price');
+        $marketType = ($indexPrice !== null) ? 'contract' : 'spot';
         $marketId = $this->safe_string_upper_2($ticker, 'symbol', 'instrument_id');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $market = $this->safe_market($marketId);
+        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
         $timestamp = $this->safe_timestamp($ticker, 'date');
         if ($market['swap']) {
             $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -1451,7 +1456,7 @@ class digifinex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1509,7 +1514,7 @@ class digifinex extends Exchange {
                 $request['instrument_id'] = $market['id'];
                 $request['granularity'] = $timeframe;
                 if ($limit !== null) {
-                    $request['limit'] = $limit;
+                    $request['limit'] = min ($limit, 100);
                 }
                 $response = Async\await($this->publicSwapGetPublicCandles (array_merge($request, $params)));
             } else {
@@ -1525,7 +1530,8 @@ class digifinex extends Exchange {
                 } elseif ($limit !== null) {
                     $endTime = $this->seconds();
                     $duration = $this->parse_timeframe($timeframe);
-                    $request['start_time'] = $this->sum($endTime, -$limit * $duration);
+                    $auxLimit = $limit; // in c# -$limit is mutating the arg
+                    $request['start_time'] = $this->sum($endTime, -$auxLimit * $duration);
                 }
                 $response = Async\await($this->publicSpotGetKline (array_merge($request, $params)));
             }
@@ -1567,7 +1573,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1721,7 +1727,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1750,7 +1756,7 @@ class digifinex extends Exchange {
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         $postOnlyParsed = null;
         if ($swap) {
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $orderType = null;
             if ($side === 'buy') {
@@ -1825,7 +1831,7 @@ class digifinex extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -2208,7 +2214,7 @@ class digifinex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -2313,7 +2319,7 @@ class digifinex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -2510,7 +2516,7 @@ class digifinex extends Exchange {
             //     }
             //
             $responseRequest = ($marketType === 'swap') ? 'data' : 'list';
-            $data = $this->safe_value($response, $responseRequest, array());
+            $data = $this->safe_list($response, $responseRequest, array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -2761,7 +2767,7 @@ class digifinex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => $type ));
         }) ();
     }
@@ -2920,7 +2926,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -2952,7 +2958,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3058,7 +3064,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading
@@ -3100,7 +3106,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function fetch_cross_borrow_rates($params = array ()) {
+    public function fetch_cross_borrow_rates($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest rates of all currencies
@@ -3306,7 +3312,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -3339,7 +3345,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -3354,6 +3360,8 @@ class digifinex extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'maker_fee_rate'),
             'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
@@ -3642,7 +3650,7 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3740,7 +3748,7 @@ class digifinex extends Exchange {
             //         )
             //     }
             //
-            $transfers = $this->safe_value($response, 'data', array());
+            $transfers = $this->safe_list($response, 'data', array());
             return $this->parse_transfers($transfers, $currency, $since, $limit);
         }) ();
     }
@@ -3787,57 +3795,8 @@ class digifinex extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->market_symbols($symbols);
-            return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+            return $this->parse_leverage_tiers($data, $symbols, 'instrument_id');
         }) ();
-    }
-
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
-        //
-        //     array(
-        //         {
-        //             "instrument_id" => "BTCUSDTPERP",
-        //             "type" => "REAL",
-        //             "contract_type" => "PERPETUAL",
-        //             "base_currency" => "BTC",
-        //             "quote_currency" => "USDT",
-        //             "clear_currency" => "USDT",
-        //             "contract_value" => "0.001",
-        //             "contract_value_currency" => "BTC",
-        //             "is_inverse" => false,
-        //             "is_trading" => true,
-        //             "status" => "ONLINE",
-        //             "price_precision" => 1,
-        //             "tick_size" => "0.1",
-        //             "min_order_amount" => 1,
-        //             "open_max_limits" => array(
-        //                 array(
-        //                     "leverage" => "50",
-        //                     "max_limit" => "1000000"
-        //                 }
-        //             )
-        //         ),
-        //     )
-        //
-        $tiers = array();
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $marketId = $this->safe_string($entry, 'instrument_id');
-            $market = $this->safe_market($marketId);
-            $symbol = $this->safe_symbol($marketId, $market);
-            $symbolsLength = 0;
-            $tiers[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-                if ($this->in_array($symbol, $symbols)) {
-                    $result[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
-                }
-            }
-            if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbols, $symbol))) {
-                $result[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
-            }
-        }
-        return $result;
     }
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
@@ -3942,7 +3901,7 @@ class digifinex extends Exchange {
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {
@@ -3997,7 +3956,7 @@ class digifinex extends Exchange {
             //       "code" => 200,
             //   }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_deposit_withdraw_fees($data, $codes);
         }) ();
     }
@@ -4073,7 +4032,7 @@ class digifinex extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin to a position
@@ -4090,7 +4049,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -4107,7 +4066,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $side = $this->safe_string($params, 'side');
@@ -4139,7 +4098,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -4152,12 +4111,15 @@ class digifinex extends Exchange {
         $rawType = $this->safe_integer($data, 'type');
         return array(
             'info' => $data,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
             'type' => ($rawType === 1) ? 'add' : 'reduce',
+            'marginMode' => 'isolated',
             'amount' => $this->safe_number($data, 'amount'),
             'total' => null,
             'code' => $market['settle'],
-            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
@@ -4201,7 +4163,7 @@ class digifinex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_incomes($data, $market, $since, $limit);
         }) ();
     }
@@ -4229,7 +4191,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'

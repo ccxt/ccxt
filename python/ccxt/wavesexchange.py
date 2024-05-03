@@ -6,10 +6,11 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,7 +20,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
@@ -79,8 +79,11 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -324,7 +327,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 },
             },
             'currencies': {
-                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('8')}),
+                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_to_int('8')}),
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {
@@ -408,7 +411,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #        "matcherFee":"4077612"
         #     }
         #  }
-        isDiscountFee = self.safe_value(params, 'isDiscountFee', False)
+        isDiscountFee = self.safe_bool(params, 'isDiscountFee', False)
         mode = None
         if isDiscountFee:
             mode = self.safe_value(response, 'discount')
@@ -494,7 +497,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             self.options['quotes'] = quotes
             return quotes
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for wavesexchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -860,7 +863,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         ticker = self.safe_value(data, 0, {})
-        dataTicker = self.safe_value(ticker, 'data', {})
+        dataTicker = self.safe_dict(ticker, 'data', {})
         return self.parse_ticker(dataTicker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1198,7 +1201,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         # precise.decimals should be integer
         precise.decimals = self.parse_to_int(Precise.string_sub(self.number_to_string(precise.decimals), self.number_to_string(scale)))
         precise.reduce()
-        return precise
+        stringValue = str(precise)
+        return stringValue
 
     def currency_from_precision(self, currency, amount):
         scale = self.currencies[currency]['precision']
@@ -1223,7 +1227,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             return {'WAVES': 1}
         return rates
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1306,7 +1310,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         }
-        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         chainId = 84 if (sandboxMode) else 87
         body = {
             'senderPublicKey': self.apiKey,
@@ -1384,11 +1388,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         if isMarketOrder:
             response = self.matcherPostMatcherOrderbookMarket(body)
-            value = self.safe_value(response, 'message')
+            value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
         else:
             response = self.matcherPostMatcherOrderbook(body)
-            value = self.safe_value(response, 'message')
+            value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -2276,7 +2280,7 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'error')
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         Exception = self.safe_value(self.exceptions, errorCode)
         if Exception is not None:
             messageInner = self.safe_string(response, 'message')
@@ -2288,7 +2292,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

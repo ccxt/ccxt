@@ -12,6 +12,7 @@ var index = require('../../static_dependencies/scure-base/index.js');
 
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
+        this.verbose = false;
         const defaults = {
             url,
             onMessageCallback,
@@ -61,7 +62,7 @@ class Client {
         if (this.verbose && (messageHash === undefined)) {
             this.log(new Date(), 'resolve received undefined messageHash');
         }
-        if (messageHash in this.futures) {
+        if ((messageHash !== undefined) && (messageHash in this.futures)) {
             const promise = this.futures[messageHash];
             promise.resolve(result);
             delete this.futures[messageHash];
@@ -144,8 +145,14 @@ class Client {
                 this.onError(new errors.RequestTimeout('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'));
             }
             else {
+                let message;
                 if (this.ping) {
-                    this.send(this.ping(this));
+                    message = this.ping(this);
+                }
+                if (message) {
+                    this.send(message).catch((error) => {
+                        this.onError(error);
+                    });
                 }
                 else if (platform.isNode) {
                     // can't do this inside browser

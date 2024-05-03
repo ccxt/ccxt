@@ -20,7 +20,7 @@ class bitmex extends bitmex$1 {
                 'watchOrders': true,
                 'watchPostions': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
             },
@@ -60,17 +60,50 @@ class bitmex extends bitmex$1 {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const market = this.market(symbol);
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbol], params);
+        return tickers[symbol];
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true);
         const name = 'instrument';
-        const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
+        const messageHashes = [];
+        const rawSubscriptions = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                const subscription = name + ':' + market['id'];
+                rawSubscriptions.push(subscription);
+                const messageHash = 'ticker:' + symbol;
+                messageHashes.push(messageHash);
+            }
+        }
+        else {
+            rawSubscriptions.push(name);
+            messageHashes.push('alltickers');
+        }
         const request = {
             'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
+            'args': rawSubscriptions,
         };
-        return await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        const ticker = await this.watchMultiple(url, messageHashes, this.extend(request, params), rawSubscriptions);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
@@ -299,19 +332,20 @@ class bitmex extends bitmex$1 {
         //         ]
         //     }
         //
-        const table = this.safeString(message, 'table');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
-            const marketId = this.safeValue(update, 'symbol');
-            const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
-            const messageHash = table + ':' + marketId;
-            let ticker = this.safeValue(this.tickers, symbol, {});
-            const info = this.safeValue(ticker, 'info', {});
-            ticker = this.parseTicker(this.extend(info, update), market);
-            this.tickers[symbol] = ticker;
-            client.resolve(ticker, messageHash);
+            const marketId = this.safeString(update, 'symbol');
+            const symbol = this.safeSymbol(marketId);
+            if (!(symbol in this.tickers)) {
+                this.tickers[symbol] = this.parseTicker({});
+            }
+            const updatedTicker = this.parseTicker(update);
+            const fullParsedTicker = this.deepExtend(this.tickers[symbol], updatedTicker);
+            this.tickers[symbol] = fullParsedTicker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve(fullParsedTicker, messageHash);
+            client.resolve(fullParsedTicker, 'alltickers');
         }
         return message;
     }
@@ -507,8 +541,8 @@ class bitmex extends bitmex$1 {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            const messageHash = table + ':' + marketId;
             const symbol = market['symbol'];
+            const messageHash = table + ':' + symbol;
             const trades = this.parseTrades(dataByMarketIds[marketId], market);
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
@@ -533,23 +567,7 @@ class bitmex extends bitmex$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const table = 'trade';
-        const messageHash = table + ':' + market['id'];
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        };
-        const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
@@ -573,10 +591,10 @@ class bitmex extends bitmex$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleAuthenticationMessage(client, message) {
-        const authenticated = this.safeValue(message, 'success', false);
+        const authenticated = this.safeBool(message, 'success', false);
         const messageHash = 'authenticated';
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
@@ -1182,6 +1200,43 @@ class bitmex extends bitmex$1 {
         const orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), topics);
         return orderbook.limit();
     }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const table = 'trade';
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const topic = table + ':' + market['id'];
+            topics.push(topic);
+            const messageHash = table + ':' + symbol;
+            messageHashes.push(messageHash);
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const trades = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), topics);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1292,7 +1347,7 @@ class bitmex extends bitmex$1 {
             const messageHash = table + ':' + market['id'];
             const result = [
                 this.parse8601(this.safeString(candle, 'timestamp')) - duration * 1000,
-                this.safeFloat(candle, 'open'),
+                undefined,
                 this.safeFloat(candle, 'high'),
                 this.safeFloat(candle, 'low'),
                 this.safeFloat(candle, 'close'),
@@ -1481,7 +1536,7 @@ class bitmex extends bitmex$1 {
         //
         //     { "error": "Rate limit exceeded, retry in 29 seconds." }
         //
-        const error = this.safeValue(message, 'error');
+        const error = this.safeString(message, 'error');
         if (error !== undefined) {
             const request = this.safeValue(message, 'request', {});
             const args = this.safeValue(request, 'args', []);
@@ -1492,7 +1547,7 @@ class bitmex extends bitmex$1 {
                 const broadKey = this.findBroadlyMatchedKey(broad, error);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new errors.ExchangeError(error);
+                    exception = new errors.ExchangeError(error); // c# requirement for now
                 }
                 else {
                     exception = new broad[broadKey](error);
@@ -1560,14 +1615,11 @@ class bitmex extends bitmex$1 {
                 const request = this.safeValue(message, 'request', {});
                 const op = this.safeValue(request, 'op');
                 if (op === 'authKeyExpires') {
-                    return this.handleAuthenticationMessage.call(this, client, message);
-                }
-                else {
-                    return message;
+                    this.handleAuthenticationMessage(client, message);
                 }
             }
             else {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }

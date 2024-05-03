@@ -10,14 +10,14 @@ export default class luno extends lunoRest {
     handleOrderBook(client: Client, message: any, subscription: any): void;
     customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: IndexType, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): {
         symbol: any;
-        bids: any;
-        asks: any;
+        bids: any[];
+        asks: any[];
         timestamp: any;
         datetime: string;
         nonce: any;
     };
     parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): any[];
     customParseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): number[];
-    handleDelta(orderbook: any, message: any): any;
-    handleMessage(client: Client, message: any): any;
+    handleDelta(orderbook: any, message: any): void;
+    handleMessage(client: Client, message: any): void;
 }

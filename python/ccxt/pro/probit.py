@@ -103,7 +103,7 @@ class probit(ccxt.async_support.probit):
         #         }
         #     }
         #
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         data = self.safe_value(message, 'data', {})
         currencyIds = list(data.keys())
         if reset:
@@ -202,7 +202,7 @@ class probit(ccxt.async_support.probit):
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(marketId)
         trades = self.safe_value(message, 'recent_trades', [])
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         messageHash = 'trades:' + symbol
         stored = self.safe_value(self.trades, symbol)
         if stored is None or reset:
@@ -268,7 +268,7 @@ class probit(ccxt.async_support.probit):
         length = len(rawTrades)
         if length == 0:
             return
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         messageHash = 'myTrades'
         stored = self.myTrades
         if (stored is None) or reset:
@@ -348,7 +348,7 @@ class probit(ccxt.async_support.probit):
         if length == 0:
             return
         messageHash = 'orders'
-        reset = self.safe_value(message, 'reset', False)
+        reset = self.safe_bool(message, 'reset', False)
         stored = self.orders
         if stored is None or reset:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -428,17 +428,17 @@ class probit(ccxt.async_support.probit):
         symbol = self.safe_symbol(marketId)
         dataBySide = self.group_by(orderBook, 'side')
         messageHash = 'orderbook:' + symbol
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
-            self.orderbooks[symbol] = storedOrderBook
-        reset = self.safe_value(message, 'reset', False)
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
+        reset = self.safe_bool(message, 'reset', False)
         if reset:
             snapshot = self.parse_order_book(dataBySide, symbol, None, 'buy', 'sell', 'price', 'quantity')
-            storedOrderBook.reset(snapshot)
+            orderbook.reset(snapshot)
         else:
-            self.handle_delta(storedOrderBook, dataBySide)
-        client.resolve(storedOrderBook, messageHash)
+            self.handle_delta(orderbook, dataBySide)
+        client.resolve(orderbook, messageHash)
 
     def handle_bid_asks(self, bookSide, bidAsks):
         for i in range(0, len(bidAsks)):
@@ -505,10 +505,12 @@ class probit(ccxt.async_support.probit):
         #
         errorCode = self.safe_string(message, 'errorCode')
         if errorCode is not None:
-            return self.handle_error_message(client, message)
+            self.handle_error_message(client, message)
+            return
         type = self.safe_string(message, 'type')
         if type == 'authorization':
-            return self.handle_authenticate(client, message)
+            self.handle_authenticate(client, message)
+            return
         handlers = {
             'marketdata': self.handle_market_data,
             'balance': self.handle_balance,
@@ -519,7 +521,8 @@ class probit(ccxt.async_support.probit):
         channel = self.safe_string(message, 'channel')
         handler = self.safe_value(handlers, channel)
         if handler is not None:
-            return handler(client, message)
+            handler(client, message)
+            return
         error = NotSupported(self.id + ' handleMessage: unknown message: ' + self.json(message))
         client.reject(error)
 
@@ -530,7 +533,7 @@ class probit(ccxt.async_support.probit):
         expires = self.safe_integer(self.options, 'expires', 0)
         future = self.safe_value(client.subscriptions, messageHash)
         if (future is None) or (self.milliseconds() > expires):
-            response = await self.signIn()
+            response = await self.sign_in()
             #
             #     {
             #         "access_token": "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
@@ -543,6 +546,6 @@ class probit(ccxt.async_support.probit):
                 'type': 'authorization',
                 'token': accessToken,
             }
-            future = self.watch(url, messageHash, self.extend(request, params))
+            future = await self.watch(url, messageHash, self.extend(request, params), messageHash)
             client.subscriptions[messageHash] = future
-        return await future
+        return future

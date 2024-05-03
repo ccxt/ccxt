@@ -31,10 +31,13 @@ class okx extends okx$1 {
                 'option': true,
                 'addMargin': true,
                 'cancelAllOrders': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': true,
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -60,6 +63,10 @@ class okx extends okx$1 {
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
+                'fetchConvertCurrencies': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
@@ -84,6 +91,7 @@ class okx extends okx$1 {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -94,6 +102,8 @@ class okx extends okx$1 {
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
+                'fetchOptionChain': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -101,8 +111,10 @@ class okx extends okx$1 {
                 'fetchOrderTrades': true,
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
@@ -172,6 +184,7 @@ class okx extends okx$1 {
             'api': {
                 'public': {
                     'get': {
+                        'market/books-full': 2,
                         'market/tickers': 1,
                         'market/ticker': 1,
                         'market/index-tickers': 1,
@@ -280,6 +293,7 @@ class okx extends okx$1 {
                         'trade/easy-convert-history': 20,
                         'trade/one-click-repay-currency-list': 20,
                         'trade/one-click-repay-history': 20,
+                        'trade/account-rate-limit': 1,
                         // asset
                         'asset/currencies': 5 / 3,
                         'asset/balances': 5 / 3,
@@ -340,9 +354,11 @@ class okx extends okx$1 {
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
                         'tradingBot/grid/ai-param': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/signals': 1,
                         'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/orders-algo-history': 1,
                         'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/positions-history': 1,
                         'tradingBot/signal/sub-orders': 1,
                         'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
@@ -440,6 +456,7 @@ class okx extends okx$1 {
                         'account/quick-margin-borrow-repay': 4,
                         'account/borrow-repay': 5 / 3,
                         'account/simulated_margin': 10,
+                        'account/position-builder': 10,
                         'account/set-riskOffset-type': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
@@ -462,6 +479,15 @@ class okx extends okx$1 {
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/signal/create-signal': 1,
+                        'tradingBot/signal/order-algo': 1,
+                        'tradingBot/signal/stop-order-algo': 1,
+                        'tradingBot/signal/margin-balance': 1,
+                        'tradingBot/signal/amendTPSL': 1,
+                        'tradingBot/signal/set-instruments': 1,
+                        'tradingBot/signal/close-position': 1,
+                        'tradingBot/signal/sub-order': 1,
+                        'tradingBot/signal/cancel-sub-order': 1,
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
@@ -559,6 +585,8 @@ class okx extends okx$1 {
                     '50027': errors.PermissionDenied,
                     '50028': errors.ExchangeError,
                     '50044': errors.BadRequest,
+                    '50061': errors.ExchangeError,
+                    '50062': errors.ExchangeError,
                     // API Class
                     '50100': errors.ExchangeError,
                     '50101': errors.AuthenticationError,
@@ -613,6 +641,15 @@ class okx extends okx$1 {
                     '51072': errors.InvalidOrder,
                     '51073': errors.InvalidOrder,
                     '51074': errors.InvalidOrder,
+                    '51090': errors.InvalidOrder,
+                    '51091': errors.InvalidOrder,
+                    '51092': errors.InvalidOrder,
+                    '51093': errors.InvalidOrder,
+                    '51094': errors.InvalidOrder,
+                    '51095': errors.InvalidOrder,
+                    '51096': errors.InvalidOrder,
+                    '51098': errors.InvalidOrder,
+                    '51099': errors.InvalidOrder,
                     '51100': errors.InvalidOrder,
                     '51101': errors.InvalidOrder,
                     '51102': errors.InvalidOrder,
@@ -736,6 +773,15 @@ class okx extends okx$1 {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': errors.ExchangeError,
                     '54001': errors.ExchangeError,
+                    // Trading bot Error Code from 55100 to 55999
+                    '55100': errors.InvalidOrder,
+                    '55101': errors.InvalidOrder,
+                    '55102': errors.InvalidOrder,
+                    '55103': errors.InvalidOrder,
+                    '55104': errors.InvalidOrder,
+                    '55111': errors.InvalidOrder,
+                    '55112': errors.InvalidOrder,
+                    '55113': errors.InvalidOrder,
                     // FUNDING error codes 58000-58999
                     '58000': errors.ExchangeError,
                     '58001': errors.AuthenticationError,
@@ -1068,26 +1114,18 @@ class okx extends okx$1 {
             },
         });
     }
-    handleMarketTypeAndParams(methodName, market = undefined, params = {}) {
+    handleMarketTypeAndParams(methodName, market = undefined, params = {}, defaultValue = undefined) {
         const instType = this.safeString(params, 'instType');
         params = this.omit(params, 'instType');
         const type = this.safeString(params, 'type');
         if ((type === undefined) && (instType !== undefined)) {
             params['type'] = instType;
         }
-        return super.handleMarketTypeAndParams(methodName, market, params);
+        return super.handleMarketTypeAndParams(methodName, market, params, defaultValue);
     }
     convertToInstrumentType(type) {
-        const exchangeTypes = this.safeValue(this.options, 'exchangeType', {});
+        const exchangeTypes = this.safeDict(this.options, 'exchangeType', {});
         return this.safeString(exchangeTypes, type, type);
-    }
-    convertExpireDate(date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice(0, 2);
-        const month = date.slice(2, 4);
-        const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
@@ -1190,7 +1228,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const dataLength = data.length;
         const update = {
             'updated': undefined,
@@ -1238,8 +1276,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         return this.safeInteger(first, 'ts');
     }
     async fetchAccounts(params = {}) {
@@ -1271,7 +1309,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -1296,7 +1334,7 @@ class okx extends okx$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const types = this.safeValue(this.options, 'fetchMarkets');
+        const types = this.safeList(this.options, 'fetchMarkets', []);
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -1400,7 +1438,7 @@ class okx extends okx$1 {
             }
         }
         const tickSize = this.safeString(market, 'tickSz');
-        const fees = this.safeValue2(this.fees, type, 'trading', {});
+        const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
@@ -1459,7 +1497,7 @@ class okx extends okx$1 {
             'instType': this.convertToInstrumentType(type),
         };
         if (type === 'option') {
-            const optionsUnderlying = this.safeValue(this.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD']);
+            const optionsUnderlying = this.safeList(this.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD']);
             const promises = [];
             for (let i = 0; i < optionsUnderlying.length; i++) {
                 const underlying = optionsUnderlying[i];
@@ -1469,8 +1507,8 @@ class okx extends okx$1 {
             const promisesResult = await Promise.all(promises);
             let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
-                const res = this.safeValue(promisesResult, i, {});
-                const options = this.safeValue(res, 'data', []);
+                const res = this.safeDict(promisesResult, i, {});
+                const options = this.safeList(res, 'data', []);
                 markets = this.arrayConcat(markets, options);
             }
             return this.parseMarkets(markets);
@@ -1509,8 +1547,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        return this.parseMarkets(data);
+        const dataResponse = this.safeList(response, 'data', []);
+        return this.parseMarkets(dataResponse);
     }
     safeNetwork(networkId) {
         const networksById = {
@@ -1533,7 +1571,7 @@ class okx extends okx$1 {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
             return undefined;
         }
@@ -1586,7 +1624,7 @@ class okx extends okx$1 {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = {};
         const dataByCurrencyId = this.groupBy(data, 'ccy');
         const currencyIds = Object.keys(dataByCurrencyId);
@@ -1602,18 +1640,18 @@ class okx extends okx$1 {
             let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const canDeposit = this.safeValue(chain, 'canDep');
+                const canDeposit = this.safeBool(chain, 'canDep');
                 depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                const canWithdraw = this.safeValue(chain, 'canWd');
+                const canWithdraw = this.safeBool(chain, 'canWd');
                 withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                const canInternal = this.safeValue(chain, 'canInternal');
+                const canInternal = this.safeBool(chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
                 if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
                     const parts = networkId.split('-');
                     const chainPart = this.safeString(parts, 1, networkId);
-                    const networkCode = this.safeNetwork(chainPart);
+                    const networkCode = this.networkIdToCode(chainPart, currency['code']);
                     const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
@@ -1639,7 +1677,7 @@ class okx extends okx$1 {
                     };
                 }
             }
-            const firstChain = this.safeValue(chains, 0);
+            const firstChain = this.safeDict(chains, 0, {});
             result[code] = {
                 'info': undefined,
                 'code': code,
@@ -1670,6 +1708,7 @@ class okx extends okx$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -1677,11 +1716,22 @@ class okx extends okx$1 {
         const request = {
             'instId': market['id'],
         };
-        limit = (limit === undefined) ? 20 : limit;
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
+        if (method === 'publicGetMarketBooksFull' && limit === undefined) {
+            limit = 5000;
+        }
+        limit = (limit === undefined) ? 100 : limit;
         if (limit !== undefined) {
             request['sz'] = limit; // max 400
         }
-        const response = await this.publicGetMarketBooks(this.extend(request, params));
+        let response = undefined;
+        if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
+            response = await this.publicGetMarketBooksFull(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetMarketBooks(this.extend(request, params));
+        }
         //
         //     {
         //         "code": "0",
@@ -1703,8 +1753,8 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         const timestamp = this.safeInteger(first, 'ts');
         return this.parseOrderBook(first, symbol, timestamp);
     }
@@ -1735,7 +1785,7 @@ class okx extends okx$1 {
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
-        const spot = this.safeValue(market, 'spot', false);
+        const spot = this.safeBool(market, 'spot', false);
         const quoteVolume = spot ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
@@ -1805,20 +1855,33 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         return this.parseTicker(first, market);
     }
-    async fetchTickersByType(type, symbols = undefined, params = {}) {
+    async fetchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         const request = {
-            'instType': this.convertToInstrumentType(type),
+            'instType': this.convertToInstrumentType(marketType),
         };
-        if (type === 'option') {
-            const defaultUnderlying = this.safeValue(this.options, 'defaultUnderlying', 'BTC-USD');
+        if (marketType === 'option') {
+            const defaultUnderlying = this.safeString(this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
+                throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
             }
             else {
                 request['uly'] = currencyId;
@@ -1851,28 +1914,8 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'data', []);
+        const tickers = this.safeList(response, 'data', []);
         return this.parseTickers(tickers, symbols);
-    }
-    async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name okx#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        const first = this.safeString(symbols, 0);
-        let market = undefined;
-        if (first !== undefined) {
-            market = this.market(first);
-        }
-        const [type, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        return await this.fetchTickersByType(type, symbols, query);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -2042,7 +2085,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -2101,7 +2144,7 @@ class okx extends okx$1 {
         }
         const price = this.safeString(params, 'price');
         params = this.omit(params, 'price');
-        const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
@@ -2125,7 +2168,8 @@ class okx extends okx$1 {
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
             }
-            request['before'] = since;
+            const startTime = Math.max(since - 1, 0);
+            request['before'] = startTime;
             request['after'] = this.sum(since, durationInMilliseconds * limit);
         }
         const until = this.safeInteger(params, 'until');
@@ -2174,7 +2218,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2197,7 +2241,7 @@ class okx extends okx$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100);
         }
         const market = this.market(symbol);
         const request = {
@@ -2233,7 +2277,7 @@ class okx extends okx$1 {
         //     }
         //
         const rates = [];
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeInteger(rate, 'fundingTime');
@@ -2258,10 +2302,10 @@ class okx extends okx$1 {
     }
     parseTradingBalance(response) {
         const result = { 'info': response };
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         const timestamp = this.safeInteger(first, 'uTime');
-        const details = this.safeValue(first, 'details', []);
+        const details = this.safeList(first, 'details', []);
         for (let i = 0; i < details.length; i++) {
             const balance = details[i];
             const currencyId = this.safeString(balance, 'ccy');
@@ -2286,7 +2330,7 @@ class okx extends okx$1 {
     }
     parseFundingBalance(response) {
         const result = { 'info': response };
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'ccy');
@@ -2320,6 +2364,8 @@ class okx extends okx$1 {
             // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker': this.parseNumber(Precise["default"].stringNeg(this.safeString2(fee, 'maker', 'makerU'))),
             'taker': this.parseNumber(Precise["default"].stringNeg(this.safeString2(fee, 'taker', 'takerU'))),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -2368,8 +2414,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         return this.parseTradingFee(first, market);
     }
     async fetchBalance(params = {}) {
@@ -2583,6 +2629,8 @@ class okx extends okx$1 {
         const takeProfitDefined = (takeProfit !== undefined);
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
+        const trigger = (triggerPrice !== undefined) || (type === 'trigger');
+        const isReduceOnly = this.safeValue(params, 'reduceOnly', false);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -2591,7 +2639,7 @@ class okx extends okx$1 {
         }
         else {
             marginMode = defaultMarginMode;
-            margin = this.safeValue(params, 'margin', false);
+            margin = this.safeBool(params, 'margin', false);
         }
         if (spot) {
             if (margin) {
@@ -2609,6 +2657,25 @@ class okx extends okx$1 {
                 if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
                 }
+                else {
+                    let hedged = undefined;
+                    [hedged, params] = this.handleOptionAndParams(params, 'createOrder', 'hedged');
+                    if (hedged) {
+                        const isBuy = (side === 'buy');
+                        const isProtective = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined) || isReduceOnly;
+                        if (isProtective) {
+                            // in case of protective orders, the posSide should be opposite of position side
+                            // reduceOnly is emulated and not natively supported by the exchange
+                            request['posSide'] = isBuy ? 'short' : 'long';
+                            if (isReduceOnly) {
+                                params = this.omit(params, 'reduceOnly');
+                            }
+                        }
+                        else {
+                            request['posSide'] = isBuy ? 'long' : 'short';
+                        }
+                    }
+                }
             }
             request['tdMode'] = marginMode;
         }
@@ -2618,7 +2685,6 @@ class okx extends okx$1 {
         params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
-        const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
@@ -2727,7 +2793,7 @@ class okx extends okx$1 {
                 }
                 request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 const takeProfitLimitPrice = this.safeValueN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
-                const takeProfitOrderType = this.safeString(takeProfit, 'type');
+                const takeProfitOrderType = this.safeString2(takeProfit, 'type', 'tpOrdKind');
                 if (takeProfitOrderType !== undefined) {
                     const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
                     const takeProfitMarketOrderType = (takeProfitOrderType === 'market');
@@ -2739,6 +2805,7 @@ class okx extends okx$1 {
                             throw new errors.InvalidOrder(this.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order');
                         }
                         else {
+                            request['tpOrdKind'] = takeProfitOrderType;
                             request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice);
                         }
                     }
@@ -2747,6 +2814,7 @@ class okx extends okx$1 {
                     }
                 }
                 else if (takeProfitLimitPrice !== undefined) {
+                    request['tpOrdKind'] = 'limit';
                     request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
                 }
                 else {
@@ -2771,6 +2839,7 @@ class okx extends okx$1 {
             const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
             // if TP and SL are sent together
             // as ordType 'conditional' only stop-loss order will be applied
+            // tpOrdKind is 'condition' which is the default
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
             }
@@ -2824,6 +2893,8 @@ class okx extends okx$1 {
          * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
          * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
          * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
+         * @param {string} [params.hedged] true/false, to automatically set exchange-specific params needed when trading in hedge mode
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2853,8 +2924,8 @@ class okx extends okx$1 {
         else {
             response = await this.privatePostTradeBatchOrders(request);
         }
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         const order = this.parseOrder(first, market);
         order['type'] = type;
         order['side'] = side;
@@ -2878,7 +2949,7 @@ class okx extends okx$1 {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ordersRequests.push(orderRequest);
@@ -2906,7 +2977,7 @@ class okx extends okx$1 {
         //     "msg": "",
         //     "outTime": "1697979038586493"
         // }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
     }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -2989,6 +3060,7 @@ class okx extends okx$1 {
                 takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
                 takeProfitPrice = this.safeValue(takeProfit, 'price');
                 const takeProfitType = this.safeString(takeProfit, 'type');
+                request['newTpOrdKind'] = (takeProfitType === 'limit') ? takeProfitType : 'condition';
                 request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
@@ -3034,6 +3106,7 @@ class okx extends okx$1 {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
          * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+         * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3065,8 +3138,8 @@ class okx extends okx$1 {
         //        "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
         const order = this.parseOrder(first, market);
         order['type'] = type;
         order['side'] = side;
@@ -3090,7 +3163,7 @@ class okx extends okx$1 {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (stop || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeValue(orderInner, 0);
@@ -3113,7 +3186,7 @@ class okx extends okx$1 {
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     parseIds(ids) {
@@ -3124,7 +3197,7 @@ class okx extends okx$1 {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if (typeof ids === 'string') {
+        if ((ids !== undefined) && typeof ids === 'string') {
             return ids.split(',');
         }
         else {
@@ -3158,7 +3231,7 @@ class okx extends okx$1 {
         const clientOrderIds = this.parseIds(this.safeValue2(params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds(this.safeValue(params, 'algoId'));
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (stop || trailing) {
             method = 'privatePostTradeCancelAlgos';
         }
@@ -3231,8 +3304,119 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const ordersData = this.safeValue(response, 'data', []);
+        const ordersData = this.safeList(response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
+    }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        /**
+         * @method
+         * @name okx#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+         * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = [];
+        const options = this.safeDict(this.options, 'cancelOrders', {});
+        const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
+        let method = this.safeString(params, 'method', defaultMethod);
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trailing = this.safeBool(params, 'trailing', false);
+        const isStopOrTrailing = stop || trailing;
+        if (isStopOrTrailing) {
+            method = 'privatePostTradeCancelAlgos';
+        }
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const id = this.safeString(order, 'id');
+            const clientOrderId = this.safeString2(order, 'clOrdId', 'clientOrderId');
+            const symbol = this.safeString(order, 'symbol');
+            const market = this.market(symbol);
+            let idKey = 'ordId';
+            if (isStopOrTrailing) {
+                idKey = 'algoId';
+            }
+            else if (clientOrderId !== undefined) {
+                idKey = 'clOrdId';
+            }
+            const requestItem = {
+                'instId': market['id'],
+            };
+            requestItem[idKey] = (clientOrderId !== undefined) ? clientOrderId : id;
+            request.push(requestItem);
+        }
+        let response = undefined;
+        if (method === 'privatePostTradeCancelAlgos') {
+            response = await this.privatePostTradeCancelAlgos(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
+        else {
+            response = await this.privatePostTradeCancelBatchOrders(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId": "405071912345641543",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             },
+        //             ...
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "algoId": "431375349042380800",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const ordersData = this.safeList(response, 'data', []);
+        return this.parseOrders(ordersData, undefined, undefined, undefined, params);
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name okx#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets();
+        const request = {
+            'timeOut': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
+        };
+        const response = await this.privatePostTradeCancelAllAfter(this.extend(request, params));
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "triggerTime":"1587971460",
+        //                 "ts":"1587971400"
+        //             }
+        //         ]
+        //     }
+        //
+        return response;
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -3605,7 +3789,7 @@ class okx extends okx$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3619,7 +3803,6 @@ class okx extends okx$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] Timestamp in ms of the latest time to retrieve orders for
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
@@ -3657,19 +3840,15 @@ class okx extends okx$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
         if (trailing) {
             request['ordType'] = 'move_order_stop';
         }
-        else if (stop || (ordType in algoOrderTypes)) {
-            if (stop) {
-                if (ordType === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
-                }
-            }
+        else if (stop && (ordType === undefined)) {
+            request['ordType'] = 'trigger';
         }
         const query = this.omit(params, ['method', 'stop', 'trigger', 'trailing']);
         let response = undefined;
@@ -3774,7 +3953,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3826,7 +4005,7 @@ class okx extends okx$1 {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
@@ -3848,10 +4027,10 @@ class okx extends okx$1 {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(query, 'till', 'until');
+            const until = this.safeInteger(query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit(query, ['until', 'till']);
+                query = this.omit(query, ['until']);
             }
         }
         const send = this.omit(query, ['method', 'stop', 'trigger', 'trailing']);
@@ -3961,7 +4140,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3976,7 +4155,7 @@ class okx extends okx$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] True if fetching trigger or conditional orders
+         * @param {bool} [params.trigger] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
@@ -4014,13 +4193,13 @@ class okx extends okx$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const options = this.safeValue(this.options, 'fetchClosedOrders', {});
-        const algoOrderTypes = this.safeValue(this.options, 'algoOrderTypes', {});
+        const options = this.safeDict(this.options, 'fetchClosedOrders', {});
+        const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
-        const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
@@ -4028,21 +4207,19 @@ class okx extends okx$1 {
         if (trailing) {
             request['ordType'] = 'move_order_stop';
         }
-        else if (stop || (ordType in algoOrderTypes)) {
-            if (stop) {
-                if (ordType === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
-                }
+        else if (stop) {
+            if (ordType === undefined) {
+                request['ordType'] = 'trigger';
             }
         }
         else {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(query, 'till', 'until');
+            const until = this.safeInteger(query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit(query, ['until', 'till']);
+                query = this.omit(query, ['until']);
             }
             request['state'] = 'filled';
         }
@@ -4152,7 +4329,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4189,10 +4366,13 @@ class okx extends okx$1 {
             market = this.market(symbol);
             request['instId'] = market['id'];
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
         [request, params] = this.handleUntilOption('end', request, params);
         const [type, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType(type);
-        if (limit !== undefined) {
+        if ((limit !== undefined) && (since === undefined)) { // let limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is undefined
             request['limit'] = limit; // default 100, max 100
         }
         const response = await this.privateGetTradeFillsHistory(this.extend(request, query));
@@ -4221,7 +4401,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit, query);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4269,7 +4449,7 @@ class okx extends okx$1 {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
         }
-        const options = this.safeValue(this.options, 'fetchLedger', {});
+        const options = this.safeDict(this.options, 'fetchLedger', {});
         let method = this.safeString(options, 'method');
         method = this.safeString(params, 'method', method);
         params = this.omit(params, 'method');
@@ -4367,7 +4547,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseLedger(data, currency, since, limit);
     }
     parseLedgerEntryType(type) {
@@ -4598,7 +4778,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const filtered = this.filterBy(data, 'selected', true);
         const parsed = this.parseDepositAddresses(filtered, [currency['code']], false);
         return this.indexBy(parsed, 'network');
@@ -4672,7 +4852,7 @@ class okx extends okx$1 {
         };
         let network = this.safeString(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
-            const networks = this.safeValue(this.options, 'networks', {});
+            const networks = this.safeDict(this.options, 'networks', {});
             network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit(params, 'network');
@@ -4681,30 +4861,14 @@ class okx extends okx$1 {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies();
             this.currencies = this.deepExtend(this.currencies, currencies);
-            const targetNetwork = this.safeValue(currency['networks'], this.networkIdToCode(network), {});
+            const targetNetwork = this.safeDict(currency['networks'], this.networkIdToCode(network), {});
             fee = this.safeString(targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
             }
         }
         request['fee'] = this.numberToString(fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
-        if ('password' in params) {
-            request['pwd'] = params['password'];
-        }
-        else if ('pwd' in params) {
-            request['pwd'] = params['pwd'];
-        }
-        else {
-            const options = this.safeValue(this.options, 'withdraw', {});
-            const password = this.safeString2(options, 'password', 'pwd');
-            if (password !== undefined) {
-                request['pwd'] = password;
-            }
-        }
-        const query = this.omit(params, ['fee', 'password', 'pwd']);
-        if (!('pwd' in request)) {
-            throw new errors.ExchangeError(this.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
-        }
+        const query = this.omit(params, ['fee']);
         const response = await this.privatePostAssetWithdrawal(this.extend(request, query));
         //
         //     {
@@ -4719,8 +4883,8 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const transaction = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4801,7 +4965,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     async fetchDeposit(id, code = undefined, params = {}) {
@@ -4826,7 +4990,7 @@ class okx extends okx$1 {
         }
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
         const data = this.safeValue(response, 'data');
-        const deposit = this.safeValue(data, 0, {});
+        const deposit = this.safeDict(data, 0, {});
         return this.parseTransaction(deposit, currency);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4899,7 +5063,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -4944,8 +5108,8 @@ class okx extends okx$1 {
         //        "msg": ''
         //    }
         //
-        const data = this.safeValue(response, 'data');
-        const withdrawal = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const withdrawal = this.safeDict(data, 0, {});
         return this.parseTransaction(withdrawal);
     }
     parseTransactionStatus(status) {
@@ -4982,6 +5146,14 @@ class okx extends okx$1 {
             '3': 'pending',
             '4': 'pending',
             '5': 'pending',
+            '6': 'pending',
+            '7': 'pending',
+            '8': 'pending',
+            '9': 'pending',
+            '10': 'pending',
+            '12': 'pending',
+            '15': 'pending',
+            '16': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -5122,7 +5294,37 @@ class okx extends okx$1 {
         //        "msg": ""
         //     }
         //
-        return response;
+        const data = this.safeList(response, 'data', []);
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        let marketId = undefined;
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            marginMode = this.safeStringLower(entry, 'mgnMode');
+            marketId = this.safeString(entry, 'instId');
+            const positionSide = this.safeStringLower(entry, 'posSide');
+            if (positionSide === 'long') {
+                longLeverage = this.safeInteger(entry, 'lever');
+            }
+            else if (positionSide === 'short') {
+                shortLeverage = this.safeInteger(entry, 'lever');
+            }
+            else {
+                longLeverage = this.safeInteger(entry, 'lever');
+                shortLeverage = this.safeInteger(entry, 'lever');
+            }
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -5193,8 +5395,8 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const position = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const position = this.safeDict(data, 0);
         if (position === undefined) {
             return undefined;
         }
@@ -5205,6 +5407,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchPositions
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5229,7 +5432,7 @@ class okx extends okx$1 {
                 request['instId'] = marketIds.join(',');
             }
         }
-        const fetchPositionsOptions = this.safeValue(this.options, 'fetchPositions', {});
+        const fetchPositionsOptions = this.safeDict(this.options, 'fetchPositions', {});
         const method = this.safeString(fetchPositionsOptions, 'method', 'privateGetAccountPositions');
         let response = undefined;
         if (method === 'privateGetAccountPositionsHistory') {
@@ -5284,7 +5487,7 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const positions = this.safeValue(response, 'data', []);
+        const positions = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i]));
@@ -5345,13 +5548,38 @@ class okx extends okx$1 {
         //        "vegaBS": "",
         //        "vegaPA": ""
         //    }
+        // history
+        //    {
+        //        "cTime":"1708351230102",
+        //        "ccy":"USDT",
+        //        "closeAvgPx":"1.2567",
+        //        "closeTotalPos":"40",
+        //        "direction":"short",
+        //        "fee":"-0.0351036",
+        //        "fundingFee":"0",
+        //        "instId":"SUSHI-USDT-SWAP",
+        //        "instType":"SWAP",
+        //        "lever":"10.0",
+        //        "liqPenalty":"0",
+        //        "mgnMode":"isolated",
+        //        "openAvgPx":"1.2462",
+        //        "openMaxPos":"40",
+        //        "pnl":"-0.42",
+        //        "pnlRatio":"-0.0912982667308618",
+        //        "posId":"666159086676836352",
+        //        "realizedPnl":"-0.4551036",
+        //        "triggerPx":"",
+        //        "type":"2",
+        //        "uTime":"1708354805699",
+        //        "uly":"SUSHI-USDT"
+        //    }
         //
         const marketId = this.safeString(position, 'instId');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const pos = this.safeString(position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise["default"].stringAbs(pos);
-        let side = this.safeString(position, 'posSide');
+        let side = this.safeString2(position, 'posSide', 'direction');
         const hedged = side !== 'net';
         const contracts = this.parseNumber(contractsAbs);
         if (market['margin']) {
@@ -5392,7 +5620,7 @@ class okx extends okx$1 {
         const notional = this.parseNumber(notionalString);
         const marginMode = this.safeString(position, 'mgnMode');
         let initialMarginString = undefined;
-        const entryPriceString = this.safeString(position, 'avgPx');
+        const entryPriceString = this.safeString2(position, 'avgPx', 'openAvgPx');
         const unrealizedPnlString = this.safeString(position, 'upl');
         const leverageString = this.safeString(position, 'lever');
         let initialMarginPercentage = undefined;
@@ -5419,27 +5647,28 @@ class okx extends okx$1 {
         const liquidationPrice = this.safeNumber(position, 'liqPx');
         const percentageString = this.safeString(position, 'uplRatio');
         const percentage = this.parseNumber(Precise["default"].stringMul(percentageString, '100'));
-        const timestamp = this.safeInteger(position, 'uTime');
+        const timestamp = this.safeInteger(position, 'cTime');
         const marginRatio = this.parseNumber(Precise["default"].stringDiv(maintenanceMarginString, collateralString, 4));
         return this.safePosition({
             'info': position,
-            'id': undefined,
+            'id': this.safeString(position, 'posId'),
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber(entryPriceString),
             'unrealizedPnl': this.parseNumber(unrealizedPnlString),
+            'realizedPnl': this.safeNumber(position, 'realizedPnl'),
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': this.parseNumber(markPriceString),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(position, 'closeAvgPx'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': this.parseNumber(collateralString),
@@ -5466,7 +5695,7 @@ class okx extends okx$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         const request = {
@@ -5508,8 +5737,8 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const rawTransfer = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const rawTransfer = this.safeDict(data, 0, {});
         return this.parseTransfer(rawTransfer, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -5571,8 +5800,8 @@ class okx extends okx$1 {
         let amount = this.safeNumber(transfer, 'amt');
         const fromAccountId = this.safeString(transfer, 'from');
         const toAccountId = this.safeString(transfer, 'to');
-        const accountsById = this.safeValue(this.options, 'accountsById', {});
-        const timestamp = this.safeInteger(transfer, 'ts', this.milliseconds());
+        const accountsById = this.safeDict(this.options, 'accountsById', {});
+        const timestamp = this.safeInteger(transfer, 'ts');
         const balanceChange = this.safeString(transfer, 'sz');
         if (balanceChange !== undefined) {
             amount = this.parseNumber(Precise["default"].stringAbs(balanceChange));
@@ -5622,8 +5851,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const transfer = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const transfer = this.safeDict(data, 0);
         return this.parseTransfer(transfer);
     }
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5686,7 +5915,7 @@ class okx extends okx$1 {
         //        "msg": ""
         //    }
         //
-        const transfers = this.safeValue(response, 'data', []);
+        const transfers = this.safeList(response, 'data', []);
         return this.parseTransfers(transfers, currency, since, limit, params);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -5828,8 +6057,8 @@ class okx extends okx$1 {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
-        const entry = this.safeValue(data, 0, {});
+        const data = this.safeList(response, 'data', []);
+        const entry = this.safeDict(data, 0, {});
         return this.parseFundingRate(entry, market);
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5969,7 +6198,7 @@ class okx extends okx$1 {
         //        "type": "8"
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -6052,6 +6281,42 @@ class okx extends okx$1 {
         //     }
         //
         return response;
+    }
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchPositionMode
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        const accounts = await this.fetchAccounts();
+        const length = accounts.length;
+        let selectedAccount = undefined;
+        if (length > 1) {
+            const accountId = this.safeString(params, 'accountId');
+            if (accountId === undefined) {
+                const accountIds = this.getListFromObjectValues(accounts, 'id');
+                throw new errors.ExchangeError(this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + accountIds.join(', '));
+            }
+            else {
+                const accountsById = this.indexBy(accounts, 'id');
+                selectedAccount = this.safeDict(accountsById, accountId);
+            }
+        }
+        else {
+            selectedAccount = accounts[0];
+        }
+        const mainAccount = selectedAccount['info'];
+        const posMode = this.safeString(mainAccount, 'posMode'); // long_short_mode, net_mode
+        const isHedged = posMode === 'long_short_mode';
+        return {
+            'info': mainAccount,
+            'hedged': isHedged,
+        };
     }
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         /**
@@ -6161,7 +6426,7 @@ class okx extends okx$1 {
         //        ],
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             rates.push(this.parseBorrowRate(data[i]));
@@ -6197,8 +6462,8 @@ class okx extends okx$1 {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue(response, 'data');
-        const rate = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const rate = this.safeDict(data, 0, {});
         return this.parseBorrowRate(rate);
     }
     parseBorrowRate(info, currency = undefined) {
@@ -6302,7 +6567,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseBorrowRateHistories(data, codes, since, limit);
     }
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
@@ -6346,7 +6611,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseBorrowRateHistory(data, code, since, limit);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
@@ -6375,26 +6640,86 @@ class okx extends okx$1 {
         //       "msg": ""
         //     }
         //
-        return this.parseMarginModification(response, market);
+        const data = this.safeList(response, 'data', []);
+        const entry = this.safeDict(data, 0, {});
+        const errorCode = this.safeString(response, 'code');
+        return this.extend(this.parseMarginModification(entry, market), {
+            'status': (errorCode === '0') ? 'ok' : 'failed',
+        });
     }
     parseMarginModification(data, market = undefined) {
-        const innerData = this.safeValue(data, 'data', []);
-        const entry = this.safeValue(innerData, 0, {});
-        const errorCode = this.safeString(data, 'code');
-        const status = (errorCode === '0') ? 'ok' : 'failed';
-        const amountRaw = this.safeNumber(entry, 'amt');
-        const typeRaw = this.safeString(entry, 'type');
-        const type = (typeRaw === 'reduce') ? 'reduce' : 'add';
-        const marketId = this.safeString(entry, 'instId');
+        //
+        // addMargin/reduceMargin
+        //
+        //    {
+        //        "amt": "0.01",
+        //        "instId": "ETH-USD-SWAP",
+        //        "posSide": "net",
+        //        "type": "reduce"
+        //    }
+        //
+        // fetchMarginAdjustmentHistory
+        //
+        //    {
+        //        bal: '67621.4325135010619812',
+        //        balChg: '-10.0000000000000000',
+        //        billId: '691293628710342659',
+        //        ccy: 'USDT',
+        //        clOrdId: '',
+        //        execType: '',
+        //        fee: '0',
+        //        fillFwdPx: '',
+        //        fillIdxPx: '',
+        //        fillMarkPx: '',
+        //        fillMarkVol: '',
+        //        fillPxUsd: '',
+        //        fillPxVol: '',
+        //        fillTime: '1711089244850',
+        //        from: '',
+        //        instId: 'XRP-USDT-SWAP',
+        //        instType: 'SWAP',
+        //        interest: '0',
+        //        mgnMode: 'isolated',
+        //        notes: '',
+        //        ordId: '',
+        //        pnl: '0',
+        //        posBal: '73.12',
+        //        posBalChg: '10.00',
+        //        px: '',
+        //        subType: '160',
+        //        sz: '10',
+        //        tag: '',
+        //        to: '',
+        //        tradeId: '0',
+        //        ts: '1711089244699',
+        //        type: '6'
+        //    }
+        //
+        const amountRaw = this.safeString2(data, 'amt', 'posBalChg');
+        const typeRaw = this.safeString(data, 'type');
+        let type = undefined;
+        if (typeRaw === '6') {
+            type = Precise["default"].stringGt(amountRaw, '0') ? 'add' : 'reduce';
+        }
+        else {
+            type = typeRaw;
+        }
+        const amount = Precise["default"].stringAbs(amountRaw);
+        const marketId = this.safeString(data, 'instId');
         const responseMarket = this.safeMarket(marketId, market);
         const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
+        const timestamp = this.safeInteger(data, 'ts');
         return {
             'info': data,
-            'type': type,
-            'amount': amountRaw,
-            'code': code,
             'symbol': responseMarket['symbol'],
-            'status': status,
+            'type': type,
+            'marginMode': 'isolated',
+            'amount': this.parseNumber(amount),
+            'code': code,
+            'total': undefined,
+            'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -6478,7 +6803,7 @@ class okx extends okx$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -6580,7 +6905,7 @@ class okx extends okx$1 {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const interest = this.parseBorrowInterests(data);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -6636,8 +6961,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const loan = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const loan = this.safeDict(data, 0, {});
         return this.parseMarginLoan(loan, currency);
     }
     async repayCrossMargin(code, amount, params = {}) {
@@ -6681,8 +7006,8 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        const loan = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const loan = this.safeDict(data, 0, {});
         return this.parseMarginLoan(loan, currency);
     }
     parseMarginLoan(info, currency = undefined) {
@@ -6746,7 +7071,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOpenInterest(data[0], market);
     }
     async fetchOpenInterestHistory(symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
@@ -6764,8 +7089,8 @@ class okx extends okx$1 {
          * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
-        const options = this.safeValue(this.options, 'fetchOpenInterestHistory', {});
-        const timeframes = this.safeValue(options, 'timeframes', {});
+        const options = this.safeDict(this.options, 'fetchOpenInterestHistory', {});
+        const timeframes = this.safeDict(options, 'timeframes', {});
         timeframe = this.safeString(timeframes, timeframe, timeframe);
         if (timeframe !== '5m' && timeframe !== '1H' && timeframe !== '1D') {
             throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
@@ -6796,10 +7121,10 @@ class okx extends okx$1 {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(params, 'till', 'until');
+            const until = this.safeInteger(params, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
             }
             response = await this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, params));
         }
@@ -6817,7 +7142,7 @@ class okx extends okx$1 {
         //        "msg": ''
         //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOpenInterests(data, undefined, since, limit);
     }
     parseOpenInterest(interest, market = undefined) {
@@ -6940,7 +7265,7 @@ class okx extends okx$1 {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes);
     }
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
@@ -7055,7 +7380,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
@@ -7094,7 +7419,7 @@ class okx extends okx$1 {
         for (let i = 0; i < settlements.length; i++) {
             const entry = settlements[i];
             const timestamp = this.safeInteger(entry, 'ts');
-            const details = this.safeValue(entry, 'details', []);
+            const details = this.safeList(entry, 'details', []);
             for (let j = 0; j < details.length; j++) {
                 const settlement = this.parseSettlement(details[j], market);
                 result.push(this.extend(settlement, {
@@ -7140,7 +7465,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const underlyings = this.safeValue(response, 'data', []);
+        const underlyings = this.safeList(response, 'data', []);
         return underlyings[0];
     }
     async fetchGreeks(symbol, params = {}) {
@@ -7192,7 +7517,7 @@ class okx extends okx$1 {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const entryMarketId = this.safeString(entry, 'instId');
@@ -7200,6 +7525,7 @@ class okx extends okx$1 {
                 return this.parseGreeks(entry, market);
             }
         }
+        return undefined;
     }
     parseGreeks(greeks, market = undefined) {
         //
@@ -7314,9 +7640,481 @@ class okx extends okx$1 {
         //        "outTime": "1701877077102579"
         //    }
         //
-        const data = this.safeValue(response, 'data');
-        const order = this.safeValue(data, 0);
+        const data = this.safeList(response, 'data', []);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
+    }
+    async fetchOption(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOption
+         * @description fetches option data that is commonly found in an option chain
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        const response = await this.publicGetMarketTicker(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "OPTION",
+        //                 "instId": "BTC-USD-241227-60000-P",
+        //                 "last": "",
+        //                 "lastSz": "0",
+        //                 "askPx": "",
+        //                 "askSz": "0",
+        //                 "bidPx": "",
+        //                 "bidSz": "0",
+        //                 "open24h": "",
+        //                 "high24h": "",
+        //                 "low24h": "",
+        //                 "volCcy24h": "0",
+        //                 "vol24h": "0",
+        //                 "ts": "1711176035035",
+        //                 "sodUtc0": "",
+        //                 "sodUtc8": ""
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList(response, 'data', []);
+        const chain = this.safeDict(result, 0, {});
+        return this.parseOption(chain, undefined, market);
+    }
+    async fetchOptionChain(code, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOptionChain
+         * @description fetches data for an underlying asset that is commonly found in an option chain
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+         * @param {string} currency base currency to fetch an option chain for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+         * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'uly': currency['code'] + '-USD',
+            'instType': 'OPTION',
+        };
+        const response = await this.publicGetMarketTickers(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "OPTION",
+        //                 "instId": "BTC-USD-240323-52000-C",
+        //                 "last": "",
+        //                 "lastSz": "0",
+        //                 "askPx": "",
+        //                 "askSz": "0",
+        //                 "bidPx": "",
+        //                 "bidSz": "0",
+        //                 "open24h": "",
+        //                 "high24h": "",
+        //                 "low24h": "",
+        //                 "volCcy24h": "0",
+        //                 "vol24h": "0",
+        //                 "ts": "1711176207008",
+        //                 "sodUtc0": "",
+        //                 "sodUtc8": ""
+        //             },
+        //         ]
+        //     }
+        //
+        const result = this.safeList(response, 'data', []);
+        return this.parseOptionChain(result, undefined, 'instId');
+    }
+    parseOption(chain, currency = undefined, market = undefined) {
+        //
+        //     {
+        //         "instType": "OPTION",
+        //         "instId": "BTC-USD-241227-60000-P",
+        //         "last": "",
+        //         "lastSz": "0",
+        //         "askPx": "",
+        //         "askSz": "0",
+        //         "bidPx": "",
+        //         "bidSz": "0",
+        //         "open24h": "",
+        //         "high24h": "",
+        //         "low24h": "",
+        //         "volCcy24h": "0",
+        //         "vol24h": "0",
+        //         "ts": "1711176035035",
+        //         "sodUtc0": "",
+        //         "sodUtc8": ""
+        //     }
+        //
+        const marketId = this.safeString(chain, 'instId');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(chain, 'ts');
+        return {
+            'info': chain,
+            'currency': undefined,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'impliedVolatility': undefined,
+            'openInterest': undefined,
+            'bidPrice': this.safeNumber(chain, 'bidPx'),
+            'askPrice': this.safeNumber(chain, 'askPx'),
+            'midPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': this.safeNumber(chain, 'last'),
+            'underlyingPrice': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'baseVolume': this.safeNumber(chain, 'volCcy24h'),
+            'quoteVolume': undefined,
+        };
+    }
+    async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchConvertQuote
+         * @description fetch a quote for converting from one currency to another
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'baseCcy': fromCode.toUpperCase(),
+            'quoteCcy': toCode.toUpperCase(),
+            'rfqSzCcy': fromCode.toUpperCase(),
+            'rfqSz': this.numberToString(amount),
+            'side': 'sell',
+        };
+        const response = await this.privatePostAssetConvertEstimateQuote(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "baseCcy": "ETH",
+        //                 "baseSz": "0.01023052",
+        //                 "clQReqId": "",
+        //                 "cnvtPx": "2932.40104429",
+        //                 "origRfqSz": "30",
+        //                 "quoteCcy": "USDT",
+        //                 "quoteId": "quoterETH-USDT16461885104612381",
+        //                 "quoteSz": "30",
+        //                 "quoteTime": "1646188510461",
+        //                 "rfqSz": "30",
+        //                 "rfqSzCcy": "USDT",
+        //                 "side": "buy",
+        //                 "ttlMs": "10000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        const result = this.safeDict(data, 0, {});
+        const fromCurrencyId = this.safeString(result, 'baseCcy', fromCode);
+        const fromCurrency = this.currency(fromCurrencyId);
+        const toCurrencyId = this.safeString(result, 'quoteCcy', toCode);
+        const toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(result, fromCurrency, toCurrency);
+    }
+    async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'quoteId': id,
+            'baseCcy': fromCode,
+            'quoteCcy': toCode,
+            'szCcy': fromCode,
+            'sz': this.numberToString(amount),
+            'side': 'sell',
+        };
+        const response = await this.privatePostAssetConvertTrade(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "baseCcy": "ETH",
+        //                 "clTReqId": "",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "fillPx": "2932.40104429",
+        //                 "fillQuoteSz": "30",
+        //                 "instId": "ETH-USDT",
+        //                 "quoteCcy": "USDT",
+        //                 "quoteId": "quoterETH-USDT16461885104612381",
+        //                 "side": "buy",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "ts": "1646188520338"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        const result = this.safeDict(data, 0, {});
+        const fromCurrencyId = this.safeString(result, 'baseCcy', fromCode);
+        const fromCurrency = this.currency(fromCurrencyId);
+        const toCurrencyId = this.safeString(result, 'quoteCcy', toCode);
+        const toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(result, fromCurrency, toCurrency);
+    }
+    async fetchConvertTrade(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchConvertTrade
+         * @description fetch the data for a conversion trade
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+         * @param {string} id the id of the trade that you want to fetch
+         * @param {string} [code] the unified currency code of the conversion trade
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'clTReqId': id,
+        };
+        const response = await this.privateGetAssetConvertHistory(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clTReqId": "",
+        //                 "instId": "ETH-USDT",
+        //                 "side": "buy",
+        //                 "fillPx": "2932.401044",
+        //                 "baseCcy": "ETH",
+        //                 "quoteCcy": "USDT",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "fillQuoteSz": "30",
+        //                 "ts": "1646188520000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        const result = this.safeDict(data, 0, {});
+        const fromCurrencyId = this.safeString(result, 'baseCcy');
+        const toCurrencyId = this.safeString(result, 'quoteCcy');
+        let fromCurrency = undefined;
+        let toCurrency = undefined;
+        if (fromCurrencyId !== undefined) {
+            fromCurrency = this.currency(fromCurrencyId);
+        }
+        if (toCurrencyId !== undefined) {
+            toCurrency = this.currency(toCurrencyId);
+        }
+        return this.parseConversion(result, fromCurrency, toCurrency);
+    }
+    async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchConvertTradeHistory
+         * @description fetch the users history of conversion trades
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+         * @param {string} [code] the unified currency code
+         * @param {int} [since] the earliest time in ms to fetch conversions for
+         * @param {int} [limit] the maximum number of conversion structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+         * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        let request = {};
+        [request, params] = this.handleUntilOption('after', request, params);
+        if (since !== undefined) {
+            request['before'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAssetConvertHistory(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clTReqId": "",
+        //                 "instId": "ETH-USDT",
+        //                 "side": "buy",
+        //                 "fillPx": "2932.401044",
+        //                 "baseCcy": "ETH",
+        //                 "quoteCcy": "USDT",
+        //                 "fillBaseSz": "0.01023052",
+        //                 "state": "fullyFilled",
+        //                 "tradeId": "trader16461885203381437",
+        //                 "fillQuoteSz": "30",
+        //                 "ts": "1646188520000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const rows = this.safeList(response, 'data', []);
+        return this.parseConversions(rows, code, 'baseCcy', 'quoteCcy', since, limit);
+    }
+    parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "baseCcy": "ETH",
+        //         "baseSz": "0.01023052",
+        //         "clQReqId": "",
+        //         "cnvtPx": "2932.40104429",
+        //         "origRfqSz": "30",
+        //         "quoteCcy": "USDT",
+        //         "quoteId": "quoterETH-USDT16461885104612381",
+        //         "quoteSz": "30",
+        //         "quoteTime": "1646188510461",
+        //         "rfqSz": "30",
+        //         "rfqSzCcy": "USDT",
+        //         "side": "buy",
+        //         "ttlMs": "10000"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "baseCcy": "ETH",
+        //         "clTReqId": "",
+        //         "fillBaseSz": "0.01023052",
+        //         "fillPx": "2932.40104429",
+        //         "fillQuoteSz": "30",
+        //         "instId": "ETH-USDT",
+        //         "quoteCcy": "USDT",
+        //         "quoteId": "quoterETH-USDT16461885104612381",
+        //         "side": "buy",
+        //         "state": "fullyFilled",
+        //         "tradeId": "trader16461885203381437",
+        //         "ts": "1646188520338"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "clTReqId": "",
+        //         "instId": "ETH-USDT",
+        //         "side": "buy",
+        //         "fillPx": "2932.401044",
+        //         "baseCcy": "ETH",
+        //         "quoteCcy": "USDT",
+        //         "fillBaseSz": "0.01023052",
+        //         "state": "fullyFilled",
+        //         "tradeId": "trader16461885203381437",
+        //         "fillQuoteSz": "30",
+        //         "ts": "1646188520000"
+        //     }
+        //
+        const timestamp = this.safeInteger2(conversion, 'quoteTime', 'ts');
+        const fromCoin = this.safeString(conversion, 'baseCcy');
+        const fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        const to = this.safeString(conversion, 'quoteCcy');
+        const toCode = this.safeCurrencyCode(to, toCurrency);
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': this.safeStringN(conversion, ['clQReqId', 'tradeId', 'quoteId']),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber2(conversion, 'baseSz', 'fillBaseSz'),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber2(conversion, 'quoteSz', 'fillQuoteSz'),
+            'price': this.safeNumber2(conversion, 'cnvtPx', 'fillPx'),
+            'fee': undefined,
+        };
+    }
+    async fetchConvertCurrencies(params = {}) {
+        /**
+         * @method
+         * @name okx#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets();
+        const response = await this.privateGetAssetConvertCurrencies(params);
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "ccy": "BTC",
+        //                 "max": "",
+        //                 "min": ""
+        //             },
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const result = {};
+        const data = this.safeList(response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString(entry, 'ccy');
+            const code = this.safeCurrencyCode(id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber(entry, 'min'),
+                        'max': this.safeNumber(entry, 'max'),
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+            };
+        }
+        return result;
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
@@ -7345,7 +8143,7 @@ class okx extends okx$1 {
         const code = this.safeString(response, 'code');
         if ((code !== '0') && (code !== '2')) { // 2 means that bulk operation partially succeeded
             const feedback = this.id + ' ' + body;
-            const data = this.safeValue(response, 'data', []);
+            const data = this.safeList(response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const error = data[i];
                 const errorCode = this.safeString(error, 'sCode');
@@ -7357,6 +8155,189 @@ class okx extends okx$1 {
             throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;
+    }
+    async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+         * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
+         * @param {string} [type] "add" or "reduce"
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {boolean} [params.auto] true if fetching auto margin increases
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const auto = this.safeBool(params, 'auto');
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory () requires a type argument');
+        }
+        const isAdd = type === 'add';
+        let subType = isAdd ? '160' : '161';
+        if (auto) {
+            if (isAdd) {
+                subType = '162';
+            }
+            else {
+                throw new errors.BadRequest(this.id + ' cannot fetch margin adjustments for type ' + type);
+            }
+        }
+        const request = {
+            'subType': subType,
+            'mgnMode': 'isolated',
+        };
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        const now = this.milliseconds();
+        const oneWeekAgo = now - 604800000;
+        const threeMonthsAgo = now - 7776000000;
+        if ((since === undefined) || (since > oneWeekAgo)) {
+            response = await this.privateGetAccountBills(this.extend(request, params));
+        }
+        else if (since > threeMonthsAgo) {
+            response = await this.privateGetAccountBillsArchive(this.extend(request, params));
+        }
+        else {
+            throw new errors.BadRequest(this.id + ' fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months');
+        }
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                bal: '67621.4325135010619812',
+        //                balChg: '-10.0000000000000000',
+        //                billId: '691293628710342659',
+        //                ccy: 'USDT',
+        //                clOrdId: '',
+        //                execType: '',
+        //                fee: '0',
+        //                fillFwdPx: '',
+        //                fillIdxPx: '',
+        //                fillMarkPx: '',
+        //                fillMarkVol: '',
+        //                fillPxUsd: '',
+        //                fillPxVol: '',
+        //                fillTime: '1711089244850',
+        //                from: '',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                interest: '0',
+        //                mgnMode: 'isolated',
+        //                notes: '',
+        //                ordId: '',
+        //                pnl: '0',
+        //                posBal: '73.12',
+        //                posBalChg: '10.00',
+        //                px: '',
+        //                subType: '160',
+        //                sz: '10',
+        //                tag: '',
+        //                to: '',
+        //                tradeId: '0',
+        //                ts: '1711089244699',
+        //                type: '6'
+        //            }
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeList(response, 'data');
+        const modifications = this.parseMarginModifications(data);
+        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+    }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchPositionsHistory
+         * @description fetches historical positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
+         * @param {string} [symbols] unified market symbols
+         * @param {int} [since] timestamp in ms of the earliest position to fetch
+         * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {string} [params.marginMode] "cross" or "isolated"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.instType] margin, swap, futures or option
+         * @param {string} [params.type] the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+         * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+         * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+         * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const marginMode = this.safeString(params, 'marginMode');
+        const instType = this.safeStringUpper(params, 'instType');
+        params = this.omit(params, ['until', 'marginMode', 'instType']);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'limit': limit,
+        };
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market(symbols[0]);
+                request['instId'] = market['id'];
+            }
+        }
+        if (marginMode !== undefined) {
+            request['mgnMode'] = marginMode;
+        }
+        if (instType !== undefined) {
+            request['instType'] = instType;
+        }
+        const response = await this.privateGetAccountPositionsHistory(this.extend(request, params));
+        //
+        //    {
+        //        code: '0',
+        //        data: [
+        //            {
+        //                cTime: '1708735940395',
+        //                ccy: 'USDT',
+        //                closeAvgPx: '0.6330444444444444',
+        //                closeTotalPos: '27',
+        //                direction: 'long',
+        //                fee: '-1.69566',
+        //                fundingFee: '-11.870404179341788',
+        //                instId: 'XRP-USDT-SWAP',
+        //                instType: 'SWAP',
+        //                lever: '3.0',
+        //                liqPenalty: '0',
+        //                mgnMode: 'cross',
+        //                openAvgPx: '0.623',
+        //                openMaxPos: '15',
+        //                pnl: '27.11999999999988',
+        //                pnlRatio: '0.0241732402722634',
+        //                posId: '681423155054862336',
+        //                realizedPnl: '13.553935820658092',
+        //                triggerPx: '',
+        //                type: '2',
+        //                uTime: '1711088748170',
+        //                uly: 'XRP-USDT'
+        //            },
+        //            ...
+        //        ],
+        //        msg: ''
+        //    }
+        //
+        const data = this.safeList(response, 'data');
+        const positions = this.parsePositions(data, symbols, params);
+        return this.filterBySinceLimit(positions, since, limit);
     }
 }
 

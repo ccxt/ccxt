@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -325,7 +325,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def fetch_deposit_addresses(self, codes=None, params={}):
+    def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
         fetch deposit addresses for multiple currencies and chain types
         :see: https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
@@ -366,7 +366,7 @@ class paymium(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post
@@ -409,7 +409,7 @@ class paymium(Exchange, ImplicitAPI):
         }
         return self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post

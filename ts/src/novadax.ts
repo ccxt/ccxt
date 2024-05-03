@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -77,7 +77,11 @@ export default class novadax extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -230,7 +234,7 @@ export default class novadax extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name novadax#fetchMarkets
@@ -404,7 +408,7 @@ export default class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -606,7 +610,7 @@ export default class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -662,7 +666,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -740,7 +744,7 @@ export default class novadax extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name novadax#createOrder
@@ -838,7 +842,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -867,7 +871,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
     }
 
@@ -907,7 +911,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
     }
 
@@ -968,7 +972,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1143,7 +1147,7 @@ export default class novadax extends Exchange {
         }, market);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name novadax#transfer
@@ -1180,7 +1184,7 @@ export default class novadax extends Exchange {
         //
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -1221,7 +1225,7 @@ export default class novadax extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name novadax#withdraw
@@ -1256,7 +1260,7 @@ export default class novadax extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name novadax#fetchAccounts
@@ -1382,7 +1386,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1529,7 +1533,7 @@ export default class novadax extends Exchange {
         //          "message": "Success"
         //      }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 

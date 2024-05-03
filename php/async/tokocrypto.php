@@ -8,12 +8,12 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\tokocrypto as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\MarginModeAlreadySet;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -625,7 +625,7 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-$symbol
@@ -698,7 +698,7 @@ class tokocrypto extends Exchange {
                         break;
                     }
                 }
-                $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
+                $isMarginTradingAllowed = $this->safe_bool($market, 'isMarginTradingAllowed', false);
                 $entry = array(
                     'id' => $id,
                     'lowercaseId' => $lowercaseId,
@@ -1002,14 +1002,14 @@ class tokocrypto extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://www.tokocrypto.com/apidocs/#recent-trades-list
-             * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
-             * get the list of most recent trades for a particular $symbol
+             * @see https://www.tokocrypto.com/apidocs/#recent-trades-$list
+             * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-$list
+             * get the $list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a $list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1025,8 +1025,28 @@ class tokocrypto extends Exchange {
                     $request['limit'] = $limit;
                 }
                 $responseInner = $this->publicGetOpenV1MarketTrades (array_merge($request, $params));
-                $data = $this->safe_value($responseInner, 'data', array());
-                return $this->parse_trades($data, $market, $since, $limit);
+                //
+                //    {
+                //       "code" => 0,
+                //       "msg" => "success",
+                //       "data" => {
+                //           "list" => array(
+                //                array(
+                //                    "id" => 28457,
+                //                    "price" => "4.00000100",
+                //                    "qty" => "12.00000000",
+                //                    "time" => 1499865549590,
+                //                    "isBuyerMaker" => true,
+                //                    "isBestMatch" => true
+                //                }
+                //            )
+                //        ),
+                //        "timestamp" => 1571921637091
+                //    }
+                //
+                $data = $this->safe_dict($responseInner, 'data', array());
+                $list = $this->safe_list($data, 'list', array());
+                return $this->parse_trades($list, $market, $since, $limit);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit; // default = 500, maximum = 1000
@@ -1037,7 +1057,7 @@ class tokocrypto extends Exchange {
             if (($method === 'binanceGetAggTrades') && ($since !== null)) {
                 $request['startTime'] = $since;
                 // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-$list
                 $request['endTime'] = $this->sum($since, 3600000);
                 $response = Async\await($this->binanceGetAggTrades (array_merge($request, $params)));
             } else {
@@ -1208,7 +1228,7 @@ class tokocrypto extends Exchange {
             );
             $response = Async\await($this->binanceGetTicker24hr (array_merge($request, $params)));
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-                $firstTicker = $this->safe_value($response, 0, array());
+                $firstTicker = $this->safe_dict($response, 0, array());
                 return $this->parse_ticker($firstTicker, $market);
             }
             return $this->parse_ticker($response, $market);
@@ -1328,7 +1348,7 @@ class tokocrypto extends Exchange {
             //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
             //     ]
             //
-            $data = $this->safe_value($response, 'data', $response);
+            $data = $this->safe_list($response, 'data', $response);
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1375,11 +1395,11 @@ class tokocrypto extends Exchange {
             //         "timestamp":1659666786943
             //     }
             //
-            return $this->parse_balance($response, $type, $marginMode);
+            return $this->parse_balance_custom($response, $type, $marginMode);
         }) ();
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null) {
+    public function parse_balance_custom($response, $type = null, $marginMode = null) {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
@@ -1586,7 +1606,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1605,7 +1625,7 @@ class tokocrypto extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $postOnly = $this->safe_bool($params, 'postOnly', false);
             // only supported for spot/margin api
             if ($postOnly) {
                 $type = 'LIMIT_MAKER';
@@ -1761,7 +1781,7 @@ class tokocrypto extends Exchange {
             //         "timestamp" => 1662710994975
             //     }
             //
-            $rawOrder = $this->safe_value($response, 'data', array());
+            $rawOrder = $this->safe_dict($response, 'data', array());
             return $this->parse_order($rawOrder, $market);
         }) ();
     }
@@ -1811,7 +1831,7 @@ class tokocrypto extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $list = $this->safe_value($data, 'list', array());
-            $rawOrder = $this->safe_value($list, 0, array());
+            $rawOrder = $this->safe_dict($list, 0, array());
             return $this->parse_order($rawOrder);
         }) ();
     }
@@ -1883,7 +1903,7 @@ class tokocrypto extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $orders = $this->safe_value($data, 'list', array());
+            $orders = $this->safe_list($data, 'list', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -1961,7 +1981,7 @@ class tokocrypto extends Exchange {
             //         "timestamp" => 1662710683634
             //     }
             //
-            $rawOrder = $this->safe_value($response, 'data', array());
+            $rawOrder = $this->safe_dict($response, 'data', array());
             return $this->parse_order($rawOrder);
         }) ();
     }
@@ -2023,7 +2043,7 @@ class tokocrypto extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $trades = $this->safe_value($data, 'list', array());
+            $trades = $this->safe_list($data, 'list', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -2142,7 +2162,7 @@ class tokocrypto extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $deposits = $this->safe_value($data, 'list', array());
+            $deposits = $this->safe_list($data, 'list', array());
             return $this->parse_transactions($deposits, $currency, $since, $limit);
         }) ();
     }
@@ -2200,7 +2220,7 @@ class tokocrypto extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $withdrawals = $this->safe_value($data, 'list', array());
+            $withdrawals = $this->safe_list($data, 'list', array());
             return $this->parse_transactions($withdrawals, $currency, $since, $limit);
         }) ();
     }
@@ -2341,7 +2361,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
@@ -2474,7 +2494,7 @@ class tokocrypto extends Exchange {
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;

@@ -21,6 +21,7 @@ class p2b extends Exchange {
             'countries' => array( 'LT' ),
             'rateLimit' => 100,
             'version' => 'v2',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -80,8 +81,11 @@ class p2b extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPermissions' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -232,7 +236,7 @@ class p2b extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bigone
@@ -579,7 +583,7 @@ class p2b extends Exchange {
             //        current_time => '1699255571.413828'
             //    }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_trades($result, $market, $since, $limit);
         }) ();
     }
@@ -697,7 +701,7 @@ class p2b extends Exchange {
             //        current_time => '1699256375.030494'
             //    }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -789,7 +793,7 @@ class p2b extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -836,7 +840,7 @@ class p2b extends Exchange {
             //        }
             //    }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -883,7 +887,7 @@ class p2b extends Exchange {
             //        }
             //    }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result);
         }) ();
     }
@@ -939,7 +943,7 @@ class p2b extends Exchange {
             //        )
             //    }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
         }) ();
     }
@@ -992,7 +996,7 @@ class p2b extends Exchange {
             //    }
             //
             $result = $this->safe_value($response, 'result', array());
-            $records = $this->safe_value($result, 'records', array());
+            $records = $this->safe_list($result, 'records', array());
             return $this->parse_trades($records, $market, $since, $limit);
         }) ();
     }
@@ -1068,7 +1072,7 @@ class p2b extends Exchange {
             //    }
             //
             $result = $this->safe_value($response, 'result', array());
-            $deals = $this->safe_value($result, 'deals', array());
+            $deals = $this->safe_list($result, 'deals', array());
             return $this->parse_trades($deals, $market, $since, $limit);
         }) ();
     }

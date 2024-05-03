@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -113,7 +113,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //                 "volume" => "3587.05020246",
         //                 "volumeQuote" => "708030.17",
         //                 "bid" => "199.56",
-        //                 "bidSize" => "4.14730803",
+        //                 "bidSize" => "4.14730802",
         //                 "ask" => "199.57",
         //                 "askSize" => "6.13642074",
         //                 "timestamp" => 1590770885217
@@ -436,7 +436,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $response = $this->safe_value($message, 'response');
         if ($response === null) {
-            return $message;
+            return;
         }
         $marketId = $this->safe_string($response, 'market');
         $symbol = $this->safe_symbol($marketId, null, '-');
@@ -557,7 +557,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()): PromiseInterface {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -588,7 +588,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function edit_order_ws(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -942,7 +942,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($deposits, $messageHash);
     }
 
-    public function fetch_trading_fees_ws($params = array ()) {
+    public function fetch_trading_fees_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
@@ -1143,7 +1143,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function check_message_hash_does_not_exist($messageHash) {
-        $supressMultipleWsRequestsError = $this->safe_value($this->options, 'supressMultipleWsRequestsError', false);
+        $supressMultipleWsRequestsError = $this->safe_bool($this->options, 'supressMultipleWsRequestsError', false);
         if (!$supressMultipleWsRequestsError) {
             $client = $this->safe_value($this->clients, $this->urls['api']['ws']);
             if ($client !== null) {
@@ -1260,27 +1260,29 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $timestamp = $this->milliseconds();
-            $stringTimestamp = (string) $timestamp;
-            $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $action = 'authenticate';
-            $request = array(
-                'action' => $action,
-                'key' => $this->apiKey,
-                'signature' => $signature,
-                'timestamp' => $timestamp,
-            );
-            $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $timestamp = $this->milliseconds();
+                $stringTimestamp = (string) $timestamp;
+                $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $action = 'authenticate';
+                $request = array(
+                    'action' => $action,
+                    'key' => $this->apiKey,
+                    'signature' => $signature,
+                    'timestamp' => $timestamp,
+                );
+                $message = array_merge($request, $params);
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 
     public function handle_authentication_message(Client $client, $message) {
@@ -1291,7 +1293,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //     }
         //
         $messageHash = 'authenticated';
-        $authenticated = $this->safe_value($message, 'authenticated', false);
+        $authenticated = $this->safe_bool($message, 'authenticated', false);
         if ($authenticated) {
             // we resolve the future here permanently so authentication only happens once
             $client->resolve ($message, $messageHash);
@@ -1405,9 +1407,15 @@ class bitvavo extends \ccxt\async\bitvavo {
             'getCandles' => array($this, 'handle_fetch_ohlcv'),
             'getMarkets' => array($this, 'handle_markets'),
         );
-        $event = $this->safe_string_2($message, 'event', 'action');
+        $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);
-        if ($method !== null) {
+        if ($method === null) {
+            $action = $this->safe_string($message, 'action');
+            $method = $this->safe_value($methods, $action);
+            if ($method !== null) {
+                $method($client, $message);
+            }
+        } else {
             $method($client, $message);
         }
     }

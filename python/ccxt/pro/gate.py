@@ -9,10 +9,10 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 
 
 class gate(ccxt.async_support.gate):
@@ -23,7 +23,7 @@ class gate(ccxt.async_support.gate):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchTicker': True,
-                'watchTickers': True,  # for now
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchMyTrades': True,
@@ -211,7 +211,7 @@ class gate(ccxt.async_support.gate):
                 # max limit is 100
                 subscription = client.subscriptions[messageHash]
                 limit = self.safe_integer(subscription, 'limit')
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})  # needed for c#, number of args needs to match
             storedOrderBook.cache.append(delta)
             return
         elif nonce >= deltaEnd:
@@ -263,6 +263,7 @@ class gate(ccxt.async_support.gate):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -271,40 +272,19 @@ class gate(ccxt.async_support.gate):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        marketId = market['id']
-        url = self.get_url_by_market(market)
-        messageType = self.get_type_by_market(market)
-        topic, query = self.handle_option_and_params(params, 'watchTicker', 'name', 'tickers')
-        channel = messageType + '.' + topic
-        messageHash = 'ticker:' + symbol
-        payload = [marketId]
-        return await self.subscribe_public(url, messageHash, payload, channel, query)
+        params['callerMethodName'] = 'watchTicker'
+        result = await self.watch_tickers([symbol], params)
+        return self.safe_value(result, symbol)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        if symbols is None:
-            raise ArgumentsRequired(self.id + ' watchTickers requires symbols')
-        market = self.market(symbols[0])
-        messageType = self.get_type_by_market(market)
-        marketIds = self.market_ids(symbols)
-        topic, query = self.handle_option_and_params(params, 'watchTicker', 'method', 'tickers')
-        channel = messageType + '.' + topic
-        messageHash = 'tickers'
-        url = self.get_url_by_market(market)
-        ticker = await self.subscribe_public(url, messageHash, marketIds, channel, query)
-        result = {}
-        if self.newUpdates:
-            result[ticker['symbol']] = ticker
-        else:
-            result = self.tickers
-        return self.filter_by_array(result, 'symbol', symbols, True)
+        return await self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchTickers', self.extend({'method': 'tickers'}, params))
 
     def handle_ticker(self, client: Client, message):
         #
@@ -324,6 +304,22 @@ class gate(ccxt.async_support.gate):
         #          "low_24h": "42721.03"
         #        }
         #    }
+        #
+        self.handle_ticker_and_bid_ask('ticker', client, message)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
+        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        return await self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchBidsAsks', self.extend({'method': 'book_ticker'}, params))
+
+    def handle_bid_ask(self, client: Client, message):
+        #
         #    {
         #        "time": 1671363004,
         #        "time_ms": 1671363004235,
@@ -340,23 +336,58 @@ class gate(ccxt.async_support.gate):
         #        }
         #    }
         #
+        self.handle_ticker_and_bid_ask('bidask', client, message)
+
+    async def subscribe_watch_tickers_and_bids_asks(self, symbols: Strings = None, callerMethodName: Str = None, params={}) -> Tickers:
+        await self.load_markets()
+        callerMethodName, params = self.handle_param_string(params, 'callerMethodName', callerMethodName)
+        symbols = self.market_symbols(symbols, None, False)
+        market = self.market(symbols[0])
+        messageType = self.get_type_by_market(market)
+        marketIds = self.market_ids(symbols)
+        channelName = None
+        channelName, params = self.handle_option_and_params(params, callerMethodName, 'method')
+        url = self.get_url_by_market(market)
+        channel = messageType + '.' + channelName
+        isWatchTickers = callerMethodName.find('watchTicker') >= 0
+        prefix = 'ticker' if isWatchTickers else 'bidask'
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append(prefix + ':' + symbol)
+        tickerOrBidAsk = await self.subscribe_public_multiple(url, messageHashes, marketIds, channel, params)
+        if self.newUpdates:
+            items = {}
+            items[tickerOrBidAsk['symbol']] = tickerOrBidAsk
+            return items
+        result = self.tickers if isWatchTickers else self.bidsasks
+        return self.filter_by_array(result, 'symbol', symbols, True)
+
+    def handle_ticker_and_bid_ask(self, objectName: str, client: Client, message):
         channel = self.safe_string(message, 'channel')
         parts = channel.split('.')
         rawMarketType = self.safe_string(parts, 0)
         marketType = 'contract' if (rawMarketType == 'futures') else 'spot'
         result = self.safe_value(message, 'result')
-        if not isinstance(result, list):
-            result = [result]
-        for i in range(0, len(result)):
-            ticker = result[i]
-            marketId = self.safe_string(ticker, 's')
+        results = []
+        if isinstance(result, list):
+            results = self.safe_list(message, 'result', [])
+        else:
+            rawTicker = self.safe_dict(message, 'result', {})
+            results = [rawTicker]
+        isTicker = (objectName == 'ticker')  # whether ticker or bid-ask
+        for i in range(0, len(results)):
+            rawTicker = results[i]
+            marketId = self.safe_string(rawTicker, 's')
             market = self.safe_market(marketId, None, '_', marketType)
-            parsed = self.parse_ticker(ticker, market)
-            symbol = parsed['symbol']
-            self.tickers[symbol] = parsed
-            messageHash = 'ticker:' + symbol
-            client.resolve(parsed, messageHash)
-            client.resolve(parsed, 'tickers')
+            parsedItem = self.parse_ticker(rawTicker, market)
+            symbol = parsedItem['symbol']
+            if isTicker:
+                self.tickers[symbol] = parsedItem
+            else:
+                self.bidsasks[symbol] = parsedItem
+            messageHash = objectName + ':' + symbol
+            client.resolve(parsedItem, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -738,7 +769,7 @@ class gate(ccxt.async_support.gate):
         client = self.client(url)
         self.set_positions_cache(client, type, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             return await client.future(type + ':fetchPositionsSnapshot')
@@ -1091,7 +1122,7 @@ class gate(ccxt.async_support.gate):
             'orders': self.handle_order,
             'positions': self.handle_positions,
             'tickers': self.handle_ticker,
-            'book_ticker': self.handle_ticker,
+            'book_ticker': self.handle_bid_ask,
             'trades': self.handle_trades,
             'order_book_update': self.handle_order_book,
             'balances': self.handle_balance,

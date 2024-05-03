@@ -415,7 +415,7 @@ export default class zonda extends Exchange {
         await this.loadMarkets();
         const request = {};
         const response = await this.v1_01PrivateGetTradingOffer(this.extend(request, params));
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseOrders(items, undefined, since, limit, { 'status': 'open' });
     }
     parseOrder(order, market = undefined) {
@@ -802,7 +802,7 @@ export default class zonda extends Exchange {
         else {
             throw new BadRequest(this.id + ' fetchTickers params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
         }
-        const items = this.safeValue(response, 'items');
+        const items = this.safeDict(response, 'items');
         return this.parseTickers(items, symbols);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1204,6 +1204,9 @@ export default class zonda extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
+        else {
+            limit = Math.min(limit, 11000); // supports up to 11k candles diapason
+        }
         const duration = this.parseTimeframe(timeframe);
         const timerange = limit * duration * 1000;
         if (since === undefined) {
@@ -1225,7 +1228,7 @@ export default class zonda extends Exchange {
         //         ]
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseOHLCVs(items, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1330,7 +1333,7 @@ export default class zonda extends Exchange {
             request['limit'] = limit; // default - 10, max - 300
         }
         const response = await this.v1_01PublicGetTradingTransactionsSymbol(this.extend(request, params));
-        const items = this.safeValue(response, 'items');
+        const items = this.safeList(response, 'items');
         return this.parseTrades(items, market, since, limit);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1439,7 +1442,7 @@ export default class zonda extends Exchange {
         //     }
         //
         const id = this.safeString2(response, 'offerId', 'stopOfferId');
-        const completed = this.safeValue(response, 'completed', false);
+        const completed = this.safeBool(response, 'completed', false);
         const status = completed ? 'closed' : 'open';
         const transactions = this.safeValue(response, 'transactions');
         return this.safeOrder({
@@ -1501,7 +1504,7 @@ export default class zonda extends Exchange {
             'EUR': true,
             'PLN': true,
         };
-        return this.safeValue(fiatCurrencies, currency, false);
+        return this.safeBool(fiatCurrencies, currency, false);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -1555,7 +1558,7 @@ export default class zonda extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        const first = this.safeValue(data, 0);
+        const first = this.safeDict(data, 0);
         return this.parseDepositAddress(first, currency);
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
@@ -1583,7 +1586,7 @@ export default class zonda extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseDepositAddresses(data, codes);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -1638,7 +1641,7 @@ export default class zonda extends Exchange {
         //
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['amount'] = amount;
         }
@@ -1740,7 +1743,7 @@ export default class zonda extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseTransaction(data, currency);
     }
     parseTransaction(transaction, currency = undefined) {

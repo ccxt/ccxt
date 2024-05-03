@@ -1,14 +1,15 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testTicker from './base/test.ticker.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchTickers (exchange, skippedProperties, symbol) {
+async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testFetchTickersHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
+async function testFetchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
     assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
@@ -17,6 +18,7 @@ async function testFetchTickersHelper (exchange, skippedProperties, argSymbols, 
     if (argSymbols !== undefined && argSymbols.length === 1) {
         checkedSymbol = argSymbols[0];
     }
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
         const ticker = values[i];

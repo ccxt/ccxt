@@ -77,7 +77,11 @@ class novadax extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -230,7 +234,7 @@ class novadax extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for novadax
@@ -403,7 +407,7 @@ class novadax extends Exchange {
             //         "message":"Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
         }) ();
     }
@@ -605,7 +609,7 @@ class novadax extends Exchange {
             //         "message":"Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -661,7 +665,7 @@ class novadax extends Exchange {
             //         "message" => "Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -740,7 +744,7 @@ class novadax extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -837,7 +841,7 @@ class novadax extends Exchange {
             //         "message" => "Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -866,7 +870,7 @@ class novadax extends Exchange {
             //         "message" => "Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
         }) ();
     }
@@ -906,7 +910,7 @@ class novadax extends Exchange {
             //         "message" => "Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data);
         }) ();
     }
@@ -967,7 +971,7 @@ class novadax extends Exchange {
             //         "message" => "Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -1143,7 +1147,7 @@ class novadax extends Exchange {
         ), $market);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -1179,7 +1183,7 @@ class novadax extends Exchange {
             //
             $transfer = $this->parse_transfer($response, $currency);
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $transfer['fromAccount'] = $fromAccount;
                 $transfer['toAccount'] = $toAccount;
@@ -1221,7 +1225,7 @@ class novadax extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1256,7 +1260,7 @@ class novadax extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -1381,7 +1385,7 @@ class novadax extends Exchange {
             //         "message" => "Success"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -1528,7 +1532,7 @@ class novadax extends Exchange {
             //          "message" => "Success"
             //      }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }

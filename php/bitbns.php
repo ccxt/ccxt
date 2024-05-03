@@ -26,6 +26,7 @@ class bitbns extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => null, // coming soon
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -177,7 +178,7 @@ class bitbns extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bitbns
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -570,7 +571,7 @@ class bitbns extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
@@ -711,7 +712,7 @@ class bitbns extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0);
+        $first = $this->safe_dict($data, 0);
         return $this->parse_order($first, $market);
     }
 
@@ -761,7 +762,7 @@ class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -909,7 +910,7 @@ class bitbns extends Exchange {
         //         "code" => 200
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -984,7 +985,7 @@ class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -1010,7 +1011,7 @@ class bitbns extends Exchange {
         //
         //     ...
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 

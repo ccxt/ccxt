@@ -1,15 +1,15 @@
 import poloniexRest from '../poloniex.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): any;
     authenticate(params?: {}): Promise<any>;
     subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
     tradeRequest(name: string, params?: {}): Promise<any>;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelOrdersWs(ids: string[], symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
     handleOrderRequest(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -33,7 +33,7 @@ export default class poloniex extends poloniexRest {
     parseWsBalance(response: any): Balances;
     handleMyTrades(client: Client, parsedTrade: any): void;
     handlePong(client: Client): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleAuthenticate(client: Client, message: any): any;
     ping(client: any): {

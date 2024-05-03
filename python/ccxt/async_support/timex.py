@@ -5,9 +5,10 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -17,7 +18,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -55,6 +55,9 @@ class timex(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -75,12 +78,16 @@ class timex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,  # maker fee only
                 'fetchWithdrawal': False,
@@ -109,7 +116,7 @@ class timex(Exchange, ImplicitAPI):
                     'rest': 'https://plasma-relay-backend.timex.io',
                 },
                 'www': 'https://timex.io',
-                'doc': 'https://docs.timex.io',
+                'doc': 'https://plasma-relay-backend.timex.io/swagger-ui/index.html',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
@@ -276,9 +283,22 @@ class timex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
+        response = await self.tradingviewGetTime(params)
+        #
+        #     1708682617
+        #
+        return self.parse_to_int(response) * 1000
+
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for timex
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listMarkets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -306,9 +326,10 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCurrencies
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -347,6 +368,7 @@ class timex(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getDeposits
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -379,6 +401,7 @@ class timex(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made to an account
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getWithdraws
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of transaction structures to retrieve
@@ -458,6 +481,7 @@ class timex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -490,6 +514,7 @@ class timex(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -519,12 +544,13 @@ class timex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        ticker = self.safe_value(response, 0)
+        ticker = self.safe_dict(response, 0)
         return self.parse_ticker(ticker, market)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/orderbookV2
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -568,6 +594,7 @@ class timex(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTrades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -611,6 +638,7 @@ class timex(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCandles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -670,6 +698,7 @@ class timex(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getBalances
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -686,9 +715,10 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/createOrder
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -701,7 +731,7 @@ class timex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uppercaseSide = side.upper()
         uppercaseType = type.upper()
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         if postOnly:
             uppercaseType = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])
@@ -752,10 +782,10 @@ class timex(Exchange, ImplicitAPI):
         #     }
         #
         orders = self.safe_value(response, 'orders', [])
-        order = self.safe_value(orders, 0, {})
+        order = self.safe_dict(orders, 0, {})
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -800,12 +830,13 @@ class timex(Exchange, ImplicitAPI):
             })
         orders = self.safe_value(response, 'changedOrders', [])
         firstOrder = self.safe_value(orders, 0, {})
-        order = self.safe_value(firstOrder, 'newOrder', {})
+        order = self.safe_dict(firstOrder, 'newOrder', {})
         return self.parse_order(order, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
         :param str id: order id
         :param str symbol: not used by timex cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -817,6 +848,7 @@ class timex(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -856,6 +888,7 @@ class timex(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrderDetails
         :param str symbol: not used by timex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -899,12 +932,13 @@ class timex(Exchange, ImplicitAPI):
         #     }
         #
         order = self.safe_value(response, 'order', {})
-        trades = self.safe_value(response, 'trades', [])
+        trades = self.safe_list(response, 'trades', [])
         return self.parse_order(self.extend(order, {'trades': trades}))
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getOpenOrders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -949,12 +983,13 @@ class timex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        orders = self.safe_value(response, 'orders', [])
+        orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1003,12 +1038,13 @@ class timex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        orders = self.safe_value(response, 'orders', [])
+        orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getTrades_1
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1060,10 +1096,10 @@ class timex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        trades = self.safe_value(response, 'trades', [])
+        trades = self.safe_list(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "fee": 0.0075,
@@ -1077,11 +1113,14 @@ class timex(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(marketId, market),
             'maker': rate,
             'taker': rate,
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getFees
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1461,11 +1500,72 @@ class timex(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
+    async def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account, does not accept params["network"]
+        :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Currency/selectCurrencyBySymbol
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'symbol': currency['code'],
+        }
+        response = await self.currenciesGetSSymbol(self.extend(request, params))
+        #
+        #    {
+        #        id: '1',
+        #        currency: {
+        #            symbol: 'BTC',
+        #            name: 'Bitcoin',
+        #            address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        #            decimals: '8',
+        #            tradeDecimals: '20',
+        #            fiatSymbol: 'BTC',
+        #            depositEnabled: True,
+        #            withdrawalEnabled: True,
+        #            transferEnabled: True,
+        #            active: True
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'currency', {})
+        return self.parse_deposit_address(data, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        symbol: 'BTC',
+        #        name: 'Bitcoin',
+        #        address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        #        decimals: '8',
+        #        tradeDecimals: '20',
+        #        fiatSymbol: 'BTC',
+        #        depositEnabled: True,
+        #        withdrawalEnabled: True,
+        #        transferEnabled: True,
+        #        active: True
+        #    }
+        #
+        currencyId = self.safe_string(depositAddress, 'symbol')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': None,
+            'network': None,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        paramsToExtract = self.extract_params(path)
+        path = self.implode_params(path, params)
+        params = self.omit(params, paramsToExtract)
         url = self.urls['api']['rest'] + '/' + api + '/' + path
         if params:
             url += '?' + self.urlencode_with_array_repeat(params)
-        if api != 'public':
+        if api != 'public' and api != 'tradingview':
             self.check_required_credentials()
             auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             secret = 'Basic ' + auth

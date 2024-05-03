@@ -1,465 +1,974 @@
 {
-  "exchange": "kraken",
-  "skipKeys": [],
-  "options": {
-  },
-  "methods": {
-    "fetchOrder": [
-      {
-        "description": "fetch spot limit order",
-        "method": "fetchOrder",
-        "input": [
-          "OR6EGN-KQSEG-AMI6CL",
-          "LTC/USDT"
-        ],
-        "httpResponse": {
-          "error": [],
-          "result": {
-            "OR6EGN-KQSEG-AMI6CL": {
-              "refid": null,
-              "userref": "0",
-              "status": "open",
-              "opentm": "1705259439.563573",
-              "starttm": "0",
-              "expiretm": "0",
-              "descr": {
-                "pair": "LTCUSDT",
-                "type": "buy",
-                "ordertype": "limit",
-                "price": "50.00000",
-                "price2": "0",
-                "leverage": "none",
-                "order": "buy 0.10000000 LTCUSDT @ limit 50.00000",
-                "close": ""
-              },
-              "vol": "0.10000000",
-              "vol_exec": "0.00000000",
-              "cost": "0.000000",
-              "fee": "0.000000",
-              "price": "0.000000",
-              "stopprice": "0.000000",
-              "limitprice": "0.000000",
-              "misc": "",
-              "oflags": "post,fciq",
-              "reason": null
-            }
-          }
-        },
-        "parsedResponse": {
-          "id": "OR6EGN-KQSEG-AMI6CL",
-          "clientOrderId": "0",
-          "info": {
-            "id": "OR6EGN-KQSEG-AMI6CL",
-            "refid": null,
-            "userref": "0",
-            "status": "open",
-            "opentm": "1705259439.563573",
-            "starttm": "0",
-            "expiretm": "0",
-            "descr": {
-              "pair": "LTCUSDT",
-              "type": "buy",
-              "ordertype": "limit",
-              "price": "50.00000",
-              "price2": "0",
-              "leverage": "none",
-              "order": "buy 0.10000000 LTCUSDT @ limit 50.00000",
-              "close": ""
-            },
-            "vol": "0.10000000",
-            "vol_exec": "0.00000000",
-            "cost": "0.000000",
-            "fee": "0.000000",
-            "price": "0.000000",
-            "stopprice": "0.000000",
-            "limitprice": "0.000000",
-            "misc": "",
-            "oflags": "post,fciq",
-            "reason": null
-          },
-          "timestamp": 1705259439563,
-          "datetime": "2024-01-14T19:10:39.563Z",
-          "lastTradeTimestamp": null,
-          "status": "open",
-          "symbol": "LTC/USDT",
-          "type": "limit",
-          "timeInForce": "PO",
-          "postOnly": true,
-          "side": "buy",
-          "price": 50,
-          "stopPrice": null,
-          "triggerPrice": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null,
-          "cost": 0,
-          "amount": 0.1,
-          "filled": 0,
-          "average": null,
-          "remaining": 0.1,
-          "fee": {
-            "cost": "0.000000",
-            "rate": null,
-            "currency": "USDT"
-          },
-          "trades": [],
-          "fees": [
+    "exchange": "kraken",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "createOrder": [
             {
-              "cost": 0,
-              "rate": null,
-              "currency": "USDT"
-            }
-          ],
-          "lastUpdateTimestamp": null,
-          "reduceOnly": null
-        }
-      },
-      {
-        "description": "closed market order",
-        "disabledPHP": true,
-        "method": "fetchOrder",
-        "input": [
-          "OGMZCL-KC6MC-ZRBGM6",
-          "LTC/USDT"
-        ],
-        "httpResponse": {
-          "error": [],
-          "result": {
-            "OGMZCL-KC6MC-ZRBGM6": {
-              "refid": null,
-              "userref": "0",
-              "status": "closed",
-              "opentm": "1705260547.472841",
-              "starttm": "0",
-              "expiretm": "0",
-              "descr": {
-                "pair": "LTCUSDT",
-                "type": "buy",
-                "ordertype": "market",
-                "price": "0",
-                "price2": "0",
-                "leverage": "none",
-                "order": "buy 0.10000000 LTCUSDT @ market",
-                "close": ""
-              },
-              "vol": "0.10000000",
-              "vol_exec": "0.10000000",
-              "cost": "7.105741",
-              "fee": "0.018475",
-              "price": "71.05741",
-              "stopprice": "0.000000",
-              "limitprice": "0.000000",
-              "misc": "",
-              "oflags": "fciq",
-              "trades": [
-                "TWA6QJ-ZO4EM-6QIHQJ"
-              ],
-              "reason": null,
-              "closetm": "1705260547.4728658"
-            }
-          }
-        },
-        "parsedResponse": {
-          "id": "OGMZCL-KC6MC-ZRBGM6",
-          "clientOrderId": "0",
-          "info": {
-            "id": "OGMZCL-KC6MC-ZRBGM6",
-            "refid": null,
-            "userref": "0",
-            "status": "closed",
-            "opentm": "1705260547.472841",
-            "starttm": "0",
-            "expiretm": "0",
-            "descr": {
-              "pair": "LTCUSDT",
-              "type": "buy",
-              "ordertype": "market",
-              "price": "0",
-              "price2": "0",
-              "leverage": "none",
-              "order": "buy 0.10000000 LTCUSDT @ market",
-              "close": ""
-            },
-            "vol": "0.10000000",
-            "vol_exec": "0.10000000",
-            "cost": "7.105741",
-            "fee": "0.018475",
-            "price": "71.05741",
-            "stopprice": "0.000000",
-            "limitprice": "0.000000",
-            "misc": "",
-            "oflags": "fciq",
-            "trades": [
-              "TWA6QJ-ZO4EM-6QIHQJ"
-            ],
-            "reason": null,
-            "closetm": "1705260547.4728658"
-          },
-          "timestamp": 1705260547472,
-          "datetime": "2024-01-14T19:29:07.472Z",
-          "lastTradeTimestamp": null,
-          "status": "closed",
-          "symbol": "LTC/USDT",
-          "type": "market",
-          "timeInForce": "IOC",
-          "postOnly": false,
-          "side": "buy",
-          "price": 71.05741,
-          "stopPrice": null,
-          "triggerPrice": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null,
-          "cost": 7.105741,
-          "amount": 0.1,
-          "filled": 0.1,
-          "average": 71.05741,
-          "remaining": 0,
-          "fee": {
-            "cost": "0.018475",
-            "rate": null,
-            "currency": "USDT"
-          },
-          "trades": [
-            {
-              "id": "TWA6QJ-ZO4EM-6QIHQJ",
-              "orderId": "OGMZCL-KC6MC-ZRBGM6",
-              "symbol": "LTC/USDT",
-              "info": {},
-              "fees": [],
-              "amount": null,
-              "price": null,
-              "cost": null,
-              "fee": {
-                "cost": null
-              }
-            }
-          ],
-          "fees": [
-            {
-              "cost": 0.018475,
-              "rate": null,
-              "currency": "USDT"
-            }
-          ],
-          "lastUpdateTimestamp": null,
-          "reduceOnly": null
-        }
-      }
-    ],
-    "fetchOpenOrders": [
-      {
-        "description": "open take-profit market order",
-        "method": "fetchOpenOrders",
-        "input": [],
-        "httpResponse": {
-          "error": [],
-          "result": {
-            "open": {
-              "OXCZ7B-EMVZQ-MTJTQJ": {
-                "refid": null,
-                "userref": "0",
-                "status": "open",
-                "opentm": "1705260203.5836048",
-                "starttm": "0",
-                "expiretm": "0",
-                "descr": {
-                  "pair": "LTCUSDT",
-                  "type": "sell",
-                  "ordertype": "take-profit",
-                  "price": "120.00000",
-                  "price2": "0",
-                  "leverage": "none",
-                  "order": "sell 0.10000000 LTCUSDT @ take profit 120.00000",
-                  "close": ""
+                "description": "create order",
+                "method": "createOrder",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.1
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "txid": [
+                      "OL7LNO-R4SAD-6UINEU"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ market"
+                    }
+                  }
                 },
-                "vol": "0.10000000",
-                "vol_exec": "0.00000000",
-                "cost": "0.000000",
-                "fee": "0.000000",
-                "price": "0.000000",
-                "stopprice": "0.000000",
-                "limitprice": "0.000000",
-                "misc": "",
-                "oflags": "fciq"
-              }
+                "parsedResponse": {
+                  "id": "OL7LNO-R4SAD-6UINEU",
+                  "clientOrderId": null,
+                  "info": {
+                    "txid": [
+                      "OL7LNO-R4SAD-6UINEU"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ market"
+                    }
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "lastTradeTimestamp": null,
+                  "status": null,
+                  "symbol": "LTC/USDT",
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": false,
+                  "side": "buy",
+                  "price": null,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null,
+                  "cost": null,
+                  "amount": 0.1,
+                  "filled": null,
+                  "average": null,
+                  "remaining": null,
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "lastUpdateTimestamp": null,
+                  "reduceOnly": null
+                }
             }
-          }
-        },
-        "parsedResponse": [
-          {
-            "id": "OXCZ7B-EMVZQ-MTJTQJ",
-            "clientOrderId": "0",
-            "info": {
-              "id": "OXCZ7B-EMVZQ-MTJTQJ",
-              "refid": null,
-              "userref": "0",
-              "status": "open",
-              "opentm": "1705260203.5836048",
-              "starttm": "0",
-              "expiretm": "0",
-              "descr": {
-                "pair": "LTCUSDT",
-                "type": "sell",
-                "ordertype": "take-profit",
-                "price": "120.00000",
-                "price2": "0",
-                "leverage": "none",
-                "order": "sell 0.10000000 LTCUSDT @ take profit 120.00000",
-                "close": ""
-              },
-              "vol": "0.10000000",
-              "vol_exec": "0.00000000",
-              "cost": "0.000000",
-              "fee": "0.000000",
-              "price": "0.000000",
-              "stopprice": "0.000000",
-              "limitprice": "0.000000",
-              "misc": "",
-              "oflags": "fciq"
-            },
-            "timestamp": 1705260203583,
-            "datetime": "2024-01-14T19:23:23.583Z",
-            "lastTradeTimestamp": null,
-            "status": "open",
-            "symbol": "LTC/USDT",
-            "type": "market",
-            "timeInForce": "IOC",
-            "postOnly": false,
-            "side": "sell",
-            "price": null,
-            "stopPrice": null,
-            "triggerPrice": null,
-            "takeProfitPrice": 120,
-            "stopLossPrice": null,
-            "cost": null,
-            "amount": 0.1,
-            "filled": 0,
-            "average": null,
-            "remaining": 0.1,
-            "fee": {
-              "cost": "0.000000",
-              "rate": null,
-              "currency": "USDT"
-            },
-            "trades": [],
-            "fees": [
-              {
-                "cost": 0,
-                "rate": null,
-                "currency": "USDT"
-              }
-            ],
-            "lastUpdateTimestamp": null,
-            "reduceOnly": null
-          }
-        ]
-      },
-      {
-        "description": "open stop-loss-limit order",
-        "method": "fetchOpenOrders",
-        "input": [],
-        "httpResponse": {
-          "error": [],
-          "result": {
-            "open": {
-              "OIIQBL-6PV3A-7M2AJJ": {
-                "refid": null,
-                "userref": "0",
-                "status": "open",
-                "opentm": "1705260464.9731748",
-                "starttm": "0",
-                "expiretm": "0",
-                "descr": {
-                  "pair": "LTCUSDT",
-                  "type": "sell",
-                  "ordertype": "stop-loss-limit",
-                  "price": "55.00000",
-                  "price2": "54.00000",
-                  "leverage": "none",
-                  "order": "sell 0.10000000 LTCUSDT @ stop loss 55.00000 -> limit 54.00000",
-                  "close": ""
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch spot limit order",
+                "method": "fetchOrder",
+                "input": [
+                    "OR6EGN-KQSEG-AMI6CL",
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "OR6EGN-KQSEG-AMI6CL": {
+                            "refid": null,
+                            "userref": "0",
+                            "status": "open",
+                            "opentm": "1705259439.563000",
+                            "starttm": "0",
+                            "expiretm": "0",
+                            "descr": {
+                                "pair": "LTCUSDT",
+                                "type": "buy",
+                                "ordertype": "limit",
+                                "price": "50.00000",
+                                "price2": "0",
+                                "leverage": "none",
+                                "order": "buy 0.10000000 LTCUSDT @ limit 50.00000",
+                                "close": ""
+                            },
+                            "vol": "0.10000000",
+                            "vol_exec": "0.00000000",
+                            "cost": "0.000000",
+                            "fee": "0.000000",
+                            "price": "0.000000",
+                            "stopprice": "0.000000",
+                            "limitprice": "0.000000",
+                            "misc": "",
+                            "oflags": "post,fciq",
+                            "reason": null
+                        }
+                    }
                 },
-                "vol": "0.10000000",
-                "vol_exec": "0.00000000",
-                "cost": "0.000000",
-                "fee": "0.000000",
-                "price": "0.000000",
-                "stopprice": "0.000000",
-                "limitprice": "0.000000",
-                "misc": "",
-                "oflags": "fciq"
-              }
+                "parsedResponse": {
+                    "id": "OR6EGN-KQSEG-AMI6CL",
+                    "clientOrderId": "0",
+                    "info": {
+                        "id": "OR6EGN-KQSEG-AMI6CL",
+                        "refid": null,
+                        "userref": "0",
+                        "status": "open",
+                        "opentm": "1705259439.563000",
+                        "starttm": "0",
+                        "expiretm": "0",
+                        "descr": {
+                            "pair": "LTCUSDT",
+                            "type": "buy",
+                            "ordertype": "limit",
+                            "price": "50.00000",
+                            "price2": "0",
+                            "leverage": "none",
+                            "order": "buy 0.10000000 LTCUSDT @ limit 50.00000",
+                            "close": ""
+                        },
+                        "vol": "0.10000000",
+                        "vol_exec": "0.00000000",
+                        "cost": "0.000000",
+                        "fee": "0.000000",
+                        "price": "0.000000",
+                        "stopprice": "0.000000",
+                        "limitprice": "0.000000",
+                        "misc": "",
+                        "oflags": "post,fciq",
+                        "reason": null
+                    },
+                    "timestamp": 1705259439563,
+                    "datetime": "2024-01-14T19:10:39.563Z",
+                    "lastTradeTimestamp": null,
+                    "status": "open",
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "PO",
+                    "postOnly": true,
+                    "side": "buy",
+                    "price": 50,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 0,
+                    "amount": 0.1,
+                    "filled": 0,
+                    "average": null,
+                    "remaining": 0.1,
+                    "fee": {
+                        "cost": "0.000000",
+                        "rate": null,
+                        "currency": "USDT"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "rate": null,
+                            "currency": "USDT"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null
+                }
+            },
+            {
+                "description": "closed market order",
+                "disabledPHP": true,
+                "method": "fetchOrder",
+                "input": [
+                    "OGMZCL-KC6MC-ZRBGM6",
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "OGMZCL-KC6MC-ZRBGM6": {
+                            "refid": null,
+                            "userref": "0",
+                            "status": "closed",
+                            "opentm": "1705260547.472000",
+                            "starttm": "0",
+                            "expiretm": "0",
+                            "descr": {
+                                "pair": "LTCUSDT",
+                                "type": "buy",
+                                "ordertype": "market",
+                                "price": "0",
+                                "price2": "0",
+                                "leverage": "none",
+                                "order": "buy 0.10000000 LTCUSDT @ market",
+                                "close": ""
+                            },
+                            "vol": "0.10000000",
+                            "vol_exec": "0.10000000",
+                            "cost": "7.105741",
+                            "fee": "0.018475",
+                            "price": "71.05741",
+                            "stopprice": "0.000000",
+                            "limitprice": "0.000000",
+                            "misc": "",
+                            "oflags": "fciq",
+                            "trades": [
+                                "TWA6QJ-ZO4EM-6QIHQJ"
+                            ],
+                            "reason": null,
+                            "closetm": "1705260547.4728658"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "OGMZCL-KC6MC-ZRBGM6",
+                    "clientOrderId": "0",
+                    "info": {
+                        "id": "OGMZCL-KC6MC-ZRBGM6",
+                        "refid": null,
+                        "userref": "0",
+                        "status": "closed",
+                        "opentm": "1705260547.472000",
+                        "starttm": "0",
+                        "expiretm": "0",
+                        "descr": {
+                            "pair": "LTCUSDT",
+                            "type": "buy",
+                            "ordertype": "market",
+                            "price": "0",
+                            "price2": "0",
+                            "leverage": "none",
+                            "order": "buy 0.10000000 LTCUSDT @ market",
+                            "close": ""
+                        },
+                        "vol": "0.10000000",
+                        "vol_exec": "0.10000000",
+                        "cost": "7.105741",
+                        "fee": "0.018475",
+                        "price": "71.05741",
+                        "stopprice": "0.000000",
+                        "limitprice": "0.000000",
+                        "misc": "",
+                        "oflags": "fciq",
+                        "trades": [
+                            "TWA6QJ-ZO4EM-6QIHQJ"
+                        ],
+                        "reason": null,
+                        "closetm": "1705260547.4728658"
+                    },
+                    "timestamp": 1705260547472,
+                    "datetime": "2024-01-14T19:29:07.472Z",
+                    "lastTradeTimestamp": null,
+                    "status": "closed",
+                    "symbol": "LTC/USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 71.05741,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 7.105741,
+                    "amount": 0.1,
+                    "filled": 0.1,
+                    "average": 71.05741,
+                    "remaining": 0,
+                    "fee": {
+                        "cost": "0.018475",
+                        "rate": null,
+                        "currency": "USDT"
+                    },
+                    "trades": [
+                        {
+                            "id": "TWA6QJ-ZO4EM-6QIHQJ",
+                            "orderId": "OGMZCL-KC6MC-ZRBGM6",
+                            "symbol": "LTC/USDT",
+                            "info": {},
+                            "fees": [],
+                            "amount": null,
+                            "price": null,
+                            "cost": null,
+                            "fee": {
+                                "cost": null
+                            }
+                        }
+                    ],
+                    "fees": [
+                        {
+                            "cost": 0.018475,
+                            "rate": null,
+                            "currency": "USDT"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null
+                }
             }
-          }
-        },
-        "parsedResponse": [
-          {
-            "id": "OIIQBL-6PV3A-7M2AJJ",
-            "clientOrderId": "0",
-            "info": {
-              "id": "OIIQBL-6PV3A-7M2AJJ",
-              "refid": null,
-              "userref": "0",
-              "status": "open",
-              "opentm": "1705260464.9731748",
-              "starttm": "0",
-              "expiretm": "0",
-              "descr": {
-                "pair": "LTCUSDT",
-                "type": "sell",
-                "ordertype": "stop-loss-limit",
-                "price": "55.00000",
-                "price2": "54.00000",
-                "leverage": "none",
-                "order": "sell 0.10000000 LTCUSDT @ stop loss 55.00000 -> limit 54.00000",
-                "close": ""
-              },
-              "vol": "0.10000000",
-              "vol_exec": "0.00000000",
-              "cost": "0.000000",
-              "fee": "0.000000",
-              "price": "0.000000",
-              "stopprice": "0.000000",
-              "limitprice": "0.000000",
-              "misc": "",
-              "oflags": "fciq"
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open take-profit market order",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "open": {
+                            "OXCZ7B-EMVZQ-MTJTQJ": {
+                                "refid": null,
+                                "userref": "0",
+                                "status": "open",
+                                "opentm": "1705260203.583000",
+                                "starttm": "0",
+                                "expiretm": "0",
+                                "descr": {
+                                    "pair": "LTCUSDT",
+                                    "type": "sell",
+                                    "ordertype": "take-profit",
+                                    "price": "120.00000",
+                                    "price2": "0",
+                                    "leverage": "none",
+                                    "order": "sell 0.10000000 LTCUSDT @ take profit 120.00000",
+                                    "close": ""
+                                },
+                                "vol": "0.10000000",
+                                "vol_exec": "0.00000000",
+                                "cost": "0.000000",
+                                "fee": "0.000000",
+                                "price": "0.000000",
+                                "stopprice": "0.000000",
+                                "limitprice": "0.000000",
+                                "misc": "",
+                                "oflags": "fciq"
+                            }
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "OXCZ7B-EMVZQ-MTJTQJ",
+                        "clientOrderId": "0",
+                        "info": {
+                            "id": "OXCZ7B-EMVZQ-MTJTQJ",
+                            "refid": null,
+                            "userref": "0",
+                            "status": "open",
+                            "opentm": "1705260203.583000",
+                            "starttm": "0",
+                            "expiretm": "0",
+                            "descr": {
+                                "pair": "LTCUSDT",
+                                "type": "sell",
+                                "ordertype": "take-profit",
+                                "price": "120.00000",
+                                "price2": "0",
+                                "leverage": "none",
+                                "order": "sell 0.10000000 LTCUSDT @ take profit 120.00000",
+                                "close": ""
+                            },
+                            "vol": "0.10000000",
+                            "vol_exec": "0.00000000",
+                            "cost": "0.000000",
+                            "fee": "0.000000",
+                            "price": "0.000000",
+                            "stopprice": "0.000000",
+                            "limitprice": "0.000000",
+                            "misc": "",
+                            "oflags": "fciq"
+                        },
+                        "timestamp": 1705260203583,
+                        "datetime": "2024-01-14T19:23:23.583Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "LTC/USDT",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": 120,
+                        "stopLossPrice": null,
+                        "cost": null,
+                        "amount": 0.1,
+                        "filled": 0,
+                        "average": null,
+                        "remaining": 0.1,
+                        "fee": {
+                            "cost": "0.000000",
+                            "rate": null,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "rate": null,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null
+                    }
+                ]
             },
-            "timestamp": 1705260464973,
-            "datetime": "2024-01-14T19:27:44.973Z",
-            "lastTradeTimestamp": null,
-            "status": "open",
-            "symbol": "LTC/USDT",
-            "type": "limit",
-            "timeInForce": null,
-            "postOnly": false,
-            "side": "sell",
-            "price": 54,
-            "stopPrice": null,
-            "triggerPrice": null,
-            "takeProfitPrice": null,
-            "stopLossPrice": 55,
-            "cost": 0,
-            "amount": 0.1,
-            "filled": 0,
-            "average": null,
-            "remaining": 0.1,
-            "fee": {
-              "cost": "0.000000",
-              "rate": null,
-              "currency": "USDT"
+            {
+                "description": "open stop-loss-limit order",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "open": {
+                            "OIIQBL-6PV3A-7M2AJJ": {
+                                "refid": null,
+                                "userref": "0",
+                                "status": "open",
+                                "opentm": "1705260464.9731748",
+                                "starttm": "0",
+                                "expiretm": "0",
+                                "descr": {
+                                    "pair": "LTCUSDT",
+                                    "type": "sell",
+                                    "ordertype": "stop-loss-limit",
+                                    "price": "55.00000",
+                                    "price2": "54.00000",
+                                    "leverage": "none",
+                                    "order": "sell 0.10000000 LTCUSDT @ stop loss 55.00000 -> limit 54.00000",
+                                    "close": ""
+                                },
+                                "vol": "0.10000000",
+                                "vol_exec": "0.00000000",
+                                "cost": "0.000000",
+                                "fee": "0.000000",
+                                "price": "0.000000",
+                                "stopprice": "0.000000",
+                                "limitprice": "0.000000",
+                                "misc": "",
+                                "oflags": "fciq"
+                            }
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "OIIQBL-6PV3A-7M2AJJ",
+                        "clientOrderId": "0",
+                        "info": {
+                            "id": "OIIQBL-6PV3A-7M2AJJ",
+                            "refid": null,
+                            "userref": "0",
+                            "status": "open",
+                            "opentm": "1705260464.9731748",
+                            "starttm": "0",
+                            "expiretm": "0",
+                            "descr": {
+                                "pair": "LTCUSDT",
+                                "type": "sell",
+                                "ordertype": "stop-loss-limit",
+                                "price": "55.00000",
+                                "price2": "54.00000",
+                                "leverage": "none",
+                                "order": "sell 0.10000000 LTCUSDT @ stop loss 55.00000 -> limit 54.00000",
+                                "close": ""
+                            },
+                            "vol": "0.10000000",
+                            "vol_exec": "0.00000000",
+                            "cost": "0.000000",
+                            "fee": "0.000000",
+                            "price": "0.000000",
+                            "stopprice": "0.000000",
+                            "limitprice": "0.000000",
+                            "misc": "",
+                            "oflags": "fciq"
+                        },
+                        "timestamp": 1705260464973,
+                        "datetime": "2024-01-14T19:27:44.973Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "LTC/USDT",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 54,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": 55,
+                        "cost": 0,
+                        "amount": 0.1,
+                        "filled": 0,
+                        "average": null,
+                        "remaining": 0.1,
+                        "fee": {
+                            "cost": "0.000000",
+                            "rate": null,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "rate": null,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null
+                    }
+                ]
             },
-            "trades": [],
-            "fees": [
-              {
-                "cost": 0,
-                "rate": null,
-                "currency": "USDT"
-              }
-            ],
-            "lastUpdateTimestamp": null,
-            "reduceOnly": null
-          }
+            {
+                "description": "fetch open trailing stop order",
+                "method": "fetchOpenOrders",
+                "disabled": true,
+                "input": [],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "open": {
+                            "OF7S76-H2IMS-N2ML4U": {
+                                "refid": null,
+                                "userref": "0",
+                                "status": "open",
+                                "opentm": "1706895177.1070557",
+                                "starttm": "0",
+                                "expiretm": "0",
+                                "descr": {
+                                    "pair": "XRPUSD",
+                                    "type": "buy",
+                                    "ordertype": "trailing-stop",
+                                    "price": "+50.0000%",
+                                    "price2": "0",
+                                    "leverage": "none",
+                                    "order": "buy 10.00000000 XRPUSD @ trailing stop +50.0000%",
+                                    "close": ""
+                                },
+                                "vol": "10.00000000",
+                                "vol_exec": "0.00000000",
+                                "cost": "0.00000000",
+                                "fee": "0.00000000",
+                                "price": "0.00000000",
+                                "stopprice": "0.75790000",
+                                "limitprice": "0.50527000",
+                                "misc": "",
+                                "oflags": "fciq",
+                                "trigger": "index"
+                            }
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "OF7S76-H2IMS-N2ML4U",
+                        "clientOrderId": "0",
+                        "info": {
+                            "id": "OF7S76-H2IMS-N2ML4U",
+                            "refid": null,
+                            "userref": "0",
+                            "status": "open",
+                            "opentm": "1706895177.1070557",
+                            "starttm": "0",
+                            "expiretm": "0",
+                            "descr": {
+                                "pair": "XRPUSD",
+                                "type": "buy",
+                                "ordertype": "trailing-stop",
+                                "price": "+50.0000%",
+                                "price2": "0",
+                                "leverage": "none",
+                                "order": "buy 10.00000000 XRPUSD @ trailing stop +50.0000%",
+                                "close": ""
+                            },
+                            "vol": "10.00000000",
+                            "vol_exec": "0.00000000",
+                            "cost": "0.00000000",
+                            "fee": "0.00000000",
+                            "price": "0.00000000",
+                            "stopprice": "0.75790000",
+                            "limitprice": "0.50527000",
+                            "misc": "",
+                            "oflags": "fciq",
+                            "trigger": "index"
+                        },
+                        "timestamp": 1706895177107,
+                        "datetime": "2024-02-02T17:32:57.107Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "XRP/USD",
+                        "type": "trailing-stop",
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "stopPrice": 0.7579,
+                        "triggerPrice": 0.7579,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "cost": null,
+                        "amount": 10,
+                        "filled": 0,
+                        "average": null,
+                        "remaining": 10,
+                        "fee": {
+                            "cost": "0.00000000",
+                            "rate": null,
+                            "currency": "USD"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "rate": null,
+                                "currency": "USD"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot ohlcv with since in the request and limit filter on ccxt side",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1706628191000,
+                    3
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "XBTUSDT": [
+                            [
+                                1706626800,
+                                "43437.5",
+                                "43593.7",
+                                "43355.5",
+                                "43361.1",
+                                "43511.3",
+                                "18.75430110",
+                                162
+                            ],
+                            [
+                                1706630400,
+                                "43366.3",
+                                "43529.2",
+                                "43234.2",
+                                "43485.0",
+                                "43435.3",
+                                "12.51327406",
+                                126
+                            ],
+                            [
+                                1706634000,
+                                "43497.5",
+                                "43594.6",
+                                "43316.4",
+                                "43409.5",
+                                "43429.8",
+                                "5.03074129",
+                                127
+                            ],
+                            [
+                                1706637600,
+                                "43398.3",
+                                "43500.5",
+                                "42983.1",
+                                "43386.6",
+                                "43255.9",
+                                "81.88339686",
+                                434
+                            ],
+                            [
+                                1706641200,
+                                "43375.0",
+                                "43539.7",
+                                "43357.1",
+                                "43539.7",
+                                "43438.7",
+                                "10.82796308",
+                                137
+                            ],
+                            [
+                                1706799600,
+                                "42633.7",
+                                "42905.4",
+                                "42545.2",
+                                "42548.5",
+                                "42817.6",
+                                "75.60416795",
+                                612
+                            ]
+                        ],
+                        "last": "1706796000"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1706630400000,
+                        43366.3,
+                        43529.2,
+                        43234.2,
+                        43485,
+                        12.51327406
+                    ],
+                    [
+                        1706634000000,
+                        43497.5,
+                        43594.6,
+                        43316.4,
+                        43409.5,
+                        5.03074129
+                    ],
+                    [
+                        1706637600000,
+                        43398.3,
+                        43500.5,
+                        42983.1,
+                        43386.6,
+                        81.88339686
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot trade",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "XBTUSDT": [
+                            [
+                                "73324.40000",
+                                "0.01030900",
+                                1710327959.1733468,
+                                "b",
+                                "m",
+                                "",
+                                6324366,
+                                "1710327959173746878"
+                            ]
+                        ],
+                        "last": "1710327959173746878"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "6324366",
+                        "order": null,
+                        "info": [
+                            "73324.40000",
+                            "0.01030900",
+                            1710327959.1733468,
+                            "b",
+                            "m",
+                            "",
+                            6324366,
+                            "1710327959173746878",
+                            "1710327959173746878"
+                        ],
+                        "timestamp": 1710327959173,
+                        "datetime": "2024-03-13T11:05:59.173Z",
+                        "symbol": "BTC/USDT",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73324.4,
+                        "amount": 0.010309,
+                        "cost": 755.9012396,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "XBTUSDT": {
+                            "a": [
+                                "73380.70000",
+                                "1",
+                                "1.000"
+                            ],
+                            "b": [
+                                "73380.60000",
+                                "1",
+                                "1.000"
+                            ],
+                            "c": [
+                                "73380.60000",
+                                "0.00160710"
+                            ],
+                            "v": [
+                                "165.16072288",
+                                "598.03698452"
+                            ],
+                            "p": [
+                                "72647.97204",
+                                "71501.57520"
+                            ],
+                            "t": [
+                                6405,
+                                21103
+                            ],
+                            "l": [
+                                "71321.80000",
+                                "68666.00000"
+                            ],
+                            "h": [
+                                "73580.00000",
+                                "73580.00000"
+                            ],
+                            "o": "71450.70000"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73580,
+                    "low": 68666,
+                    "bid": 73380.6,
+                    "bidVolume": null,
+                    "ask": 73380.7,
+                    "askVolume": null,
+                    "vwap": 71501.5752,
+                    "open": 71450.7,
+                    "close": 73380.6,
+                    "last": 73380.6,
+                    "previousClose": null,
+                    "change": 1929.9,
+                    "percentage": 2.701023223005513,
+                    "average": 72415.65,
+                    "baseVolume": 598.03698452,
+                    "quoteVolume": 42760586.42103802,
+                    "info": {
+                        "a": [
+                            "73380.70000",
+                            "1",
+                            "1.000"
+                        ],
+                        "b": [
+                            "73380.60000",
+                            "1",
+                            "1.000"
+                        ],
+                        "c": [
+                            "73380.60000",
+                            "0.00160710"
+                        ],
+                        "v": [
+                            "165.16072288",
+                            "598.03698452"
+                        ],
+                        "p": [
+                            "72647.97204",
+                            "71501.57520"
+                        ],
+                        "t": [
+                            6405,
+                            21103
+                        ],
+                        "l": [
+                            "71321.80000",
+                            "68666.00000"
+                        ],
+                        "h": [
+                            "73580.00000",
+                            "73580.00000"
+                        ],
+                        "o": "71450.70000"
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                  "error": [],
+                  "result": [
+                    {
+                      "pair": "ADAUSDT",
+                      "positions": "1",
+                      "type": "sell",
+                      "leverage": "4.00000000",
+                      "cost": "6.07505000",
+                      "fee": "0.02551521",
+                      "vol": "10.00000000",
+                      "vol_closed": "0.00000000",
+                      "margin": "1.51876250",
+                      "value": "6.08527000",
+                      "net": "-0.01022000"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "pair": "ADAUSDT",
+                      "positions": "1",
+                      "type": "sell",
+                      "leverage": "4.00000000",
+                      "cost": "6.07505000",
+                      "fee": "0.02551521",
+                      "vol": "10.00000000",
+                      "vol_closed": "0.00000000",
+                      "margin": "1.51876250",
+                      "value": "6.08527000",
+                      "net": "-0.01022000"
+                    },
+                    "id": null,
+                    "symbol": "ADA/USDT",
+                    "notional": null,
+                    "marginMode": null,
+                    "liquidationPrice": null,
+                    "entryPrice": null,
+                    "unrealizedPnl": -0.01022,
+                    "realizedPnl": null,
+                    "percentage": null,
+                    "contracts": 10,
+                    "contractSize": null,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": "short",
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 1.5187625,
+                    "initialMarginPercentage": null,
+                    "leverage": 4,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
+            }
         ]
-      }
-    ]
-  }
+    }
 }

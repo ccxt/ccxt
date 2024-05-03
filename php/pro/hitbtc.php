@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -76,54 +76,56 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function authenticate() {
-        /**
-         * @ignore
-         * authenticates the user to access private web socket channels
-         * @see https://api.hitbtc.com/#socket-authentication
-         * @return {array} response from exchange
-         */
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = $this->milliseconds();
-            $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
-            $request = array(
-                'method' => 'login',
-                'params' => array(
-                    'type' => 'HS256',
-                    'api_key' => $this->apiKey,
-                    'timestamp' => $timestamp,
-                    'signature' => $signature,
-                ),
-            );
-            $this->watch($url, $messageHash, $request, $messageHash);
-            //
-            //    {
-            //        "jsonrpc" => "2.0",
-            //        "result" => true
-            //    }
-            //
-            //    # Failure to return results
-            //
-            //    {
-            //        "jsonrpc" => "2.0",
-            //        "error" => {
-            //            "code" => 1002,
-            //            "message" => "Authorization is required or has been failed",
-            //            "description" => "invalid $signature format"
-            //        }
-            //    }
-            //
-        }
-        return $future;
+        return Async\async(function ()  {
+            /**
+             * @ignore
+             * authenticates the user to access private web socket channels
+             * @see https://api.hitbtc.com/#socket-authentication
+             * @return {array} response from exchange
+             */
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws']['private'];
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = $this->milliseconds();
+                $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
+                $request = array(
+                    'method' => 'login',
+                    'params' => array(
+                        'type' => 'HS256',
+                        'api_key' => $this->apiKey,
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    ),
+                );
+                $this->watch($url, $messageHash, $request, $messageHash);
+                //
+                //    {
+                //        "jsonrpc" => "2.0",
+                //        "result" => true
+                //    }
+                //
+                //    # Failure to return results
+                //
+                //    {
+                //        "jsonrpc" => "2.0",
+                //        "error" => {
+                //            "code" => 1002,
+                //            "message" => "Authorization is required or has been failed",
+                //            "description" => "invalid $signature format"
+                //        }
+                //    }
+                //
+            }
+            return Async\await($future);
+        }) ();
     }
 
-    public function subscribe_public(string $name, ?array $symbols = null, $params = array ()) {
-        return Async\async(function () use ($name, $symbols, $params) {
+    public function subscribe_public(string $name, string $messageHashPrefix, ?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($name, $messageHashPrefix, $symbols, $params) {
             /**
              * @ignore
              * @param {string} $name websocket endpoint $name
@@ -132,7 +134,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              */
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws']['public'];
-            $messageHash = $name;
+            $messageHash = $messageHashPrefix;
             if ($symbols !== null) {
                 $messageHash = $messageHash . '::' . implode(',', $symbols);
             }
@@ -182,7 +184,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
-            $messageHash = $this->nonce();
+            $messageHash = (string) $this->nonce();
             $subscribe = array(
                 'method' => $name,
                 'params' => $params,
@@ -229,7 +231,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'symbols' => [ $market['id'] ],
                 ),
             );
-            $orderbook = Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            $orderbook = Async\await($this->subscribe_public($name, 'orderbooks', array( $symbol ), $this->deep_extend($request, $params)));
             return $orderbook->limit ();
         }) ();
     }
@@ -258,27 +260,34 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        }
         //    }
         //
-        $data = $this->safe_value_2($message, 'snapshot', 'update', array());
+        $snapshot = $this->safe_dict($message, 'snapshot');
+        $update = $this->safe_dict($message, 'update');
+        $data = $snapshot ? $snapshot : $update;
+        $type = $snapshot ? 'snapshot' : 'update';
         $marketIds = is_array($data) ? array_keys($data) : array();
-        $channel = $this->safe_string($message, 'ch');
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $item = $data[$marketId];
-            $messageHash = $channel . '::' . $symbol;
+            $messageHash = 'orderbooks::' . $symbol;
             if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
-                $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+                $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
+            $orderbook = $this->orderbooks[$symbol];
             $timestamp = $this->safe_integer($item, 't');
             $nonce = $this->safe_integer($item, 's');
-            $orderbook = $this->orderbooks[$symbol];
-            $asks = $this->safe_value($item, 'a', array());
-            $bids = $this->safe_value($item, 'b', array());
-            $this->handle_deltas($orderbook['asks'], $asks);
-            $this->handle_deltas($orderbook['bids'], $bids);
+            if ($type === 'snapshot') {
+                $parsedSnapshot = $this->parse_order_book($item, $symbol, $timestamp, 'b', 'a');
+                $orderbook->reset ($parsedSnapshot);
+            } else {
+                $asks = $this->safe_list($item, 'a', array());
+                $bids = $this->safe_list($item, 'b', array());
+                $this->handle_deltas($orderbook['asks'], $asks);
+                $this->handle_deltas($orderbook['bids'], $bids);
+            }
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $orderbook['nonce'] = $nonce;
@@ -326,7 +335,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'symbols' => [ $market['id'] ],
                 ),
             );
-            $result = Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            $result = Async\await($this->subscribe_public($name, 'tickers', array( $symbol ), $this->deep_extend($request, $params)));
             return $this->safe_value($result, $symbol);
         }) ();
     }
@@ -362,7 +371,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'symbols' => $marketIds,
                 ),
             );
-            $tickers = Async\await($this->subscribe_public($name, $symbols, $this->deep_extend($request, $params)));
+            $tickers = Async\await($this->subscribe_public($name, 'tickers', $symbols, $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
                 return $tickers;
             }
@@ -411,7 +420,6 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $data = $this->safe_value($message, 'data', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
-        $channel = $this->safe_string($message, 'ch');
         $newTickers = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -420,10 +428,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             $ticker = $this->parse_ws_ticker($data[$marketId], $market);
             $this->tickers[$symbol] = $ticker;
             $newTickers[$symbol] = $ticker;
-            $messageHash = $channel . '::' . $symbol;
-            $client->resolve ($newTickers, $messageHash);
         }
-        $messageHashes = $this->find_message_hashes($client, $channel . '::');
+        $client->resolve ($newTickers, 'tickers');
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);
@@ -436,7 +443,6 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $client->resolve ($tickers, $messageHash);
             }
         }
-        $client->resolve ($this->tickers, $channel);
         return $message;
     }
 
@@ -517,7 +523,8 @@ class hitbtc extends \ccxt\async\hitbtc {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = Async\await($this->subscribe_public('trades', array( $symbol ), $this->deep_extend($request, $params)));
+            $name = 'trades';
+            $trades = Async\await($this->subscribe_public($name, 'trades', array( $symbol ), $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -650,7 +657,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             if ($limit !== null) {
                 $request['params']['limit'] = $limit;
             }
-            $ohlcv = Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            $ohlcv = Async\await($this->subscribe_public($name, 'candles', array( $symbol ), $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -713,7 +720,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             for ($j = 0; $j < count($ohlcvs); $j++) {
                 $stored->append ($ohlcvs[$j]);
             }
-            $messageHash = $channel . '::' . $symbol;
+            $messageHash = 'candles::' . $symbol;
             $client->resolve ($stored, $messageHash);
         }
         return $message;
@@ -1015,7 +1022,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()): PromiseInterface {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1215,7 +1222,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        "id" => 1700233093414
         //    }
         //
-        $messageHash = $this->safe_integer($message, 'id');
+        $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
         if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
             $parsedOrders = array();

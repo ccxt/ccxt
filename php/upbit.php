@@ -36,6 +36,7 @@ class upbit extends Exchange {
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
@@ -63,6 +64,7 @@ class upbit extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => false,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'transfer' => false,
                 'withdraw' => true,
@@ -71,6 +73,7 @@ class upbit extends Exchange {
                 '1m' => 'minutes',
                 '3m' => 'minutes',
                 '5m' => 'minutes',
+                '10m' => 'minutes',
                 '15m' => 'minutes',
                 '30m' => 'minutes',
                 '1h' => 'minutes',
@@ -100,6 +103,7 @@ class upbit extends Exchange {
                         'candles/minutes/1',
                         'candles/minutes/3',
                         'candles/minutes/5',
+                        'candles/minutes/10',
                         'candles/minutes/15',
                         'candles/minutes/30',
                         'candles/minutes/60',
@@ -394,7 +398,7 @@ class upbit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%EB%A7%88%EC%BC%93-%EC%BD%94%EB%93%9C-%EC%A1%B0%ED%9A%8C
          * retrieves data on all markets for upbit
@@ -607,7 +611,7 @@ class upbit extends Exchange {
         //                    "trade_time" => "104543",
         //                "trade_date_kst" => "20181122",
         //                "trade_time_kst" => "194543",
-        //               "trade_timestamp" =>  1542883543097,
+        //               "trade_timestamp" =>  1542883543096,
         //                 "opening_price" =>  0.02976455,
         //                    "high_price" =>  0.02992577,
         //                     "low_price" =>  0.02934283,
@@ -849,7 +853,7 @@ class upbit extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EA%B0%80%EB%8A%A5-%EC%A0%95%EB%B3%B4
          * fetch the trading fees for a $market
@@ -1007,10 +1011,11 @@ class upbit extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+         * @see https://global-docs.upbit.com/reference/order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1018,6 +1023,7 @@ class upbit extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] for $market buy orders, the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->timeInForce] 'IOC' or 'FOK'
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1067,6 +1073,13 @@ class upbit extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'identifier');
         if ($clientOrderId !== null) {
             $request['identifier'] = $clientOrderId;
+        }
+        if ($type !== 'market') {
+            $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
+            $params = $this->omit($params, 'timeInForce');
+            if ($timeInForce !== null) {
+                $request['time_in_force'] = $timeInForce;
+            }
         }
         $params = $this->omit($params, array( 'clientOrderId', 'identifier' ));
         $response = $this->privatePostOrders (array_merge($request, $params));
@@ -1172,6 +1185,44 @@ class upbit extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
+        /**
+         * fetch information on a deposit
+         * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+         * @param {string} $id the unique $id for the deposit
+         * @param {string} [$code] unified $currency $code of the $currency deposited
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->txid] withdrawal transaction $id, the $id argument is reserved for uuid
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'uuid' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privateGetDeposit (array_merge($request, $params));
+        //
+        //     {
+        //         "type" => "deposit",
+        //         "uuid" => "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+        //         "currency" => "ADA",
+        //         "net_type" => "ADA",
+        //         "txid" => "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
+        //         "state" => "ACCEPTED",
+        //         "created_at" => "2023-12-12T04:58:41Z",
+        //         "done_at" => "2023-12-12T05:31:50Z",
+        //         "amount" => "35.72344",
+        //         "fee" => "0.0",
+        //         "transaction_type" => "default"
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
@@ -1215,13 +1266,51 @@ class upbit extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
+        /**
+         * fetch data on a $currency withdrawal via the withdrawal $id
+         * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+         * @param {string} $id the unique $id for the withdrawal
+         * @param {string} [$code] unified $currency $code of the $currency withdrawn
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->txid] withdrawal transaction $id, the $id argument is reserved for uuid
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'uuid' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privateGetWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "type" => "withdraw",
+        //         "uuid" => "95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+        //         "currency" => "ADA",
+        //         "net_type" => "ADA",
+        //         "txid" => "b1528f149297a71671b86636f731f8fdb0ff53da0f1d8c19093d59df96f34583",
+        //         "state" => "DONE",
+        //         "created_at" => "2023-12-14T02:46:52Z",
+        //         "done_at" => "2023-12-14T03:10:11Z",
+        //         "amount" => "35.22344",
+        //         "fee" => "0.5",
+        //         "transaction_type" => "default"
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
     public function parse_transaction_status($status) {
         $statuses = array(
             'submitting' => 'pending', // 처리 중
             'submitted' => 'pending', // 처리 완료
             'almost_accepted' => 'pending', // 출금대기중
             'rejected' => 'failed', // 거부
-            'accepted' => 'pending', // 승인됨
+            'accepted' => 'ok', // 승인됨
             'processing' => 'pending', // 처리 중
             'done' => 'ok', // 완료
             'canceled' => 'canceled', // 취소됨
@@ -1231,7 +1320,7 @@ class upbit extends Exchange {
 
     public function parse_transaction($transaction, ?array $currency = null): array {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchDeposit
         //
         //     {
         //         "type" => "deposit",
@@ -1245,7 +1334,7 @@ class upbit extends Exchange {
         //         "fee" => "0.0"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "type" => "withdraw",
@@ -1260,27 +1349,21 @@ class upbit extends Exchange {
         //         "krw_amount" => "80420.0"
         //     }
         //
-        $id = $this->safe_string($transaction, 'uuid');
-        $amount = $this->safe_number($transaction, 'amount');
         $address = null; // not present in the data structure received from the exchange
         $tag = null; // not present in the data structure received from the exchange
-        $txid = $this->safe_string($transaction, 'txid');
         $updatedRaw = $this->safe_string($transaction, 'done_at');
-        $updated = $this->parse8601($updatedRaw);
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at', $updatedRaw));
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safe_currency_code($currencyId);
-        $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'state'));
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string($transaction, 'uuid'),
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->safe_number($transaction, 'amount'),
             'network' => null,
             'address' => $address,
             'addressTo' => null,
@@ -1288,17 +1371,17 @@ class upbit extends Exchange {
             'tag' => $tag,
             'tagTo' => null,
             'tagFrom' => null,
-            'status' => $status,
+            'status' => $this->parse_transaction_status($this->safe_string_lower($transaction, 'state')),
             'type' => $type,
-            'updated' => $updated,
-            'txid' => $txid,
+            'updated' => $this->parse8601($updatedRaw),
+            'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'internal' => null,
             'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->safe_number($transaction, 'fee'),
             ),
         );
     }
@@ -1578,7 +1661,7 @@ class upbit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
          * fetch deposit addresses for multiple currencies and chain types
@@ -1612,22 +1695,24 @@ class upbit extends Exchange {
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
-        //     {
-        //         "currency" => "BTC",
-        //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //         "secondary_address" => null
-        //     }
+        //    {
+        //        $currency => 'XRP',
+        //        net_type => 'XRP',
+        //        deposit_address => 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address => '167029435'
+        //    }
         //
         $address = $this->safe_string($depositAddress, 'deposit_address');
         $tag = $this->safe_string($depositAddress, 'secondary_address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $code = $this->safe_currency_code($currencyId);
+        $networkId = $this->safe_string($depositAddress, 'net_type');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'info' => $depositAddress,
         );
     }
@@ -1638,19 +1723,27 @@ class upbit extends Exchange {
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->network deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
+        }
         $response = $this->privateGetDepositsCoinAddress (array_merge(array(
             'currency' => $currency['id'],
+            'net_type' => $this->network_code_to_id($networkCode, $currency['code']),
         ), $params));
         //
-        //     {
-        //         "currency" => "BTC",
-        //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
-        //         "secondary_address" => null
-        //     }
+        //    {
+        //        $currency => 'XRP',
+        //        net_type => 'XRP',
+        //        deposit_address => 'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA',
+        //        secondary_address => '167029435'
+        //    }
         //
         return $this->parse_deposit_address($response);
     }
@@ -1692,7 +1785,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * @see https://docs.upbit.com/reference/디지털자산-출금하기
          * @see https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0
@@ -1764,7 +1857,7 @@ class upbit extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
+            $nonce = $this->uuid();
             $request = array(
                 'access_key' => $this->apiKey,
                 'nonce' => $nonce,

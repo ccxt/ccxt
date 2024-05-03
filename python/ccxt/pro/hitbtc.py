@@ -6,12 +6,12 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class hitbtc(ccxt.async_support.hitbtc):
@@ -119,9 +119,9 @@ class hitbtc(ccxt.async_support.hitbtc):
             #        }
             #    }
             #
-        return future
+        return await future
 
-    async def subscribe_public(self, name: str, symbols: Strings = None, params={}):
+    async def subscribe_public(self, name: str, messageHashPrefix: str, symbols: Strings = None, params={}):
         """
          * @ignore
         :param str name: websocket endpoint name
@@ -130,7 +130,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         url = self.urls['api']['ws']['public']
-        messageHash = name
+        messageHash = messageHashPrefix
         if symbols is not None:
             messageHash = messageHash + '::' + ','.join(symbols)
         subscribe = {
@@ -172,7 +172,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['private']
-        messageHash = self.nonce()
+        messageHash = str(self.nonce())
         subscribe = {
             'method': name,
             'params': params,
@@ -215,7 +215,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': [market['id']],
             },
         }
-        orderbook = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        orderbook = await self.subscribe_public(name, 'orderbooks', [symbol], self.deep_extend(request, params))
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message):
@@ -242,26 +242,32 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        }
         #    }
         #
-        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        snapshot = self.safe_dict(message, 'snapshot')
+        update = self.safe_dict(message, 'update')
+        data = snapshot if snapshot else update
+        type = 'snapshot' if snapshot else 'update'
         marketIds = list(data.keys())
-        channel = self.safe_string(message, 'ch')
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = market['symbol']
             item = data[marketId]
-            messageHash = channel + '::' + symbol
+            messageHash = 'orderbooks::' + symbol
             if not (symbol in self.orderbooks):
-                subscription = self.safe_value(client.subscriptions, messageHash, {})
+                subscription = self.safe_dict(client.subscriptions, messageHash, {})
                 limit = self.safe_integer(subscription, 'limit')
                 self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
             timestamp = self.safe_integer(item, 't')
             nonce = self.safe_integer(item, 's')
-            orderbook = self.orderbooks[symbol]
-            asks = self.safe_value(item, 'a', [])
-            bids = self.safe_value(item, 'b', [])
-            self.handle_deltas(orderbook['asks'], asks)
-            self.handle_deltas(orderbook['bids'], bids)
+            if type == 'snapshot':
+                parsedSnapshot = self.parse_order_book(item, symbol, timestamp, 'b', 'a')
+                orderbook.reset(parsedSnapshot)
+            else:
+                asks = self.safe_list(item, 'a', [])
+                bids = self.safe_list(item, 'b', [])
+                self.handle_deltas(orderbook['asks'], asks)
+                self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
             orderbook['nonce'] = nonce
@@ -303,7 +309,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': [market['id']],
             },
         }
-        result = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        result = await self.subscribe_public(name, 'tickers', [symbol], self.deep_extend(request, params))
         return self.safe_value(result, symbol)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -334,7 +340,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': marketIds,
             },
         }
-        tickers = await self.subscribe_public(name, symbols, self.deep_extend(request, params))
+        tickers = await self.subscribe_public(name, 'tickers', symbols, self.deep_extend(request, params))
         if self.newUpdates:
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -380,7 +386,6 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         data = self.safe_value(message, 'data', {})
         marketIds = list(data.keys())
-        channel = self.safe_string(message, 'ch')
         newTickers = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -389,9 +394,8 @@ class hitbtc(ccxt.async_support.hitbtc):
             ticker = self.parse_ws_ticker(data[marketId], market)
             self.tickers[symbol] = ticker
             newTickers[symbol] = ticker
-            messageHash = channel + '::' + symbol
-            client.resolve(newTickers, messageHash)
-        messageHashes = self.find_message_hashes(client, channel + '::')
+        client.resolve(newTickers, 'tickers')
+        messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
             parts = messageHash.split('::')
@@ -402,7 +406,6 @@ class hitbtc(ccxt.async_support.hitbtc):
             numTickers = len(tickersSymbols)
             if numTickers > 0:
                 client.resolve(tickers, messageHash)
-        client.resolve(self.tickers, channel)
         return message
 
     def parse_ws_ticker(self, ticker, market=None):
@@ -479,7 +482,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         if limit is not None:
             request['limit'] = limit
-        trades = await self.subscribe_public('trades', [symbol], self.deep_extend(request, params))
+        name = 'trades'
+        trades = await self.subscribe_public(name, 'trades', [symbol], self.deep_extend(request, params))
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp')
@@ -600,7 +604,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         if limit is not None:
             request['params']['limit'] = limit
-        ohlcv = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        ohlcv = await self.subscribe_public(name, 'candles', [symbol], self.deep_extend(request, params))
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0)
@@ -658,7 +662,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             ohlcvs = self.parse_ws_ohlcvs(data[marketId], market)
             for j in range(0, len(ohlcvs)):
                 stored.append(ohlcvs[j])
-            messageHash = channel + '::' + symbol
+            messageHash = 'candles::' + symbol
             client.resolve(stored, messageHash)
         return message
 
@@ -940,7 +944,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         return await self.subscribe_private(name, None, self.extend(request, params))
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
         :see: https://api.hitbtc.com/#create-new-spot-order
@@ -1119,7 +1123,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        "id": 1700233093414
         #    }
         #
-        messageHash = self.safe_integer(message, 'id')
+        messageHash = self.safe_string(message, 'id')
         result = self.safe_value(message, 'result', {})
         if isinstance(result, list):
             parsedOrders = []

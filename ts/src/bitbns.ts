@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, Bad
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -31,6 +31,7 @@ export default class bitbns extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': undefined, // coming soon
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -184,7 +185,7 @@ export default class bitbns extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitbns#fetchMarkets
@@ -585,7 +586,7 @@ export default class bitbns extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#createOrder
@@ -732,7 +733,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0);
+        const first = this.safeDict (data, 0);
         return this.parseOrder (first, market);
     }
 
@@ -784,7 +785,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -934,7 +935,7 @@ export default class bitbns extends Exchange {
         //         "code": 200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1013,7 +1014,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1041,7 +1042,7 @@ export default class bitbns extends Exchange {
         //
         //     ...
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 

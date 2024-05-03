@@ -470,7 +470,7 @@ class poloniex extends Exchange {
         return $markets;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for poloniex
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
@@ -666,7 +666,7 @@ class poloniex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-$currency-information
@@ -708,7 +708,10 @@ class poloniex extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             $networkId = $this->safe_string($currency, 'blockchain');
-            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networkCode = null;
+            if ($networkId !== null) {
+                $networkCode = $this->network_id_to_code($networkId, $code);
+            }
             $delisted = $this->safe_value($currency, 'delisted');
             $walletEnabled = $this->safe_string($currency, 'walletState') === 'ENABLED';
             $depositEnabled = $this->safe_string($currency, 'walletDepositState') === 'ENABLED';
@@ -1236,7 +1239,7 @@ class poloniex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit, $extension);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
@@ -1334,7 +1337,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
@@ -1619,7 +1622,7 @@ class poloniex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
@@ -1805,7 +1808,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer
@@ -1856,7 +1859,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-$currency

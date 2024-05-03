@@ -1,9 +1,9 @@
-
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
+import { Exchange } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 
-function testBalance (exchange, skippedProperties, method, entry) {
+function testBalance (exchange: Exchange, skippedProperties: object, method: string, entry: object) {
     const format = {
         'free': {},
         'used': {},
@@ -16,8 +16,11 @@ function testBalance (exchange, skippedProperties, method, entry) {
     const codesTotal = Object.keys (entry['total']);
     const codesFree = Object.keys (entry['free']);
     const codesUsed = Object.keys (entry['used']);
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, codesTotal, 'total');
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, codesFree, 'free');
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, codesUsed, 'used');
     let allCodes = exchange.arrayConcat (codesTotal, codesFree);
-    allCodes = exchange.arrayConcat (allCodes, codesUsed);
+    allCodes =  exchange.arrayConcat (allCodes, codesUsed);
     const codesLength = codesTotal.length;
     const freeLength = codesFree.length;
     const usedLength = codesUsed.length;

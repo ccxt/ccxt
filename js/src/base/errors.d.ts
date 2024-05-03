@@ -1,22 +1,19 @@
 declare class BaseError extends Error {
     constructor(message: any);
 }
-declare class ExchangeError extends Error {
-    constructor(message: any);
-}
-declare class ExchangeClosedByUser extends Error {
+declare class ExchangeError extends BaseError {
     constructor(message: any);
 }
 declare class AuthenticationError extends ExchangeError {
     constructor(message: any);
 }
-declare class PermissionDenied extends ExchangeError {
+declare class PermissionDenied extends AuthenticationError {
     constructor(message: any);
 }
-declare class AccountNotEnabled extends ExchangeError {
+declare class AccountNotEnabled extends PermissionDenied {
     constructor(message: any);
 }
-declare class AccountSuspended extends ExchangeError {
+declare class AccountSuspended extends AuthenticationError {
     constructor(message: any);
 }
 declare class ArgumentsRequired extends ExchangeError {
@@ -25,22 +22,25 @@ declare class ArgumentsRequired extends ExchangeError {
 declare class BadRequest extends ExchangeError {
     constructor(message: any);
 }
-declare class OperationRejected extends BadRequest {
-    constructor(message: any);
-}
 declare class BadSymbol extends BadRequest {
     constructor(message: any);
 }
-declare class NoChange extends BadRequest {
+declare class OperationRejected extends ExchangeError {
+    constructor(message: any);
+}
+declare class NoChange extends OperationRejected {
     constructor(message: any);
 }
 declare class MarginModeAlreadySet extends NoChange {
     constructor(message: any);
 }
+declare class MarketClosed extends OperationRejected {
+    constructor(message: any);
+}
 declare class BadResponse extends ExchangeError {
     constructor(message: any);
 }
-declare class NullResponse extends ExchangeError {
+declare class NullResponse extends BadResponse {
     constructor(message: any);
 }
 declare class InsufficientFunds extends ExchangeError {
@@ -53,9 +53,6 @@ declare class AddressPending extends InvalidAddress {
     constructor(message: any);
 }
 declare class InvalidOrder extends ExchangeError {
-    constructor(message: any);
-}
-declare class ContractUnavailable extends InvalidOrder {
     constructor(message: any);
 }
 declare class OrderNotFound extends InvalidOrder {
@@ -76,13 +73,19 @@ declare class OrderNotFillable extends InvalidOrder {
 declare class DuplicateOrderId extends InvalidOrder {
     constructor(message: any);
 }
+declare class ContractUnavailable extends InvalidOrder {
+    constructor(message: any);
+}
 declare class NotSupported extends ExchangeError {
     constructor(message: any);
 }
-declare class OperationFailed extends BaseError {
+declare class ProxyError extends ExchangeError {
     constructor(message: any);
 }
-declare class ProxyError extends ExchangeError {
+declare class ExchangeClosedByUser extends ExchangeError {
+    constructor(message: any);
+}
+declare class OperationFailed extends BaseError {
     constructor(message: any);
 }
 declare class NetworkError extends OperationFailed {
@@ -91,7 +94,7 @@ declare class NetworkError extends OperationFailed {
 declare class DDoSProtection extends NetworkError {
     constructor(message: any);
 }
-declare class RateLimitExceeded extends DDoSProtection {
+declare class RateLimitExceeded extends NetworkError {
     constructor(message: any);
 }
 declare class ExchangeNotAvailable extends NetworkError {
@@ -106,21 +109,26 @@ declare class InvalidNonce extends NetworkError {
 declare class RequestTimeout extends NetworkError {
     constructor(message: any);
 }
-declare const errors: {
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
+declare const _default: {
     BaseError: typeof BaseError;
-    ExchangeClosedByUser: typeof ExchangeClosedByUser;
     ExchangeError: typeof ExchangeError;
+    AuthenticationError: typeof AuthenticationError;
     PermissionDenied: typeof PermissionDenied;
     AccountNotEnabled: typeof AccountNotEnabled;
     AccountSuspended: typeof AccountSuspended;
     ArgumentsRequired: typeof ArgumentsRequired;
     BadRequest: typeof BadRequest;
     BadSymbol: typeof BadSymbol;
+    OperationRejected: typeof OperationRejected;
+    NoChange: typeof NoChange;
     MarginModeAlreadySet: typeof MarginModeAlreadySet;
+    MarketClosed: typeof MarketClosed;
     BadResponse: typeof BadResponse;
     NullResponse: typeof NullResponse;
     InsufficientFunds: typeof InsufficientFunds;
     InvalidAddress: typeof InvalidAddress;
+    AddressPending: typeof AddressPending;
     InvalidOrder: typeof InvalidOrder;
     OrderNotFound: typeof OrderNotFound;
     OrderNotCached: typeof OrderNotCached;
@@ -128,7 +136,11 @@ declare const errors: {
     OrderImmediatelyFillable: typeof OrderImmediatelyFillable;
     OrderNotFillable: typeof OrderNotFillable;
     DuplicateOrderId: typeof DuplicateOrderId;
+    ContractUnavailable: typeof ContractUnavailable;
     NotSupported: typeof NotSupported;
+    ProxyError: typeof ProxyError;
+    ExchangeClosedByUser: typeof ExchangeClosedByUser;
+    OperationFailed: typeof OperationFailed;
     NetworkError: typeof NetworkError;
     DDoSProtection: typeof DDoSProtection;
     RateLimitExceeded: typeof RateLimitExceeded;
@@ -136,13 +148,5 @@ declare const errors: {
     OnMaintenance: typeof OnMaintenance;
     InvalidNonce: typeof InvalidNonce;
     RequestTimeout: typeof RequestTimeout;
-    AuthenticationError: typeof AuthenticationError;
-    AddressPending: typeof AddressPending;
-    ContractUnavailable: typeof ContractUnavailable;
-    NoChange: typeof NoChange;
-    OperationRejected: typeof OperationRejected;
-    OperationFailed: typeof OperationFailed;
-    ProxyError: typeof ProxyError;
 };
-export { BaseError, ExchangeClosedByUser, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError };
-export default errors;
+export default _default;

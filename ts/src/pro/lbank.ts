@@ -180,7 +180,7 @@ export default class lbank extends lbankRest {
         //          },
         //          type: 'kbar',
         //          pair: 'btc_usdt',
-        //          TS: '2022-10-02T12:44:15.864'
+        //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
         const marketId = this.safeString (message, 'pair');
@@ -236,7 +236,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    async fetchTickerWs (symbol, params = {}): Promise<Ticker> {
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lbank#fetchTickerWs
@@ -260,7 +260,7 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, requestId, request);
     }
 
-    async watchTicker (symbol, params = {}): Promise<Ticker> {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lbank#watchTicker
@@ -440,7 +440,7 @@ export default class lbank extends lbankRest {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell",
+        //             "direction":"sell", // or "sell_market"
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -481,7 +481,7 @@ export default class lbank extends lbankRest {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell",
+        //        "direction":"sell", // or "sell_market"
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -490,6 +490,8 @@ export default class lbank extends lbankRest {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (datetime);
         }
+        let side = this.safeString2 (trade, 'direction', 3);
+        side = side.replace ('_market', '');
         return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -498,7 +500,7 @@ export default class lbank extends lbankRest {
             'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
-            'side': this.safeString2 (trade, 'direction', 3),
+            'side': side,
             'price': this.safeString2 (trade, 'price', 1),
             'amount': this.safeString2 (trade, 'volume', 2),
             'cost': this.safeString (trade, 'amount'),
@@ -796,17 +798,17 @@ export default class lbank extends lbankRest {
         const orderBook = this.safeValue (message, 'depth', message);
         const datetime = this.safeString (message, 'TS');
         const timestamp = this.parse8601 (datetime);
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
         const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bids', 'asks');
-        storedOrderBook.reset (snapshot);
+        orderbook.reset (snapshot);
         let messageHash = 'orderbook:' + symbol;
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
         messageHash = 'fetchOrderbook:' + symbol;
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     handleErrorMessage (client, message) {
@@ -837,7 +839,8 @@ export default class lbank extends lbankRest {
     handleMessage (client, message) {
         const status = this.safeString (message, 'status');
         if (status === 'error') {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
+            return;
         }
         const type = this.safeString2 (message, 'type', 'action');
         if (type === 'ping') {
@@ -853,9 +856,8 @@ export default class lbank extends lbankRest {
         };
         const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
         }
-        return message;
     }
 
     async authenticate (params = {}) {

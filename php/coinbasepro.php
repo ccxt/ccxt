@@ -13,7 +13,7 @@ class coinbasepro extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbasepro',
-            'name' => 'Coinbase Pro',
+            'name' => 'Coinbase Pro(Deprecated)',
             'countries' => array( 'US' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome'],
@@ -50,7 +50,13 @@ class coinbasepro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -144,6 +150,7 @@ class coinbasepro extends Exchange {
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions/fees',
                     ),
                     'post' => array(
                         'conversions',
@@ -225,7 +232,7 @@ class coinbasepro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
@@ -295,7 +302,7 @@ class coinbasepro extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for coinbasepro
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
@@ -415,7 +422,7 @@ class coinbasepro extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
@@ -846,7 +853,7 @@ class coinbasepro extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
@@ -1184,7 +1191,7 @@ class coinbasepro extends Exchange {
         return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
          * create a trade order
@@ -1329,7 +1336,7 @@ class coinbasepro extends Exchange {
         return $this->privateGetPaymentMethods ($params);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod

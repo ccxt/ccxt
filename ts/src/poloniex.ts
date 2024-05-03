@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -477,7 +477,7 @@ export default class poloniex extends Exchange {
         return markets;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name poloniex#fetchMarkets
@@ -679,7 +679,7 @@ export default class poloniex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name poloniex#fetchCurrencies
@@ -723,7 +723,10 @@ export default class poloniex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const networkId = this.safeString (currency, 'blockchain');
-            const networkCode = this.networkIdToCode (networkId, code);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode (networkId, code);
+            }
             const delisted = this.safeValue (currency, 'delisted');
             const walletEnabled = this.safeString (currency, 'walletState') === 'ENABLED';
             const depositEnabled = this.safeString (currency, 'walletDepositState') === 'ENABLED';
@@ -1259,7 +1262,7 @@ export default class poloniex extends Exchange {
         return this.parseOrders (response, market, since, limit, extension);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#createOrder
@@ -1359,7 +1362,7 @@ export default class poloniex extends Exchange {
         return [ request, params ];
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#editOrder
@@ -1654,7 +1657,7 @@ export default class poloniex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name poloniex#fetchTradingFees
@@ -1848,7 +1851,7 @@ export default class poloniex extends Exchange {
         };
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name poloniex#transfer
@@ -1901,7 +1904,7 @@ export default class poloniex extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#withdraw

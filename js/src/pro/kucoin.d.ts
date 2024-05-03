@@ -3,7 +3,7 @@ import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV
 import Client from '../base/ws/Client.js';
 export default class kucoin extends kucoinRest {
     describe(): any;
-    negotiate(privateChannel: any, params?: {}): any;
+    negotiate(privateChannel: any, params?: {}): Promise<any>;
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
     subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: any): Promise<any>;
@@ -11,6 +11,10 @@ export default class kucoin extends kucoinRest {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchMultiHelper(methodName: any, channelName: string, symbols?: Strings, params?: {}): Promise<any>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -34,12 +38,12 @@ export default class kucoin extends kucoinRest {
     parseWsTrade(trade: any, market?: any): Trade;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
-    handleSubject(client: Client, message: any): any;
+    handleSubject(client: Client, message: any): void;
     ping(client: any): {
         id: any;
         type: string;
     };
     handlePong(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

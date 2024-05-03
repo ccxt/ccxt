@@ -62,8 +62,13 @@ class bitopro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -210,7 +215,7 @@ class bitopro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
@@ -272,7 +277,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitopro
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
@@ -625,7 +630,7 @@ class bitopro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
@@ -746,6 +751,8 @@ class bitopro extends Exchange {
         // we need to have a $limit argument because "to" and "from" are required
         if ($limit === null) {
             $limit = 500;
+        } else {
+            $limit = min ($limit, 75000); // supports slightly more than 75k candles atm, but $limit here to avoid errors
         }
         $timeframeInSeconds = $this->parse_timeframe($timeframe);
         $alignedSince = null;
@@ -975,7 +982,7 @@ class bitopro extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_order.md
@@ -1539,7 +1546,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_withdraw_invoice.md
@@ -1641,7 +1648,7 @@ class bitopro extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 

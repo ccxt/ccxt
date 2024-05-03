@@ -33,6 +33,7 @@ class phemex extends phemex$1 {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -1130,7 +1131,7 @@ class phemex extends phemex$1 {
         return orderbook;
     }
     toEn(n, scale) {
-        const stringN = n.toString();
+        const stringN = this.numberToString(n);
         const precise = new Precise["default"](stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce();
@@ -1294,7 +1295,7 @@ class phemex extends phemex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'rows', []);
+        const rows = this.safeList(data, 'rows', []);
         return this.parseOHLCVs(rows, market, timeframe, since, userLimit);
     }
     parseTicker(ticker, market = undefined) {
@@ -1457,7 +1458,7 @@ class phemex extends phemex$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseTicker(result, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1493,7 +1494,7 @@ class phemex extends phemex$1 {
         else {
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseTickers(result, symbols);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -2379,7 +2380,7 @@ class phemex extends phemex$1 {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
-        const stopPrice = this.omitZero(this.safeNumber2(order, 'stopPx', 'stopPxRp'));
+        const stopPrice = this.omitZero(this.safeString2(order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue(order, 'reduceOnly');
         const execInst = this.safeString(order, 'execInst');
@@ -2417,8 +2418,8 @@ class phemex extends phemex$1 {
         });
     }
     parseOrder(order, market = undefined) {
-        const isSwap = this.safeValue(market, 'swap', false);
-        const hasPnl = ('closedPnl' in order);
+        const isSwap = this.safeBool(market, 'swap', false);
+        const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
         if (isSwap || hasPnl) {
             return this.parseSwapOrder(order, market);
         }
@@ -2523,11 +2524,11 @@ class phemex extends phemex$1 {
                     }
                 }
                 cost = (cost === undefined) ? amount : cost;
-                const costString = cost.toString();
+                const costString = this.numberToString(cost);
                 request['quoteQtyEv'] = this.toEv(costString, market);
             }
             else {
-                const amountString = amount.toString();
+                const amountString = this.numberToString(amount);
                 request['baseQtyEv'] = this.toEv(amountString, market);
             }
         }
@@ -2545,7 +2546,7 @@ class phemex extends phemex$1 {
                 request['orderQtyRq'] = amount;
             }
             else {
-                request['orderQty'] = parseInt(amount);
+                request['orderQty'] = this.parseToInt(amount);
             }
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString(params, 'triggerType', 'ByMarkPrice');
@@ -2722,7 +2723,7 @@ class phemex extends phemex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async editOrder(id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
@@ -2801,7 +2802,7 @@ class phemex extends phemex$1 {
         else {
             response = await this.privatePutSpotOrders(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -2846,7 +2847,7 @@ class phemex extends phemex$1 {
         else {
             response = await this.privateDeleteSpotOrders(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -2864,11 +2865,16 @@ class phemex extends phemex$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
+        const stop = this.safeValue2(params, 'stop', 'trigger', false);
+        params = this.omit(params, 'stop', 'trigger');
         const request = {
             'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
+        if (stop) {
+            request['untriggerred'] = stop;
+        }
         let response = undefined;
         if (market['settle'] === 'USDT') {
             response = await this.privateDeleteGOrdersAll(this.extend(request, params));
@@ -2970,7 +2976,7 @@ class phemex extends phemex$1 {
             response = await this.privateGetSpotOrders(this.extend(request, params));
         }
         const data = this.safeValue(response, 'data', {});
-        const rows = this.safeValue(data, 'rows', data);
+        const rows = this.safeList(data, 'rows', data);
         return this.parseOrders(rows, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3019,7 +3025,7 @@ class phemex extends phemex$1 {
             return this.parseOrders(data, market, since, limit);
         }
         else {
-            const rows = this.safeValue(data, 'rows', []);
+            const rows = this.safeList(data, 'rows', []);
             return this.parseOrders(rows, market, since, limit);
         }
     }
@@ -3106,7 +3112,7 @@ class phemex extends phemex$1 {
             return this.parseOrders(data, market, since, limit);
         }
         else {
-            const rows = this.safeValue(data, 'rows', []);
+            const rows = this.safeList(data, 'rows', []);
             return this.parseOrders(rows, market, since, limit);
         }
     }
@@ -3357,7 +3363,7 @@ class phemex extends phemex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3397,7 +3403,7 @@ class phemex extends phemex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransactionStatus(status) {
@@ -3766,7 +3772,7 @@ class phemex extends phemex$1 {
         const contracts = this.safeString(position, 'size');
         const contractSize = this.safeValue(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
-        const leverage = this.parseNumber(Precise["default"].stringAbs((this.safeString(position, 'leverage', 'leverageRr'))));
+        const leverage = this.parseNumber(Precise["default"].stringAbs((this.safeString2(position, 'leverage', 'leverageRr'))));
         const entryPriceString = this.safeString2(position, 'avgEntryPrice', 'avgEntryPriceRp');
         const rawSide = this.safeString(position, 'side');
         let side = undefined;
@@ -4059,12 +4065,15 @@ class phemex extends phemex$1 {
         const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
+            'symbol': this.safeSymbol(undefined, market),
             'type': 'set',
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market[codeCurrency],
-            'symbol': this.safeSymbol(undefined, market),
             'status': this.parseMarginStatus(this.safeString(data, 'code')),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
@@ -4227,7 +4236,7 @@ class phemex extends phemex$1 {
         //
         //
         const data = this.safeValue(response, 'data', {});
-        const riskLimits = this.safeValue(data, 'riskLimits');
+        const riskLimits = this.safeList(data, 'riskLimits');
         return this.parseLeverageTiers(riskLimits, symbols, 'symbol');
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -4329,7 +4338,7 @@ class phemex extends phemex$1 {
             throw new errors.BadRequest(this.id + ' setLeverage() leverage should be between -100 and 100');
         }
         await this.loadMarkets();
-        const isHedged = this.safeValue(params, 'hedged', false);
+        const isHedged = this.safeBool(params, 'hedged', false);
         const longLeverageRr = this.safeInteger(params, 'longLeverageRr');
         const shortLeverageRr = this.safeInteger(params, 'shortLeverageRr');
         const market = this.market(symbol);
@@ -4342,10 +4351,10 @@ class phemex extends phemex$1 {
                 request['leverageRr'] = leverage;
             }
             else {
-                const long = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
-                const short = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
-                request['longLeverageRr'] = long;
-                request['shortLeverageRr'] = short;
+                const longVar = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
+                const shortVar = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
+                request['longLeverageRr'] = longVar;
+                request['shortLeverageRr'] = shortVar;
             }
             response = await this.privatePutGPositionsLeverage(this.extend(request, params));
         }
@@ -4425,7 +4434,7 @@ class phemex extends phemex$1 {
             transfer = this.parseTransfer(response);
         }
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             if (transfer['fromAccount'] === undefined) {
                 transfer['fromAccount'] = fromAccount;
@@ -4489,7 +4498,7 @@ class phemex extends phemex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const transfers = this.safeValue(data, 'rows', []);
+        const transfers = this.safeList(data, 'rows', []);
         return this.parseTransfers(transfers, currency, since, limit);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -4662,7 +4671,10 @@ class phemex extends phemex$1 {
         const currency = this.currency(code);
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        let networkId = this.networkCodeToId(networkCode);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId(networkCode);
+        }
         const stableCoins = this.safeValue(this.options, 'stableCoins');
         if (networkId === undefined) {
             if (!(this.inArray(code, stableCoins))) {
@@ -4709,7 +4721,7 @@ class phemex extends phemex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

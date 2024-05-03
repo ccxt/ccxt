@@ -49,6 +49,9 @@ class oceanex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchMarkets' => true,
@@ -149,7 +152,7 @@ class oceanex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for oceanex
@@ -269,7 +272,7 @@ class oceanex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
         }) ();
     }
@@ -502,7 +505,7 @@ class oceanex extends Exchange {
             //          )
             //      }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -569,7 +572,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -635,7 +638,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -660,7 +663,7 @@ class oceanex extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -814,10 +817,10 @@ class oceanex extends Exchange {
                 $request['timestamp'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 10000);
             }
             $response = Async\await($this->publicPostK (array_merge($request, $params)));
-            $ohlcvs = $this->safe_value($response, 'data', array());
+            $ohlcvs = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -899,7 +902,7 @@ class oceanex extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostOrderDelete (array_merge(array( 'id' => $id ), $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data);
         }) ();
     }
@@ -916,7 +919,7 @@ class oceanex extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostOrderDeleteMulti (array_merge(array( 'ids' => $ids ), $params)));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data);
         }) ();
     }
@@ -932,7 +935,7 @@ class oceanex extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostOrdersClear ($params));
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data);
         }) ();
     }

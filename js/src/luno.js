@@ -64,8 +64,11 @@ export default class luno extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -147,6 +150,7 @@ export default class luno extends Exchange {
                         'withdrawals': 1,
                         'send': 1,
                         'oauth2/grant': 1,
+                        'beneficiaries': 1,
                         // POST /api/exchange/1/move
                     },
                     'put': {
@@ -154,6 +158,7 @@ export default class luno extends Exchange {
                     },
                     'delete': {
                         'withdrawals/{id}': 1,
+                        'beneficiaries/{id}': 1,
                     },
                 },
             },
@@ -185,6 +190,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchMarkets
          * @description retrieves data on all markets for luno
+         * @see https://www.luno.com/en/developers/api#tag/Market/operation/Markets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -275,6 +281,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -329,6 +336,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -351,6 +359,8 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBookFull
+         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -459,6 +469,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
          * @param {string} symbol not used by luno fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -482,7 +493,7 @@ export default class luno extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetListorders(this.extend(request, params));
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -490,6 +501,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -503,6 +515,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -516,6 +529,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -566,6 +580,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -590,6 +605,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -711,6 +727,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -739,7 +756,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -762,7 +779,7 @@ export default class luno extends Exchange {
             'pair': market['id'],
         };
         if (since !== undefined) {
-            request['since'] = parseInt(since);
+            request['since'] = this.parseToInt(since);
         }
         else {
             const duration = 1000 * 1000 * this.parseTimeframe(timeframe);
@@ -785,7 +802,7 @@ export default class luno extends Exchange {
         //          "pair": "XBTEUR"
         //     }
         //
-        const ohlcvs = this.safeValue(response, 'candles', []);
+        const ohlcvs = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -811,6 +828,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -853,7 +871,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -861,6 +879,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -883,6 +902,8 @@ export default class luno extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(response, 'maker_fee'),
             'taker': this.safeNumber(response, 'taker_fee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -890,6 +911,8 @@ export default class luno extends Exchange {
          * @method
          * @name luno#createOrder
          * @description create a trade order
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/PostLimitOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -931,6 +954,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#cancelOrder
          * @description cancels an open order
+         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -962,6 +986,7 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined

@@ -7,10 +7,10 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
-use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -990,7 +990,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 }
             }
         } else {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 }

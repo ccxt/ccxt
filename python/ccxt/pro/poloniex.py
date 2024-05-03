@@ -6,13 +6,13 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -111,7 +111,7 @@ class poloniex(ccxt.async_support.poloniex):
                 },
             }
             message = self.extend(request, params)
-            future = await self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             #
             #    {
             #        "data": {
@@ -174,7 +174,7 @@ class poloniex(ccxt.async_support.poloniex):
         :returns dict: data from the websocket stream
         """
         url = self.urls['api']['ws']['private']
-        messageHash = self.nonce()
+        messageHash = str(self.nonce())
         subscribe = {
             'id': messageHash,
             'event': name,
@@ -182,7 +182,7 @@ class poloniex(ccxt.async_support.poloniex):
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
         create a trade order
@@ -241,7 +241,7 @@ class poloniex(ccxt.async_support.poloniex):
                 request['price'] = self.price_to_precision(symbol, price)
         return await self.trade_request('createOrder', self.extend(request, params))
 
-    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
         cancel multiple orders
@@ -257,7 +257,7 @@ class poloniex(ccxt.async_support.poloniex):
             params['clientOrderIds'] = self.array_concat(clientOrderIds, [clientOrderId])
         return await self.cancel_orders_ws([id], symbol, params)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: str = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
         cancel multiple orders
@@ -274,7 +274,7 @@ class poloniex(ccxt.async_support.poloniex):
         }
         return await self.trade_request('cancelOrders', self.extend(request, params))
 
-    async def cancel_all_orders_ws(self, symbol: str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
@@ -298,7 +298,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        }]
         #    }
         #
-        messageHash = self.safe_integer(message, 'id')
+        messageHash = self.safe_string(message, 'id')
         data = self.safe_value(message, 'data', [])
         orders = []
         for i in range(0, len(data)):
@@ -606,8 +606,8 @@ class poloniex(ccxt.async_support.poloniex):
             'type': self.safe_string_lower(trade, 'type'),
             'side': self.safe_string_lower_2(trade, 'takerSide', 'side'),
             'takerOrMaker': takerMaker,
-            'price': self.omit_zero(self.safe_number_2(trade, 'tradePrice', 'price')),
-            'amount': self.omit_zero(self.safe_number_2(trade, 'filledQuantity', 'quantity')),
+            'price': self.omit_zero(self.safe_string_2(trade, 'tradePrice', 'price')),
+            'amount': self.omit_zero(self.safe_string_2(trade, 'filledQuantity', 'quantity')),
             'cost': self.safe_string_2(trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': None,
@@ -974,13 +974,15 @@ class poloniex(ccxt.async_support.poloniex):
                         bid = self.safe_value(bids, j)
                         price = self.safe_number(bid, 0)
                         amount = self.safe_number(bid, 1)
-                        orderbook['bids'].store(price, amount)
+                        bidsSide = orderbook['bids']
+                        bidsSide.store(price, amount)
                 if asks is not None:
                     for j in range(0, len(asks)):
                         ask = self.safe_value(asks, j)
                         price = self.safe_number(ask, 0)
                         amount = self.safe_number(ask, 1)
-                        orderbook['asks'].store(price, amount)
+                        asksSide = orderbook['asks']
+                        asksSide.store(price, amount)
                 orderbook['symbol'] = symbol
                 orderbook['timestamp'] = timestamp
                 orderbook['datetime'] = self.iso8601(timestamp)
@@ -1104,12 +1106,12 @@ class poloniex(ccxt.async_support.poloniex):
             if orderId == '0':
                 self.handle_error_message(client, item)
             else:
-                return self.handle_order_request(client, message)
+                self.handle_order_request(client, message)
         else:
             data = self.safe_value(message, 'data', [])
             dataLength = len(data)
             if dataLength > 0:
-                return method(client, message)
+                method(client, message)
 
     def handle_error_message(self, client: Client, message):
         #

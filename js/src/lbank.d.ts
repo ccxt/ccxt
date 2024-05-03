@@ -1,13 +1,13 @@
 import Exchange from './abstract/lbank.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction } from './base/types.js';
 /**
- * @class lbank2
+ * @class lbank
  * @augments Exchange
  */
 export default class lbank extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchSwapMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
@@ -20,16 +20,11 @@ export default class lbank extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseTradingFee(fee: any, market?: Market): {
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    };
-    fetchTradingFee(symbol: string, params?: {}): Promise<{}>;
-    fetchTradingFees(params?: {}): Promise<{}>;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -56,15 +51,12 @@ export default class lbank extends Exchange {
         network: string;
         info: any;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-    }>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any, type: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<any>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
     fetchPrivateTransactionFees(params?: {}): Promise<{
         withdraw: {};
         deposit: {};

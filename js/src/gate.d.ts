@@ -1,16 +1,15 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
  */
 export default class gate extends Exchange {
     describe(): any;
-    setSandboxMode(enable: any): void;
-    convertExpireDate(date: any): string;
-    createExpiredOptionMarket(symbol: any): MarketInterface;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
-    fetchMarkets(params?: {}): Promise<any>;
+    setSandboxMode(enable: boolean): void;
+    createExpiredOptionMarket(symbol: string): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchContractMarkets(params?: {}): Promise<any[]>;
     parseContractMarket(market: any, settleId: any): {
@@ -71,7 +70,7 @@ export default class gate extends Exchange {
     multiOrderSpotPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
     getMarginMode(stop: any, params: any): any[];
     getSettlementCurrencies(type: any, method: any): any;
-    fetchCurrencies(params?: {}): Promise<{}>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
@@ -120,21 +119,18 @@ export default class gate extends Exchange {
         tag: any;
         network: any;
     }>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        maker: number;
-        taker: number;
-    }>;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseTradingFees(response: any): {};
     parseTradingFee(info: any, market?: Market): {
         info: any;
         symbol: string;
         maker: number;
         taker: number;
+        percentage: any;
+        tierBased: any;
     };
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
@@ -163,7 +159,7 @@ export default class gate extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseBalanceHelper(entry: any): import("./base/types.js").Account;
+    parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOptionOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -175,15 +171,15 @@ export default class gate extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -192,17 +188,7 @@ export default class gate extends Exchange {
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        id: string;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-        info: any;
-    }>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: string;
         timestamp: any;
@@ -214,10 +200,10 @@ export default class gate extends Exchange {
         status: any;
         info: any;
     };
-    setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
-    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    parsePosition(position: any, market?: Market): Position;
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseEmulatedLeverageTiers(info: any, market?: any): any[];
@@ -240,7 +226,7 @@ export default class gate extends Exchange {
         datetime: string;
         info: any;
     }>;
-    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
         id: number;
         currency: string;
         amount: number;
@@ -249,7 +235,7 @@ export default class gate extends Exchange {
         datetime: string;
         info: any;
     }>;
-    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
+    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
         id: number;
         currency: string;
         amount: number;
@@ -273,38 +259,10 @@ export default class gate extends Exchange {
         body: any;
         headers: any;
     };
-    modifyMarginHelper(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: number;
-        status: string;
-    }>;
-    parseMarginModification(data: any, market?: Market): {
-        info: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: number;
-        status: string;
-    };
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: number;
-        status: string;
-    }>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        amount: any;
-        code: any;
-        symbol: string;
-        total: number;
-        status: string;
-    }>;
+    modifyMarginHelper(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    parseMarginModification(data: any, market?: Market): MarginModification;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
     parseOpenInterest(interest: any, market?: Market): {
         symbol: string;
@@ -343,7 +301,7 @@ export default class gate extends Exchange {
         info: any;
     };
     parseLedgerEntryType(type: any): string;
-    setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchUnderlyingAssets(params?: {}): Promise<any[]>;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
@@ -371,5 +329,30 @@ export default class gate extends Exchange {
         info: any;
     };
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
+    parseLeverage(leverage: any, market?: any): Leverage;
+    fetchOption(symbol: string, params?: {}): Promise<Option>;
+    fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
+    parseOption(chain: any, currency?: Currency, market?: Market): {
+        info: any;
+        currency: any;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
+        impliedVolatility: any;
+        openInterest: any;
+        bidPrice: number;
+        askPrice: number;
+        midPrice: any;
+        markPrice: number;
+        lastPrice: number;
+        underlyingPrice: number;
+        change: any;
+        percentage: any;
+        baseVolume: any;
+        quoteVolume: any;
+    };
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

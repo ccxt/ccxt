@@ -248,6 +248,16 @@ export default class okcoin extends Exchange {
                     '50026': ExchangeNotAvailable,
                     '50027': PermissionDenied,
                     '50028': ExchangeError,
+                    '50029': ExchangeError,
+                    '50030': PermissionDenied,
+                    '50032': AccountSuspended,
+                    '50033': AccountSuspended,
+                    '50035': BadRequest,
+                    '50036': BadRequest,
+                    '50037': BadRequest,
+                    '50038': ExchangeError,
+                    '50039': ExchangeError,
+                    '50041': ExchangeError,
                     '50044': BadRequest,
                     // API Class
                     '50100': ExchangeError,
@@ -291,9 +301,25 @@ export default class okcoin extends Exchange {
                     '51024': AccountSuspended,
                     '51025': ExchangeError,
                     '51026': BadSymbol,
+                    '51030': InvalidOrder,
+                    '51031': InvalidOrder,
+                    '51032': InvalidOrder,
+                    '51033': InvalidOrder,
+                    '51037': InvalidOrder,
+                    '51038': InvalidOrder,
+                    '51044': InvalidOrder,
                     '51046': InvalidOrder,
                     '51047': InvalidOrder,
-                    '51031': InvalidOrder,
+                    '51048': InvalidOrder,
+                    '51049': InvalidOrder,
+                    '51050': InvalidOrder,
+                    '51051': InvalidOrder,
+                    '51052': InvalidOrder,
+                    '51053': InvalidOrder,
+                    '51054': BadRequest,
+                    '51056': InvalidOrder,
+                    '51058': InvalidOrder,
+                    '51059': InvalidOrder,
                     '51100': InvalidOrder,
                     '51102': InvalidOrder,
                     '51103': InvalidOrder,
@@ -860,7 +886,7 @@ export default class okcoin extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
-        const spot = this.safeValue(market, 'spot', false);
+        const spot = this.safeBool(market, 'spot', false);
         const quoteVolume = spot ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
@@ -949,7 +975,7 @@ export default class okcoin extends Exchange {
             'instType': 'SPOT',
         };
         const response = await this.publicGetMarketTickers(this.extend(request, params));
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols, params);
     }
     parseTrade(trade, market = undefined) {
@@ -1058,7 +1084,7 @@ export default class okcoin extends Exchange {
         else {
             response = await this.publicGetMarketHistoryTrades(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1110,8 +1136,10 @@ export default class okcoin extends Exchange {
         const request = {
             'instId': market['id'],
             'bar': bar,
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'method', 'publicGetMarketCandles');
         let response = undefined;
@@ -1121,7 +1149,7 @@ export default class okcoin extends Exchange {
         else {
             response = await this.publicGetMarketHistoryCandles(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseAccountBalance(response) {
@@ -1404,7 +1432,7 @@ export default class okcoin extends Exchange {
         }
         else {
             marginMode = defaultMarginMode;
-            margin = this.safeValue(params, 'margin', false);
+            margin = this.safeBool(params, 'margin', false);
         }
         if (margin) {
             const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
@@ -1642,7 +1670,7 @@ export default class okcoin extends Exchange {
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     parseIds(ids) {
@@ -1743,7 +1771,7 @@ export default class okcoin extends Exchange {
         //     }
         //
         //
-        const ordersData = this.safeValue(response, 'data', []);
+        const ordersData = this.safeList(response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
     }
     parseOrderStatus(status) {
@@ -2003,7 +2031,7 @@ export default class okcoin extends Exchange {
             response = await this.privateGetTradeOrder(this.extend(request, query));
         }
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2051,7 +2079,7 @@ export default class okcoin extends Exchange {
         else {
             response = await this.privateGetTradeOrdersPending(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2140,7 +2168,7 @@ export default class okcoin extends Exchange {
         //         "msg":""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -2356,7 +2384,7 @@ export default class okcoin extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const rawTransfer = this.safeValue(data, 0, {});
+        const rawTransfer = this.safeDict(data, 0, {});
         return this.parseTransfer(rawTransfer, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -2499,7 +2527,7 @@ export default class okcoin extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const transaction = this.safeValue(data, 0);
+        const transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2573,7 +2601,7 @@ export default class okcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2639,7 +2667,7 @@ export default class okcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     parseTransactionStatus(status) {
@@ -2810,7 +2838,7 @@ export default class okcoin extends Exchange {
         else {
             response = await this.privateGetTradeFills(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {

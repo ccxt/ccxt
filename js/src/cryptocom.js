@@ -35,6 +35,7 @@ export default class cryptocom extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': true,
                 'createMarketBuyOrderWithCost': false,
@@ -69,6 +70,7 @@ export default class cryptocom extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
@@ -81,8 +83,10 @@ export default class cryptocom extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
                 'fetchStatus': false,
@@ -495,7 +499,8 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString(market, 'strike');
             const marginBuyEnabled = this.safeValue(market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeValue(market, 'margin_sell_enabled');
-            const expiry = this.omitZero(this.safeInteger(market, 'expiry_timestamp_ms'));
+            const expiryString = this.omitZero(this.safeString(market, 'expiry_timestamp_ms'));
+            const expiry = (expiryString !== undefined) ? parseInt(expiryString) : undefined;
             let symbol = base + '/' + quote;
             let type = undefined;
             let contract = undefined;
@@ -626,7 +631,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
+        const data = this.safeList(result, 'data', []);
         return this.parseTickers(data, symbols);
     }
     async fetchTicker(symbol, params = {}) {
@@ -676,8 +681,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -722,7 +727,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(data, 'data', []);
+        const orders = this.safeList(data, 'data', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -755,8 +760,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -782,7 +787,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'data', []);
+        const trades = this.safeList(result, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -817,8 +822,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -845,7 +850,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
+        const data = this.safeList(result, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -1016,7 +1021,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const order = this.safeValue(response, 'result', {});
+        const order = this.safeDict(response, 'result', {});
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1057,7 +1062,7 @@ export default class cryptocom extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1070,10 +1075,10 @@ export default class cryptocom extends Exchange {
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
         if (isTrigger) {
             request['ref_price'] = this.priceToPrecision(symbol, triggerPrice);
-            price = price.toString();
+            const priceString = this.numberToString(price);
             if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if (side === 'buy') {
-                    if (Precise.stringLt(price, triggerPrice)) {
+                    if (Precise.stringLt(priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
                     }
                     else {
@@ -1081,7 +1086,7 @@ export default class cryptocom extends Exchange {
                     }
                 }
                 else {
-                    if (Precise.stringLt(price, triggerPrice)) {
+                    if (Precise.stringLt(priceString, triggerPrice)) {
                         request['type'] = 'STOP_LIMIT';
                     }
                     else {
@@ -1091,7 +1096,7 @@ export default class cryptocom extends Exchange {
             }
             else {
                 if (side === 'buy') {
-                    if (Precise.stringLt(price, triggerPrice)) {
+                    if (Precise.stringLt(priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT';
                     }
                     else {
@@ -1099,7 +1104,7 @@ export default class cryptocom extends Exchange {
                     }
                 }
                 else {
-                    if (Precise.stringLt(price, triggerPrice)) {
+                    if (Precise.stringLt(priceString, triggerPrice)) {
                         request['type'] = 'STOP_LOSS';
                     }
                     else {
@@ -1166,7 +1171,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     async createOrders(orders, params = {}) {
@@ -1278,7 +1283,7 @@ export default class cryptocom extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1290,10 +1295,10 @@ export default class cryptocom extends Exchange {
         const isStopLossTrigger = (stopLossPrice !== undefined);
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
         if (isTrigger) {
-            price = price.toString();
+            const priceString = this.numberToString(price);
             if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if (side === 'buy') {
-                    if (Precise.stringLt(price, triggerPrice)) {
+                    if (Precise.stringLt(priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
                     }
                     else {
@@ -1301,7 +1306,7 @@ export default class cryptocom extends Exchange {
                     }
                 }
                 else {
-                    if (Precise.stringLt(price, triggerPrice)) {
+                    if (Precise.stringLt(priceString, triggerPrice)) {
                         request['type'] = 'STOP_LIMIT';
                     }
                     else {
@@ -1311,7 +1316,7 @@ export default class cryptocom extends Exchange {
             }
             else {
                 if (side === 'buy') {
-                    if (Precise.stringLt(price, triggerPrice)) {
+                    if (Precise.stringLt(priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT';
                     }
                     else {
@@ -1319,7 +1324,7 @@ export default class cryptocom extends Exchange {
                     }
                 }
                 else {
-                    if (Precise.stringLt(price, triggerPrice)) {
+                    if (Precise.stringLt(priceString, triggerPrice)) {
                         request['type'] = 'STOP_LOSS';
                     }
                     else {
@@ -1430,7 +1435,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
@@ -1463,8 +1468,39 @@ export default class cryptocom extends Exchange {
             'order_list': orderRequests,
         };
         const response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, params));
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseOrders(result, market, undefined, undefined, params);
+    }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const orderRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const id = this.safeString(order, 'id');
+            const symbol = this.safeString(order, 'symbol');
+            const market = this.market(symbol);
+            const orderItem = {
+                'instrument_name': market['id'],
+                'order_id': id.toString(),
+            };
+            orderRequests.push(orderItem);
+        }
+        const request = {
+            'contingency_type': 'LIST',
+            'order_list': orderRequests,
+        };
+        const response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, params));
+        const result = this.safeList(response, 'result', []);
+        return this.parseOrders(result, undefined, undefined, undefined, params);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1524,7 +1560,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(data, 'data', []);
+        const orders = this.safeList(data, 'data', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1559,8 +1595,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -1595,7 +1631,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'data', []);
+        const trades = this.safeList(result, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseAddress(addressString) {
@@ -1627,7 +1663,7 @@ export default class cryptocom extends Exchange {
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         await this.loadMarkets();
-        const currency = this.currency(code);
+        const currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
         const request = {
             'currency': currency['id'],
             'amount': amount,
@@ -1659,7 +1695,7 @@ export default class cryptocom extends Exchange {
         //        }
         //     }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parseTransaction(result, currency);
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {
@@ -1673,7 +1709,7 @@ export default class cryptocom extends Exchange {
          * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
          */
         await this.loadMarkets();
-        const currency = this.currency(code);
+        const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
         };
@@ -1772,7 +1808,7 @@ export default class cryptocom extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1782,8 +1818,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -1811,7 +1847,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'result', {});
-        const depositList = this.safeValue(data, 'deposit_list', []);
+        const depositList = this.safeList(data, 'deposit_list', []);
         return this.parseTransactions(depositList, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1831,7 +1867,7 @@ export default class cryptocom extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1841,8 +1877,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -1872,7 +1908,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'result', {});
-        const withdrawalList = this.safeValue(data, 'withdrawal_list', []);
+        const withdrawalList = this.safeList(data, 'withdrawal_list', []);
         return this.parseTransactions(withdrawalList, currency, since, limit);
     }
     parseTicker(ticker, market = undefined) {
@@ -2249,7 +2285,7 @@ export default class cryptocom extends Exchange {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, 'margin');
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams(methodName, params);
@@ -2319,15 +2355,15 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
-        const response = await this.v2PrivatePostPrivateGetCurrencyNetworks(params);
+        const response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
         const data = this.safeValue(response, 'result');
-        const currencyMap = this.safeValue(data, 'currency_map');
+        const currencyMap = this.safeList(data, 'currency_map');
         return this.parseDepositWithdrawFees(currencyMap, codes, 'full_name');
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2347,7 +2383,7 @@ export default class cryptocom extends Exchange {
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
         }
         if (since !== undefined) {
             request['start_time'] = since;
@@ -2355,8 +2391,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_time'] = until;
         }
@@ -2678,8 +2714,8 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
@@ -2756,9 +2792,9 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
-        return this.parsePosition(data[0], market);
+        const result = this.safeDict(response, 'result', {});
+        const data = this.safeList(result, 'data', []);
+        return this.parsePosition(this.safeDict(data, 0), market);
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
@@ -2950,7 +2986,7 @@ export default class cryptocom extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parseOrder(result, market);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

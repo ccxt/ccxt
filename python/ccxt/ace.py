@@ -5,13 +5,13 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -67,8 +67,13 @@ class ace(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -173,7 +178,7 @@ class ace(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ace
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
@@ -395,7 +400,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        orderBook = self.safe_value(response, 'attachment')
+        orderBook = self.safe_dict(response, 'attachment')
         return self.parse_order_book(orderBook, market['symbol'], None, 'bids', 'asks')
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -568,7 +573,7 @@ class ace(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
@@ -602,7 +607,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        data = self.safe_value(response, 'attachment')
+        data = self.safe_dict(response, 'attachment')
         return self.parse_order(data, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -664,7 +669,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        data = self.safe_value(response, 'attachment')
+        data = self.safe_dict(response, 'attachment')
         return self.parse_order(data, None)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -847,7 +852,7 @@ class ace(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'attachment')
-        trades = self.safe_value(data, 'trades', [])
+        trades = self.safe_list(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -902,7 +907,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        trades = self.safe_value(response, 'attachment', [])
+        trades = self.safe_list(response, 'attachment', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_balance(self, response) -> Balances:
@@ -1001,6 +1006,7 @@ class ace(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         status = self.safe_number(response, 'status', 200)
         if status > 200:
-            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], status, feedback)
+            statusStr = str(status)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], statusStr, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], statusStr, feedback)
         return None

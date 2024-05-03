@@ -44,6 +44,9 @@ class oceanex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchMarkets' => true,
@@ -144,7 +147,7 @@ class oceanex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for oceanex
          * @see https://api.oceanex.pro/doc/v1/#$markets-post
@@ -261,7 +264,7 @@ class oceanex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
@@ -486,7 +489,7 @@ class oceanex extends Exchange {
         //          )
         //      }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -550,7 +553,7 @@ class oceanex extends Exchange {
         return $this->safe_timestamp($response, 'data');
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api.oceanex.pro/doc/v1/#trading-fees-post
@@ -610,7 +613,7 @@ class oceanex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://api.oceanex.pro/doc/v1/#new-order-post
@@ -634,7 +637,7 @@ class oceanex extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
@@ -778,10 +781,10 @@ class oceanex extends Exchange {
             $request['timestamp'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 10000);
         }
         $response = $this->publicPostK (array_merge($request, $params));
-        $ohlcvs = $this->safe_value($response, 'data', array());
+        $ohlcvs = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -861,7 +864,7 @@ class oceanex extends Exchange {
          */
         $this->load_markets();
         $response = $this->privatePostOrderDelete (array_merge(array( 'id' => $id ), $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data);
     }
 
@@ -876,7 +879,7 @@ class oceanex extends Exchange {
          */
         $this->load_markets();
         $response = $this->privatePostOrderDeleteMulti (array_merge(array( 'ids' => $ids ), $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_orders($data);
     }
 
@@ -890,7 +893,7 @@ class oceanex extends Exchange {
          */
         $this->load_markets();
         $response = $this->privatePostOrdersClear ($params);
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_orders($data);
     }
 

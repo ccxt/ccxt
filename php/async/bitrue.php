@@ -408,7 +408,7 @@ class bitrue extends Exchange {
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                     '-1100' => '\\ccxt\\BadRequest', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101' => '\\ccxt\\BadRequest', // Too many parameters; expected %s and received %s.
-                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty
+                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty // array("code":-1102,"msg":"timestamp IllegalArgumentException.","data":null)
                     '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
                     '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105' => '\\ccxt\\BadRequest', // Parameter %s was empty.
@@ -590,7 +590,7 @@ class bitrue extends Exchange {
         return $this->safe_string_2($networksById, $networkId, $uppercaseNetworkId, $networkId);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -719,7 +719,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitrue
@@ -1353,9 +1353,6 @@ class bitrue extends Exchange {
                     'interval' => $this->safe_string($timeframesFuture, $timeframe, '1min'),
                 );
                 if ($limit !== null) {
-                    if ($limit > 300) {
-                        $limit = 300;
-                    }
                     $request['limit'] = $limit;
                 }
                 if ($market['linear']) {
@@ -1372,9 +1369,6 @@ class bitrue extends Exchange {
                     'scale' => $this->safe_string($timeframesSpot, $timeframe, '1m'),
                 );
                 if ($limit !== null) {
-                    if ($limit > 1440) {
-                        $limit = 1440;
-                    }
                     $request['limit'] = $limit;
                 }
                 if ($since !== null) {
@@ -1882,7 +1876,7 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -1903,7 +1897,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1971,9 +1965,9 @@ class bitrue extends Exchange {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
                         $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = ($cost !== null) ? $cost : $quoteAmount;
-                        $request['amount'] = $this->cost_to_precision($symbol, $amount);
-                        $request['volume'] = $this->cost_to_precision($symbol, $amount);
+                        $requestAmount = ($cost !== null) ? $cost : $quoteAmount;
+                        $request['amount'] = $this->cost_to_precision($symbol, $requestAmount);
+                        $request['volume'] = $this->cost_to_precision($symbol, $requestAmount);
                     }
                 } else {
                     $request['amount'] = $this->parse_to_numeric($amount);
@@ -2549,7 +2543,7 @@ class bitrue extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -2587,20 +2581,29 @@ class bitrue extends Exchange {
             }
             $response = Async\await($this->spotV1PrivateGetWithdrawHistory (array_merge($request, $params)));
             //
-            //     {
-            //         "code" => 200,
-            //         "msg" => "succ",
-            //         "data" => {
-            //             "msg" => null,
-            //             "amount" => 1000,
-            //             "fee" => 1,
-            //             "ctime" => null,
-            //             "coin" => "usdt_erc20",
-            //             "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-            //         }
-            //     }
+            //    {
+            //        "code" => 200,
+            //        "msg" => "succ",
+            //        "data" => array(
+            //            {
+            //                "id" => 183745,
+            //                "symbol" => "usdt_erc20",
+            //                "amount" => "8.4000000000000000",
+            //                "fee" => "1.6000000000000000",
+            //                "payAmount" => "0.0000000000000000",
+            //                "createdAt" => 1595336441000,
+            //                "updatedAt" => 1595336576000,
+            //                "addressFrom" => "",
+            //                "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+            //                "txid" => "",
+            //                "confirmations" => 0,
+            //                "status" => 6,
+            //                "tagType" => null
+            //            }
+            //        )
+            //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency);
         }) ();
     }
@@ -2748,7 +2751,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2764,28 +2767,20 @@ class bitrue extends Exchange {
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $chainName = $this->safe_string_2($params, 'network', 'chainName');
-            if ($chainName === null) {
-                $networks = $this->safe_value($currency, 'networks', array());
-                $optionsNetworks = $this->safe_value($this->options, 'networks', array());
-                $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-                $network = $this->safe_string($optionsNetworks, $network, $network);
-                $networkEntry = $this->safe_value($networks, $network, array());
-                $chainName = $this->safe_string($networkEntry, 'id'); // handle ERC20>ETH alias
-                if ($chainName === null) {
-                    throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter or a $chainName parameter');
-                }
-                $params = $this->omit($params, 'network');
-            }
             $request = array(
-                'coin' => strtoupper($currency['id']),
+                'coin' => $currency['id'],
                 'amount' => $amount,
                 'addressTo' => $address,
-                'chainName' => $chainName, // 'ERC20', 'TRC20', 'SOL'
+                // 'chainName' => chainName, // 'ERC20', 'TRC20', 'SOL'
                 // 'addressMark' => '', // mark of $address
                 // 'addrType' => '', // type of $address
                 // 'tag' => $tag,
             );
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['chainName'] = $this->network_code_to_id($networkCode);
+            }
             if ($tag !== null) {
                 $request['tag'] = $tag;
             }
@@ -2805,7 +2800,7 @@ class bitrue extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
         }) ();
     }
@@ -2863,7 +2858,7 @@ class bitrue extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->spotV1PublicGetExchangeInfo ($params));
-            $coins = $this->safe_value($response, 'coins');
+            $coins = $this->safe_list($response, 'coins');
             return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
         }) ();
     }
@@ -2958,12 +2953,12 @@ class bitrue extends Exchange {
             //         )]
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -2994,12 +2989,12 @@ class bitrue extends Exchange {
             //         'data' => null
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transfer($data, $currency);
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3035,18 +3030,31 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, $market = null): array {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "success"
+        //         "data" => null
+        //     }
+        //
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => null,
             'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => null,
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function set_margin(string $symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
@@ -3178,7 +3186,7 @@ class bitrue extends Exchange {
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;

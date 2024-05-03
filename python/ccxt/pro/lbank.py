@@ -175,7 +175,7 @@ class lbank(ccxt.async_support.lbank):
         #          },
         #          type: 'kbar',
         #          pair: 'btc_usdt',
-        #          TS: '2022-10-02T12:44:15.864'
+        #          TS: '2022-10-02T12:44:15.865'
         #      }
         #
         marketId = self.safe_string(message, 'pair')
@@ -227,7 +227,7 @@ class lbank(ccxt.async_support.lbank):
             messageHash = 'ohlcv:' + symbol + ':' + timeframeId
             client.resolve(stored, messageHash)
 
-    async def fetch_ticker_ws(self, symbol, params={}) -> Ticker:
+    async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -248,7 +248,7 @@ class lbank(ccxt.async_support.lbank):
         requestId = self.request_id()
         return await self.watch(url, messageHash, request, requestId, request)
 
-    async def watch_ticker(self, symbol, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://www.lbank.com/en-US/docs/index.html#market
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -416,7 +416,7 @@ class lbank(ccxt.async_support.lbank):
         #             "volume":6.3607,
         #             "amount":77148.9303,
         #             "price":12129,
-        #             "direction":"sell",
+        #             "direction":"sell",  # or "sell_market"
         #             "TS":"2019-06-28T19:55:49.460"
         #         },
         #         "type":"trade",
@@ -454,7 +454,7 @@ class lbank(ccxt.async_support.lbank):
         #        "volume":6.3607,
         #        "amount":77148.9303,
         #        "price":12129,
-        #        "direction":"sell",
+        #        "direction":"sell",  # or "sell_market"
         #        "TS":"2019-06-28T19:55:49.460"
         #    }
         #
@@ -462,6 +462,8 @@ class lbank(ccxt.async_support.lbank):
         datetime = (self.iso8601(timestamp)) if (timestamp is not None) else (self.safe_string(trade, 'TS'))
         if timestamp is None:
             timestamp = self.parse8601(datetime)
+        side = self.safe_string_2(trade, 'direction', 3)
+        side = side.replace('_market', '')
         return self.safe_trade({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -470,7 +472,7 @@ class lbank(ccxt.async_support.lbank):
             'order': None,
             'type': None,
             'takerOrMaker': None,
-            'side': self.safe_string_2(trade, 'direction', 3),
+            'side': side,
             'price': self.safe_string_2(trade, 'price', 1),
             'amount': self.safe_string_2(trade, 'volume', 2),
             'cost': self.safe_string(trade, 'amount'),
@@ -749,16 +751,16 @@ class lbank(ccxt.async_support.lbank):
         orderBook = self.safe_value(message, 'depth', message)
         datetime = self.safe_string(message, 'TS')
         timestamp = self.parse8601(datetime)
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
-            self.orderbooks[symbol] = storedOrderBook
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
         snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'bids', 'asks')
-        storedOrderBook.reset(snapshot)
+        orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
-        client.resolve(storedOrderBook, messageHash)
+        client.resolve(orderbook, messageHash)
         messageHash = 'fetchOrderbook:' + symbol
-        client.resolve(storedOrderBook, messageHash)
+        client.resolve(orderbook, messageHash)
 
     def handle_error_message(self, client, message):
         #
@@ -786,7 +788,8 @@ class lbank(ccxt.async_support.lbank):
     def handle_message(self, client, message):
         status = self.safe_string(message, 'status')
         if status == 'error':
-            return self.handle_error_message(client, message)
+            self.handle_error_message(client, message)
+            return
         type = self.safe_string_2(message, 'type', 'action')
         if type == 'ping':
             self.spawn(self.handle_ping, client, message)
@@ -800,8 +803,7 @@ class lbank(ccxt.async_support.lbank):
         }
         handler = self.safe_value(handlers, type)
         if handler is not None:
-            return handler(client, message)
-        return message
+            handler(client, message)
 
     async def authenticate(self, params={}):
         # when we implement more private streams, we need to refactor the authentication

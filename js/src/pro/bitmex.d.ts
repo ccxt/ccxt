@@ -1,9 +1,10 @@
 import bitmexRest from '../bitmex.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmex extends bitmexRest {
     describe(): any;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): any;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
@@ -19,6 +20,7 @@ export default class bitmex extends bitmexRest {
     handleMyTrades(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
     watchHeartbeat(params?: {}): Promise<any>;
@@ -26,5 +28,5 @@ export default class bitmex extends bitmexRest {
     handleSystemStatus(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

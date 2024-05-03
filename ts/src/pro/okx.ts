@@ -5,7 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -503,14 +503,27 @@ export default class okx extends okxRest {
          * @name okx#watchOrderBookForSymbols
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const depth = this.safeString (options, 'depth', 'books');
+        let depth = this.safeString (options, 'depth', 'books');
+        if (limit !== undefined) {
+            if (limit === 1) {
+                depth = 'bbo-tbt';
+            } else if (limit > 1 && limit <= 5) {
+                depth = 'books5';
+            } else if (limit === 400) {
+                depth = 'books';
+            } else if (limit === 50) {
+                depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
+            } else if (limit === 4000) {
+                depth = 'books-l2-tbt'; // Make sure you have VIP5 and above
+            }
+        }
         if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
             await this.authenticate ({ 'access': 'public' });
         }
@@ -578,7 +591,7 @@ export default class okx extends okxRest {
         const storedBids = orderbook['bids'];
         this.handleDeltas (storedAsks, asks);
         this.handleDeltas (storedBids, bids);
-        const checksum = this.safeValue (this.options, 'checksum', true);
+        const checksum = this.safeBool (this.options, 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
@@ -774,7 +787,7 @@ export default class okx extends okxRest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -887,7 +900,7 @@ export default class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = undefined;
         [ type, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'type', 'ANY');
-        const isStop = this.safeValue (params, 'stop', false);
+        const isStop = this.safeBool (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
         await this.loadMarkets ();
         await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
@@ -931,9 +944,6 @@ export default class okx extends okxRest {
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
-        if (this.isEmpty (symbols)) {
-            throw new ArgumentsRequired (this.id + ' watchPositions requires a list of symbols');
-        }
         await this.loadMarkets ();
         await this.authenticate (params);
         symbols = this.marketSymbols (symbols);
@@ -941,7 +951,22 @@ export default class okx extends okxRest {
             'instType': 'ANY',
         };
         const channel = 'positions';
-        const newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
+        let newPositions = undefined;
+        if (symbols === undefined) {
+            const arg = {
+                'channel': 'positions',
+                'instType': 'ANY',
+            };
+            const args = [ arg ];
+            const nonSymbolRequest = {
+                'op': 'subscribe',
+                'args': args,
+            };
+            const url = this.getUrl (channel, 'private');
+            newPositions = await this.watch (url, channel, nonSymbolRequest, channel);
+        } else {
+            newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
+        }
         if (this.newUpdates) {
             return newPositions;
         }
@@ -1040,6 +1065,7 @@ export default class okx extends okxRest {
                 client.resolve (positions, messageHash);
             }
         }
+        client.resolve (newPositions, channel);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1270,7 +1296,7 @@ export default class okx extends okxRest {
         }
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name okx#createOrderWs
@@ -1337,10 +1363,11 @@ export default class okx extends okxRest {
             this.handleErrors (undefined, undefined, client.url, method, undefined, stringMsg, stringMsg, undefined, undefined);
         }
         const orders = this.parseOrders (args, undefined, undefined, undefined);
-        client.resolve (orders, messageHash);
+        const first = this.safeDict (orders, 0, {});
+        client.resolve (first, messageHash);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name okx#editOrderWs
@@ -1599,7 +1626,8 @@ export default class okx extends okxRest {
         //
         //
         if (message === 'pong') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
+            return;
         }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
@@ -1618,10 +1646,8 @@ export default class okx extends okxRest {
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue (methods, event);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         } else {
             const arg = this.safeValue (message, 'arg', {});
@@ -1647,11 +1673,9 @@ export default class okx extends okxRest {
             if (method === undefined) {
                 if (channel.indexOf ('candle') === 0) {
                     this.handleOHLCV (client, message);
-                } else {
-                    return message;
                 }
             } else {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }

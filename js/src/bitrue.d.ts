@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class bitrue
  * @augments Exchange
@@ -17,8 +17,8 @@ export default class bitrue extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     safeNetwork(networkId: any): string;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -33,19 +33,19 @@ export default class bitrue extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatusByType(status: any, type?: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {
@@ -70,35 +70,11 @@ export default class bitrue extends Exchange {
         toAccount: any;
         status: string;
     };
-    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: any;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    }>;
-    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    parseMarginModification(data: any, market?: any): {
-        info: any;
-        type: any;
-        amount: any;
-        code: any;
-        symbol: any;
-        status: any;
-    };
-    setMargin(symbol: string, amount: any, params?: {}): Promise<{
-        info: any;
-        type: any;
-        amount: any;
-        code: any;
-        symbol: any;
-        status: any;
-    }>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    parseMarginModification(data: any, market?: any): MarginModification;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

@@ -1,746 +1,2380 @@
 {
-  "exchange": "binance",
-  "skipKeys": [],
-  "options": {
-    "leverageBrackets": {"BTC/USDT:USDT":[["0","0.004"],["50000","0.005"],["250000","0.01"],["3000000","0.025"],["20000000","0.05"],["40000000","0.1"],["100000000","0.125"],["120000000","0.15"],["200000000","0.25"],["300000000","0.5"]],"ETH/USDT:USDT":[["0","0.005"],["100000","0.0065"],["250000","0.01"],["2000000","0.02"],["15000000","0.05"],["30000000","0.1"],["60000000","0.125"],["80000000","0.15"],["100000000","0.25"],["150000000","0.5"]],"LTC/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"ADA/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]]}
-  },
-  "methods": {
-    "fetchOrder": [
-      {
-        "description": "Fetch spot closed order",
-        "method": "fetchOrder",
-        "input": [
-          3397148653,
-          "LTC/USDT"
-        ],
-        "httpResponse": {
-          "symbol": "LTCUSDT",
-          "orderId": "3397148653",
-          "orderListId": "-1",
-          "clientOrderId": "x-R4BD3S825806ed40c861260428a48c",
-          "price": "0.00000000",
-          "origQty": "0.10000000",
-          "executedQty": "0.10000000",
-          "cummulativeQuoteQty": "9.08000000",
-          "status": "FILLED",
-          "timeInForce": "GTC",
-          "type": "MARKET",
-          "side": "SELL",
-          "stopPrice": "0.00000000",
-          "icebergQty": "0.00000000",
-          "time": "1679571174472",
-          "updateTime": "1679571174472",
-          "isWorking": true,
-          "workingTime": "1679571174472",
-          "origQuoteOrderQty": "0.00000000",
-          "selfTradePreventionMode": "NONE"
-        },
-        "parsedResponse": {
-          "info": {
-            "symbol": "LTCUSDT",
-            "orderId": "3397148653",
-            "orderListId": "-1",
-            "clientOrderId": "x-R4BD3S825806ed40c861260428a48c",
-            "price": "0.00000000",
-            "origQty": "0.10000000",
-            "executedQty": "0.10000000",
-            "cummulativeQuoteQty": "9.08000000",
-            "status": "FILLED",
-            "timeInForce": "GTC",
-            "type": "MARKET",
-            "side": "SELL",
-            "stopPrice": "0.00000000",
-            "icebergQty": "0.00000000",
-            "time": "1679571174472",
-            "updateTime": "1679571174472",
-            "isWorking": true,
-            "workingTime": "1679571174472",
-            "origQuoteOrderQty": "0.00000000",
-            "selfTradePreventionMode": "NONE"
-          },
-          "id": "3397148653",
-          "clientOrderId": "x-R4BD3S825806ed40c861260428a48c",
-          "timestamp": 1679571174472,
-          "datetime": "2023-03-23T11:32:54.472Z",
-          "lastTradeTimestamp": 1679571174472,
-          "lastUpdateTimestamp": 1679571174472,
-          "symbol": "LTC/USDT",
-          "type": "market",
-          "timeInForce": "GTC",
-          "postOnly": false,
-          "reduceOnly": null,
-          "side": "sell",
-          "price": 90.8,
-          "triggerPrice": null,
-          "amount": 0.1,
-          "cost": 9.08,
-          "average": 90.8,
-          "filled": 0.1,
-          "remaining": 0,
-          "status": "closed",
-          "fee": null,
-          "trades": [],
-          "fees": [],
-          "stopPrice": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null
-        }
-      }
-    ],
-    "fetchOpenOrders": [
-      {
-        "description": "Fetch spot open orders",
-        "method": "fetchOpenOrders",
-        "input": [
-          "LTC/USDT",
-          null,
-          1
-        ],
-        "httpResponse": [
-          {
-            "symbol": "LTCUSDT",
-            "orderId": "3811057334",
-            "orderListId": "-1",
-            "clientOrderId": "x-R4BD3S82102a551f8c1642bba06728",
-            "price": "50.00000000",
-            "origQty": "0.20000000",
-            "executedQty": "0.00000000",
-            "cummulativeQuoteQty": "0.00000000",
-            "status": "NEW",
-            "timeInForce": "GTC",
-            "type": "LIMIT_MAKER",
-            "side": "BUY",
-            "stopPrice": "0.00000000",
-            "icebergQty": "0.00000000",
-            "time": "1699380855570",
-            "updateTime": "1699380855570",
-            "isWorking": true,
-            "workingTime": "1699380855570",
-            "origQuoteOrderQty": "0.00000000",
-            "selfTradePreventionMode": "EXPIRE_MAKER"
-          }
-        ],
-        "parsedResponse": [
-          {
-            "info": {
-              "symbol": "LTCUSDT",
-              "orderId": "3811057334",
-              "orderListId": "-1",
-              "clientOrderId": "x-R4BD3S82102a551f8c1642bba06728",
-              "price": "50.00000000",
-              "origQty": "0.20000000",
-              "executedQty": "0.00000000",
-              "cummulativeQuoteQty": "0.00000000",
-              "status": "NEW",
-              "timeInForce": "GTC",
-              "type": "LIMIT_MAKER",
-              "side": "BUY",
-              "stopPrice": "0.00000000",
-              "icebergQty": "0.00000000",
-              "time": "1699380855570",
-              "updateTime": "1699380855570",
-              "isWorking": true,
-              "workingTime": "1699380855570",
-              "origQuoteOrderQty": "0.00000000",
-              "selfTradePreventionMode": "EXPIRE_MAKER"
-            },
-            "id": "3811057334",
-            "clientOrderId": "x-R4BD3S82102a551f8c1642bba06728",
-            "timestamp": 1699380855570,
-            "datetime": "2023-11-07T18:14:15.570Z",
-            "lastTradeTimestamp": null,
-            "lastUpdateTimestamp": 1699380855570,
-            "symbol": "LTC/USDT",
-            "type": "limit",
-            "timeInForce": "GTC",
-            "postOnly": true,
-            "reduceOnly": null,
-            "side": "buy",
-            "price": 50,
-            "triggerPrice": null,
-            "amount": 0.2,
-            "cost": 0,
-            "average": null,
-            "filled": 0,
-            "remaining": 0.2,
-            "status": "open",
-            "fee": null,
-            "trades": [],
-            "fees": [],
-            "stopPrice": null,
-            "takeProfitPrice": null,
-            "stopLossPrice": null
-          }
-        ]
-      }
-    ],
-    "fetchPositions": [
-      {
-        "description": "Fetch linear position",
-        "method": "fetchPositions",
-        "input": [
-          [
-            "LTC/USDT:USDT"
-          ]
-        ],
-        "httpResponse": [
-          {
-            "symbol": "LTCUSDT",
-            "positionAmt": "-0.300",
-            "entryPrice": "65.00166666667",
-            "breakEvenPrice": "61.02710666667",
-            "markPrice": "71.17028993",
-            "unRealizedProfit": "-1.85058698",
-            "liquidationPrice": "14577.07624222",
-            "leverage": "5",
-            "maxNotionalValue": "2000000",
-            "marginType": "cross",
-            "isolatedMargin": "0.00000000",
-            "isAutoAddMargin": "false",
-            "positionSide": "BOTH",
-            "notional": "-21.35108697",
-            "isolatedWallet": "0",
-            "updateTime": "1699114021481",
-            "isolated": false,
-            "adlQuantile": "1"
-          }
-        ],
-        "parsedResponse": [
-          {
-            "info": {
-              "symbol": "LTCUSDT",
-              "positionAmt": "-0.300",
-              "entryPrice": "65.00166666667",
-              "breakEvenPrice": "61.02710666667",
-              "markPrice": "71.17028993",
-              "unRealizedProfit": "-1.85058698",
-              "liquidationPrice": "14577.07624222",
-              "leverage": "5",
-              "maxNotionalValue": "2000000",
-              "marginType": "cross",
-              "isolatedMargin": "0.00000000",
-              "isAutoAddMargin": "false",
-              "positionSide": "BOTH",
-              "notional": "-21.35108697",
-              "isolatedWallet": "0",
-              "updateTime": "1699114021481",
-              "isolated": false,
-              "adlQuantile": "1"
-            },
-            "id": null,
-            "symbol": "LTC/USDT:USDT",
-            "contracts": 0.3,
-            "contractSize": 1,
-            "unrealizedPnl": -1.85058698,
-            "leverage": 5,
-            "liquidationPrice": 14577.07624222,
-            "collateral": 4382.04767133,
-            "notional": 21.35108697,
-            "markPrice": 71.17028993,
-            "entryPrice": 65.00166666667,
-            "timestamp": 1699114021481,
-            "initialMargin": 4.27021739,
-            "initialMarginPercentage": 0.2,
-            "maintenanceMargin": 0.138782065305,
-            "maintenanceMarginPercentage": 0.0065,
-            "marginRatio": 0,
-            "datetime": "2023-11-04T16:07:01.481Z",
-            "marginMode": "cross",
-            "marginType": "cross",
-            "side": "short",
-            "hedged": false,
-            "percentage": -43.33,
-            "stopLossPrice": null,
-            "takeProfitPrice": null
-          }
-        ]
-      },
-      {
-        "description": "Fetch linear positions using the account endpoint",
-        "method": "fetchPositions",
-        "input": [
-          [
-            "LTC/USDT:USDT"
-          ],
-          {
-            "method": "account"
-          }
-        ],
-        "httpResponse": {
-          "feeTier": "0",
-          "canTrade": true,
-          "canDeposit": true,
-          "canWithdraw": true,
-          "tradeGroupId": "-1",
-          "updateTime": "0",
-          "multiAssetsMargin": true,
-          "totalInitialMargin": "306.99664919",
-          "totalMaintMargin": "4.19111392",
-          "totalWalletBalance": "4344.52862033",
-          "totalUnrealizedProfit": "-20.17214402",
-          "totalMarginBalance": "4324.35647631",
-          "totalPositionInitialMargin": "300.52733455",
-          "totalOpenOrderInitialMargin": "6.46931464",
-          "totalCrossWalletBalance": "4344.52862033",
-          "totalCrossUnPnl": "-20.17214402",
-          "availableBalance": "4016.91165531",
-          "maxWithdrawAmount": "4016.91165531",
-          "assets": [
-            {
-              "asset": "USDT",
-              "walletBalance": "4346.91050995",
-              "unrealizedProfit": "-20.18320341",
-              "marginBalance": "4326.72730654",
-              "maintMargin": "4.19257311",
-              "initialMargin": "307.10353351",
-              "positionInitialMargin": "300.63196650",
-              "openOrderInitialMargin": "6.47156701",
-              "maxWithdrawAmount": "4018.31018798",
-              "crossWalletBalance": "4346.91050995",
-              "crossUnPnl": "-20.18320341",
-              "availableBalance": "4018.31018798",
-              "marginAvailable": true,
-              "updateTime": "1704897291072"
-            }
-          ],
-          "positions": [
-            {
-              "symbol": "LTCUSDT",
-              "initialMargin": "7.66078350",
-              "maintMargin": "0.03864953",
-              "unrealizedProfit": "-0.09593248",
-              "positionInitialMargin": "1.18921649",
-              "openOrderInitialMargin": "6.47156701",
-              "leverage": "5",
-              "isolated": false,
-              "entryPrice": "65.00166666667",
-              "breakEvenPrice": "37.57404222223",
-              "maxNotional": "2000000",
-              "positionSide": "BOTH",
-              "positionAmt": "-0.090",
-              "notional": "-5.94608247",
-              "isolatedWallet": "0",
-              "updateTime": "1704897291072",
-              "bidNotional": "44.25000000",
-              "askNotional": "0"
-            }
-          ]
-        },
-        "parsedResponse": [
-          {
-            "info": {
-              "symbol": "LTCUSDT",
-              "initialMargin": "7.66078350",
-              "maintMargin": "0.03864953",
-              "unrealizedProfit": "-0.09593248",
-              "positionInitialMargin": "1.18921649",
-              "openOrderInitialMargin": "6.47156701",
-              "leverage": "5",
-              "isolated": false,
-              "entryPrice": "65.00166666667",
-              "breakEvenPrice": "37.57404222223",
-              "maxNotional": "2000000",
-              "positionSide": "BOTH",
-              "positionAmt": "-0.090",
-              "notional": "-5.94608247",
-              "isolatedWallet": "0",
-              "updateTime": "1704897291072",
-              "bidNotional": "44.25000000",
-              "askNotional": "0",
-              "crossMargin": "4326.72730654",
-              "crossWalletBalance": "4346.91050995"
-            },
-            "id": null,
-            "symbol": "LTC/USDT:USDT",
-            "timestamp": 1704897291072,
-            "datetime": "2024-01-10T14:34:51.072Z",
-            "initialMargin": 7.6607835,
-            "initialMarginPercentage": 0.2,
-            "maintenanceMargin": 0.03864953,
-            "maintenanceMarginPercentage": 0.0065,
-            "entryPrice": 65.00166666667,
-            "notional": 5.94608247,
-            "leverage": 5,
-            "unrealizedPnl": -0.09593248,
-            "contracts": 0.09,
-            "contractSize": 1,
-            "marginRatio": 0,
-            "liquidationPrice": 48051.67,
-            "markPrice": null,
-            "collateral": 4326.72730654,
-            "marginMode": "cross",
-            "side": "short",
-            "hedged": false,
-            "percentage": -1.25
-          }
-        ]
-      }
-    ],
-    "fetchMyTrades": [
-      {
-        "description": "Spot private trade",
-        "method": "fetchMyTrades",
-        "input": [
-          "LTC/USDT",
-          null,
-          1
-        ],
-        "httpResponse": [
-          {
-            "symbol": "LTCUSDT",
-            "id": "309520010",
-            "orderId": "3784695242",
-            "orderListId": "-1",
-            "price": "69.63000000",
-            "qty": "0.20000000",
-            "quoteQty": "13.92600000",
-            "commission": "0.01392600",
-            "commissionAsset": "USDT",
-            "time": "1698138992358",
-            "isBuyer": false,
-            "isMaker": false,
-            "isBestMatch": true
-          }
-        ],
-        "parsedResponse": [
-          {
-            "info": {
-              "symbol": "LTCUSDT",
-              "id": "309520010",
-              "orderId": "3784695242",
-              "orderListId": "-1",
-              "price": "69.63000000",
-              "qty": "0.20000000",
-              "quoteQty": "13.92600000",
-              "commission": "0.01392600",
-              "commissionAsset": "USDT",
-              "time": "1698138992358",
-              "isBuyer": false,
-              "isMaker": false,
-              "isBestMatch": true
-            },
-            "timestamp": 1698138992358,
-            "datetime": "2023-10-24T09:16:32.358Z",
-            "symbol": "LTC/USDT",
-            "id": "309520010",
-            "order": "3784695242",
-            "type": null,
-            "side": "sell",
-            "takerOrMaker": "taker",
-            "price": 69.63,
-            "amount": 0.2,
-            "cost": 13.926,
-            "fee": {
-              "cost": 0.013926,
-              "currency": "USDT"
-            },
-            "fees": [
-              {
-                "cost": 0.013926,
-                "currency": "USDT"
-              }
+    "exchange": "binance",
+    "skipKeys": [],
+    "options": {
+        "leverageBrackets": {
+            "BTC/USDT:USDT": [
+                [
+                    "0",
+                    "0.004"
+                ],
+                [
+                    "50000",
+                    "0.005"
+                ],
+                [
+                    "250000",
+                    "0.01"
+                ],
+                [
+                    "3000000",
+                    "0.025"
+                ],
+                [
+                    "20000000",
+                    "0.05"
+                ],
+                [
+                    "40000000",
+                    "0.1"
+                ],
+                [
+                    "100000000",
+                    "0.125"
+                ],
+                [
+                    "120000000",
+                    "0.15"
+                ],
+                [
+                    "200000000",
+                    "0.25"
+                ],
+                [
+                    "300000000",
+                    "0.5"
+                ]
+            ],
+            "ETH/USDT:USDT": [
+                [
+                    "0",
+                    "0.005"
+                ],
+                [
+                    "100000",
+                    "0.0065"
+                ],
+                [
+                    "250000",
+                    "0.01"
+                ],
+                [
+                    "2000000",
+                    "0.02"
+                ],
+                [
+                    "15000000",
+                    "0.05"
+                ],
+                [
+                    "30000000",
+                    "0.1"
+                ],
+                [
+                    "60000000",
+                    "0.125"
+                ],
+                [
+                    "80000000",
+                    "0.15"
+                ],
+                [
+                    "100000000",
+                    "0.25"
+                ],
+                [
+                    "150000000",
+                    "0.5"
+                ]
+            ],
+            "LTC/USDT:USDT": [
+                [
+                    "0",
+                    "0.0065"
+                ],
+                [
+                    "10000",
+                    "0.01"
+                ],
+                [
+                    "50000",
+                    "0.02"
+                ],
+                [
+                    "250000",
+                    "0.05"
+                ],
+                [
+                    "1000000",
+                    "0.1"
+                ],
+                [
+                    "2000000",
+                    "0.125"
+                ],
+                [
+                    "5000000",
+                    "0.15"
+                ],
+                [
+                    "10000000",
+                    "0.25"
+                ]
+            ],
+            "ADA/USDT:USDT": [
+                [
+                    "0",
+                    "0.0065"
+                ],
+                [
+                    "10000",
+                    "0.01"
+                ],
+                [
+                    "50000",
+                    "0.02"
+                ],
+                [
+                    "250000",
+                    "0.05"
+                ],
+                [
+                    "1000000",
+                    "0.1"
+                ],
+                [
+                    "2000000",
+                    "0.125"
+                ],
+                [
+                    "5000000",
+                    "0.15"
+                ],
+                [
+                    "10000000",
+                    "0.25"
+                ]
             ]
-          }
-        ]
-      },
-      {
-        "description": "Swap private trade",
-        "method": "fetchMyTrades",
-        "input": [
-          "BTC/USDT:USDT",
-          null,
-          1
-        ],
-        "httpResponse": [
-          {
-            "symbol": "BTCUSDT",
-            "id": "272536245",
-            "orderId": "3524852987",
-            "side": "BUY",
-            "price": "36567.10",
-            "qty": "0.010",
-            "realizedPnl": "0",
-            "marginAsset": "USDT",
-            "quoteQty": "365.67100",
-            "commission": "0.14626840",
-            "commissionAsset": "USDT",
-            "time": "1699972836419",
-            "positionSide": "BOTH",
-            "maker": false,
-            "buyer": true
-          }
-        ],
-        "parsedResponse": [
-          {
-            "info": {
-              "symbol": "BTCUSDT",
-              "id": "272536245",
-              "orderId": "3524852987",
-              "side": "BUY",
-              "price": "36567.10",
-              "qty": "0.010",
-              "realizedPnl": "0",
-              "marginAsset": "USDT",
-              "quoteQty": "365.67100",
-              "commission": "0.14626840",
-              "commissionAsset": "USDT",
-              "time": "1699972836419",
-              "positionSide": "BOTH",
-              "maker": false,
-              "buyer": true
-            },
-            "timestamp": 1699972836419,
-            "datetime": "2023-11-14T14:40:36.419Z",
-            "symbol": "BTC/USDT:USDT",
-            "id": "272536245",
-            "order": "3524852987",
-            "type": null,
-            "side": "buy",
-            "takerOrMaker": "taker",
-            "price": 36567.1,
-            "amount": 0.01,
-            "cost": 365.671,
-            "fee": {
-              "cost": 0.1462684,
-              "currency": "USDT"
-            },
-            "fees": [
-              {
-                "cost": 0.1462684,
-                "currency": "USDT"
-              }
-            ]
-          }
-        ]
-      }
-    ],
-    "fetchBalance": [
-      {
-        "description": "Spot balance",
-        "method": "fetchBalance",
-        "input": [],
-        "httpResponse": {
-          "makerCommission": "10",
-          "takerCommission": "10",
-          "buyerCommission": "0",
-          "sellerCommission": "0",
-          "commissionRates": {
-            "maker": "0.00100000",
-            "taker": "0.00100000",
-            "buyer": "0.00000000",
-            "seller": "0.00000000"
-          },
-          "canTrade": true,
-          "canWithdraw": true,
-          "canDeposit": true,
-          "brokered": false,
-          "requireSelfTradePrevention": false,
-          "preventSor": false,
-          "updateTime": "1701856395927",
-          "accountType": "SPOT",
-          "balances": [
-            {
-              "asset": "BTC",
-              "free": "0.00000000",
-              "locked": "0.00000000"
-            },
-            {
-              "asset": "LTC",
-              "free": "0.91974100",
-              "locked": "0.00000000"
-            },
-            {
-              "asset": "ETH",
-              "free": "0.02229833",
-              "locked": "0.00000000"
-            }
-          ],
-          "permissions": [
-            "SPOT"
-          ],
-          "uid": "365859102"
-        },
-        "parsedResponse": {
-          "info": {
-            "makerCommission": "10",
-            "takerCommission": "10",
-            "buyerCommission": "0",
-            "sellerCommission": "0",
-            "commissionRates": {
-              "maker": "0.00100000",
-              "taker": "0.00100000",
-              "buyer": "0.00000000",
-              "seller": "0.00000000"
-            },
-            "canTrade": true,
-            "canWithdraw": true,
-            "canDeposit": true,
-            "brokered": false,
-            "requireSelfTradePrevention": false,
-            "preventSor": false,
-            "updateTime": "1701856395927",
-            "accountType": "SPOT",
-            "balances": [
-              {
-                "asset": "BTC",
-                "free": "0.00000000",
-                "locked": "0.00000000"
-              },
-              {
-                "asset": "LTC",
-                "free": "0.91974100",
-                "locked": "0.00000000"
-              },
-              {
-                "asset": "ETH",
-                "free": "0.02229833",
-                "locked": "0.00000000"
-              }
-            ],
-            "permissions": [
-              "SPOT"
-            ],
-            "uid": "365859102"
-          },
-          "BTC": {
-            "free": 0,
-            "used": 0,
-            "total": 0
-          },
-          "LTC": {
-            "free": 0.919741,
-            "used": 0,
-            "total": 0.919741
-          },
-          "ETH": {
-            "free": 0.02229833,
-            "used": 0,
-            "total": 0.02229833
-          },
-          "timestamp": 1701856395927,
-          "datetime": "2023-12-06T09:53:15.927Z",
-          "free": {
-            "BTC": 0,
-            "LTC": 0.919741,
-            "ETH": 0.02229833
-          },
-          "used": {
-            "BTC": 0,
-            "LTC": 0,
-            "ETH": 0
-          },
-          "total": {
-            "BTC": 0,
-            "LTC": 0.919741,
-            "ETH": 0.02229833
-          }
         }
-      },
-      {
-        "description": "Linear swap balance",
-        "method": "fetchBalance",
-        "input": [
-          {
-            "type": "swap"
-          }
-        ],
-        "httpResponse": {
-          "feeTier": "0",
-          "canTrade": true,
-          "canDeposit": true,
-          "canWithdraw": true,
-          "tradeGroupId": "-1",
-          "updateTime": "0",
-          "multiAssetsMargin": false,
-          "totalInitialMargin": "0.00000000",
-          "totalMaintMargin": "0.00000000",
-          "totalWalletBalance": "31.02261200",
-          "totalUnrealizedProfit": "0.00000000",
-          "totalMarginBalance": "31.02261200",
-          "totalPositionInitialMargin": "0.00000000",
-          "totalOpenOrderInitialMargin": "0.00000000",
-          "totalCrossWalletBalance": "31.02261200",
-          "totalCrossUnPnl": "0.00000000",
-          "availableBalance": "31.02261200",
-          "maxWithdrawAmount": "31.02261200",
-          "assets": [
+    },
+    "methods": {
+        "fetchOrder": [
             {
-              "asset": "USDT",
-              "walletBalance": "31.02261200",
-              "unrealizedProfit": "0.00000000",
-              "marginBalance": "31.02261200",
-              "maintMargin": "0.00000000",
-              "initialMargin": "0.00000000",
-              "positionInitialMargin": "0.00000000",
-              "openOrderInitialMargin": "0.00000000",
-              "maxWithdrawAmount": "31.02261200",
-              "crossWalletBalance": "31.02261200",
-              "crossUnPnl": "0.00000000",
-              "availableBalance": "31.02261200",
-              "marginAvailable": true,
-              "updateTime": "1701270042059"
+                "description": "Fetch spot closed order",
+                "method": "fetchOrder",
+                "input": [
+                    3397148653,
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "LTCUSDT",
+                    "orderId": "3397148653",
+                    "orderListId": "-1",
+                    "clientOrderId": "x-R4BD3S825806ed40c861260428a48c",
+                    "price": "0.00000000",
+                    "origQty": "0.10000000",
+                    "executedQty": "0.10000000",
+                    "cummulativeQuoteQty": "9.08000000",
+                    "status": "FILLED",
+                    "timeInForce": "GTC",
+                    "type": "MARKET",
+                    "side": "SELL",
+                    "stopPrice": "0.00000000",
+                    "icebergQty": "0.00000000",
+                    "time": "1679571174472",
+                    "updateTime": "1679571174472",
+                    "isWorking": true,
+                    "workingTime": "1679571174472",
+                    "origQuoteOrderQty": "0.00000000",
+                    "selfTradePreventionMode": "NONE"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "LTCUSDT",
+                        "orderId": "3397148653",
+                        "orderListId": "-1",
+                        "clientOrderId": "x-R4BD3S825806ed40c861260428a48c",
+                        "price": "0.00000000",
+                        "origQty": "0.10000000",
+                        "executedQty": "0.10000000",
+                        "cummulativeQuoteQty": "9.08000000",
+                        "status": "FILLED",
+                        "timeInForce": "GTC",
+                        "type": "MARKET",
+                        "side": "SELL",
+                        "stopPrice": "0.00000000",
+                        "icebergQty": "0.00000000",
+                        "time": "1679571174472",
+                        "updateTime": "1679571174472",
+                        "isWorking": true,
+                        "workingTime": "1679571174472",
+                        "origQuoteOrderQty": "0.00000000",
+                        "selfTradePreventionMode": "NONE"
+                    },
+                    "id": "3397148653",
+                    "clientOrderId": "x-R4BD3S825806ed40c861260428a48c",
+                    "timestamp": 1679571174472,
+                    "datetime": "2023-03-23T11:32:54.472Z",
+                    "lastTradeTimestamp": 1679571174472,
+                    "lastUpdateTimestamp": 1679571174472,
+                    "symbol": "LTC/USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "price": 90.8,
+                    "triggerPrice": null,
+                    "amount": 0.1,
+                    "cost": 9.08,
+                    "average": 90.8,
+                    "filled": 0.1,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
-          ],
-          "positions": []
-        },
-        "parsedResponse": {
-          "info": {
-            "feeTier": "0",
-            "canTrade": true,
-            "canDeposit": true,
-            "canWithdraw": true,
-            "tradeGroupId": "-1",
-            "updateTime": "0",
-            "multiAssetsMargin": false,
-            "totalInitialMargin": "0.00000000",
-            "totalMaintMargin": "0.00000000",
-            "totalWalletBalance": "31.02261200",
-            "totalUnrealizedProfit": "0.00000000",
-            "totalMarginBalance": "31.02261200",
-            "totalPositionInitialMargin": "0.00000000",
-            "totalOpenOrderInitialMargin": "0.00000000",
-            "totalCrossWalletBalance": "31.02261200",
-            "totalCrossUnPnl": "0.00000000",
-            "availableBalance": "31.02261200",
-            "maxWithdrawAmount": "31.02261200",
-            "assets": [
-              {
-                "asset": "USDT",
-                "walletBalance": "31.02261200",
-                "unrealizedProfit": "0.00000000",
-                "marginBalance": "31.02261200",
-                "maintMargin": "0.00000000",
-                "initialMargin": "0.00000000",
-                "positionInitialMargin": "0.00000000",
-                "openOrderInitialMargin": "0.00000000",
-                "maxWithdrawAmount": "31.02261200",
-                "crossWalletBalance": "31.02261200",
-                "crossUnPnl": "0.00000000",
-                "availableBalance": "31.02261200",
-                "marginAvailable": true,
-                "updateTime": "1701270042059"
-              }
-            ],
-            "positions": []
-          },
-          "USDT": {
-            "free": 31.022612,
-            "used": 0,
-            "total": 31.022612
-          },
-          "timestamp": null,
-          "datetime": null,
-          "free": {
-            "USDT": 31.022612
-          },
-          "used": {
-            "USDT": 0
-          },
-          "total": {
-            "USDT": 31.022612
-          }
-        }
-      }
-    ]
-  }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch spot open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "LTCUSDT",
+                        "orderId": "3811057334",
+                        "orderListId": "-1",
+                        "clientOrderId": "x-R4BD3S82102a551f8c1642bba06728",
+                        "price": "50.00000000",
+                        "origQty": "0.20000000",
+                        "executedQty": "0.00000000",
+                        "cummulativeQuoteQty": "0.00000000",
+                        "status": "NEW",
+                        "timeInForce": "GTC",
+                        "type": "LIMIT_MAKER",
+                        "side": "BUY",
+                        "stopPrice": "0.00000000",
+                        "icebergQty": "0.00000000",
+                        "time": "1699380855570",
+                        "updateTime": "1699380855570",
+                        "isWorking": true,
+                        "workingTime": "1699380855570",
+                        "origQuoteOrderQty": "0.00000000",
+                        "selfTradePreventionMode": "EXPIRE_MAKER"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTCUSDT",
+                            "orderId": "3811057334",
+                            "orderListId": "-1",
+                            "clientOrderId": "x-R4BD3S82102a551f8c1642bba06728",
+                            "price": "50.00000000",
+                            "origQty": "0.20000000",
+                            "executedQty": "0.00000000",
+                            "cummulativeQuoteQty": "0.00000000",
+                            "status": "NEW",
+                            "timeInForce": "GTC",
+                            "type": "LIMIT_MAKER",
+                            "side": "BUY",
+                            "stopPrice": "0.00000000",
+                            "icebergQty": "0.00000000",
+                            "time": "1699380855570",
+                            "updateTime": "1699380855570",
+                            "isWorking": true,
+                            "workingTime": "1699380855570",
+                            "origQuoteOrderQty": "0.00000000",
+                            "selfTradePreventionMode": "EXPIRE_MAKER"
+                        },
+                        "id": "3811057334",
+                        "clientOrderId": "x-R4BD3S82102a551f8c1642bba06728",
+                        "timestamp": 1699380855570,
+                        "datetime": "2023-11-07T18:14:15.570Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1699380855570,
+                        "symbol": "LTC/USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 50,
+                        "triggerPrice": null,
+                        "amount": 0.2,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.2,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "open portfolio margin orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "portfolioMargin": true
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "orderId": "29067571132",
+                        "symbol": "LTCUSDT",
+                        "status": "NEW",
+                        "clientOrderId": "x-xcKtGhcud28547066cdd46a7b96e40",
+                        "price": "50",
+                        "avgPrice": "0",
+                        "origQty": "0.410",
+                        "executedQty": "0",
+                        "cumQuote": "0",
+                        "timeInForce": "GTC",
+                        "type": "LIMIT",
+                        "reduceOnly": false,
+                        "side": "BUY",
+                        "positionSide": "BOTH",
+                        "origType": "LIMIT",
+                        "time": "1707212775174",
+                        "updateTime": "1707212775174",
+                        "goodTillDate": "0",
+                        "selfTradePreventionMode": "NONE"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "29067571132",
+                            "symbol": "LTCUSDT",
+                            "status": "NEW",
+                            "clientOrderId": "x-xcKtGhcud28547066cdd46a7b96e40",
+                            "price": "50",
+                            "avgPrice": "0",
+                            "origQty": "0.410",
+                            "executedQty": "0",
+                            "cumQuote": "0",
+                            "timeInForce": "GTC",
+                            "type": "LIMIT",
+                            "reduceOnly": false,
+                            "side": "BUY",
+                            "positionSide": "BOTH",
+                            "origType": "LIMIT",
+                            "time": "1707212775174",
+                            "updateTime": "1707212775174",
+                            "goodTillDate": "0",
+                            "selfTradePreventionMode": "NONE"
+                        },
+                        "id": "29067571132",
+                        "clientOrderId": "x-xcKtGhcud28547066cdd46a7b96e40",
+                        "timestamp": 1707212775174,
+                        "datetime": "2024-02-06T09:46:15.174Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1707212775174,
+                        "symbol": "LTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 50,
+                        "triggerPrice": null,
+                        "amount": 0.41,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.41,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrder": [
+            {
+                "description": "swap open order",
+                "method": "fetchOpenOrder",
+                "input": [
+                    664082074,
+                    "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "orderId": "664082074",
+                    "symbol": "LTCUSDT",
+                    "status": "NEW",
+                    "clientOrderId": "x-xcKtGhcu68f8383451844295b3e8b9",
+                    "price": "50.00",
+                    "avgPrice": "0.00000",
+                    "origQty": "0.200",
+                    "executedQty": "0.000",
+                    "cumQuote": "0.00000",
+                    "timeInForce": "GTX",
+                    "type": "LIMIT",
+                    "reduceOnly": false,
+                    "closePosition": false,
+                    "side": "BUY",
+                    "positionSide": "BOTH",
+                    "stopPrice": "0.00",
+                    "workingType": "CONTRACT_PRICE",
+                    "priceProtect": false,
+                    "origType": "LIMIT",
+                    "priceMatch": "NONE",
+                    "selfTradePreventionMode": "NONE",
+                    "goodTillDate": "0",
+                    "time": "1707907323983",
+                    "updateTime": "1707907323991"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "664082074",
+                        "symbol": "LTCUSDT",
+                        "status": "NEW",
+                        "clientOrderId": "x-xcKtGhcu68f8383451844295b3e8b9",
+                        "price": "50.00",
+                        "avgPrice": "0.00000",
+                        "origQty": "0.200",
+                        "executedQty": "0.000",
+                        "cumQuote": "0.00000",
+                        "timeInForce": "GTX",
+                        "type": "LIMIT",
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "side": "BUY",
+                        "positionSide": "BOTH",
+                        "stopPrice": "0.00",
+                        "workingType": "CONTRACT_PRICE",
+                        "priceProtect": false,
+                        "origType": "LIMIT",
+                        "priceMatch": "NONE",
+                        "selfTradePreventionMode": "NONE",
+                        "goodTillDate": "0",
+                        "time": "1707907323983",
+                        "updateTime": "1707907323991"
+                    },
+                    "id": "664082074",
+                    "clientOrderId": "x-xcKtGhcu68f8383451844295b3e8b9",
+                    "timestamp": 1707907323983,
+                    "datetime": "2024-02-14T10:42:03.983Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1707907323991,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "PO",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 50,
+                    "triggerPrice": null,
+                    "amount": 0.2,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.2,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "LTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "LTCUSDT",
+                        "positionAmt": "-0.300",
+                        "entryPrice": "65.00166666667",
+                        "breakEvenPrice": "61.02710666667",
+                        "markPrice": "71.17028993",
+                        "unRealizedProfit": "-1.85058698",
+                        "liquidationPrice": "14577.07624222",
+                        "leverage": "5",
+                        "maxNotionalValue": "2000000",
+                        "marginType": "cross",
+                        "isolatedMargin": "0.00000000",
+                        "isAutoAddMargin": "false",
+                        "positionSide": "BOTH",
+                        "notional": "-21.35108697",
+                        "isolatedWallet": "0",
+                        "updateTime": "1699114021481",
+                        "isolated": false,
+                        "adlQuantile": "1"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTCUSDT",
+                            "positionAmt": "-0.300",
+                            "entryPrice": "65.00166666667",
+                            "breakEvenPrice": "61.02710666667",
+                            "markPrice": "71.17028993",
+                            "unRealizedProfit": "-1.85058698",
+                            "liquidationPrice": "14577.07624222",
+                            "leverage": "5",
+                            "maxNotionalValue": "2000000",
+                            "marginType": "cross",
+                            "isolatedMargin": "0.00000000",
+                            "isAutoAddMargin": "false",
+                            "positionSide": "BOTH",
+                            "notional": "-21.35108697",
+                            "isolatedWallet": "0",
+                            "updateTime": "1699114021481",
+                            "isolated": false,
+                            "adlQuantile": "1"
+                        },
+                        "id": null,
+                        "symbol": "LTC/USDT:USDT",
+                        "contracts": 0.3,
+                        "contractSize": 1,
+                        "unrealizedPnl": -1.85058698,
+                        "leverage": 5,
+                        "liquidationPrice": 14577.07624222,
+                        "collateral": 4382.04767133,
+                        "notional": 21.35108697,
+                        "markPrice": 71.17028993,
+                        "entryPrice": 65.00166666667,
+                        "timestamp": 1699114021481,
+                        "initialMargin": 4.27021739,
+                        "initialMarginPercentage": 0.2,
+                        "maintenanceMargin": 0.138782065305,
+                        "maintenanceMarginPercentage": 0.0065,
+                        "marginRatio": 0,
+                        "datetime": "2023-11-04T16:07:01.481Z",
+                        "marginMode": "cross",
+                        "marginType": "cross",
+                        "side": "short",
+                        "hedged": false,
+                        "percentage": -43.33,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "Fetch linear positions using the account endpoint",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "LTC/USDT:USDT"
+                    ],
+                    {
+                        "method": "account"
+                    }
+                ],
+                "httpResponse": {
+                    "feeTier": "0",
+                    "canTrade": true,
+                    "canDeposit": true,
+                    "canWithdraw": true,
+                    "tradeGroupId": "-1",
+                    "updateTime": "0",
+                    "multiAssetsMargin": true,
+                    "totalInitialMargin": "306.99664919",
+                    "totalMaintMargin": "4.19111392",
+                    "totalWalletBalance": "4344.52862033",
+                    "totalUnrealizedProfit": "-20.17214402",
+                    "totalMarginBalance": "4324.35647631",
+                    "totalPositionInitialMargin": "300.52733455",
+                    "totalOpenOrderInitialMargin": "6.46931464",
+                    "totalCrossWalletBalance": "4344.52862033",
+                    "totalCrossUnPnl": "-20.17214402",
+                    "availableBalance": "4016.91165531",
+                    "maxWithdrawAmount": "4016.91165531",
+                    "assets": [
+                        {
+                            "asset": "USDT",
+                            "walletBalance": "4346.91050995",
+                            "unrealizedProfit": "-20.18320341",
+                            "marginBalance": "4326.72730654",
+                            "maintMargin": "4.19257311",
+                            "initialMargin": "307.10353351",
+                            "positionInitialMargin": "300.63196650",
+                            "openOrderInitialMargin": "6.47156701",
+                            "maxWithdrawAmount": "4018.31018798",
+                            "crossWalletBalance": "4346.91050995",
+                            "crossUnPnl": "-20.18320341",
+                            "availableBalance": "4018.31018798",
+                            "marginAvailable": true,
+                            "updateTime": "1704897291072"
+                        }
+                    ],
+                    "positions": [
+                        {
+                            "symbol": "LTCUSDT",
+                            "initialMargin": "7.66078350",
+                            "maintMargin": "0.03864953",
+                            "unrealizedProfit": "-0.09593248",
+                            "positionInitialMargin": "1.18921649",
+                            "openOrderInitialMargin": "6.47156701",
+                            "leverage": "5",
+                            "isolated": false,
+                            "entryPrice": "65.00166666667",
+                            "breakEvenPrice": "37.57404222223",
+                            "maxNotional": "2000000",
+                            "positionSide": "BOTH",
+                            "positionAmt": "-0.090",
+                            "notional": "-5.94608247",
+                            "isolatedWallet": "0",
+                            "updateTime": "1704897291072",
+                            "bidNotional": "44.25000000",
+                            "askNotional": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTCUSDT",
+                            "initialMargin": "7.66078350",
+                            "maintMargin": "0.03864953",
+                            "unrealizedProfit": "-0.09593248",
+                            "positionInitialMargin": "1.18921649",
+                            "openOrderInitialMargin": "6.47156701",
+                            "leverage": "5",
+                            "isolated": false,
+                            "entryPrice": "65.00166666667",
+                            "breakEvenPrice": "37.57404222223",
+                            "maxNotional": "2000000",
+                            "positionSide": "BOTH",
+                            "positionAmt": "-0.090",
+                            "notional": "-5.94608247",
+                            "isolatedWallet": "0",
+                            "updateTime": "1704897291072",
+                            "bidNotional": "44.25000000",
+                            "askNotional": "0",
+                            "crossMargin": "4326.72730654",
+                            "crossWalletBalance": "4346.91050995"
+                        },
+                        "id": null,
+                        "symbol": "LTC/USDT:USDT",
+                        "timestamp": 1704897291072,
+                        "datetime": "2024-01-10T14:34:51.072Z",
+                        "initialMargin": 7.6607835,
+                        "initialMarginPercentage": 0.2,
+                        "maintenanceMargin": 0.03864953,
+                        "maintenanceMarginPercentage": 0.0065,
+                        "entryPrice": 65.00166666667,
+                        "notional": 5.94608247,
+                        "leverage": 5,
+                        "unrealizedPnl": -0.09593248,
+                        "contracts": 0.09,
+                        "contractSize": 1,
+                        "marginRatio": 0,
+                        "liquidationPrice": 48051.67,
+                        "markPrice": null,
+                        "collateral": 4326.72730654,
+                        "marginMode": "cross",
+                        "side": "short",
+                        "hedged": false,
+                        "percentage": -1.25
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "LTCUSDT",
+                        "id": "309520010",
+                        "orderId": "3784695242",
+                        "orderListId": "-1",
+                        "price": "69.63000000",
+                        "qty": "0.20000000",
+                        "quoteQty": "13.92600000",
+                        "commission": "0.01392600",
+                        "commissionAsset": "USDT",
+                        "time": "1698138992358",
+                        "isBuyer": false,
+                        "isMaker": false,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTCUSDT",
+                            "id": "309520010",
+                            "orderId": "3784695242",
+                            "orderListId": "-1",
+                            "price": "69.63000000",
+                            "qty": "0.20000000",
+                            "quoteQty": "13.92600000",
+                            "commission": "0.01392600",
+                            "commissionAsset": "USDT",
+                            "time": "1698138992358",
+                            "isBuyer": false,
+                            "isMaker": false,
+                            "isBestMatch": true
+                        },
+                        "timestamp": 1698138992358,
+                        "datetime": "2023-10-24T09:16:32.358Z",
+                        "symbol": "LTC/USDT",
+                        "id": "309520010",
+                        "order": "3784695242",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 69.63,
+                        "amount": 0.2,
+                        "cost": 13.926,
+                        "fee": {
+                            "cost": 0.013926,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.013926,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "Swap private trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "id": "272536245",
+                        "orderId": "3524852987",
+                        "side": "BUY",
+                        "price": "36567.10",
+                        "qty": "0.010",
+                        "realizedPnl": "0",
+                        "marginAsset": "USDT",
+                        "quoteQty": "365.67100",
+                        "commission": "0.14626840",
+                        "commissionAsset": "USDT",
+                        "time": "1699972836419",
+                        "positionSide": "BOTH",
+                        "maker": false,
+                        "buyer": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "id": "272536245",
+                            "orderId": "3524852987",
+                            "side": "BUY",
+                            "price": "36567.10",
+                            "qty": "0.010",
+                            "realizedPnl": "0",
+                            "marginAsset": "USDT",
+                            "quoteQty": "365.67100",
+                            "commission": "0.14626840",
+                            "commissionAsset": "USDT",
+                            "time": "1699972836419",
+                            "positionSide": "BOTH",
+                            "maker": false,
+                            "buyer": true
+                        },
+                        "timestamp": 1699972836419,
+                        "datetime": "2023-11-14T14:40:36.419Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "id": "272536245",
+                        "order": "3524852987",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 36567.1,
+                        "amount": 0.01,
+                        "cost": 365.671,
+                        "fee": {
+                            "cost": 0.1462684,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.1462684,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "spot porfolioMargin private trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1,
+                    {
+                        "portfolioMargin": true
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "LTCUSDT",
+                        "id": "320530367",
+                        "orderId": "3949667670",
+                        "price": "69.39000000",
+                        "qty": "0.17300000",
+                        "quoteQty": "12.00447000",
+                        "commission": "0.01200447",
+                        "commissionAsset": "USDT",
+                        "time": "1706694267729",
+                        "isBuyer": false,
+                        "isMaker": false,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTCUSDT",
+                            "id": "320530367",
+                            "orderId": "3949667670",
+                            "price": "69.39000000",
+                            "qty": "0.17300000",
+                            "quoteQty": "12.00447000",
+                            "commission": "0.01200447",
+                            "commissionAsset": "USDT",
+                            "time": "1706694267729",
+                            "isBuyer": false,
+                            "isMaker": false,
+                            "isBestMatch": true
+                        },
+                        "timestamp": 1706694267729,
+                        "datetime": "2024-01-31T09:44:27.729Z",
+                        "symbol": "LTC/USDT",
+                        "id": "320530367",
+                        "order": "3949667670",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 69.39,
+                        "amount": 0.173,
+                        "cost": 12.00447,
+                        "fee": {
+                            "cost": 0.01200447,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.01200447,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Spot balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "makerCommission": "10",
+                    "takerCommission": "10",
+                    "buyerCommission": "0",
+                    "sellerCommission": "0",
+                    "commissionRates": {
+                        "maker": "0.00100000",
+                        "taker": "0.00100000",
+                        "buyer": "0.00000000",
+                        "seller": "0.00000000"
+                    },
+                    "canTrade": true,
+                    "canWithdraw": true,
+                    "canDeposit": true,
+                    "brokered": false,
+                    "requireSelfTradePrevention": false,
+                    "preventSor": false,
+                    "updateTime": "1701856395927",
+                    "accountType": "SPOT",
+                    "balances": [
+                        {
+                            "asset": "BTC",
+                            "free": "0.00000000",
+                            "locked": "0.00000000"
+                        },
+                        {
+                            "asset": "LTC",
+                            "free": "0.91974100",
+                            "locked": "0.00000000"
+                        },
+                        {
+                            "asset": "ETH",
+                            "free": "0.02229833",
+                            "locked": "0.00000000"
+                        }
+                    ],
+                    "permissions": [
+                        "SPOT"
+                    ],
+                    "uid": "365859102"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "makerCommission": "10",
+                        "takerCommission": "10",
+                        "buyerCommission": "0",
+                        "sellerCommission": "0",
+                        "commissionRates": {
+                            "maker": "0.00100000",
+                            "taker": "0.00100000",
+                            "buyer": "0.00000000",
+                            "seller": "0.00000000"
+                        },
+                        "canTrade": true,
+                        "canWithdraw": true,
+                        "canDeposit": true,
+                        "brokered": false,
+                        "requireSelfTradePrevention": false,
+                        "preventSor": false,
+                        "updateTime": "1701856395927",
+                        "accountType": "SPOT",
+                        "balances": [
+                            {
+                                "asset": "BTC",
+                                "free": "0.00000000",
+                                "locked": "0.00000000"
+                            },
+                            {
+                                "asset": "LTC",
+                                "free": "0.91974100",
+                                "locked": "0.00000000"
+                            },
+                            {
+                                "asset": "ETH",
+                                "free": "0.02229833",
+                                "locked": "0.00000000"
+                            }
+                        ],
+                        "permissions": [
+                            "SPOT"
+                        ],
+                        "uid": "365859102"
+                    },
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "LTC": {
+                        "free": 0.919741,
+                        "used": 0,
+                        "total": 0.919741
+                    },
+                    "ETH": {
+                        "free": 0.02229833,
+                        "used": 0,
+                        "total": 0.02229833
+                    },
+                    "timestamp": 1701856395927,
+                    "datetime": "2023-12-06T09:53:15.927Z",
+                    "free": {
+                        "BTC": 0,
+                        "LTC": 0.919741,
+                        "ETH": 0.02229833
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "LTC": 0,
+                        "ETH": 0
+                    },
+                    "total": {
+                        "BTC": 0,
+                        "LTC": 0.919741,
+                        "ETH": 0.02229833
+                    }
+                }
+            },
+            {
+                "description": "Linear swap balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "feeTier": "0",
+                    "canTrade": true,
+                    "canDeposit": true,
+                    "canWithdraw": true,
+                    "tradeGroupId": "-1",
+                    "updateTime": "0",
+                    "multiAssetsMargin": false,
+                    "totalInitialMargin": "0.00000000",
+                    "totalMaintMargin": "0.00000000",
+                    "totalWalletBalance": "31.02261200",
+                    "totalUnrealizedProfit": "0.00000000",
+                    "totalMarginBalance": "31.02261200",
+                    "totalPositionInitialMargin": "0.00000000",
+                    "totalOpenOrderInitialMargin": "0.00000000",
+                    "totalCrossWalletBalance": "31.02261200",
+                    "totalCrossUnPnl": "0.00000000",
+                    "availableBalance": "31.02261200",
+                    "maxWithdrawAmount": "31.02261200",
+                    "assets": [
+                        {
+                            "asset": "USDT",
+                            "walletBalance": "31.02261200",
+                            "unrealizedProfit": "0.00000000",
+                            "marginBalance": "31.02261200",
+                            "maintMargin": "0.00000000",
+                            "initialMargin": "0.00000000",
+                            "positionInitialMargin": "0.00000000",
+                            "openOrderInitialMargin": "0.00000000",
+                            "maxWithdrawAmount": "31.02261200",
+                            "crossWalletBalance": "31.02261200",
+                            "crossUnPnl": "0.00000000",
+                            "availableBalance": "31.02261200",
+                            "marginAvailable": true,
+                            "updateTime": "1701270042059"
+                        }
+                    ],
+                    "positions": []
+                },
+                "parsedResponse": {
+                    "info": {
+                        "feeTier": "0",
+                        "canTrade": true,
+                        "canDeposit": true,
+                        "canWithdraw": true,
+                        "tradeGroupId": "-1",
+                        "updateTime": "0",
+                        "multiAssetsMargin": false,
+                        "totalInitialMargin": "0.00000000",
+                        "totalMaintMargin": "0.00000000",
+                        "totalWalletBalance": "31.02261200",
+                        "totalUnrealizedProfit": "0.00000000",
+                        "totalMarginBalance": "31.02261200",
+                        "totalPositionInitialMargin": "0.00000000",
+                        "totalOpenOrderInitialMargin": "0.00000000",
+                        "totalCrossWalletBalance": "31.02261200",
+                        "totalCrossUnPnl": "0.00000000",
+                        "availableBalance": "31.02261200",
+                        "maxWithdrawAmount": "31.02261200",
+                        "assets": [
+                            {
+                                "asset": "USDT",
+                                "walletBalance": "31.02261200",
+                                "unrealizedProfit": "0.00000000",
+                                "marginBalance": "31.02261200",
+                                "maintMargin": "0.00000000",
+                                "initialMargin": "0.00000000",
+                                "positionInitialMargin": "0.00000000",
+                                "openOrderInitialMargin": "0.00000000",
+                                "maxWithdrawAmount": "31.02261200",
+                                "crossWalletBalance": "31.02261200",
+                                "crossUnPnl": "0.00000000",
+                                "availableBalance": "31.02261200",
+                                "marginAvailable": true,
+                                "updateTime": "1701270042059"
+                            }
+                        ],
+                        "positions": []
+                    },
+                    "USDT": {
+                        "free": 31.022612,
+                        "used": 0,
+                        "total": 31.022612
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "free": {
+                        "USDT": 31.022612
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 31.022612
+                    }
+                }
+            },
+            {
+                "description": "fetch papi balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "papi"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "asset": "ETH",
+                        "totalWalletBalance": "0.00057786",
+                        "crossMarginAsset": "0.0",
+                        "crossMarginBorrowed": "0.0",
+                        "crossMarginFree": "0.0",
+                        "crossMarginInterest": "0.0",
+                        "crossMarginLocked": "0.0",
+                        "umWalletBalance": "0.0",
+                        "umUnrealizedPNL": "0.0",
+                        "cmWalletBalance": "0.00057786",
+                        "cmUnrealizedPNL": "0.0",
+                        "updateTime": "1708067615305",
+                        "negativeBalance": "0.0"
+                    },
+                    {
+                        "asset": "USDT",
+                        "totalWalletBalance": "136.03451668",
+                        "crossMarginAsset": "30.6003261",
+                        "crossMarginBorrowed": "0.00011146",
+                        "crossMarginFree": "30.6003261",
+                        "crossMarginInterest": "0.00000197",
+                        "crossMarginLocked": "0.0",
+                        "umWalletBalance": "105.43419058",
+                        "umUnrealizedPNL": "0.0",
+                        "cmWalletBalance": "0.0",
+                        "cmUnrealizedPNL": "0.0",
+                        "updateTime": "1708064880778",
+                        "negativeBalance": "0.0"
+                    },
+                    {
+                        "asset": "LTC",
+                        "totalWalletBalance": "0.000636",
+                        "crossMarginAsset": "0.000636",
+                        "crossMarginBorrowed": "0.0",
+                        "crossMarginFree": "0.000636",
+                        "crossMarginInterest": "0.0",
+                        "crossMarginLocked": "0.0",
+                        "umWalletBalance": "0.0",
+                        "umUnrealizedPNL": "0.0",
+                        "cmWalletBalance": "0.0",
+                        "cmUnrealizedPNL": "0.0",
+                        "updateTime": "1707550484595",
+                        "negativeBalance": "0.0"
+                    },
+                    {
+                        "asset": "ADA",
+                        "totalWalletBalance": "10.0325",
+                        "crossMarginAsset": "10.0325",
+                        "crossMarginBorrowed": "0.0",
+                        "crossMarginFree": "10.0325",
+                        "crossMarginInterest": "0.0",
+                        "crossMarginLocked": "0.0",
+                        "umWalletBalance": "0.0",
+                        "umUnrealizedPNL": "0.0",
+                        "cmWalletBalance": "0.0",
+                        "cmUnrealizedPNL": "0.0",
+                        "updateTime": "1707550484595",
+                        "negativeBalance": "0.0"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "asset": "ETH",
+                            "totalWalletBalance": "0.00057786",
+                            "crossMarginAsset": "0.0",
+                            "crossMarginBorrowed": "0.0",
+                            "crossMarginFree": "0.0",
+                            "crossMarginInterest": "0.0",
+                            "crossMarginLocked": "0.0",
+                            "umWalletBalance": "0.0",
+                            "umUnrealizedPNL": "0.0",
+                            "cmWalletBalance": "0.00057786",
+                            "cmUnrealizedPNL": "0.0",
+                            "updateTime": "1708067615305",
+                            "negativeBalance": "0.0"
+                        },
+                        {
+                            "asset": "USDT",
+                            "totalWalletBalance": "136.03451668",
+                            "crossMarginAsset": "30.6003261",
+                            "crossMarginBorrowed": "0.00011146",
+                            "crossMarginFree": "30.6003261",
+                            "crossMarginInterest": "0.00000197",
+                            "crossMarginLocked": "0.0",
+                            "umWalletBalance": "105.43419058",
+                            "umUnrealizedPNL": "0.0",
+                            "cmWalletBalance": "0.0",
+                            "cmUnrealizedPNL": "0.0",
+                            "updateTime": "1708064880778",
+                            "negativeBalance": "0.0"
+                        },
+                        {
+                            "asset": "LTC",
+                            "totalWalletBalance": "0.000636",
+                            "crossMarginAsset": "0.000636",
+                            "crossMarginBorrowed": "0.0",
+                            "crossMarginFree": "0.000636",
+                            "crossMarginInterest": "0.0",
+                            "crossMarginLocked": "0.0",
+                            "umWalletBalance": "0.0",
+                            "umUnrealizedPNL": "0.0",
+                            "cmWalletBalance": "0.0",
+                            "cmUnrealizedPNL": "0.0",
+                            "updateTime": "1707550484595",
+                            "negativeBalance": "0.0"
+                        },
+                        {
+                            "asset": "ADA",
+                            "totalWalletBalance": "10.0325",
+                            "crossMarginAsset": "10.0325",
+                            "crossMarginBorrowed": "0.0",
+                            "crossMarginFree": "10.0325",
+                            "crossMarginInterest": "0.0",
+                            "crossMarginLocked": "0.0",
+                            "umWalletBalance": "0.0",
+                            "umUnrealizedPNL": "0.0",
+                            "cmWalletBalance": "0.0",
+                            "cmUnrealizedPNL": "0.0",
+                            "updateTime": "1707550484595",
+                            "negativeBalance": "0.0"
+                        }
+                    ],
+                    "ETH": {
+                        "free": null,
+                        "used": null,
+                        "total": 0.00057786
+                    },
+                    "USDT": {
+                        "free": null,
+                        "used": null,
+                        "total": 136.03451668
+                    },
+                    "LTC": {
+                        "free": null,
+                        "used": null,
+                        "total": 0.000636
+                    },
+                    "ADA": {
+                        "free": null,
+                        "used": null,
+                        "total": 10.0325
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "free": {
+                        "ETH": null,
+                        "USDT": null,
+                        "LTC": null,
+                        "ADA": null
+                    },
+                    "used": {
+                        "ETH": null,
+                        "USDT": null,
+                        "LTC": null,
+                        "ADA": null
+                    },
+                    "total": {
+                        "ETH": 0.00057786,
+                        "USDT": 136.03451668,
+                        "LTC": 0.000636,
+                        "ADA": 10.0325
+                    }
+                }
+            },
+            {
+                "description": "fetch linear papi balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "papi",
+                        "subType": "linear"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "asset": "ETH",
+                        "totalWalletBalance": "0.00057786",
+                        "crossMarginAsset": "0.0",
+                        "crossMarginBorrowed": "0.0",
+                        "crossMarginFree": "0.0",
+                        "crossMarginInterest": "0.0",
+                        "crossMarginLocked": "0.0",
+                        "umWalletBalance": "0.0",
+                        "umUnrealizedPNL": "0.0",
+                        "cmWalletBalance": "0.00057786",
+                        "cmUnrealizedPNL": "0.0",
+                        "updateTime": "1708067615305",
+                        "negativeBalance": "0.0"
+                    },
+                    {
+                        "asset": "USDT",
+                        "totalWalletBalance": "136.03451668",
+                        "crossMarginAsset": "30.6003261",
+                        "crossMarginBorrowed": "0.00011146",
+                        "crossMarginFree": "30.6003261",
+                        "crossMarginInterest": "0.00000197",
+                        "crossMarginLocked": "0.0",
+                        "umWalletBalance": "105.43419058",
+                        "umUnrealizedPNL": "0.0",
+                        "cmWalletBalance": "0.0",
+                        "cmUnrealizedPNL": "0.0",
+                        "updateTime": "1708064880778",
+                        "negativeBalance": "0.0"
+                    },
+                    {
+                        "asset": "LTC",
+                        "totalWalletBalance": "0.000636",
+                        "crossMarginAsset": "0.000636",
+                        "crossMarginBorrowed": "0.0",
+                        "crossMarginFree": "0.000636",
+                        "crossMarginInterest": "0.0",
+                        "crossMarginLocked": "0.0",
+                        "umWalletBalance": "0.0",
+                        "umUnrealizedPNL": "0.0",
+                        "cmWalletBalance": "0.0",
+                        "cmUnrealizedPNL": "0.0",
+                        "updateTime": "1707550484595",
+                        "negativeBalance": "0.0"
+                    },
+                    {
+                        "asset": "ADA",
+                        "totalWalletBalance": "10.0325",
+                        "crossMarginAsset": "10.0325",
+                        "crossMarginBorrowed": "0.0",
+                        "crossMarginFree": "10.0325",
+                        "crossMarginInterest": "0.0",
+                        "crossMarginLocked": "0.0",
+                        "umWalletBalance": "0.0",
+                        "umUnrealizedPNL": "0.0",
+                        "cmWalletBalance": "0.0",
+                        "cmUnrealizedPNL": "0.0",
+                        "updateTime": "1707550484595",
+                        "negativeBalance": "0.0"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "asset": "ETH",
+                            "totalWalletBalance": "0.00057786",
+                            "crossMarginAsset": "0.0",
+                            "crossMarginBorrowed": "0.0",
+                            "crossMarginFree": "0.0",
+                            "crossMarginInterest": "0.0",
+                            "crossMarginLocked": "0.0",
+                            "umWalletBalance": "0.0",
+                            "umUnrealizedPNL": "0.0",
+                            "cmWalletBalance": "0.00057786",
+                            "cmUnrealizedPNL": "0.0",
+                            "updateTime": "1708067615305",
+                            "negativeBalance": "0.0"
+                        },
+                        {
+                            "asset": "USDT",
+                            "totalWalletBalance": "136.03451668",
+                            "crossMarginAsset": "30.6003261",
+                            "crossMarginBorrowed": "0.00011146",
+                            "crossMarginFree": "30.6003261",
+                            "crossMarginInterest": "0.00000197",
+                            "crossMarginLocked": "0.0",
+                            "umWalletBalance": "105.43419058",
+                            "umUnrealizedPNL": "0.0",
+                            "cmWalletBalance": "0.0",
+                            "cmUnrealizedPNL": "0.0",
+                            "updateTime": "1708064880778",
+                            "negativeBalance": "0.0"
+                        },
+                        {
+                            "asset": "LTC",
+                            "totalWalletBalance": "0.000636",
+                            "crossMarginAsset": "0.000636",
+                            "crossMarginBorrowed": "0.0",
+                            "crossMarginFree": "0.000636",
+                            "crossMarginInterest": "0.0",
+                            "crossMarginLocked": "0.0",
+                            "umWalletBalance": "0.0",
+                            "umUnrealizedPNL": "0.0",
+                            "cmWalletBalance": "0.0",
+                            "cmUnrealizedPNL": "0.0",
+                            "updateTime": "1707550484595",
+                            "negativeBalance": "0.0"
+                        },
+                        {
+                            "asset": "ADA",
+                            "totalWalletBalance": "10.0325",
+                            "crossMarginAsset": "10.0325",
+                            "crossMarginBorrowed": "0.0",
+                            "crossMarginFree": "10.0325",
+                            "crossMarginInterest": "0.0",
+                            "crossMarginLocked": "0.0",
+                            "umWalletBalance": "0.0",
+                            "umUnrealizedPNL": "0.0",
+                            "cmWalletBalance": "0.0",
+                            "cmUnrealizedPNL": "0.0",
+                            "updateTime": "1707550484595",
+                            "negativeBalance": "0.0"
+                        }
+                    ],
+                    "ETH": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDT": {
+                        "free": 105.43419058,
+                        "used": 0,
+                        "total": 105.43419058
+                    },
+                    "LTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "ADA": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "free": {
+                        "ETH": 0,
+                        "USDT": 105.43419058,
+                        "LTC": 0,
+                        "ADA": 0
+                    },
+                    "used": {
+                        "ETH": 0,
+                        "USDT": 0,
+                        "LTC": 0,
+                        "ADA": 0
+                    },
+                    "total": {
+                        "ETH": 0,
+                        "USDT": 105.43419058,
+                        "LTC": 0,
+                        "ADA": 0
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot OHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1706628191000,
+                    3
+                ],
+                "httpResponse": [
+                    [
+                        1706630400000,
+                        "43519.34000000",
+                        "43936.00000000",
+                        "43171.00000000",
+                        "43488.71000000",
+                        "20.55495000",
+                        1706633999999,
+                        "891428.42858070",
+                        3743,
+                        "10.91428000",
+                        "473782.95739920",
+                        "0"
+                    ],
+                    [
+                        1706634000000,
+                        "43488.71000000",
+                        "43832.08000000",
+                        "43084.00000000",
+                        "43374.80000000",
+                        "21.80865000",
+                        1706637599999,
+                        "946546.04941680",
+                        4365,
+                        "11.70274000",
+                        "508392.74777040",
+                        "0"
+                    ],
+                    [
+                        1706637600000,
+                        "43374.81000000",
+                        "44048.00000000",
+                        "43062.00000000",
+                        "43361.11000000",
+                        "23.66547000",
+                        1706641199999,
+                        "1027527.77116170",
+                        4063,
+                        "15.19718000",
+                        "660419.73275280",
+                        "0"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1706630400000,
+                        43519.34,
+                        43936,
+                        43171,
+                        43488.71,
+                        20.55495
+                    ],
+                    [
+                        1706634000000,
+                        43488.71,
+                        43832.08,
+                        43084,
+                        43374.8,
+                        21.80865
+                    ],
+                    [
+                        1706637600000,
+                        43374.81,
+                        44048,
+                        43062,
+                        43361.11,
+                        23.66547
+                    ]
+                ]
+            },
+            {
+                "description": "inverse index price",
+                "method": "fetchOHLCV",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1d",
+                  null,
+                  3,
+                  {
+                    "price": "index"
+                  }
+                ],
+                "httpResponse": [
+                  [
+                    1712534400000,
+                    "69362.49174406",
+                    "72740.01330078",
+                    "69076.81471239",
+                    "71625.41841177",
+                    "0",
+                    1712620799999,
+                    "0",
+                    86400,
+                    "0",
+                    "0",
+                    "0"
+                  ],
+                  [
+                    1712620800000,
+                    "71628.33407436",
+                    "71739.77815692",
+                    "68230.05238367",
+                    "69135.87773144",
+                    "0",
+                    1712707199999,
+                    "0",
+                    86400,
+                    "0",
+                    "0",
+                    "0"
+                  ],
+                  [
+                    1712707200000,
+                    "69136.23648785",
+                    "69565.97257021",
+                    "68482.85614772",
+                    "68921.79749600",
+                    "0",
+                    1712793599999,
+                    "0",
+                    31378,
+                    "0",
+                    "0",
+                    "0"
+                  ]
+                ],
+                "parsedResponse": [
+                  [
+                    1712534400000,
+                    69362.49174406,
+                    72740.01330078,
+                    69076.81471239,
+                    71625.41841177,
+                    0
+                  ],
+                  [
+                    1712620800000,
+                    71628.33407436,
+                    71739.77815692,
+                    68230.05238367,
+                    69135.87773144,
+                    0
+                  ],
+                  [
+                    1712707200000,
+                    69136.23648785,
+                    69565.97257021,
+                    68482.85614772,
+                    68921.797496,
+                    0
+                  ]
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  3
+                ],
+                "httpResponse": [
+                  [
+                    1712738460000,
+                    "71481.90",
+                    "71481.90",
+                    "71481.90",
+                    "71481.90",
+                    "0.002",
+                    1712738519999,
+                    "142.96380",
+                    1,
+                    "0.002",
+                    "142.96380",
+                    "0"
+                  ],
+                  [
+                    1712738520000,
+                    "71471.00",
+                    "71471.00",
+                    "70459.40",
+                    "70459.40",
+                    "0.120",
+                    1712738579999,
+                    "8518.17600",
+                    9,
+                    "0.061",
+                    "4359.72600",
+                    "0"
+                  ],
+                  [
+                    1712738580000,
+                    "71470.70",
+                    "71470.90",
+                    "70459.40",
+                    "70459.40",
+                    "1.542",
+                    1712738639999,
+                    "108661.55840",
+                    8,
+                    "0.013",
+                    "929.12130",
+                    "0"
+                  ]
+                ],
+                "parsedResponse": [
+                  [
+                    1712738460000,
+                    71481.9,
+                    71481.9,
+                    71481.9,
+                    71481.9,
+                    0.002
+                  ],
+                  [
+                    1712738520000,
+                    71471,
+                    71471,
+                    70459.4,
+                    70459.4,
+                    0.12
+                  ],
+                  [
+                    1712738580000,
+                    71470.7,
+                    71470.9,
+                    70459.4,
+                    70459.4,
+                    1.542
+                  ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    2
+                ],
+                "httpResponse": {
+                    "lastUpdateId": "25445101",
+                    "bids": [
+                        [
+                            "42574.30000000",
+                            "0.01070000"
+                        ],
+                        [
+                            "42574.20000000",
+                            "0.00646000"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "42574.31000000",
+                            "0.00870000"
+                        ],
+                        [
+                            "42574.80000000",
+                            "0.00893000"
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            42574.3,
+                            0.0107
+                        ],
+                        [
+                            42574.2,
+                            0.00646
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            42574.31,
+                            0.0087
+                        ],
+                        [
+                            42574.8,
+                            0.00893
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": 25445101
+                }
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT:USDT",
+                    5
+                ],
+                "httpResponse": {
+                    "lastUpdateId": "35263532345",
+                    "E": "1706803917264",
+                    "T": "1706803917258",
+                    "bids": [
+                        [
+                            "42651.10",
+                            "470.672"
+                        ],
+                        [
+                            "42650.00",
+                            "66.452"
+                        ],
+                        [
+                            "42646.80",
+                            "126.261"
+                        ],
+                        [
+                            "42616.10",
+                            "1.394"
+                        ],
+                        [
+                            "42609.80",
+                            "93.162"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "42878.00",
+                            "7.011"
+                        ],
+                        [
+                            "42950.90",
+                            "0.005"
+                        ],
+                        [
+                            "42980.90",
+                            "0.061"
+                        ],
+                        [
+                            "42981.80",
+                            "23.165"
+                        ],
+                        [
+                            "42998.10",
+                            "0.071"
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "bids": [
+                        [
+                            42651.1,
+                            470.672
+                        ],
+                        [
+                            42650,
+                            66.452
+                        ],
+                        [
+                            42646.8,
+                            126.261
+                        ],
+                        [
+                            42616.1,
+                            1.394
+                        ],
+                        [
+                            42609.8,
+                            93.162
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            42878,
+                            7.011
+                        ],
+                        [
+                            42950.9,
+                            0.005
+                        ],
+                        [
+                            42980.9,
+                            0.061
+                        ],
+                        [
+                            42981.8,
+                            23.165
+                        ],
+                        [
+                            42998.1,
+                            0.071
+                        ]
+                    ],
+                    "timestamp": 1706803917258,
+                    "datetime": "2024-02-01T16:11:57.258Z",
+                    "nonce": 35263532345
+                }
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch portfolio margin funding history",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "portfolioMargin": true
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "incomeType": "FUNDING_FEE",
+                        "income": "-0.04618913",
+                        "asset": "USDT",
+                        "time": "1707465600000",
+                        "info": "FUNDING_FEE",
+                        "tranId": "8082457372019390060",
+                        "tradeId": ""
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.04618913",
+                            "asset": "USDT",
+                            "time": "1707465600000",
+                            "info": "FUNDING_FEE",
+                            "tranId": "8082457372019390060",
+                            "tradeId": ""
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1707465600000,
+                        "datetime": "2024-02-09T08:00:00.000Z",
+                        "id": "8082457372019390060",
+                        "amount": -0.04618913
+                    }
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "borrow interest porftolio margin",
+                "method": "fetchBorrowInterest",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    1,
+                    {
+                        "portfolioMargin": true
+                    }
+                ],
+                "httpResponse": {
+                    "total": "55",
+                    "rows": [
+                        {
+                            "txId": "1656373250307228092",
+                            "interestAccuredTime": "1707562800000",
+                            "asset": "USDT",
+                            "rawAsset": "USDT",
+                            "principal": "0.00011146",
+                            "interest": "0.000000010",
+                            "interestRate": "0.00089489",
+                            "type": "PERIODIC"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "account": "cross",
+                        "symbol": null,
+                        "marginMode": "cross",
+                        "currency": "USDT",
+                        "interest": 1e-8,
+                        "interestRate": 0.00089489,
+                        "amountBorrowed": 0.00011146,
+                        "timestamp": 1707562800000,
+                        "datetime": "2024-02-10T11:00:00.000Z",
+                        "info": {
+                            "txId": "1656373250307228092",
+                            "interestAccuredTime": "1707562800000",
+                            "asset": "USDT",
+                            "rawAsset": "USDT",
+                            "principal": "0.00011146",
+                            "interest": "0.000000010",
+                            "interestRate": "0.00089489",
+                            "type": "PERIODIC"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch portfolio margin orders",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "portfolioMargin": true
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "orderId": "262065925771",
+                        "symbol": "BTCUSDT",
+                        "status": "FILLED",
+                        "clientOrderId": "x-xcKtGhcud2deca88ac9f4ccb9485a9",
+                        "price": "0",
+                        "avgPrice": "47279.40000",
+                        "origQty": "0.010",
+                        "executedQty": "0.010",
+                        "cumQuote": "472.79400",
+                        "timeInForce": "GTC",
+                        "type": "MARKET",
+                        "reduceOnly": false,
+                        "side": "BUY",
+                        "origType": "MARKET",
+                        "time": "1707550415587",
+                        "updateTime": "1707550415587",
+                        "positionSide": "LONG",
+                        "selfTradePreventionMode": "NONE",
+                        "goodTillDate": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "262065925771",
+                            "symbol": "BTCUSDT",
+                            "status": "FILLED",
+                            "clientOrderId": "x-xcKtGhcud2deca88ac9f4ccb9485a9",
+                            "price": "0",
+                            "avgPrice": "47279.40000",
+                            "origQty": "0.010",
+                            "executedQty": "0.010",
+                            "cumQuote": "472.79400",
+                            "timeInForce": "GTC",
+                            "type": "MARKET",
+                            "reduceOnly": false,
+                            "side": "BUY",
+                            "origType": "MARKET",
+                            "time": "1707550415587",
+                            "updateTime": "1707550415587",
+                            "positionSide": "LONG",
+                            "selfTradePreventionMode": "NONE",
+                            "goodTillDate": "0"
+                        },
+                        "id": "262065925771",
+                        "clientOrderId": "x-xcKtGhcud2deca88ac9f4ccb9485a9",
+                        "timestamp": 1707550415587,
+                        "datetime": "2024-02-10T07:33:35.587Z",
+                        "lastTradeTimestamp": 1707550415587,
+                        "lastUpdateTimestamp": 1707550415587,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 47279.4,
+                        "triggerPrice": null,
+                        "amount": 0.01,
+                        "cost": 472.794,
+                        "average": 47279.4,
+                        "filled": 0.01,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "fetch spot orders",
+                "method": "fetchOrders",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "LTCUSDT",
+                        "orderId": "3854801792",
+                        "orderListId": "-1",
+                        "clientOrderId": "x-R4BD3S82d1481ae59ba59326d82c8a",
+                        "price": "50.00000000",
+                        "origQty": "0.10000000",
+                        "executedQty": "0.00000000",
+                        "cummulativeQuoteQty": "0.00000000",
+                        "status": "CANCELED",
+                        "timeInForce": "GTC",
+                        "type": "LIMIT",
+                        "side": "BUY",
+                        "stopPrice": "0.00000000",
+                        "icebergQty": "0.00000000",
+                        "time": "1701856395927",
+                        "updateTime": "1706883268013",
+                        "isWorking": true,
+                        "workingTime": "1701856395927",
+                        "origQuoteOrderQty": "0.00000000",
+                        "selfTradePreventionMode": "EXPIRE_MAKER"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTCUSDT",
+                            "orderId": "3854801792",
+                            "orderListId": "-1",
+                            "clientOrderId": "x-R4BD3S82d1481ae59ba59326d82c8a",
+                            "price": "50.00000000",
+                            "origQty": "0.10000000",
+                            "executedQty": "0.00000000",
+                            "cummulativeQuoteQty": "0.00000000",
+                            "status": "CANCELED",
+                            "timeInForce": "GTC",
+                            "type": "LIMIT",
+                            "side": "BUY",
+                            "stopPrice": "0.00000000",
+                            "icebergQty": "0.00000000",
+                            "time": "1701856395927",
+                            "updateTime": "1706883268013",
+                            "isWorking": true,
+                            "workingTime": "1701856395927",
+                            "origQuoteOrderQty": "0.00000000",
+                            "selfTradePreventionMode": "EXPIRE_MAKER"
+                        },
+                        "id": "3854801792",
+                        "clientOrderId": "x-R4BD3S82d1481ae59ba59326d82c8a",
+                        "timestamp": 1701856395927,
+                        "datetime": "2023-12-06T09:53:15.927Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1706883268013,
+                        "symbol": "LTC/USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 50,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "a": "2913537567",
+                        "p": "73238.70000000",
+                        "q": "0.00109000",
+                        "f": "3479463557",
+                        "l": "3479463557",
+                        "T": "1710327661939",
+                        "m": false,
+                        "M": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "a": "2913537567",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "3479463557",
+                            "l": "3479463557",
+                            "T": "1710327661939",
+                            "m": false,
+                            "M": true
+                        },
+                        "timestamp": 1710327661939,
+                        "datetime": "2024-03-13T11:01:01.939Z",
+                        "symbol": "BTC/USDT",
+                        "id": "2913537567",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73238.7,
+                        "amount": 0.00109,
+                        "cost": 79.830183,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "priceChange": "1188.75000000",
+                    "priceChangePercent": "1.647",
+                    "weightedAvgPrice": "71624.65401064",
+                    "prevClosePrice": "72180.93000000",
+                    "lastPrice": "73369.84000000",
+                    "lastQty": "0.23925000",
+                    "bidPrice": "73369.83000000",
+                    "bidQty": "6.27086000",
+                    "askPrice": "73369.84000000",
+                    "askQty": "0.03321000",
+                    "openPrice": "72181.09000000",
+                    "highPrice": "73650.25000000",
+                    "lowPrice": "68620.82000000",
+                    "volume": "72140.34862800",
+                    "quoteVolume": "5167027510.68728707",
+                    "openTime": "1710241845391",
+                    "closeTime": "1710328245391",
+                    "firstId": "3476288989",
+                    "lastId": "3479476926",
+                    "count": "3187938"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245391,
+                    "datetime": "2024-03-13T11:10:45.391Z",
+                    "high": 73650.25,
+                    "low": 68620.82,
+                    "bid": 73369.83,
+                    "bidVolume": 6.27086,
+                    "ask": 73369.84,
+                    "askVolume": 0.03321,
+                    "vwap": 71624.65401064,
+                    "open": 72181.09,
+                    "close": 73369.84,
+                    "last": 73369.84,
+                    "previousClose": 72180.93,
+                    "change": 1188.75,
+                    "percentage": 1.647,
+                    "average": 72775.465,
+                    "baseVolume": 72140.348628,
+                    "quoteVolume": 5167027510.687287,
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "priceChange": "1188.75000000",
+                        "priceChangePercent": "1.647",
+                        "weightedAvgPrice": "71624.65401064",
+                        "prevClosePrice": "72180.93000000",
+                        "lastPrice": "73369.84000000",
+                        "lastQty": "0.23925000",
+                        "bidPrice": "73369.83000000",
+                        "bidQty": "6.27086000",
+                        "askPrice": "73369.84000000",
+                        "askQty": "0.03321000",
+                        "openPrice": "72181.09000000",
+                        "highPrice": "73650.25000000",
+                        "lowPrice": "68620.82000000",
+                        "volume": "72140.34862800",
+                        "quoteVolume": "5167027510.68728707",
+                        "openTime": "1710241845391",
+                        "closeTime": "1710328245391",
+                        "firstId": "3476288989",
+                        "lastId": "3479476926",
+                        "count": "3187938"
+                    }
+                }
+            }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "fetch margin adjustment history",
+                "method": "fetchMarginAdjustmentHistory",
+                "input": [
+                  "XRP/USDT:USDT",
+                  null,
+                  null,
+                  2
+                ],
+                "httpResponse": [
+                  {
+                    "symbol": "XRPUSDT",
+                    "type": "1",
+                    "deltaType": "TRADE",
+                    "amount": "2.57148240",
+                    "asset": "USDT",
+                    "time": "1711046271555",
+                    "positionSide": "BOTH",
+                    "clientTranId": ""
+                  },
+                  {
+                    "symbol": "XRPUSDT",
+                    "type": "1",
+                    "deltaType": "USER_ADJUST",
+                    "amount": "10.00000000",
+                    "asset": "USDT",
+                    "time": "1711046323584",
+                    "positionSide": "BOTH",
+                    "clientTranId": ""
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "XRPUSDT",
+                      "type": "1",
+                      "deltaType": "TRADE",
+                      "amount": "2.57148240",
+                      "asset": "USDT",
+                      "time": "1711046271555",
+                      "positionSide": "BOTH",
+                      "clientTranId": ""
+                    },
+                    "symbol": "XRP/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 2.5714824,
+                    "code": "USDT",
+                    "total": null,
+                    "status": "ok",
+                    "timestamp": 1711046271555,
+                    "datetime": "2024-03-21T18:37:51.555Z"
+                  },
+                  {
+                    "info": {
+                      "symbol": "XRPUSDT",
+                      "type": "1",
+                      "deltaType": "USER_ADJUST",
+                      "amount": "10.00000000",
+                      "asset": "USDT",
+                      "time": "1711046323584",
+                      "positionSide": "BOTH",
+                      "clientTranId": ""
+                    },
+                    "symbol": "XRP/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 10,
+                    "code": "USDT",
+                    "total": null,
+                    "status": "ok",
+                    "timestamp": 1711046323584,
+                    "datetime": "2024-03-21T18:38:43.584Z"
+                  }
+                ]
+            }
+        ]
+    }
 }

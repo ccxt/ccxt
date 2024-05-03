@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ export default class krakenfutures extends Exchange {
                 'future': true,
                 'option': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createMarketOrder': false,
@@ -40,9 +41,13 @@ export default class krakenfutures extends Exchange {
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchClosedOrders': undefined, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
@@ -52,6 +57,7 @@ export default class krakenfutures extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -142,6 +148,7 @@ export default class krakenfutures extends Exchange {
                         'executions',
                         'triggers',
                         'accountlogcsv',
+                        'account-log',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
                     ],
@@ -149,10 +156,32 @@ export default class krakenfutures extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false,
+                    'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber ('-0.0002'),
-                    'taker': this.parseNumber ('0.00075'),
+                    'taker': this.parseNumber ('0.0005'),
+                    'maker': this.parseNumber ('0.0002'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00025') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.00015') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.000125') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0001') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.000125') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.000075') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.00005') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.000025') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0') ],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -221,6 +250,9 @@ export default class krakenfutures extends Exchange {
                         },
                     },
                 },
+                'fetchTrades': {
+                    'method': 'historyGetMarketSymbolExecutions', // historyGetMarketSymbolExecutions, publicGetHistory
+                },
             },
             'timeframes': {
                 '1m': '1m',
@@ -236,7 +268,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name krakenfutures#fetchMarkets
@@ -322,7 +354,8 @@ export default class krakenfutures extends Exchange {
             // swap == perpetual
             let settle = undefined;
             let settleId = undefined;
-            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'contractValueTradePrecision', '0')));
+            const cvtp = this.safeString (market, 'contractValueTradePrecision');
+            const amountPrecision = this.parseNumber (this.integerPrecisionToAmount (cvtp));
             const pricePrecision = this.safeNumber (market, 'tickSize');
             const contract = (swap || future || index);
             const swapOrFutures = (swap || future);
@@ -505,7 +538,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2022-02-18T14:16:29.440Z"
         //    }
         //
-        const tickers = this.safeValue (response, 'tickers');
+        const tickers = this.safeList (response, 'tickers');
         return this.parseTickers (tickers, symbols);
     }
 
@@ -548,7 +581,7 @@ export default class krakenfutures extends Exchange {
         const volume = this.safeString (ticker, 'vol24h');
         let baseVolume = undefined;
         let quoteVolume = undefined;
-        const isIndex = this.safeValue (market, 'index', false);
+        const isIndex = this.safeBool (market, 'index', false);
         if (!isIndex) {
             if (market['linear']) {
                 baseVolume = volume;
@@ -612,16 +645,13 @@ export default class krakenfutures extends Exchange {
             request['from'] = this.parseToInt (since / 1000);
             if (limit === undefined) {
                 limit = 5000;
-            } else if (limit > 5000) {
-                throw new BadRequest (this.id + ' fetchOHLCV() limit cannot exceed 5000');
             }
+            limit = Math.min (limit, 5000);
             const toTimestamp = this.sum (request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds ();
             request['to'] = Math.min (toTimestamp, currentTimestamp);
         } else if (limit !== undefined) {
-            if (limit > 5000) {
-                throw new BadRequest (this.id + ' fetchOHLCV() limit cannot exceed 5000');
-            }
+            limit = Math.min (limit, 5000);
             const duration = this.parseTimeframe (timeframe);
             request['to'] = this.seconds ();
             request['from'] = this.parseToInt (request['to'] - (duration * limit));
@@ -642,7 +672,7 @@ export default class krakenfutures extends Exchange {
         //        "more_candles": true
         //    }
         //
-        const candles = this.safeValue (response, 'candles');
+        const candles = this.safeList (response, 'candles');
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -672,6 +702,7 @@ export default class krakenfutures extends Exchange {
          * @method
          * @name krakenfutures#fetchTrades
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
+         * @see https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
          * @description Fetch a history of filled trades that this account has made
          * @param {string} symbol Unified CCXT market symbol
          * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -679,6 +710,7 @@ export default class krakenfutures extends Exchange {
          * @param {object} [params] Exchange specific params
          * @param {int} [params.until] Timestamp in ms of latest trade
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.method] The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
          * @returns An array of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -688,39 +720,113 @@ export default class krakenfutures extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['lastTime'] = this.iso8601 (until);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
+        let rawTrades = undefined;
+        const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
+        if (isFullHistoryEndpoint) {
+            [ request, params ] = this.handleUntilOption ('before', request, params);
+            if (since !== undefined) {
+                request['since'] = since;
+                request['sort'] = 'asc';
+            }
+            if (limit !== undefined) {
+                request['count'] = limit;
+            }
+            const response = await this.historyGetMarketSymbolExecutions (this.extend (request, params));
+            //
+            //    {
+            //        "elements": [
+            //            {
+            //                "uid": "a5105030-f054-44cc-98ab-30d5cae96bef",
+            //                "timestamp": "1710150778607",
+            //                "event": {
+            //                    "Execution": {
+            //                        "execution": {
+            //                            "uid": "2d485b71-cd28-4a1e-9364-371a127550d2",
+            //                            "makerOrder": {
+            //                                "uid": "0a25f66b-1109-49ec-93a3-d17bf9e9137e",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Buy",
+            //                                "quantity": "0.26500",
+            //                                "timestamp": "1710150778570",
+            //                                "limitPrice": "71907",
+            //                                "orderType": "Post",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150778570"
+            //                            },
+            //                            "takerOrder": {
+            //                                "uid": "04de3ee0-9125-4960-bf8f-f63b577b6790",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Sell",
+            //                                "quantity": "0.0002",
+            //                                "timestamp": "1710150778607",
+            //                                "limitPrice": "71187.00",
+            //                                "orderType": "Market",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150778607"
+            //                            },
+            //                            "timestamp": "1710150778607",
+            //                            "quantity": "0.0002",
+            //                            "price": "71907",
+            //                            "markPrice": "71903.32715463147",
+            //                            "limitFilled": false,
+            //                            "usdValue": "14.38"
+            //                        },
+            //                        "takerReducedQuantity": ""
+            //                    }
+            //                }
+            //            },
+            //            ... followed by older items
+            //        ],
+            //        "len": "1000",
+            //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
+            //    }
+            //
+            const elements = this.safeList (response, 'elements', []);
+            // we need to reverse the list to fix chronology
+            rawTrades = [];
+            const length = elements.length;
+            for (let i = 0; i < length; i++) {
+                const index = length - 1 - i;
+                const element = elements[index];
+                const event = this.safeDict (element, 'event', {});
+                const executionContainer = this.safeDict (event, 'Execution', {});
+                const rawTrade = this.safeDict (executionContainer, 'execution', {});
+                rawTrades.push (rawTrade);
+            }
+        } else {
+            [ request, params ] = this.handleUntilOption ('lastTime', request, params);
+            const response = await this.publicGetHistory (this.extend (request, params));
+            //
+            //    {
+            //        "result": "success",
+            //        "history": [
+            //            {
+            //                "time": "2022-03-18T04:55:37.692Z",
+            //                "trade_id": 100,
+            //                "price": 0.7921,
+            //                "size": 1068,
+            //                "side": "sell",
+            //                "type": "fill",
+            //                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
+            //            },
+            //            ...
+            //        ],
+            //        "serverTime": "2022-03-18T06:39:18.056Z"
+            //    }
+            //
+            rawTrades = this.safeList (response, 'history', []);
         }
-        //
-        //    {
-        //        "result": "success",
-        //        "history": [
-        //            {
-        //                "time": "2022-03-18T04:55:37.692Z",
-        //                "trade_id": 100,
-        //                "price": 0.7921,
-        //                "size": 1068,
-        //                "side": "sell",
-        //                "type": "fill",
-        //                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
-        //            },
-        //            ...
-        //        ],
-        //        "serverTime": "2022-03-18T06:39:18.056Z"
-        //    }
-        //
-        const response = await this.publicGetHistory (this.extend (request, params));
-        const history = this.safeValue (response, 'history');
-        return this.parseTrades (history, market, since, limit);
+        return this.parseTrades (rawTrades, market, since, limit);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
         //
-        // fetchTrades (public)
+        // fetchTrades (recent trades)
         //
         //    {
         //        "time": "2019-02-14T09:25:33.920Z",
@@ -728,8 +834,22 @@ export default class krakenfutures extends Exchange {
         //        "price": 3574,
         //        "size": 100,
         //        "side": "buy",
-        //        "type": "fill"                                          // fill, liquidation, assignment, termination
+        //        "type": "fill" // fill, liquidation, assignment, termination
         //        "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
+        //    }
+        //
+        // fetchTrades (executions history)
+        //
+        //    {
+        //        "timestamp": "1710152516830",
+        //        "price": "71927.0",
+        //        "quantity": "0.0695",
+        //        "markPrice": "71936.38701675525",
+        //        "limitFilled": true,
+        //        "usdValue": "4998.93",
+        //        "uid": "116ae634-253f-470b-bd20-fa9d429fb8b1",
+        //        "makerOrder": { "uid": "17bfe4de-c01e-4938-926c-617d2a2d0597", "tradeable": "PF_XBTUSD", "direction": "Buy", "quantity": "0.0695", "timestamp": "1710152515836", "limitPrice": "71927.0", "orderType": "Post", "reduceOnly": false, "lastUpdateTimestamp": "1710152515836" },
+        //        "takerOrder": { "uid": "d3e437b4-aa70-4108-b5cf-b1eecb9845b5", "tradeable": "PF_XBTUSD", "direction": "Sell", "quantity": "0.940100", "timestamp": "1710152516830", "limitPrice": "71915", "orderType": "IoC", "reduceOnly": false, "lastUpdateTimestamp": "1710152516830" }
         //    }
         //
         // fetchMyTrades (private)
@@ -770,44 +890,37 @@ export default class krakenfutures extends Exchange {
         //        "type": "EXECUTION"
         //    }
         //
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'fillTime'));
+        let timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'fillTime'));
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'size', 'amount', '0.0');
+        const amount = this.safeStringN (trade, [ 'size', 'amount', 'quantity' ], '0.0');
         let id = this.safeString2 (trade, 'uid', 'fill_id');
         if (id === undefined) {
             id = this.safeString (trade, 'executionId');
         }
         let order = this.safeString (trade, 'order_id');
-        let symbolId = this.safeString (trade, 'symbol');
+        let marketId = this.safeString (trade, 'symbol');
         let side = this.safeString (trade, 'side');
         let type = undefined;
         const priorEdit = this.safeValue (trade, 'orderPriorEdit');
         const priorExecution = this.safeValue (trade, 'orderPriorExecution');
         if (priorExecution !== undefined) {
             order = this.safeString (priorExecution, 'orderId');
-            symbolId = this.safeString (priorExecution, 'symbol');
+            marketId = this.safeString (priorExecution, 'symbol');
             side = this.safeString (priorExecution, 'side');
             type = this.safeString (priorExecution, 'type');
         } else if (priorEdit !== undefined) {
             order = this.safeString (priorEdit, 'orderId');
-            symbolId = this.safeString (priorEdit, 'symbol');
+            marketId = this.safeString (priorEdit, 'symbol');
             side = this.safeString (priorEdit, 'type');
             type = this.safeString (priorEdit, 'type');
         }
         if (type !== undefined) {
             type = this.parseOrderType (type);
         }
-        let symbol = undefined;
-        if (symbolId !== undefined) {
-            market = this.safeValue (this.markets_by_id, symbolId);
-            if (market === undefined) {
-                symbol = symbolId;
-            }
-        }
-        symbol = this.safeString (market, 'symbol', symbol);
+        market = this.safeMarket (marketId, market);
         let cost = undefined;
+        const linear = this.safeBool (market, 'linear');
         if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
-            const linear = this.safeValue (market, 'linear');
             if (linear) {
                 cost = Precise.stringMul (amount, price); // in quote
             } else {
@@ -825,25 +938,35 @@ export default class krakenfutures extends Exchange {
                 takerOrMaker = 'maker';
             }
         }
+        const isHistoricalExecution = ('takerOrder' in trade);
+        if (isHistoricalExecution) {
+            timestamp = this.safeInteger (trade, 'timestamp');
+            const taker = this.safeDict (trade, 'takerOrder', {});
+            if (taker !== undefined) {
+                side = this.safeStringLower (taker, 'direction');
+                takerOrMaker = 'taker';
+            }
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
             'order': order,
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': amount,
+            'amount': linear ? amount : undefined,
             'cost': cost,
             'fee': undefined,
         });
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
+        symbol = market['symbol'];
         type = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
         let postOnly = false;
@@ -860,7 +983,7 @@ export default class krakenfutures extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': amount,
+            'size': this.amountToPrecision (symbol, amount),
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cliOrdId');
         if (clientOrderId !== undefined) {
@@ -896,13 +1019,13 @@ export default class krakenfutures extends Exchange {
         }
         request['orderType'] = type;
         if (price !== undefined) {
-            request['limitPrice'] = price;
+            request['limitPrice'] = this.priceToPrecision (symbol, price);
         }
         params = this.omit (params, [ 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#createOrder
@@ -1009,11 +1132,11 @@ export default class krakenfutures extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeValue (response, 'batchStatus', []);
+        const data = this.safeList (response, 'batchStatus', []);
         return this.parseOrders (data);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#editOrder
@@ -1128,7 +1251,7 @@ export default class krakenfutures extends Exchange {
         //       }
         //     ]
         // }
-        const batchStatus = this.safeValue (response, 'batchStatus', []);
+        const batchStatus = this.safeList (response, 'batchStatus', []);
         return this.parseOrders (batchStatus);
     }
 
@@ -1150,6 +1273,34 @@ export default class krakenfutures extends Exchange {
         return response;
     }
 
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'timeout': (timeout > 0) ? (this.parseToInt (timeout / 1000)) : 0,
+        };
+        const response = await this.privatePostCancelallordersafter (this.extend (request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2018-06-19T16:51:23.839Z",
+        //         "status": {
+        //             "currentTime": "2018-06-19T16:51:23.839Z",
+        //             "triggerTime": "0"
+        //         }
+        //     }
+        //
+        return response;
+    }
+
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
@@ -1168,8 +1319,106 @@ export default class krakenfutures extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOpenorders (params);
-        const orders = this.safeValue (response, 'openOrders', []);
+        const orders = this.safeList (response, 'openOrders', []);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name krakenfutures#fetchClosedOrders
+         * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+         * @description Gets all closed orders, including trigger orders, for an account from the exchange api
+         * @param {string} symbol Unified market symbol
+         * @param {int} [since] Timestamp (ms) of earliest order.
+         * @param {int} [limit] How many orders to return.
+         * @param {object} [params] Exchange specific parameters
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const response = await this.historyGetOrders (this.extend (request, params));
+        const allOrders = this.safeList (response, 'elements', []);
+        const closedOrders = [];
+        for (let i = 0; i < allOrders.length; i++) {
+            const order = allOrders[i];
+            const event = this.safeDict (order, 'event', {});
+            const orderPlaced = this.safeDict (event, 'OrderPlaced');
+            if (orderPlaced !== undefined) {
+                const innerOrder = this.safeDict (orderPlaced, 'order', {});
+                const filled = this.safeString (innerOrder, 'filled');
+                if (filled !== '0') {
+                    innerOrder['status'] = 'closed'; // status not available in the response
+                    closedOrders.push (innerOrder);
+                }
+            }
+        }
+        return this.parseOrders (closedOrders, market, since, limit);
+    }
+
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name krakenfutures#fetchCanceledOrders
+         * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+         * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
+         * @param {string} symbol Unified market symbol
+         * @param {int} [since] Timestamp (ms) of earliest order.
+         * @param {int} [limit] How many orders to return.
+         * @param {object} [params] Exchange specific parameters
+         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const response = await this.historyGetOrders (this.extend (request, params));
+        const allOrders = this.safeList (response, 'elements', []);
+        const canceledAndRejected = [];
+        for (let i = 0; i < allOrders.length; i++) {
+            const order = allOrders[i];
+            const event = this.safeDict (order, 'event', {});
+            const orderPlaced = this.safeDict (event, 'OrderPlaced');
+            if (orderPlaced !== undefined) {
+                const innerOrder = this.safeDict (orderPlaced, 'order', {});
+                const filled = this.safeString (innerOrder, 'filled');
+                if (filled === '0') {
+                    innerOrder['status'] = 'canceled'; // status not available in the response
+                    canceledAndRejected.push (innerOrder);
+                }
+            }
+            const orderCanceled = this.safeDict (event, 'OrderCancelled');
+            if (orderCanceled !== undefined) {
+                const innerOrder = this.safeDict (orderCanceled, 'order', {});
+                innerOrder['status'] = 'canceled'; // status not available in the response
+                canceledAndRejected.push (innerOrder);
+            }
+            const orderRejected = this.safeDict (event, 'OrderRejected');
+            if (orderRejected !== undefined) {
+                const innerOrder = this.safeDict (orderRejected, 'order', {});
+                innerOrder['status'] = 'rejected'; // status not available in the response
+                canceledAndRejected.push (innerOrder);
+            }
+        }
+        return this.parseOrders (canceledAndRejected, market, since, limit);
     }
 
     parseOrderType (orderType) {
@@ -1418,6 +1667,32 @@ export default class krakenfutures extends Exchange {
         //       "status": "requiredArgumentMissing",
         //       "orderEvents": []
         //    }
+        // closed orders
+        //    {
+        //        uid: '2f00cd63-e61d-44f8-8569-adabde885941',
+        //        timestamp: '1707258274849',
+        //        event: {
+        //          OrderPlaced: {
+        //            order: {
+        //              uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        //              accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //              tradeable: 'PF_LTCUSD',
+        //              direction: 'Buy',
+        //              quantity: '0',
+        //              filled: '0.1',
+        //              timestamp: '1707258274849',
+        //              limitPrice: '69.2200000000',
+        //              orderType: 'IoC',
+        //              clientId: '',
+        //              reduceOnly: false,
+        //              lastUpdateTimestamp: '1707258274849'
+        //            },
+        //            reason: 'new_user_order',
+        //            reducedQuantity: '',
+        //            algoId: ''
+        //          }
+        //        }
+        //    }
         //
         const orderEvents = this.safeValue (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
@@ -1479,7 +1754,8 @@ export default class krakenfutures extends Exchange {
         let remaining = this.safeString (details, 'unfilledSize');
         let average = undefined;
         let filled2 = '0.0';
-        if (trades.length) {
+        const tradesLength = trades.length;
+        if (tradesLength > 0) {
             let vwapSum = '0.0';
             for (let i = 0; i < trades.length; i++) {
                 const trade = trades[i];
@@ -1854,7 +2130,7 @@ export default class krakenfutures extends Exchange {
             const parsed = this.parseFundingRate (entry, market);
             fundingRates.push (parsed);
         }
-        return this.indexBy (fundingRates, 'symbol');
+        return this.indexBy (fundingRates, 'symbol') as any;
     }
 
     parseFundingRate (ticker, market: Market = undefined) {
@@ -2122,7 +2398,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const data = this.safeValue (response, 'instruments');
+        const data = this.safeList (response, 'instruments');
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
@@ -2253,7 +2529,7 @@ export default class krakenfutures extends Exchange {
         return await this.transfer (code, amount, 'future', 'spot', params);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name krakenfutures#transfer
@@ -2302,7 +2578,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#setLeverage
@@ -2327,7 +2603,35 @@ export default class krakenfutures extends Exchange {
         return await this.privatePutLeveragepreferences (this.extend (request, params));
     }
 
-    async fetchLeverage (symbol: Str = undefined, params = {}) {
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        /**
+         * @method
+         * @name krakenfutures#fetchLeverages
+         * @description fetch the set leverage for all contract and margin markets
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetLeveragepreferences (params);
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2024-03-06T02:35:46.336Z",
+        //         "leveragePreferences": [
+        //             {
+        //                 "symbol": "PF_ETHUSD",
+        //                 "maxLeverage": 30.00
+        //             },
+        //         ]
+        //     }
+        //
+        const leveragePreferences = this.safeList (response, 'leveragePreferences', []);
+        return this.parseLeverages (leveragePreferences, symbols, 'symbol');
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name krakenfutures#fetchLeverage
@@ -2341,17 +2645,33 @@ export default class krakenfutures extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'symbol': this.marketId (symbol).toUpperCase (),
         };
+        const response = await this.privateGetLeveragepreferences (this.extend (request, params));
         //
-        //   {
-        //       "result": "success",
-        //       "serverTime": "2023-08-01T09:54:08.900Z",
-        //       "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
-        //   }
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2023-08-01T09:54:08.900Z",
+        //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
+        //     }
         //
-        return await this.privateGetLeveragepreferences (this.extend (request, params));
+        const leveragePreferences = this.safeList (response, 'leveragePreferences', []);
+        const data = this.safeDict (leveragePreferences, 0, {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeInteger (leverage, 'maxLeverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

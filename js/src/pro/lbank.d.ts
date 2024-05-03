@@ -7,8 +7,8 @@ export default class lbank extends lbankRest {
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: any, message: any): void;
-    fetchTickerWs(symbol: any, params?: {}): Promise<Ticker>;
-    watchTicker(symbol: any, params?: {}): Promise<Ticker>;
+    fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: any, message: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -24,6 +24,6 @@ export default class lbank extends lbankRest {
     handleOrderBook(client: any, message: any): void;
     handleErrorMessage(client: any, message: any): void;
     handlePing(client: Client, message: any): Promise<void>;
-    handleMessage(client: any, message: any): any;
+    handleMessage(client: any, message: any): void;
     authenticate(params?: {}): Promise<any>;
 }

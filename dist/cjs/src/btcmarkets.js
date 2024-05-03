@@ -32,6 +32,7 @@ class btcmarkets extends btcmarkets$1 {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -40,6 +41,9 @@ class btcmarkets extends btcmarkets$1 {
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -61,8 +65,11 @@ class btcmarkets extends btcmarkets$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -194,6 +201,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1transfers/get
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -207,6 +215,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1deposits/get
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -220,6 +229,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/get
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -353,6 +363,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchMarkets
          * @description retrieves data on all markets for btcmarkets
+         * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets/get
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -444,6 +455,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.btcmarkets.net/v3/#tag/Misc-APIs/paths/~1v3~1time/get
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -473,6 +485,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.btcmarkets.net/v3/#tag/Account-APIs/paths/~1v3~1accounts~1me~1balances/get
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -505,6 +518,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1candles/get
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -527,7 +541,7 @@ class btcmarkets extends btcmarkets$1 {
             request['from'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default is 10, max 200
+            request['limit'] = Math.min(limit, 200); // default is 10, max 200
         }
         const response = await this.publicGetMarketsMarketIdCandles(this.extend(request, params));
         //
@@ -544,6 +558,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1orderbook/get
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -631,6 +646,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1ticker/get
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -739,6 +755,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1trades/get
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -766,6 +783,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#createOrder
          * @description create a trade order
+         * @see https://docs.btcmarkets.net/v3/#tag/Order-Placement-APIs/paths/~1v3~1orders/post
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -866,6 +884,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#cancelOrders
          * @description cancel multiple orders
+         * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
          * @param {string[]} ids order ids
          * @param {string} symbol not used by btcmarkets cancelOrders ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -885,6 +904,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#cancelOrder
          * @description cancels an open order
+         * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
          * @param {string} id order id
          * @param {string} symbol not used by btcmarket cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -897,6 +917,18 @@ class btcmarkets extends btcmarkets$1 {
         return await this.privateDeleteOrdersId(this.extend(request, params));
     }
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        /**
+         * @method
+         * @description calculates the presumptive fee that would be charged for an order
+         * @param {string} symbol unified market symbol
+         * @param {string} type not used by btcmarkets.calculateFee
+         * @param {string} side not used by btcmarkets.calculateFee
+         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} price the price for the order to be filled at, in units of the quote currency
+         * @param {string} takerOrMaker 'taker' or 'maker'
+         * @param {object} params
+         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
         const market = this.markets[symbol];
         let currency = undefined;
         let cost = undefined;
@@ -1004,6 +1036,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.btcmarkets.net/v3/#operation/getOrderById
          * @param {string} symbol not used by btcmarkets fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1020,6 +1053,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://docs.btcmarkets.net/v3/#operation/listOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1049,6 +1083,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.btcmarkets.net/v3/#operation/listOrders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1063,6 +1098,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.btcmarkets.net/v3/#operation/listOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1077,6 +1113,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.btcmarkets.net/v3/#operation/getTrades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1131,6 +1168,7 @@ class btcmarkets extends btcmarkets$1 {
          * @method
          * @name btcmarkets#withdraw
          * @description make a withdrawal
+         * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/~1v3~1withdrawals/post
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to

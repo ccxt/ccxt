@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -89,7 +89,11 @@ export default class bitteam extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -241,7 +245,7 @@ export default class bitteam extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitteam#fetchMarkets
@@ -357,7 +361,7 @@ export default class bitteam extends Exchange {
         const created = this.parse8601 (timeStart);
         let minCost = undefined;
         const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
-        const quoteInUsd = this.safeValue (currenciesValuedInUsd, quote, false);
+        const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
@@ -414,7 +418,7 @@ export default class bitteam extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name bitteam#fetchCurrencies
@@ -545,7 +549,7 @@ export default class bitteam extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const numericId = this.safeInteger (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const active = this.safeValue (currency, 'active', false);
+            const active = this.safeBool (currency, 'active', false);
             const precision = this.safeInteger (currency, 'precision');
             const txLimits = this.safeValue (currency, 'txLimits', {});
             const minWithdraw = this.safeString (txLimits, 'minWithdraw');
@@ -676,7 +680,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -860,7 +864,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'orders', []);
+        const orders = this.safeList (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -921,7 +925,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result, market);
     }
 
@@ -982,7 +986,7 @@ export default class bitteam extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitteam#createOrder
@@ -1035,7 +1039,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
@@ -1063,7 +1067,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result);
     }
 
@@ -1531,7 +1535,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const pair = this.safeValue (result, 'pair', {});
+        const pair = this.safeDict (result, 'pair', {});
         return this.parseTicker (pair, market);
     }
 
@@ -1862,7 +1866,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
+        const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2167,7 +2171,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const transactions = this.safeValue (result, 'transactions', []);
+        const transactions = this.safeList (result, 'transactions', []);
         return this.parseTransactions (transactions, currency, since, limit);
     }
 

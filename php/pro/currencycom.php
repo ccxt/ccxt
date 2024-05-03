@@ -97,7 +97,7 @@ class currencycom extends \ccxt\async\currencycom {
         //                     "accountId" => 5470310874305732,
         //                     "collateralCurrency" => true,
         //                     "asset" => "USD",
-        //                     "free" => 47.82576735,
+        //                     "free" => 47.82576736,
         //                     "locked" => 1.187925,
         //                     "default" => true
         //                 ),
@@ -201,7 +201,7 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_trades(Client $client, $message, $subscription) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "status" => "OK",
@@ -486,6 +486,7 @@ class currencycom extends \ccxt\async\currencycom {
             $orderbook = $this->order_book();
         }
         $orderbook->reset (array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
@@ -559,9 +560,10 @@ class currencycom extends \ccxt\async\currencycom {
                         );
                         $method = $this->safe_value($methods, $subscriptionDestination);
                         if ($method === null) {
-                            return $message;
+                            return;
                         } else {
-                            return $method($client, $message, $subscription);
+                            $method($client, $message, $subscription);
+                            return;
                         }
                     }
                 }
@@ -576,10 +578,8 @@ class currencycom extends \ccxt\async\currencycom {
                 'ping' => array($this, 'handle_pong'),
             );
             $method = $this->safe_value($methods, $destination);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

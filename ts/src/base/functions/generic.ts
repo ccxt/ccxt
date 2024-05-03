@@ -1,38 +1,39 @@
 
 // ----------------------------------------------------------------------------
 
+import { Dictionary, IndexType } from '../types.js';
 import { isObject, isNumber, isDictionary, isArray } from './type.js';
 
 // ----------------------------------------------------------------------------
 
 const keys = Object.keys; // eslint-disable-line padding-line-between-statements
-const values = (x) => ((!isArray (x)) ? Object.values (x) : x); // don't copy arrays if they're already arrays
-const index = (x) => new Set (values (x));
-const extend = (...args) => Object.assign ({}, ...args); // NB: side-effect free
-const clone = (x) => (isArray (x) ? Array.from (x) : extend (x)); // clone arrays or objects
+const values = (x: any[] | Dictionary<any>) => ((!isArray (x)) ? Object.values (x) : x); // don't copy arrays if they're already arrays
+const index = (x: any[]) => new Set (values (x));
+const extend = (...args: any[]) => Object.assign ({}, ...args); // NB: side-effect free
+const clone = (x: any) => (isArray (x) ? Array.from (x) : extend (x)); // clone arrays or objects
 
 // ----------------------------------------------------------------------------
 
-const ordered = (x) => x; // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
+const ordered = (x: any[] | Dictionary<any>) => x; // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
 
-const unique = (x) => Array.from (index (x));
+const unique = (x: any[]) => Array.from (index (x));
 
-const arrayConcat = (a, b) => a.concat (b);
+const arrayConcat = (a: any[], b: any[]) => a.concat (b);
 
 // ------------------------------------------------------------------------
 
-const inArray = (needle, haystack) => haystack.includes (needle);
+const inArray = (needle: any, haystack: any[]) => haystack.includes (needle);
 
-const toArray = (object) => Object.values (object);
+const toArray = (object: Dictionary<any>|any[]) => Object.values (object);
 
-const isEmpty = (object) => {
+const isEmpty = (object: any[] | Dictionary<any>) => {
     if (!object) {
         return true;
     }
     return (Array.isArray (object) ? object : Object.keys (object)).length < 1;
 };
 
-const keysort = (x, out = {}) => {
+const keysort = (x: Dictionary<any>, out: Dictionary<any> = {}) => {
     for (const k of keys (x).sort ()) {
         out[k] = x[k];
     }
@@ -55,7 +56,7 @@ const keysort = (x, out = {}) => {
     }
 */
 
-const groupBy = (x, k, out = {}) => {
+const groupBy = (x: Dictionary<any>, k: string, out: Dictionary<any> = {}) => {
     for (const v of values (x)) {
         if (k in v) {
             const p = v[k];
@@ -66,7 +67,7 @@ const groupBy = (x, k, out = {}) => {
     return out;
 };
 
-const indexBy = (x, k, out = {}) => {
+const indexBy = (x: Dictionary<any>, k: IndexType, out: Dictionary<any> = {}) => {
 
     for (const v of values (x)) {
         if (k in v) {
@@ -76,7 +77,7 @@ const indexBy = (x, k, out = {}) => {
     return out;
 };
 
-const filterBy = (x, k, value = undefined, out = []) => {
+const filterBy = (x: Dictionary<any>, k: string, value: any = undefined, out: Dictionary<any>[] = []) => {
 
     for (const v of values (x)) {
         if (v[k] === value) {
@@ -86,7 +87,7 @@ const filterBy = (x, k, value = undefined, out = []) => {
     return out;
 };
 
-const sortBy = (array, key, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.sort ((a, b) => {
+const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.sort ((a: Dictionary<any>, b: Dictionary<any>) => {
     const first = (key in a) ? a[key] : defaultValue;
     const second = (key in b) ? b[key] : defaultValue;
     if (first < second) {
@@ -98,7 +99,7 @@ const sortBy = (array, key, descending = false, defaultValue:any = 0, direction 
     }
 });
 
-const sortBy2 = (array, key1, key2, descending = false, direction = descending ? -1 : 1) => array.sort ((a, b) => {
+const sortBy2 = (array: any[], key1: IndexType, key2: IndexType, descending = false, direction = descending ? -1 : 1) => array.sort ((a: Dictionary<any>, b: Dictionary<any>) => {
     if (a[key1] < b[key1]) {
         return -direction;
     } else if (a[key1] > b[key1]) {
@@ -114,7 +115,7 @@ const sortBy2 = (array, key1, key2, descending = false, direction = descending ?
     }
 });
 
-const flatten = function flatten (x, out = []) {
+const flatten = function flatten (x: any[], out: any[] = []) {
 
     for (const v of x) {
         if (isArray (v)) {
@@ -126,9 +127,9 @@ const flatten = function flatten (x, out = []) {
     return out;
 };
 
-const pluck = (x, k) => values (x).filter ((v) => k in v).map ((v) => v[k]);
+const pluck = (x: Dictionary<any>, k: any) => values (x).filter ((v) => k in v).map ((v) => v[k]);
 
-const omit = (x, ...args) => {
+const omit = (x: Dictionary<any>, ...args: any) => {
 
     if (!Array.isArray (x)) {
 
@@ -150,14 +151,14 @@ const omit = (x, ...args) => {
     return x;
 };
 
-const sum = (...xs) => {
+const sum = (...xs: any[]) => {
 
     const ns = xs.filter (isNumber); // leave only numbers
 
     return (ns.length > 0) ? ns.reduce ((a, b) => a + b, 0) : undefined;
 };
 
-const deepExtend = function deepExtend (...xs) {
+const deepExtend = function deepExtend (...xs: any) {
     let out = undefined;
     for (const x of xs) {
         if (isDictionary (x)) {
@@ -174,9 +175,9 @@ const deepExtend = function deepExtend (...xs) {
     return out;
 };
 
-const merge = (target, ...args) => {
+const merge = (target: Dictionary<any>, ...args: any) => {
     // doesn't overwrite defined keys with undefined
-    const overwrite = {};
+    const overwrite: Dictionary<any> = {};
     const merged = Object.assign ({}, ...args);
     const keys = Object.keys (merged);
     for (let i = 0; i < keys.length; i++) {

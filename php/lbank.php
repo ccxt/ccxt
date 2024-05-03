@@ -44,6 +44,7 @@ class lbank extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -329,9 +330,9 @@ class lbank extends Exchange {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
-         * retrieves data on all markets for lbank2
+         * retrieves data on all markets for lbank
          * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -625,7 +626,7 @@ class lbank extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $first = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($first, $market);
     }
 
@@ -703,7 +704,7 @@ class lbank extends Exchange {
         //         "success" => true
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_tickers($data, $symbols);
     }
 
@@ -944,7 +945,7 @@ class lbank extends Exchange {
         //           "ts":1647021999308
         //      }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -985,6 +986,8 @@ class lbank extends Exchange {
         $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 100;
+        } else {
+            $limit = min ($limit, 2000);
         }
         if ($since === null) {
             $duration = $this->parse_timeframe($timeframe);
@@ -1208,7 +1211,7 @@ class lbank extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //      {
         //          "symbol":"skt_usdt",
@@ -1223,10 +1226,12 @@ class lbank extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommission'),
             'taker' => $this->safe_number($fee, 'takerCommission'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
@@ -1236,10 +1241,10 @@ class lbank extends Exchange {
          */
         $market = $this->market($symbol);
         $result = $this->fetch_trading_fees(array_merge($params, array( 'category' => $market['id'] )));
-        return $result;
+        return $this->safe_dict($result, $symbol);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://www.lbank.com/en-US/docs/index.html#transaction-$fee-rate-query
@@ -1259,7 +1264,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          * @see https://www.lbank.com/en-US/docs/index.html#place-order
@@ -1278,7 +1283,7 @@ class lbank extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://www.lbank.com/en-US/docs/index.html#place-order
@@ -1294,7 +1299,7 @@ class lbank extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
         $request = array(
@@ -1568,7 +1573,7 @@ class lbank extends Exchange {
         //          "ts":1648164471827
         //      }
         //
-        $result = $this->safe_value($response, 'data', array());
+        $result = $this->safe_dict($response, 'data', array());
         return $this->parse_order($result);
     }
 
@@ -1673,7 +1678,7 @@ class lbank extends Exchange {
         //          "ts":1648509742164
         //      }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1732,7 +1737,7 @@ class lbank extends Exchange {
         //      }
         //
         $result = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($result, 'orders', array());
+        $orders = $this->safe_list($result, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1788,7 +1793,7 @@ class lbank extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($result, 'orders', array());
+        $orders = $this->safe_list($result, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1984,7 +1989,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal
@@ -2197,7 +2202,7 @@ class lbank extends Exchange {
         //      }
         //
         $data = $this->safe_value($response, 'data', array());
-        $deposits = $this->safe_value($data, 'depositOrders', array());
+        $deposits = $this->safe_list($data, 'depositOrders', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
@@ -2253,15 +2258,15 @@ class lbank extends Exchange {
         //      }
         //
         $data = $this->safe_value($response, 'data', array());
-        $withdraws = $this->safe_value($data, 'withdraws', array());
+        $withdraws = $this->safe_list($data, 'withdraws', array());
         return $this->parse_transactions($withdraws, $currency, $since, $limit);
     }
 
-    public function fetch_transaction_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
-         * @param {string[]|null} $codes not used by lbank2 fetchTransactionFees ()
+         * @param {string[]|null} $codes not used by lbank fetchTransactionFees ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
@@ -2468,7 +2473,7 @@ class lbank extends Exchange {
         //        "code" => 0
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
     }
 
@@ -2655,7 +2660,7 @@ class lbank extends Exchange {
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {
-                $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
+                $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
                 if ($cacheSecretAsPem) {
                     $pem = $this->safe_value($this->options, 'pem');

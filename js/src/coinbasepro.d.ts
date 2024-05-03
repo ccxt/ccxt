@@ -1,14 +1,14 @@
 import Exchange from './abstract/coinbasepro.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees } from './base/types.js';
 /**
  * @class coinbasepro
  * @augments Exchange
  */
 export default class coinbasepro extends Exchange {
     describe(): any;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
         id: string;
         type: any;
@@ -24,7 +24,7 @@ export default class coinbasepro extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchTradingFees(params?: {}): Promise<{}>;
+    fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchTime(params?: {}): Promise<number>;
@@ -35,11 +35,11 @@ export default class coinbasepro extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchPaymentMethods(params?: {}): Promise<any>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: Currency): {
         id: string;

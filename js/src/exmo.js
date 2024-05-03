@@ -65,7 +65,12 @@ export default class exmo extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -252,7 +257,7 @@ export default class exmo extends Exchange {
         //
         const margin = this.parseMarginModification(response, market);
         const options = this.safeValue(this.options, 'margin', {});
-        const fillResponseFromRequest = this.safeValue(options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             margin['type'] = type;
             margin['amount'] = amount;
@@ -265,12 +270,15 @@ export default class exmo extends Exchange {
         //
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': this.safeValue(market, 'quote'),
             'symbol': this.safeSymbol(undefined, market),
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
             'total': undefined,
+            'code': this.safeValue(market, 'quote'),
             'status': 'ok',
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async reduceMargin(symbol, amount, params = {}) {
@@ -278,6 +286,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#reduceMargin
          * @description remove margin from a position
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -290,6 +299,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#addMargin
          * @description add margin
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -302,6 +312,8 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#90927062-256c-4b03-900f-2b99131f9a54
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -589,6 +601,8 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7cdf0ca8-9ff6-4cf3-aa33-bcec83155c49
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -715,6 +729,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchMarkets
          * @description retrieves data on all markets for exmo
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -842,6 +857,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#65eeb949-74e5-4631-9184-c38387fe53e8
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -855,16 +871,15 @@ export default class exmo extends Exchange {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const options = this.safeValue(this.options, 'fetchOHLCV');
-        const maxLimit = this.safeInteger(options, 'maxLimit', 3000);
+        const maxLimit = 3000;
         const duration = this.parseTimeframe(timeframe);
         const now = this.milliseconds();
         if (since === undefined) {
             if (limit === undefined) {
                 limit = 1000; // cap default at generous amount
             }
-            if (limit > maxLimit) {
-                limit = maxLimit; // avoid exception
+            else {
+                limit = Math.min(limit, maxLimit);
             }
             request['from'] = this.parseToInt(now / 1000) - limit * duration - 1;
             request['to'] = this.parseToInt(now / 1000);
@@ -872,15 +887,13 @@ export default class exmo extends Exchange {
         else {
             request['from'] = this.parseToInt(since / 1000) - 1;
             if (limit === undefined) {
-                request['to'] = this.parseToInt(now / 1000);
+                limit = maxLimit;
             }
             else {
-                if (limit > maxLimit) {
-                    throw new BadRequest(this.id + ' fetchOHLCV() will serve ' + maxLimit.toString() + ' candles at most');
-                }
-                const to = this.sum(since, limit * duration * 1000);
-                request['to'] = this.parseToInt(to / 1000);
+                limit = Math.min(limit, maxLimit);
             }
+            const to = this.sum(since, limit * duration * 1000);
+            request['to'] = this.parseToInt(to / 1000);
         }
         const response = await this.publicGetCandlesHistory(this.extend(request, params));
         //
@@ -892,7 +905,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue(response, 'candles', []);
+        const candles = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -955,6 +968,8 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#59c5160f-27a1-4d9a-8cfb-7979c7ffaac6
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8388df7-1f9f-4d41-81c4-5a387d171dc6
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] *isolated* fetches the isolated margin balance
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -1002,6 +1017,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1016,7 +1032,7 @@ export default class exmo extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook(this.extend(request, params));
-        const result = this.safeValue(response, market['id']);
+        const result = this.safeDict(response, market['id']);
         return this.parseOrderBook(result, market['symbol'], undefined, 'bid', 'ask');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
@@ -1024,6 +1040,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c60c51a8-e683-4f45-a000-820723d37871
          * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int} [limit] max number of entries per orderbook to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1104,6 +1121,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1142,6 +1160,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4c8e6459-3503-4361-b012-c34bb9f7e385
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1246,6 +1265,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#5a5a9c0d-cf17-47f6-9d62-6d4404ebd5ac
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1280,7 +1300,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, market['id'], []);
+        const data = this.safeList(response, market['id'], []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1671,7 +1691,7 @@ export default class exmo extends Exchange {
             //     }
             //
         }
-        const trades = this.safeValue(response, 'trades');
+        const trades = this.safeList(response, 'trades');
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2086,6 +2106,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2132,6 +2153,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#withdraw
          * @description make a withdrawal
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2311,6 +2333,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#31e69a33-4849-4e6a-b4b4-6d574238f6a7
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2364,6 +2387,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2409,7 +2433,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseTransactions(items, currency, since, limit);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -2417,6 +2441,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchWithdrawal
          * @description fetch data on a currency withdrawal via the withdrawal id
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
          * @param {string} id withdrawal id
          * @param {string} code unified currency code of the currency withdrawn, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2460,7 +2485,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue(response, 'items', []);
-        const first = this.safeValue(items, 0, {});
+        const first = this.safeDict(items, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposit(id = undefined, code = undefined, params = {}) {
@@ -2468,6 +2493,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchDeposit
          * @description fetch information on a deposit
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
          * @param {string} id deposit id
          * @param {string} code unified currency code, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2511,7 +2537,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue(response, 'items', []);
-        const first = this.safeValue(items, 0, {});
+        const first = this.safeDict(items, 0, {});
         return this.parseTransaction(first, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2519,6 +2545,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#97f1becd-7aad-4e0e-babe-7bbe09e33706
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2564,7 +2591,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue(response, 'items', []);
+        const items = this.safeList(response, 'items', []);
         return this.parseTransactions(items, currency, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2616,7 +2643,7 @@ export default class exmo extends Exchange {
             //     {"result":false,"error":"Error 50052: Insufficient funds"}
             //     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             //
-            let success = this.safeValue(response, 'result', false);
+            let success = this.safeBool(response, 'result', false);
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

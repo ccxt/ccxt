@@ -2,5 +2,91 @@
     "exchange": "gemini",
     "skipKeys": [],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.gemini.com/v1/trades/btcusdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.gemini.com/v1/book/btcusdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.gemini.com/v1/pubticker/btcusdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "usdcusdc ticker",
+                "method": "fetchTicker",
+                "url": "https://api.gemini.com/v1/pubticker/usdcusd",
+                "input": [
+                  "USDC/USD"
+                ]
+            },
+            {
+                "description": "sol btc ticker",
+                "method": "fetchTicker",
+                "url": "https://api.gemini.com/v1/pubticker/solbtc",
+                "input": [
+                  "SOL/BTC"
+                ]
+            },
+            {
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.gemini.com/v1/pubticker/btcgusdperp",
+                "input": [
+                  "BTC/GUSD:GUSD"
+                ]
+            },
+            {
+                "description": "paxg ticker",
+                "method": "fetchTicker",
+                "url": "https://api.gemini.com/v1/pubticker/paxgusd",
+                "input": [
+                  "PAXG/USD"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.gemini.com/v1/pricefeed",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.gemini.com/v2/candles/btcusdt/1m",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
 }

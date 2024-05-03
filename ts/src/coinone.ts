@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,8 +67,11 @@ export default class coinone extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -201,7 +204,7 @@ export default class coinone extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name coinone#fetchCurrencies
@@ -268,7 +271,7 @@ export default class coinone extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinone#fetchMarkets
@@ -519,7 +522,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'tickers', []);
+        const data = this.safeList (response, 'tickers', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -574,7 +577,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'tickers', []);
-        const ticker = this.safeValue (data, 0, {});
+        const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
 
@@ -741,11 +744,11 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'transactions', []);
+        const data = this.safeList (response, 'transactions', []);
         return this.parseTrades (data, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name coinone#createOrder
@@ -991,7 +994,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const limitOrders = this.safeValue (response, 'limitOrders', []);
+        const limitOrders = this.safeList (response, 'limitOrders', []);
         return this.parseOrders (limitOrders, market, since, limit);
     }
 
@@ -1035,7 +1038,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const completeOrders = this.safeValue (response, 'completeOrders', []);
+        const completeOrders = this.safeList (response, 'completeOrders', []);
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
@@ -1078,7 +1081,7 @@ export default class coinone extends Exchange {
         return response;
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchDepositAddresses

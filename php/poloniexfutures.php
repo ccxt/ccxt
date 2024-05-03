@@ -31,6 +31,9 @@ class poloniexfutures extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchL3OrderBook' => true,
@@ -199,7 +202,7 @@ class poloniexfutures extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for poloniexfutures
          * @see https://futures-docs.poloniex.com/#symbol-2
@@ -368,7 +371,18 @@ class poloniexfutures extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_integer_product($ticker, 'ts', 0.000001);
+        $timestampString = $this->safe_string($ticker, 'ts');
+        // check $timestamp bcz bug => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        $multiplier = null;
+        if (strlen($timestampString) === 17) {
+            $multiplier = 0.0001;
+        } elseif (strlen($timestampString) === 18) {
+            $multiplier = 0.00001;
+        } else {
+            // 19 length default
+            $multiplier = 0.000001;
+        }
+        $timestamp = $this->safe_integer_product($ticker, 'ts', $multiplier);
         $last = $this->safe_string_2($ticker, 'price', 'lastPrice');
         $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChgPct'), '100');
         return $this->safe_ticker(array(
@@ -665,7 +679,7 @@ class poloniexfutures extends Exchange {
         //        ),
         //    }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -734,7 +748,7 @@ class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -789,7 +803,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @see https://futures-docs.poloniex.com/#place-an-order
@@ -847,7 +861,7 @@ class poloniexfutures extends Exchange {
                 $request['timeInForce'] = $timeInForce;
             }
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         $hidden = $this->safe_value($params, 'hidden');
         if ($postOnly && ($hidden !== null)) {
             throw new BadRequest($this->id . ' createOrder() does not support the $postOnly parameter together with a $hidden parameter');
@@ -990,7 +1004,7 @@ class poloniexfutures extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_positions($data, $symbols);
     }
 
@@ -1240,8 +1254,8 @@ class poloniexfutures extends Exchange {
          */
         $this->load_markets();
         $stop = $this->safe_value_2($params, 'stop', 'trigger');
-        $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'triger', 'stop', 'until', 'till' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'trigger', 'stop', 'until' ));
         if ($status === 'closed') {
             $status = 'done';
         }
@@ -1338,7 +1352,7 @@ class poloniexfutures extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->till] end time in ms
+         * @param {int} [$params->until] end time in ms
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit, or market
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1355,7 +1369,7 @@ class poloniexfutures extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->till] end time in ms
+         * @param {int} [$params->until] end time in ms
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit, or market
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1363,7 +1377,7 @@ class poloniexfutures extends Exchange {
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1433,7 +1447,7 @@ class poloniexfutures extends Exchange {
         //    }
         //
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $responseData = $this->safe_value($response, 'data');
+        $responseData = $this->safe_dict($response, 'data');
         return $this->parse_order($responseData, $market);
     }
 
@@ -1525,8 +1539,8 @@ class poloniexfutures extends Exchange {
         // precision reported by their api is 8 d.p.
         // $average = Precise::string_div($rawCost, Precise::string_mul($filled, $market['contractSize']));
         // bool
-        $isActive = $this->safe_value($order, 'isActive', false);
-        $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $isActive = $this->safe_bool($order, 'isActive', false);
+        $cancelExist = $this->safe_bool($order, 'cancelExist', false);
         $status = $isActive ? 'open' : 'closed';
         $id = $this->safe_string($order, 'id');
         if (is_array($order) && array_key_exists('cancelledOrderIds', $order)) {
@@ -1668,15 +1682,15 @@ class poloniexfutures extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'items', array());
+        $trades = $this->safe_list($data, 'items', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function set_margin_mode($marginMode, $symbol, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @see https://futures-docs.poloniex.com/#change-margin-mode
-         * @param {int} $marginMode 0 (isolated) or 1 (cross)
+         * @param {string} $marginMode "0" (isolated) or "1" (cross)
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
@@ -1684,14 +1698,20 @@ class poloniexfutures extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        if (($marginMode !== 0) && ($marginMode !== 1)) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be 0 (isolated) or 1 (cross)');
+        if (($marginMode !== '0') && ($marginMode !== '1') && ($marginMode !== 'isolated') && ($marginMode !== 'cross')) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be 0/isolated or 1/cross');
         }
         $this->load_markets();
+        if ($marginMode === 'isolated') {
+            $marginMode = '0';
+        }
+        if ($marginMode === 'cross') {
+            $marginMode = '1';
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'marginType' => $marginMode,
+            'marginType' => $this->parse_to_int($marginMode),
         );
         return $this->privatePostMarginTypeChange ($request);
     }

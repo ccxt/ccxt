@@ -365,26 +365,26 @@ export default class onetrading extends onetradingRest {
         const dateTime = this.safeString(message, 'time');
         const timestamp = this.parse8601(dateTime);
         const channel = 'book:' + symbol;
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook({});
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook({});
         }
         if (type === 'ORDER_BOOK_SNAPSHOT') {
             const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks');
-            storedOrderBook.reset(snapshot);
+            orderbook.reset(snapshot);
         }
         else if (type === 'ORDER_BOOK_UPDATE') {
             const changes = this.safeValue(message, 'changes', []);
-            this.handleDeltas(storedOrderBook, changes);
+            this.handleDeltas(orderbook, changes);
         }
         else {
             throw new NotSupported(this.id + ' watchOrderBook() did not recognize message type ' + type);
         }
-        storedOrderBook['nonce'] = timestamp;
-        storedOrderBook['timestamp'] = timestamp;
-        storedOrderBook['datetime'] = this.iso8601(timestamp);
-        this.orderbooks[symbol] = storedOrderBook;
-        client.resolve(storedOrderBook, channel);
+        orderbook['nonce'] = timestamp;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601(timestamp);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve(orderbook, channel);
     }
     handleDelta(orderbook, delta) {
         //
@@ -970,13 +970,14 @@ export default class onetrading extends onetradingRest {
             if (updateType === 'ORDER_CLOSED' && filled === 0) {
                 status = 'canceled';
             }
-            orders.append({
+            const orderObject = {
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
                 'timestamp': this.parse8601(datetime),
                 'datetime': datetime,
-            });
+            };
+            orders.append(orderObject);
         }
         else {
             const parsed = this.parseOrder(update);
@@ -1060,7 +1061,7 @@ export default class onetrading extends onetradingRest {
             subscription = this.safeValue(client.subscriptions, subscriptionHash);
             if (subscription !== undefined) {
                 const ohlcvMarket = this.safeValue(subscription, marketId, {});
-                const marketSubscribed = this.safeValue(ohlcvMarket, timeframe, false);
+                const marketSubscribed = this.safeBool(ohlcvMarket, timeframe, false);
                 if (!marketSubscribed) {
                     type = 'UPDATE_SUBSCRIPTION';
                     client.subscriptions[subscriptionHash] = undefined;
@@ -1213,7 +1214,8 @@ export default class onetrading extends onetradingRest {
     handleMessage(client, message) {
         const error = this.safeValue(message, 'error');
         if (error !== undefined) {
-            return this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, message);
+            return;
         }
         const type = this.safeValue(message, 'type');
         const handlers = {
@@ -1244,9 +1246,8 @@ export default class onetrading extends onetradingRest {
         };
         const handler = this.safeValue(handlers, type);
         if (handler !== undefined) {
-            return handler.call(this, client, message);
+            handler.call(this, client, message);
         }
-        throw new NotSupported(this.id + ' no handler found for this message ' + this.json(message));
     }
     handlePricePointUpdates(client, message) {
         //
@@ -1301,7 +1302,7 @@ export default class onetrading extends onetradingRest {
             if (subscription !== undefined) {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
-                    const marketSubscribed = this.safeValue(subscription, marketId, false);
+                    const marketSubscribed = this.safeBool(subscription, marketId, false);
                     if (!marketSubscribed) {
                         type = 'UPDATE_SUBSCRIPTION';
                         client.subscriptions[subscriptionHash] = undefined;
@@ -1334,6 +1335,6 @@ export default class onetrading extends onetradingRest {
             };
             this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }

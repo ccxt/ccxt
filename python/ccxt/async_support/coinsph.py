@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -23,7 +24,6 @@ from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -108,7 +108,11 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -452,6 +456,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
+        :see: https://coins-docs.github.io/rest-api/#test-connectivity
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -467,6 +472,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+        :see: https://coins-docs.github.io/rest-api/#check-server-time
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -476,9 +482,10 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinsph
+        :see: https://coins-docs.github.io/rest-api/#exchange-information
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -612,6 +619,9 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+        :see: https://coins-docs.github.io/rest-api/#symbol-price-ticker
+        :see: https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -640,6 +650,9 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+        :see: https://coins-docs.github.io/rest-api/#symbol-price-ticker
+        :see: https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -742,6 +755,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://coins-docs.github.io/rest-api/#order-book
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -775,6 +789,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://coins-docs.github.io/rest-api/#klinecandlestick-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -834,6 +849,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://coins-docs.github.io/rest-api/#recent-trades-list
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(default 500, max 1000)
@@ -870,6 +886,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+        :see: https://coins-docs.github.io/rest-api/#account-trade-list-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve(default 500, max 1000)
@@ -895,6 +912,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
+        :see: https://coins-docs.github.io/rest-api/#account-trade-list-user_data
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -994,6 +1012,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://coins-docs.github.io/rest-api/#accept-the-quote
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1039,7 +1058,7 @@ class coinsph(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://coins-docs.github.io/rest-api/#new-order--trade
@@ -1050,11 +1069,14 @@ class coinsph(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
+        :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # todo: add test order low priority
         await self.load_markets()
         market = self.market(symbol)
+        testOrder = self.safe_bool(params, 'test', False)
+        params = self.omit(params, 'test')
         orderType = self.safe_string(params, 'type', type)
         orderType = self.encode_order_type(orderType)
         params = self.omit(params, 'type')
@@ -1106,7 +1128,11 @@ class coinsph(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response = await self.privatePostOpenapiV1Order(self.extend(request, params))
+        response = None
+        if testOrder:
+            response = await self.privatePostOpenapiV1OrderTest(self.extend(request, params))
+        else:
+            response = await self.privatePostOpenapiV1Order(self.extend(request, params))
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1139,6 +1165,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://coins-docs.github.io/rest-api/#query-order-user_data
         :param int|str id: order id
         :param str symbol: not used by coinsph fetchOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1158,6 +1185,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://coins-docs.github.io/rest-api/#query-order-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1176,6 +1204,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
+        :see: https://coins-docs.github.io/rest-api/#history-orders-user_data
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve(default 500, max 1000)
@@ -1201,6 +1230,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://coins-docs.github.io/rest-api/#cancel-order-trade
         :param str id: order id
         :param str symbol: not used by coinsph cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1220,6 +1250,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel open orders of market
+        :see: https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1394,9 +1425,10 @@ class coinsph(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
+        :see: https://coins-docs.github.io/rest-api/#trade-fee-user_data
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1419,9 +1451,10 @@ class coinsph(Exchange, ImplicitAPI):
         tradingFee = self.safe_value(response, 0, {})
         return self.parse_trading_fee(tradingFee, market)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
+        :see: https://coins-docs.github.io/rest-api/#trade-fee-user_data
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -1448,7 +1481,7 @@ class coinsph(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1464,9 +1497,11 @@ class coinsph(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerCommission'),
             'taker': self.safe_number(fee, 'takerCommission'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal to coins_ph account
         :see: https://coins-docs.github.io/rest-api/#withdrawuser_data
@@ -1478,7 +1513,7 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         options = self.safe_value(self.options, 'withdraw')
-        warning = self.safe_value(options, 'warning', True)
+        warning = self.safe_bool(options, 'warning', True)
         if warning:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
         networkCode = self.safe_string(params, 'network')

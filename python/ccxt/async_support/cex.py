@@ -7,9 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
@@ -19,7 +20,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -75,7 +75,13 @@ class cex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -237,7 +243,7 @@ class cex(Exchange, ImplicitAPI):
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -340,7 +346,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for cex
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -681,7 +687,7 @@ class cex(Exchange, ImplicitAPI):
         response = await self.publicGetTradeHistoryPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         :see: https://docs.cex.io/#get-my-fee
         fetch the trading fees for multiple markets
@@ -720,7 +726,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://docs.cex.io/#place-order
         create a trade order
@@ -824,7 +830,7 @@ class cex(Exchange, ImplicitAPI):
         # 'true'
         return self.extend(self.parse_order({}), {'info': response, 'type': None, 'id': id, 'status': 'canceled'})
 
-    async def cancel_all_orders(self, symbol: str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         :see: https://docs.cex.io/#cancel-all-orders-for-given-pair
         cancel all open orders in a market
@@ -1474,7 +1480,7 @@ class cex(Exchange, ImplicitAPI):
     def parse_order_status(self, status):
         return self.safe_string(self.options['order']['status'], status, status)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.cex.io/#cancel-replace-order
