@@ -44,6 +44,7 @@ class coinbase extends coinbase$1 {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': true,
+                'createConvertTrade': true,
                 'createDepositAddress': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
@@ -67,6 +68,9 @@ class coinbase extends coinbase$1 {
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -4129,6 +4133,105 @@ class coinbase extends coinbase$1 {
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data);
+    }
+    async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchConvertQuote
+         * @description fetch a quote for converting from one currency to another
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
+         * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
+         * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'from_account': fromCode,
+            'to_account': toCode,
+            'amount': this.numberToString(amount),
+        };
+        const response = await this.v3PrivatePostBrokerageConvertQuote(this.extend(request, params));
+        const data = this.safeDict(response, 'trade', {});
+        return this.parseConversion(data);
+    }
+    async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} [amount] how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'trade_id': id,
+            'from_account': fromCode,
+            'to_account': toCode,
+        };
+        const response = await this.v3PrivatePostBrokerageConvertTradeTradeId(this.extend(request, params));
+        const data = this.safeDict(response, 'trade', {});
+        return this.parseConversion(data);
+    }
+    async fetchConvertTrade(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchConvertTrade
+         * @description fetch the data for a conversion trade
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
+         * @param {string} id the id of the trade that you want to commit
+         * @param {string} code the unified currency code that was converted from
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {strng} params.toCode the unified currency code that was converted into
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets();
+        if (code === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchConvertTrade() requires a code argument');
+        }
+        const toCode = this.safeString(params, 'toCode');
+        if (toCode === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchConvertTrade() requires a toCode parameter');
+        }
+        params = this.omit(params, 'toCode');
+        const request = {
+            'trade_id': id,
+            'from_account': code,
+            'to_account': toCode,
+        };
+        const response = await this.v3PrivateGetBrokerageConvertTradeTradeId(this.extend(request, params));
+        const data = this.safeDict(response, 'trade', {});
+        return this.parseConversion(data);
+    }
+    parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
+        const fromCoin = this.safeString(conversion, 'source_currency');
+        const fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        const to = this.safeString(conversion, 'target_currency');
+        const toCode = this.safeCurrencyCode(to, toCurrency);
+        const fromAmountStructure = this.safeDict(conversion, 'user_entered_amount');
+        const feeStructure = this.safeDict(conversion, 'total_fee');
+        const feeAmountStructure = this.safeDict(feeStructure, 'amount');
+        return {
+            'info': conversion,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'id': this.safeString(conversion, 'id'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber(fromAmountStructure, 'value'),
+            'toCurrency': toCode,
+            'toAmount': undefined,
+            'price': undefined,
+            'fee': this.safeNumber(feeAmountStructure, 'value'),
+        };
     }
     async closePosition(symbol, side = undefined, params = {}) {
         /**

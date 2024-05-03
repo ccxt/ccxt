@@ -150,6 +150,7 @@ class luno(Exchange, ImplicitAPI):
                         'withdrawals': 1,
                         'send': 1,
                         'oauth2/grant': 1,
+                        'beneficiaries': 1,
                         # POST /api/exchange/1/move
                     },
                     'put': {
@@ -157,6 +158,7 @@ class luno(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'withdrawals/{id}': 1,
+                        'beneficiaries/{id}': 1,
                     },
                 },
             },

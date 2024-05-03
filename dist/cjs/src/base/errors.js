@@ -75,6 +75,12 @@ class MarginModeAlreadySet extends NoChange {
         this.name = 'MarginModeAlreadySet';
     }
 }
+class MarketClosed extends OperationRejected {
+    constructor(message) {
+        super(message);
+        this.name = 'MarketClosed';
+    }
+}
 class BadResponse extends ExchangeError {
     constructor(message) {
         super(message);
@@ -219,7 +225,7 @@ class RequestTimeout extends NetworkError {
         this.name = 'RequestTimeout';
     }
 }
-var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
+var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
 
 exports.AccountNotEnabled = AccountNotEnabled;
 exports.AccountSuspended = AccountSuspended;
@@ -242,6 +248,7 @@ exports.InvalidAddress = InvalidAddress;
 exports.InvalidNonce = InvalidNonce;
 exports.InvalidOrder = InvalidOrder;
 exports.MarginModeAlreadySet = MarginModeAlreadySet;
+exports.MarketClosed = MarketClosed;
 exports.NetworkError = NetworkError;
 exports.NoChange = NoChange;
 exports.NotSupported = NotSupported;

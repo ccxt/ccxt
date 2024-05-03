@@ -143,9 +143,9 @@ class independentreserve extends \ccxt\async\independentreserve {
             if ($limit === null) {
                 $limit = 100;
             }
-            $limit = $this->number_to_string($limit);
-            $url = $this->urls['api']['ws'] . '/orderbook/' . $limit . '?subscribe=' . $market['base'] . '-' . $market['quote'];
-            $messageHash = 'orderbook:' . $symbol . ':' . $limit;
+            $limitString = $this->number_to_string($limit);
+            $url = $this->urls['api']['ws'] . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
+            $messageHash = 'orderbook:' . $symbol . ':' . $limitString;
             $subscription = array(
                 'receivedSnapshot' => false,
             );

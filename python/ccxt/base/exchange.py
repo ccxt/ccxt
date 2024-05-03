@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.12'
+__version__ = '4.3.14'
 
 # -----------------------------------------------------------------------------
 
@@ -460,6 +460,10 @@ class Exchange(object):
             self.set_markets(self.markets)
 
         self.after_construct()
+
+        is_sandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
+        if is_sandbox:
+            self.set_sandbox_mode(is_sandbox)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -3090,15 +3094,15 @@ class Exchange(object):
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
         return self.extend(ticker, {
-            'bid': self.parse_number(self.omit_zero(self.safe_number(ticker, 'bid'))),
+            'bid': self.parse_number(self.omit_zero(self.safe_string(ticker, 'bid'))),
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
-            'ask': self.parse_number(self.omit_zero(self.safe_number(ticker, 'ask'))),
+            'ask': self.parse_number(self.omit_zero(self.safe_string(ticker, 'ask'))),
             'askVolume': self.safe_number(ticker, 'askVolume'),
             'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high'))),
-            'low': self.parse_number(self.omit_zero(self.safe_number(ticker, 'low'))),
-            'open': self.parse_number(self.omit_zero(self.parse_number(open))),
-            'close': self.parse_number(self.omit_zero(self.parse_number(close))),
-            'last': self.parse_number(self.omit_zero(self.parse_number(last))),
+            'low': self.parse_number(self.omit_zero(self.safe_string(ticker, 'low'))),
+            'open': self.parse_number(self.omit_zero(open)),
+            'close': self.parse_number(self.omit_zero(close)),
+            'last': self.parse_number(self.omit_zero(last)),
             'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
             'average': self.parse_number(average),

@@ -2314,6 +2314,64 @@ public partial class binance
         return new CrossBorrowRate(res);
     }
     /// <summary>
+    /// fetch the rate of interest to borrow a currency for margin trading
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// object : user's current specific margin data will be returned if viplevel is omitted
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
+        return new IsolatedBorrowRate(res);
+    }
+    /// <summary>
+    /// fetch the borrow interest rates of all currencies
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// object : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// object : user's current specific margin data will be returned if viplevel is omitted
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
+    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchIsolatedBorrowRates(parameters);
+        return new IsolatedBorrowRates(res);
+    }
+    /// <summary>
     /// retrieves a history of a currencies borrow interest rate at specific time slots
     /// </summary>
     /// <remarks>

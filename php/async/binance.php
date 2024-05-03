@@ -100,8 +100,8 @@ class binance extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchIsolatedBorrowRate' => false,
-                'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedBorrowRate' => 'emulated',
+                'fetchIsolatedBorrowRates' => true,
                 'fetchL3OrderBook' => false,
                 'fetchLastPrices' => true,
                 'fetchLedger' => true,
@@ -2403,7 +2403,7 @@ class binance extends Exchange {
                     'Rest API trading is not enabled.' => '\\ccxt\\PermissionDenied',
                     'This account may not place or cancel orders.' => '\\ccxt\\PermissionDenied',
                     "You don't have permission." => '\\ccxt\\PermissionDenied', // array("msg":"You don't have permission.","success":false)
-                    'Market is closed.' => '\\ccxt\\OperationRejected', // array("code":-1013,"msg":"Market is closed.")
+                    'Market is closed.' => '\\ccxt\\MarketClosed', // array("code":-1013,"msg":"Market is closed.")
                     'Too many requests. Please try again later.' => '\\ccxt\\RateLimitExceeded', // array("msg":"Too many requests. Please try again later.","success":false)
                     'This action is disabled on this account.' => '\\ccxt\\AccountSuspended', // array("code":-2011,"msg":"This action is disabled on this account.")
                     'Limit orders require GTC for this phase.' => '\\ccxt\\BadRequest',
@@ -11172,6 +11172,72 @@ class binance extends Exchange {
         }) ();
     }
 
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the rate of interest to borrow a currency for margin trading
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {array} [$params->vipLevel] user's current specific margin data will be returned if viplevel is omitted
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure isolated borrow rate structure~
+             */
+            $request = array(
+                'symbol' => $symbol,
+            );
+            $borrowRates = Async\await($this->fetch_isolated_borrow_rates(array_merge($request, $params)));
+            return $this->safe_dict($borrowRates, $symbol);
+        }) ();
+    }
+
+    public function fetch_isolated_borrow_rates($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the borrow interest rates of all currencies
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->symbol] unified $market $symbol
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {array} [$params->vipLevel] user's current specific margin data will be returned if viplevel is omitted
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structure~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $symbol = $this->safe_string($params, 'symbol');
+            $params = $this->omit($params, 'symbol');
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $response = Async\await($this->sapiGetMarginIsolatedMarginData (array_merge($request, $params)));
+            //
+            //    array(
+            //        {
+            //            "vipLevel" => 0,
+            //            "symbol" => "BTCUSDT",
+            //            "leverage" => "10",
+            //            "data" => array(
+            //                array(
+            //                    "coin" => "BTC",
+            //                    "dailyInterest" => "0.00026125",
+            //                    "borrowLimit" => "270"
+            //                ),
+            //                {
+            //                    "coin" => "USDT",
+            //                    "dailyInterest" => "0.000475",
+            //                    "borrowLimit" => "2100000"
+            //                }
+            //            )
+            //        }
+            //    )
+            //
+            return $this->parse_isolated_borrow_rates($response);
+        }) ();
+    }
+
     public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
@@ -11245,6 +11311,44 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+        //
+        //    {
+        //        "vipLevel" => 0,
+        //        "symbol" => "BTCUSDT",
+        //        "leverage" => "10",
+        //        "data" => array(
+        //            array(
+        //                "coin" => "BTC",
+        //                "dailyInterest" => "0.00026125",
+        //                "borrowLimit" => "270"
+        //            ),
+        //            {
+        //                "coin" => "USDT",
+        //                "dailyInterest" => "0.000475",
+        //                "borrowLimit" => "2100000"
+        //            }
+        //        )
+        //    }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'spot');
+        $data = $this->safe_list($info, 'data');
+        $baseInfo = $this->safe_dict($data, 0);
+        $quoteInfo = $this->safe_dict($data, 1);
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'base' => $this->safe_string($baseInfo, 'coin'),
+            'baseRate' => $this->safe_number($baseInfo, 'dailyInterest'),
+            'quote' => $this->safe_string($quoteInfo, 'coin'),
+            'quoteRate' => $this->safe_number($quoteInfo, 'dailyInterest'),
+            'period' => 86400000,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
