@@ -2023,6 +2023,14 @@ class Transpiler {
     transpileExchangeTests () {
 
         this.transpileMainTests ({
+            'tsFile': './ts/src/test/base/test.base_auto.ts',
+            'pyFileAsync': './python/ccxt/test/base/test.base_auto.py',
+            'phpFileAsync': './php/test/base/test.base_auto.php',
+            'pyFileSync': './python/ccxt/test/base/test.base_auto.py',
+            'phpFileSync': './php/test/base/test.base_auto.php',
+        });
+
+        this.transpileMainTests ({
             'tsFile': './ts/src/test/test.ts',
             'pyFileAsync': './python/ccxt/test/test_async.py',
             'phpFileAsync': './php/test/test_async.php',
