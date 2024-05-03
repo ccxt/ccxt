@@ -4,8 +4,8 @@ import woofiproRest from '../woofipro.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position } from '../base/types.js';
+import { eddsa } from '../base/functions/crypto.js';
+import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -475,6 +475,290 @@ export default class woofipro extends woofiproRest {
         return true;
     }
 
+    handleAuth (client: Client, message) {
+        //
+        //     {
+        //         "event": "auth",
+        //         "success": true,
+        //         "ts": 1657463158812
+        //     }
+        //
+        const messageHash = 'authenticated';
+        const success = this.safeValue (message, 'success');
+        if (success) {
+            // client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, 'authenticated');
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, messageHash);
+            // allows further authentication attempts
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions['authenticated'];
+            }
+        }
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const event = 'auth';
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const ts = this.nonce ().toString ();
+            const auth = ts;
+            let secret = this.secret;
+            if (secret.indexOf ('ed25519:') >= 0) {
+                const parts = secret.split ('ed25519:');
+                secret = parts[1];
+            }
+            const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
+            const request = {
+                'event': event,
+                'params': {
+                    'orderly_key': this.apiKey,
+                    'sign': signature,
+                    'timestamp': ts,
+                },
+            };
+            const message = this.extend (request, params);
+            this.watch (url, messageHash, message, messageHash);
+        }
+        return await future;
+    }
+
+    async watchPrivate (messageHash, message, params = {}) {
+        await this.authenticate (params);
+        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const requestId = this.requestId (url);
+        const subscribe = {
+            'id': requestId,
+        };
+        const request = this.extend (subscribe, message);
+        return await this.watch (url, messageHash, request, messageHash, subscribe);
+    }
+
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name woofipro#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const topic = 'executionreport';
+        let messageHash = topic;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        const orders = await this.watchPrivate (messageHash, message);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDT",
+        //         "clientOrderId": 0,
+        //         "orderId": 52952826,
+        //         "type": "LIMIT",
+        //         "side": "SELL",
+        //         "quantity": 0.01,
+        //         "price": 22000,
+        //         "tradeId": 0,
+        //         "executedPrice": 0,
+        //         "executedQuantity": 0,
+        //         "fee": 0,
+        //         "feeAsset": "USDT",
+        //         "totalExecutedQuantity": 0,
+        //         "status": "NEW",
+        //         "reason": '',
+        //         "orderTag": "default",
+        //         "totalFee": 0,
+        //         "visible": 0.01,
+        //         "timestamp": 1657515556799,
+        //         "reduceOnly": false,
+        //         "maker": false
+        //     }
+        // algo order
+        //     {
+        //         "symbol":"PERP_MATIC_USDC",
+        //         "rootAlgoOrderId":123,
+        //         "parentAlgoOrderId":123,
+        //         "algoOrderId":123,
+        //         "orderTag":"some tags",
+        //         "algoType": "STOP",
+        //         "clientOrderId":"client_id",
+        //         "type":"LIMIT",
+        //         "side":"BUY",
+        //         "quantity":7029.0,
+        //         "price":0.7699,
+        //         "tradeId":0,
+        //         "triggerTradePrice":0,
+        //         "triggerTime":1234567,
+        //         "triggered": false,
+        //         "activated": false,
+        //         "executedPrice":0.0,
+        //         "executedQuantity":0.0,
+        //         "fee":0.0,
+        //         "feeAsset":"USDC",
+        //         "totalExecutedQuantity":0.0,
+        //         "averageExecutedQuantity":0.0,
+        //         "avgPrice":0,
+        //         "triggerPrice":0.0,
+        //         "triggerPriceType":"STOP",
+        //         "isActivated": false,
+        //         "status":"NEW",
+        //         "rootAlgoStatus": "FILLED",
+        //         "algoStatus": "FILLED",
+        //         "reason":"",
+        //         "totalFee":0.0,
+        //         "visible": 7029.0,
+        //         "visibleQuantity":7029.0,
+        //         "timestamp":1704679472448,
+        //         "maker":false,
+        //         "isMaker":false,
+        //         "createdTime":1704679472448
+        //     }
+        //
+        const orderId = this.safeString (order, 'orderId');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.market (marketId);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (order, 'timestamp');
+        const fee = {
+            'cost': this.safeString (order, 'totalFee'),
+            'currency': this.safeString (order, 'feeAsset'),
+        };
+        let price = this.safeNumber (order, 'price');
+        const avgPrice = this.safeNumber (order, 'avgPrice');
+        if ((price === 0) && (avgPrice !== undefined)) {
+            price = avgPrice;
+        }
+        const amount = this.safeFloat (order, 'quantity');
+        const side = this.safeStringLower (order, 'side');
+        const type = this.safeStringLower (order, 'type');
+        const filled = this.safeNumber (order, 'totalExecutedQuantity');
+        const totalExecQuantity = this.safeFloat (order, 'totalExecutedQuantity');
+        let remaining = amount;
+        if (amount >= totalExecQuantity) {
+            remaining -= totalExecQuantity;
+        }
+        const rawStatus = this.safeString (order, 'status');
+        const status = this.parseOrderStatus (rawStatus);
+        const trades = undefined;
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        return this.safeOrder ({
+            'info': order,
+            'symbol': symbol,
+            'id': orderId,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': timestamp,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        });
+    }
+
+    handleOrderUpdate (client: Client, message) {
+        //
+        //     {
+        //         "topic": "executionreport",
+        //         "ts": 1657515556799,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "clientOrderId": 0,
+        //             "orderId": 52952826,
+        //             "type": "LIMIT",
+        //             "side": "SELL",
+        //             "quantity": 0.01,
+        //             "price": 22000,
+        //             "tradeId": 0,
+        //             "executedPrice": 0,
+        //             "executedQuantity": 0,
+        //             "fee": 0,
+        //             "feeAsset": "USDT",
+        //             "totalExecutedQuantity": 0,
+        //             "status": "NEW",
+        //             "reason": '',
+        //             "orderTag": "default",
+        //             "totalFee": 0,
+        //             "visible": 0.01,
+        //             "timestamp": 1657515556799,
+        //             "maker": false
+        //         }
+        //     }
+        //
+        const order = this.safeValue (message, 'data');
+        this.handleOrder (client, order);
+    }
+
+    handleOrder (client: Client, message) {
+        const topic = 'executionreport';
+        const parsed = this.parseWsOrder (message);
+        const symbol = this.safeString (parsed, 'symbol');
+        const orderId = this.safeString (parsed, 'id');
+        if (symbol !== undefined) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const cachedOrders = this.orders;
+            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+            const order = this.safeValue (orders, orderId);
+            if (order !== undefined) {
+                const fee = this.safeValue (order, 'fee');
+                if (fee !== undefined) {
+                    parsed['fee'] = fee;
+                }
+                const fees = this.safeValue (order, 'fees');
+                if (fees !== undefined) {
+                    parsed['fees'] = fees;
+                }
+                parsed['trades'] = this.safeValue (order, 'trades');
+                parsed['timestamp'] = this.safeInteger (order, 'timestamp');
+                parsed['datetime'] = this.safeString (order, 'datetime');
+            }
+            cachedOrders.append (parsed);
+            client.resolve (this.orders, topic);
+            const messageHashSymbol = topic + ':' + symbol;
+            client.resolve (this.orders, messageHashSymbol);
+        }
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
@@ -520,6 +804,8 @@ export default class woofipro extends woofiproRest {
             'tickers': this.handleTickers,
             'kline': this.handleOHLCV,
             'trade': this.handleTrade,
+            'auth': this.handleAuth,
+            'executionreport': this.handleOrderUpdate,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
