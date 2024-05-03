@@ -614,6 +614,7 @@ export default class hitbtc extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {
