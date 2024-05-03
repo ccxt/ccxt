@@ -1475,7 +1475,7 @@ export default class woofipro extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.trigger] whether the order is a stop/algo order
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1589,7 +1589,7 @@ export default class woofipro extends Exchange {
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.trigger] whether the order is a stop/algo order
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1635,7 +1635,7 @@ export default class woofipro extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.trigger] whether the order is a stop/algo order
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1705,7 +1705,7 @@ export default class woofipro extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.trigger] whether the order is a stop/algo order
          * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
          * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
@@ -1792,7 +1792,7 @@ export default class woofipro extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.trigger] whether the order is a stop/algo order
          * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
          * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
@@ -1814,7 +1814,7 @@ export default class woofipro extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.trigger] whether the order is a stop/algo order
          * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
          * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
