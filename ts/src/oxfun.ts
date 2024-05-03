@@ -124,7 +124,14 @@ export default class oxfun extends Exchange {
                 'ws': false,
             },
             'timeframes': {
-                // todo: complete list of timeframes
+                '60s': '1m',
+                '300s': '5m',
+                '900s': '15m',
+                '1800s': '30m',
+                '3600s': '1h',
+                '7200s': '2h',
+                '14400s': '4h',
+                '86400s': '1d',
             },
             'urls': {
                 'logo': '', // todo: add a logo
