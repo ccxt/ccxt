@@ -227,8 +227,8 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
