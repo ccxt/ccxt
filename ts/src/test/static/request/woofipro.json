@@ -82,6 +82,19 @@
                   }
                 ],
                 "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"POST_ONLY\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
+            },
+            {
+                "description": "limit order",
+                "method": "createOrder",
+                "url": "https://api-evm.orderly.org/v1/order",
+                "input": [
+                  "XRP/USDC:USDC",
+                  "limit",
+                  "buy",
+                  20,
+                  0.5
+                ],
+                "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             }
         ],
         "fetchOrders": [
@@ -191,6 +204,20 @@
                     }
                 ],
                 "output": "{\"order_id\":\"1111779\",\"quantity\":\"0.0001\",\"triggerPrice\":\"1\"}"
+            },
+            {
+                "description": "edit limit order",
+                "method": "editOrder",
+                "url": "https://api-evm.orderly.org/v1/order",
+                "input": [
+                  "1088643232",
+                  "XRP/USDC:USDC",
+                  "limit",
+                  "buy",
+                  25,
+                  0.45
+                ],
+                "output": "{\"order_id\":\"1088643232\",\"order_price\":\"0.45\",\"order_quantity\":\"25\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             }
         ],
         "fetchOHLCV": [

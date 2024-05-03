@@ -1439,6 +1439,7 @@ export default class woofipro extends Exchange {
         if (isStop) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
         } else {
+            request['symbol'] = market['id'];
             request['side'] = side.toUpperCase ();
             const orderType = type.toUpperCase ();
             const timeInForce = this.safeStringLower (params, 'timeInForce');
