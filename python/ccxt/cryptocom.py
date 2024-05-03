@@ -509,7 +509,8 @@ class cryptocom(Exchange, ImplicitAPI):
             strike = self.safe_string(market, 'strike')
             marginBuyEnabled = self.safe_value(market, 'margin_buy_enabled')
             marginSellEnabled = self.safe_value(market, 'margin_sell_enabled')
-            expiry = self.omit_zero(self.safe_integer(market, 'expiry_timestamp_ms'))
+            expiryString = self.omit_zero(self.safe_string(market, 'expiry_timestamp_ms'))
+            expiry = int(expiryString) if (expiryString is not None) else None
             symbol = base + '/' + quote
             type = None
             contract = None

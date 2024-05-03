@@ -1195,7 +1195,7 @@ class hitbtc extends hitbtc$1 {
         //        "id": 1700233093414
         //    }
         //
-        const messageHash = this.safeInteger(message, 'id');
+        const messageHash = this.safeString(message, 'id');
         const result = this.safeValue(message, 'result', {});
         if (Array.isArray(result)) {
             const parsedOrders = [];

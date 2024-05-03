@@ -6754,19 +6754,19 @@ class bybit extends Exchange {
             $isUsdcSettled = $market['settle'] === 'USDC';
             // engage in $leverage setting
             // we reuse the code here instead of having two methods
-            $leverage = $this->number_to_string($leverage);
+            $leverageString = $this->number_to_string($leverage);
             $request = array(
                 'symbol' => $market['id'],
-                'buyLeverage' => $leverage,
-                'sellLeverage' => $leverage,
+                'buyLeverage' => $leverageString,
+                'sellLeverage' => $leverageString,
             );
             $response = null;
             if ($isUsdcSettled && !$isUnifiedAccount) {
-                $request['leverage'] = $leverage;
+                $request['leverage'] = $leverageString;
                 $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave (array_merge($request, $params)));
             } else {
-                $request['buyLeverage'] = $leverage;
-                $request['sellLeverage'] = $leverage;
+                $request['buyLeverage'] = $leverageString;
+                $request['sellLeverage'] = $leverageString;
                 if ($market['linear']) {
                     $request['category'] = 'linear';
                 } elseif ($market['inverse']) {

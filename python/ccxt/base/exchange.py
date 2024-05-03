@@ -3092,15 +3092,15 @@ class Exchange(object):
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
         return self.extend(ticker, {
-            'bid': self.parse_number(self.omit_zero(self.safe_number(ticker, 'bid'))),
+            'bid': self.parse_number(self.omit_zero(self.safe_string(ticker, 'bid'))),
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
-            'ask': self.parse_number(self.omit_zero(self.safe_number(ticker, 'ask'))),
+            'ask': self.parse_number(self.omit_zero(self.safe_string(ticker, 'ask'))),
             'askVolume': self.safe_number(ticker, 'askVolume'),
             'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high'))),
-            'low': self.parse_number(self.omit_zero(self.safe_number(ticker, 'low'))),
-            'open': self.parse_number(self.omit_zero(self.parse_number(open))),
-            'close': self.parse_number(self.omit_zero(self.parse_number(close))),
-            'last': self.parse_number(self.omit_zero(self.parse_number(last))),
+            'low': self.parse_number(self.omit_zero(self.safe_string(ticker, 'low'))),
+            'open': self.parse_number(self.omit_zero(open)),
+            'close': self.parse_number(self.omit_zero(close)),
+            'last': self.parse_number(self.omit_zero(last)),
             'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
             'average': self.parse_number(average),

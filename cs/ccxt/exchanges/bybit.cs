@@ -7221,21 +7221,21 @@ public partial class bybit : Exchange
         object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
         // engage in leverage setting
         // we reuse the code here instead of having two methods
-        leverage = this.numberToString(leverage);
+        object leverageString = this.numberToString(leverage);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "buyLeverage", leverage },
-            { "sellLeverage", leverage },
+            { "buyLeverage", leverageString },
+            { "sellLeverage", leverageString },
         };
         object response = null;
         if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
         {
-            ((IDictionary<string,object>)request)["leverage"] = leverage;
+            ((IDictionary<string,object>)request)["leverage"] = leverageString;
             response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["buyLeverage"] = leverage;
-            ((IDictionary<string,object>)request)["sellLeverage"] = leverage;
+            ((IDictionary<string,object>)request)["buyLeverage"] = leverageString;
+            ((IDictionary<string,object>)request)["sellLeverage"] = leverageString;
             if (isTrue(getValue(market, "linear")))
             {
                 ((IDictionary<string,object>)request)["category"] = "linear";
