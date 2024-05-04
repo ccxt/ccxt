@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from helpers_for_tests import *
-from test_async import testMainClass
+from test_async import testMainClass as testMainClassAsync
+from test_sync import testMainClass as testMainClassSync
 
 
 try:
@@ -25,6 +26,6 @@ if (isBaseTests or isAllTest):
 ####### exchange tests #######
 if (isExchangeTests or isBaseTests):
     if (is_synchronous):
-        testMainClass().init(argv.exchange, argvSymbol, argvMethod)
+        testMainClassSync().init(argv.exchange, argvSymbol, argvMethod)
     else:
-        asyncio.run(testMainClass().init(argv.exchange, argvSymbol, argvMethod))
+        asyncio.run(testMainClassAsync().init(argv.exchange, argvSymbol, argvMethod))
