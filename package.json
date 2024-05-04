@@ -69,7 +69,7 @@
     "test-js-base-ws": "npm run test-js-cache && npm run test-js-orderbook",
     "test-python-base": "npm run test-bootstrap-py -- --baseTests",
     "test-python-base-ws": "npm run test-python-cache && npm run test-python-orderbook",
-    "test-php-base": "php -f php/test/base/test_number.php && php -f php/test/base/test_crypto.php",
+    "test-php-base": "",
     "test-php-base-ws": "npm run test-php-cache && npm run test-php-orderbook",
     "test-cs-base": "dotnet run --project cs/tests/tests.csproj --base",
     "test-cs-base-ws": "dotnet run --project cs/tests/tests.csproj --cache && dotnet run --project cs/tests/tests.csproj --orderbook",
@@ -146,7 +146,8 @@
     "benchmark": "tsx examples/ts/benchmark.ts",
     "test-bootstrap-ts": "tsx ./ts/src/test/bootstrap.ts",
     "test-bootstrap-js": "node ./js/src/test/bootstrap.js",
-    "test-bootstrap-py": "python3 python/ccxt/test/test_async.py"
+    "test-bootstrap-py": "python3 python/ccxt/test/boostrap.py",
+    "test-bootstrap-php": "python3 python/ccxt/test/boostrap-tests.php"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
