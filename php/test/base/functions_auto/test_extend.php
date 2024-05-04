@@ -56,15 +56,15 @@ function test_base_functions_extend($exchange) {
     );
     // extend
     $extended = $exchange->extend($obj1, $obj2);
-    check_extended($extended, true);
+    test_base_functions_extend_check_extended($extended, true);
     // deepExtend
     $deep_extended = $exchange->deep_extend($obj1, $obj2);
-    check_extended($extended, true);
-    check_extended($deep_extended['sub'], false);
+    test_base_functions_extend_check_extended($extended, true);
+    test_base_functions_extend_check_extended($deep_extended['sub'], false);
 }
 
 
-function check_extended($extended, $has_sub) {
+function test_base_functions_extend_check_extended($extended, $has_sub) {
     assert($extended['a'] === 2);
     assert($extended['b'][0] === 3);
     assert($extended['b'][1] === 4);

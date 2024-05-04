@@ -61,14 +61,14 @@ def test_base_functions_extend(exchange):
     }
     # extend
     extended = exchange.extend(obj1, obj2)
-    check_extended(extended, True)
+    test_base_functions_extend_check_extended(extended, True)
     # deepExtend
     deep_extended = exchange.deep_extend(obj1, obj2)
-    check_extended(extended, True)
-    check_extended(deep_extended['sub'], False)
+    test_base_functions_extend_check_extended(extended, True)
+    test_base_functions_extend_check_extended(deep_extended['sub'], False)
 
 
-def check_extended(extended, has_sub):
+def test_base_functions_extend_check_extended(extended, has_sub):
     assert extended['a'] == 2
     assert extended['b'][0] == 3
     assert extended['b'][1] == 4
