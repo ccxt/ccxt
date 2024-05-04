@@ -1,268 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import argparse
-import json
-# import logging
-import os
-import sys
-from traceback import format_tb, format_exception
+from helpers_for_tests import *
 
-import importlib  # noqa: E402
-import re
-
-# ------------------------------------------------------------------------------
-# logging.basicConfig(level=logging.INFO)
-# ------------------------------------------------------------------------------
-DIR_NAME = os.path.dirname(os.path.abspath(__file__))
-root = os.path.dirname(os.path.dirname(DIR_NAME))
-sys.path.append(root)
-
-import ccxt  # noqa: E402
-import ccxt.pro as ccxtpro  # noqa: E402
-
-# ------------------------------------------------------------------------------
-# from typing import Optional
-# from typing import List
-from ccxt.base.errors import NotSupported
-from ccxt.base.errors import ProxyError
-from ccxt.base.errors import OperationFailed
-# from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
-
-# ------------------------------------------------------------------------------
-
-class Argv(object):
-    id_tests = False
-    static_tests = False
-    ws_tests = False
-    request_tests = False
-    response_tests = False
-
-    sandbox = False
-    privateOnly = False
-    private = False
-    ws = False
-    verbose = False
-    nonce = None
-    exchange = None
-    symbol = None
-    info = False
-    pass
-
-
-argv = Argv()
-parser = argparse.ArgumentParser()
-
-parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
-parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
-parser.add_argument('--private', action='store_true', help='run private tests')
-parser.add_argument('--verbose', action='store_true', help='enable verbose output')
-parser.add_argument('--ws', action='store_true', help='websockets version')
-parser.add_argument('--info', action='store_true', help='enable info output')
-parser.add_argument('--static', action='store_true', help='run static tests')
-parser.add_argument('--useProxy', action='store_true', help='run static tests')
-parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
-parser.add_argument('--responseTests', action='store_true', help='run response tests')
-parser.add_argument('--requestTests', action='store_true', help='run response tests')
-parser.add_argument('--nonce', type=int, help='integer')
-parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
-parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
-parser.parse_args(namespace=argv)
-
-# ------------------------------------------------------------------------------
-
-path = os.path.dirname(ccxt.__file__)
-if 'site-packages' in os.path.dirname(ccxt.__file__):
-    raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
-
-# ------------------------------------------------------------------------------
-
-Error = Exception
-
-# # print an error string
-# def dump_error(*args):
-#     string = ' '.join([str(arg) for arg in args])
-#     print(string)
-#     sys.stderr.write(string + "\n")
-#     sys.stderr.flush()
-
-
-def handle_all_unhandled_exceptions(type, value, traceback):
-    dump((type), (value), '\n<UNHANDLED EXCEPTION>\n' + ('\n'.join(format_tb(traceback))))
-    exit(1)  # unrecoverable crash
-
-
-sys.excepthook = handle_all_unhandled_exceptions
-# ------------------------------------------------------------------------------
-
-# non-transpiled part, but shared names among langs
-
-is_synchronous = 'async' not in os.path.basename(__file__)
-
-rootDir = DIR_NAME + '/../../../'
-rootDirForSkips = DIR_NAME + '/../../../'
-envVars = os.environ
-LOG_CHARS_LENGTH = 10000
-ext = 'py'
-proxyTestFileName = 'proxies'
-
-
-def get_cli_arg_value(arg):
-    arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
-    with_hyphen = '--' + arg
-    arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
-    without_hyphen = arg.replace('--', '')
-    arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
-    return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
-
-isWsTests = get_cli_arg_value('--ws')
-
-
-class baseMainTestClass():
-    lang = 'PY'
-    is_synchronous = is_synchronous
-    request_tests_failed = False
-    response_tests_failed = False
-    response_tests = False
-    ws_tests = False
-    load_keys = False
-    skipped_settings_for_exchange = {}
-    skipped_methods = {}
-    check_public_tests = {}
-    test_files = {}
-    public_tests = {}
-    new_line = '\n'
-    root_dir = rootDir
-    env_vars = envVars
-    ext = ext
-    root_dir_for_skips = rootDirForSkips
-    only_specific_tests = []
-    proxy_test_file_name = proxyTestFileName
-    pass
-
-
-def dump(*args):
-    print(' '.join([str(arg) for arg in args]))
-
-
-def convert_ascii(str):
-    return str  # stub
-
-def json_parse(elem):
-    return json.loads(elem)
-
-
-def json_stringify(elem):
-    return json.dumps(elem)
-
-
-def convert_to_snake_case(content):
-    res = re.sub(r'(?<!^)(?=[A-Z])', '_', content).lower()
-    return res.replace('o_h_l_c_v', 'ohlcv')
-
-
-def get_test_name(methodName):
-    # stub
-    return methodName
-
-
-def io_file_exists(path):
-    return os.path.isfile(path)
-
-
-def io_file_read(path, decode=True):
-    fs = open(path, "r", encoding="utf-8")
-    content = fs.read()
-    if decode:
-        return json.loads(content)
-    else:
-        return content
-
-
-def io_dir_read(path):
-    return os.listdir(path)
-
-
-def call_method(test_files, methodName, exchange, skippedProperties, args):
-    methodNameToCall = 'test_' + convert_to_snake_case(methodName)
-    return getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
-
-
-def call_exchange_method_dynamically(exchange, methodName, args):
-    return getattr(exchange, methodName)(*args)
-
-def call_overriden_method(exchange, methodName, args):
-    # needed for php
-    return call_exchange_method_dynamically(exchange, methodName, args)
-
-def exception_message(exc):
-    message = '[' + type(exc).__name__ + '] ' + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
-    if len(message) > LOG_CHARS_LENGTH:
-        # Accessing out of range element causes error
-        message = message[0:LOG_CHARS_LENGTH]
-    return message
-
-
-def exit_script(code=0):
-    exit(code)
-
-
-def get_exchange_prop(exchange, prop, defaultValue=None):
-    if hasattr(exchange, prop):
-        res = getattr(exchange, prop)
-        if res is not None and res != '':
-            return res
-    return defaultValue
-
-
-def set_exchange_prop(exchange, prop, value):
-    setattr(exchange, prop, value)
-    # set snake case too
-    setattr(exchange, convert_to_snake_case(prop), value)
-
-
-def init_exchange(exchangeId, args, is_ws=False):
-    if (is_ws):
-        return getattr(ccxtpro, exchangeId)(args)
-    return getattr(ccxt, exchangeId)(args)
-
-
-def get_test_files(properties, ws=False):
-    tests = {}
-    finalPropList = properties + [proxyTestFileName]
-    for i in range(0, len(finalPropList)):
-        methodName = finalPropList[i]
-        name_snake_case = convert_to_snake_case(methodName)
-        prefix = 'async' if not is_synchronous else 'sync'
-        dir_to_test = DIR_NAME + '/' + prefix + '/'
-        module_string = 'ccxt.test.' + prefix + '.test_' + name_snake_case
-        if (ws):
-            prefix = 'pro'
-            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
-            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
-        filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
-        if (io_file_exists (filePathWithExt)):
-            imp = importlib.import_module(module_string)
-            tests[methodName] = imp  # getattr(imp, finalName)
-    return tests
-
-def close(exchange):
-    if (not is_synchronous and hasattr(exchange, 'close')):
-        exchange.close()
-
-def is_null_value(value):
-    return value is None
-
-def set_fetch_response(exchange: ccxt.Exchange, data):
-    def fetch(url, method='GET', headers=None, body=None):
-        return data
-    exchange.fetch = fetch
-    return exchange
-
-# *********************************
-# ***** AUTO-TRANSPILER-START *****
 class testMainClass(baseMainTestClass):
     def parse_cli_args(self):
         self.response_tests = get_cli_arg_value('--responseTests')
@@ -448,7 +187,7 @@ class testMainClass(baseMainTestClass):
                 dump(self.add_padding(skip_message, 25), self.exchange_hint(exchange), method_name)
             return
         if self.info:
-            args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            args_stringified = '(' + ','.join(args) + ')'
             dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
         call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         # if it was passed successfully, add to the list of successfull tests
@@ -1117,7 +856,6 @@ class testMainClass(baseMainTestClass):
             'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid': 'uid',
             'token': 'token',
-            'accountId': 'accountId',
             'accounts': [{
     'id': 'myAccount',
     'code': 'USDT',
@@ -1140,19 +878,6 @@ class testMainClass(baseMainTestClass):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchange_name)
         global_options = exchange.safe_dict(exchange_data, 'options', {})
-        # read apiKey/secret from the test file
-        api_key = exchange.safe_string(exchange_data, 'apiKey')
-        if api_key:
-            exchange.apiKey = str(api_key)
-        secret = exchange.safe_string(exchange_data, 'secret')
-        if secret:
-            exchange.secret = str(secret)
-        private_key = exchange.safe_string(exchange_data, 'privateKey')
-        if private_key:
-            exchange.privateKey = str(private_key)
-        wallet_address = exchange.safe_string(exchange_data, 'walletAddress')
-        if wallet_address:
-            exchange.walletAddress = str(wallet_address)
         # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
         exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})
@@ -1183,19 +908,6 @@ class testMainClass(baseMainTestClass):
 
     def test_exchange_response_statically(self, exchange_name, exchange_data, test_name=None):
         exchange = self.init_offline_exchange(exchange_name)
-        # read apiKey/secret from the test file
-        api_key = exchange.safe_string(exchange_data, 'apiKey')
-        if api_key:
-            exchange.apiKey = str(api_key)
-        secret = exchange.safe_string(exchange_data, 'secret')
-        if secret:
-            exchange.secret = str(secret)
-        private_key = exchange.safe_string(exchange_data, 'privateKey')
-        if private_key:
-            exchange.privateKey = str(private_key)
-        wallet_address = exchange.safe_string(exchange_data, 'walletAddress')
-        if wallet_address:
-            exchange.walletAddress = str(wallet_address)
         methods = exchange.safe_value(exchange_data, 'methods', {})
         options = exchange.safe_value(exchange_data, 'options', {})
         # exchange.options = exchange.deepExtend (exchange.options, options); # custom options to be used in the tests
@@ -1285,7 +997,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1597,86 +1309,3 @@ class testMainClass(baseMainTestClass):
         assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
         close(exchange)
         return True
-
-    def test_woofi_pro(self):
-        exchange = self.init_offline_exchange('woofipro')
-        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
-        id = 'CCXT'
-        exchange.load_markets()
-        request = None
-        try:
-            exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            request = json_parse(exchange.last_request_body)
-        broker_id = request['order_tag']
-        assert broker_id == id, 'woofipro - id: ' + id + ' different from  broker_id: ' + broker_id
-        close(exchange)
-        return True
-
-    def test_oxfun(self):
-        exchange = self.init_offline_exchange('oxfun')
-        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
-        id = 1000
-        exchange.load_markets()
-        request = None
-        try:
-            exchange.create_order('BTC/USD:OX', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            request = json_parse(exchange.last_request_body)
-        orders = request['orders']
-        first = orders[0]
-        broker_id = first['source']
-        assert broker_id == id, 'oxfun - id: ' + str(id) + ' different from  broker_id: ' + str(broker_id)
-        return True
-
-    def test_xt(self):
-        exchange = self.init_offline_exchange('xt')
-        id = 'CCXT'
-        spot_order_request = None
-        try:
-            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            spot_order_request = json_parse(exchange.last_request_body)
-        spot_media = spot_order_request['media']
-        assert spot_media == id, 'xt - id: ' + id + ' different from swap tag: ' + spot_media
-        swap_order_request = None
-        try:
-            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            swap_order_request = json_parse(exchange.last_request_body)
-        swap_media = swap_order_request['clientMedia']
-        assert swap_media == id, 'xt - id: ' + id + ' different from swap tag: ' + swap_media
-        close(exchange)
-        return True
-
-    def test_vertex(self):
-        exchange = self.init_offline_exchange('vertex')
-        exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781'
-        exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b'
-        exchange.options['v1contracts'] = {
-            'chain_id': '42161',
-            'endpoint_addr': '0xbbee07b3e8121227afcfe1e2b82772246226128e',
-            'book_addrs': ['0x0000000000000000000000000000000000000000', '0x70e5911371472e406f1291c621d1c8f207764d73', '0xf03f457a30e598d5020164a339727ef40f2b8fbc', '0x1c6281a78aa0ed88949c319cba5f0f0de2ce8353', '0xfe653438a1a4a7f56e727509c341d60a7b54fa91', '0xb6304e9a6ca241376a5fc9294daa8fca65ddcdcd', '0x01ec802ae0ab1b2cc4f028b9fe6eb954aef06ed1', '0x0000000000000000000000000000000000000000', '0x9c52d5c4df5a68955ad088a781b4ab364a861e9e', '0x0000000000000000000000000000000000000000', '0x2a3bcda1bb3ef649f3571c96c597c3d2b25edc79', '0x0000000000000000000000000000000000000000', '0x0492ff9807f82856781488015ef7aa5526c0edd6', '0x0000000000000000000000000000000000000000', '0xea884c82418ebc21cd080b8f40ecc4d06a6a6883', '0x0000000000000000000000000000000000000000', '0x5ecf68f983253a818ca8c17a56a4f2fb48d6ec6b', '0x0000000000000000000000000000000000000000', '0xba3f57a977f099905531f7c2f294aad7b56ed254', '0x0000000000000000000000000000000000000000', '0x0ac8c26d207d0c6aabb3644fea18f530c4d6fc8e', '0x0000000000000000000000000000000000000000', '0x8bd80ad7630b3864bed66cf28f548143ea43dc3b', '0x0000000000000000000000000000000000000000', '0x045391227fc4b2cdd27b95f066864225afc9314e', '0x0000000000000000000000000000000000000000', '0x7d512bef2e6cfd7e7f5f6b2f8027e3728eb7b6c3', '0x0000000000000000000000000000000000000000', '0x678a6c5003b56b5e9a81559e9a0df880407c796f', '0x0000000000000000000000000000000000000000', '0x14b5a17208fa98843cc602b3f74e31c95ded3567', '0xe442a89a07b3888ab10579fbb2824aeceff3a282', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xac28ac205275d7c2d6877bea8657cebe04fd9ae9', '0x0000000000000000000000000000000000000000', '0xed811409bfea901e75cb19ba347c08a154e860c9', '0x0000000000000000000000000000000000000000', '0x0f7afcb1612b305626cff84f84e4169ba2d0f12c', '0x0000000000000000000000000000000000000000', '0xe4b8d903db2ce2d3891ef04cfc3ac56330c1b0c3', '0x5f44362bad629846b7455ad9d36bbc3759a3ef62', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xa64e04ed4b223a71e524dc7ebb7f28e422ccfdde', '0x0000000000000000000000000000000000000000', '0x2ee573caab73c1d8cf0ca6bd3589b67de79628a4', '0x0000000000000000000000000000000000000000', '0x01bb96883a8a478d4410387d4aaf11067edc2c74', '0x0000000000000000000000000000000000000000', '0xe7ed0c559d905436a867cddf07e06921d572363c', '0x0000000000000000000000000000000000000000', '0xa94f9e3433c92a5cd1925494811a67b1943557d9', '0x0000000000000000000000000000000000000000', '0xa63de7f89ba1270b85f3dcc193ff1a1390a7c7c7', '0x0000000000000000000000000000000000000000', '0xc8b0b37dffe3a711a076dc86dd617cc203f36121', '0x0000000000000000000000000000000000000000', '0x646df48947ff785fe609969ff634e7be9d1c34cd', '0x0000000000000000000000000000000000000000', '0x42582b404b0bec4a266631a0e178840b107a0c69', '0x0000000000000000000000000000000000000000', '0x36a94bc3edb1b629d1413091e22dc65fa050f17f', '0x0000000000000000000000000000000000000000', '0xb398d00b5a336f0ad33cfb352fd7646171cec442', '0x0000000000000000000000000000000000000000', '0xb4bc3b00de98e1c0498699379f6607b1f00bd5a1', '0x0000000000000000000000000000000000000000', '0xfe8b7baf68952bac2c04f386223d2013c1b4c601', '0x0000000000000000000000000000000000000000', '0x9c8764ec71f175c97c6c2fd558eb6546fcdbea32', '0x0000000000000000000000000000000000000000', '0x94d31188982c8eccf243e555b22dc57de1dba4e1', '0x0000000000000000000000000000000000000000', '0x407c5e2fadd7555be927c028bc358daa907c797a', '0x0000000000000000000000000000000000000000', '0x7e97da2dbbbdd7fb313cf9dc0581ac7cec999c70', '0x0000000000000000000000000000000000000000', '0x7f8d2662f64dd468c423805f98a6579ad59b28fa', '0x0000000000000000000000000000000000000000', '0x3398adf63fed17cbadd6080a1fb771e6a2a55958', '0x0000000000000000000000000000000000000000', '0xba8910a1d7ab62129729047d453091a1e6356170', '0x0000000000000000000000000000000000000000', '0xdc054bce222fe725da0f17abcef38253bd8bb745', '0x0000000000000000000000000000000000000000', '0xca21693467d0a5ea9e10a5a7c5044b9b3837e694', '0x0000000000000000000000000000000000000000', '0xe0b02de2139256dbae55cf350094b882fbe629ea', '0x0000000000000000000000000000000000000000', '0x02c38368a6f53858aab5a3a8d91d73eb59edf9b9', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xfe8c4778843c3cb047ffe7c0c0154a724c05cab9', '0x0000000000000000000000000000000000000000', '0xe2e88862d9b7379e21c82fc4aec8d71bddbcdb4b', '0x0000000000000000000000000000000000000000', '0xbbaff9e73b30f9cea5c01481f12de75050947fd6', '0x0000000000000000000000000000000000000000', '0xa20f6f381fe0fec5a1035d37ebf8890726377ab9', '0x0000000000000000000000000000000000000000', '0xbad68032d012bf35d3a2a177b242e86684027ed0', '0x0000000000000000000000000000000000000000', '0x0e61ca37f0c67e8a8794e45e264970a2a23a513c', '0x0000000000000000000000000000000000000000', '0xa77b7048e378c5270b15918449ededf87c3a3db3', '0x0000000000000000000000000000000000000000', '0x15afca1e6f02b556fa6551021b3493a1e4a7f44f'],
-        }
-        id = 5930043274845996
-        exchange.load_markets()
-        request = None
-        try:
-            exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            request = json_parse(exchange.last_request_body)
-        order = request['place_order']
-        broker_id = order['id']
-        assert broker_id == id, 'vertex - id: ' + str(id) + ' different from  broker_id: ' + str(broker_id)
-        close(exchange)
-        return True
-
-# ***** AUTO-TRANSPILER-END *****
-# *******************************
-
-
-if __name__ == '__main__':
-    argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
-    # in python, we check it through "symbol" arg (as opposed to JS/PHP) because argvs were already built above
-    argvMethod = argv.symbol if argv.symbol and '()' in argv.symbol else None
-    (testMainClass().init(argv.exchange, argvSymbol, argvMethod))
