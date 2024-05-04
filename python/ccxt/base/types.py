@@ -52,6 +52,7 @@ Str = Optional[str]
 Strings = Optional[List[str]]
 Int = Optional[int]
 Bool = Optional[bool]
+DictOrDictList = Union[Dict[str, any], List[Dict[str, any]]]
 MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
 SubType = Literal['linear', 'inverse']
 

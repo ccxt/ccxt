@@ -16,6 +16,7 @@ export interface Dictionary<T> {
 }
 
 export type Dict = Dictionary<any>;
+export type DictOrDictList = Dict | Dict[];
 export type NullableDict = Dict | undefined;
 
 export type List = Array<any>;
