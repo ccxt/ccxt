@@ -16,16 +16,16 @@ export default class oxfun extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'oxfun',
             'name': 'Oxfun',
-            'countries': [ 'PA' ], // Panama but need to be confirmed
+            'countries': [ 'PA' ], // Panama todo check
             'version': 'v3',
-            'rateLimit': 300, // 500 per minute
+            'rateLimit': 120, // 100 requests per second and 25000 per 5 minutes todo check
             'pro': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
-                'swap': false,
-                'future': true,
+                'swap': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': false,
@@ -46,7 +46,7 @@ export default class oxfun extends Exchange {
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': true,
+                'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -57,7 +57,7 @@ export default class oxfun extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
-                'fetchDeposit': undefined,
+                'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -121,17 +121,17 @@ export default class oxfun extends Exchange {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': false,
-                'ws': false,
+                'ws': true,
             },
             'timeframes': {
-                '60s': '1m',
-                '300s': '5m',
-                '900s': '15m',
-                '1800s': '30m',
-                '3600s': '1h',
-                '7200s': '2h',
-                '14400s': '4h',
-                '86400s': '1d',
+                '1m': '60s',
+                '5m': '300s',
+                '15m': '900s',
+                '30m': '1800s',
+                '1h': '3600s',
+                '2h': '7200s',
+                '4h': '14400s',
+                '1d': '86400s',
             },
             'urls': {
                 'logo': '', // todo: add a logo
@@ -139,10 +139,12 @@ export default class oxfun extends Exchange {
                     'public': 'https://api.ox.fun',
                     'private': 'https://api.ox.fun',
                 },
+                'test': {
+                    'public': 'https://stgapi.ox.fun',
+                    'private': 'https://stgapi.ox.fun',
+                },
                 'www': 'https://ox.fun/',
-                'doc': [
-                    'https://docs.ox.fun/',
-                ],
+                'doc': 'https://docs.ox.fun/',
                 'fees': 'https://support.ox.fun/en/articles/8819866-trading-fees',
             },
             'api': {
@@ -234,7 +236,7 @@ export default class oxfun extends Exchange {
         //                     tickSize: '0.00001',
         //                     minSize: '1',
         //                     listedAt: '1704766320000',
-        //                     upperPriceBound: '0.02122',
+        //                     upperPriceBound: '0.02122', // todo find out what is it
         //                     lowerPriceBound: '0.01142',
         //                     markPrice: '0.01632',
         //                     indexPrice: '0.01564',
@@ -281,30 +283,23 @@ export default class oxfun extends Exchange {
     }
 
     parseMarket (market): Market {
-        const id = this.safeString (market, 'referencePair');
-        const parts = id.split ('/');
-        const baseId = this.safeString (parts, 0);
-        const quoteId = this.safeString (parts, 1);
+        const id = this.safeString (market, 'marketCode');
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'counter');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
-        const type = this.safeString (market, 'type').toLowerCase ();
-        const isFuture = type === 'future';
+        let type = this.safeStringLower (market, 'type');
         let settleId = undefined;
         let settle = undefined;
+        const isFuture = (type === 'future');
         if (isFuture) {
-            settleId = this.safeString (parts, 1);
-            settle = this.safeCurrencyCode (settleId);
-            if (settle !== undefined) {
-                symbol += ':' + settle;
-            }
+            symbol = symbol + ':' + quote;
+            type = 'swap'; // todo check
+            settleId = quoteId; // todo check
+            settle = quote; // todo check
         }
         const isSpot = type === 'spot';
-        let isContract = false;
-        if (type === 'future') {
-            isContract = true;
-        }
-        const contractSize = this.safeInteger (market, 'tickSize');
         return this.safeMarketStructure ({
             'id': id,
             'numericId': undefined,
@@ -317,22 +312,22 @@ export default class oxfun extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': isSpot,
-            'margin': false,
-            'swap': false,
-            'future': isFuture,
+            'margin': false, // todo check for spot market
+            'swap': isFuture,
+            'future': false,
             'option': false,
-            'active': true,
-            'contract': isContract,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': contractSize,
+            'active': undefined, // todo check
+            'contract': isFuture,
+            'linear': true, // todo check
+            'inverse': false,
+            'contractSize': 1, // todo check
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeFloat (market, 'minSize'),
-                'price': this.safeFloat (market, 'tickSize'),
+                'amount': undefined,
+                'price': this.safeNumber (market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -340,12 +335,12 @@ export default class oxfun extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': undefined,
+                    'min': this.safeNumber (market, 'minSize'),
                     'max': undefined,
                 },
                 'price': {
-                    'min': this.safeFloat (market, 'lowerPriceBound'),
-                    'max': this.safeFloat (market, 'upperPriceBound'),
+                    'min': undefined,
+                    'max': undefined,
                 },
                 'cost': {
                     'min': undefined,
@@ -353,6 +348,7 @@ export default class oxfun extends Exchange {
                 },
             },
             'created': undefined,
+            'index': undefined, // todo what is it?
             'info': market,
         });
     }
