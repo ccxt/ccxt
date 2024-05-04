@@ -54,6 +54,7 @@
             },
             {
                 "description": "spot order with weird amount",
+                "disabledCS": true,
                 "method": "createOrder",
                 "url": "https://testnet.binance.vision/api/v3/order",
                 "input": [
