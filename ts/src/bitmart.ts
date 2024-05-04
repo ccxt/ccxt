@@ -2544,20 +2544,20 @@ export default class bitmart extends Exchange {
         } else if (isMarketOrder) {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
-                let notional = this.safeNumber2 (params, 'cost', 'notional');
+                let notional = this.safeString2 (params, 'cost', 'notional');
                 params = this.omit (params, 'cost');
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const amountString = this.numberToString (amount);
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (notional === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument or in the "notional" extra parameter (the exchange-specific behaviour)');
                     } else {
-                        const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
-                        notional = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        notional = Precise.stringMul (amountString, priceString);
                     }
                 } else {
-                    notional = (notional === undefined) ? amount : notional;
+                    notional = (notional === undefined) ? amountString : notional;
                 }
                 request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
             } else if (side === 'sell') {

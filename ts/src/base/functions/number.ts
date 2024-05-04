@@ -99,50 +99,60 @@ function precisionFromString (str) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x: number,
+    x: string,
     roundingMode: number,
     numPrecisionDigits: number,
     countingMode = DECIMAL_PLACES,
     paddingMode = NO_PADDING
 ): string => {
     if (countingMode === TICK_SIZE) {
-        if (typeof numPrecisionDigits === 'string') {
-            numPrecisionDigits = parseFloat(numPrecisionDigits)
-        }
         if (numPrecisionDigits <= 0) {
             throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits');
         }
     }
     if (numPrecisionDigits < 0) {
-        const toNearest = Math.pow (10, -numPrecisionDigits);
+        const splitX = x.split ('.');
         if (roundingMode === ROUND) {
-            return (toNearest * parseFloat (decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString ();
+            let tail = '';
+            if (splitX.length > 1) {
+                tail = splitX[1].substring (0, numPrecisionDigits);
+            }
+            while (tail.length < numPrecisionDigits) {
+                tail += '0';
+            }
+            const recursionX = decimalToPrecision (splitX[0] + tail, roundingMode, 0, countingMode, paddingMode);
+            const decimalIndex = recursionX.length - numPrecisionDigits;
+            return recursionX.substring (0, decimalIndex) + '.' + recursionX.substring (decimalIndex, recursionX.length) 
         }
         if (roundingMode === TRUNCATE) {
-            return (x - (x % toNearest)).toString ();
+            if (splitX.length > 1) {
+                return splitX[0] + '.' + splitX[1].substring (0, numPrecisionDigits);
+            } else {
+                return splitX[0];
+            }
         }
     }
     /*  handle tick size */
     if (countingMode === TICK_SIZE) {
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits.toString (), ROUND, 22, DECIMAL_PLACES, NO_PADDING);
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         let missing = x % numPrecisionDigits;
         // See: https://github.com/ccxt/ccxt/pull/6486
-        missing = Number (decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
+        missing = decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING);
         const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
         if (precisionFromString (fpError) !== 0) {
             if (roundingMode === ROUND) {
-                if (x > 0) {
+                if (x[0] === '-') {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = x - missing;
+                    } else {
+                        x = x - missing - numPrecisionDigits;
+                    }
+                } else {
                     if (missing >= numPrecisionDigits / 2) {
                         x = x - missing + numPrecisionDigits;
                     } else {
                         x = x - missing;
-                    }
-                } else {
-                    if (missing >= numPrecisionDigits / 2) {
-                        x = Number (x) - missing;
-                    } else {
-                        x = Number (x) - missing - numPrecisionDigits;
                     }
                 }
             } else if (roundingMode === TRUNCATE) {

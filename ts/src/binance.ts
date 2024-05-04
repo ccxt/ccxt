@@ -4837,14 +4837,14 @@ export default class binance extends Exchange {
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
-                const quoteOrderQtyNew = this.safeNumber2 (params, 'quoteOrderQty', 'cost');
+                const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
                 if (quoteOrderQtyNew !== undefined) {
                     request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                 } else if (price !== undefined) {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    const quoteOrderQuantity = this.parseNumber (Precise.stringMul (amountString, priceString));
+                    const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
                     request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                 } else {
                     quantityIsRequired = true;
@@ -5920,14 +5920,14 @@ export default class binance extends Exchange {
             if (market['spot']) {
                 const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
-                    const quoteOrderQtyNew = this.safeNumber2 (params, 'quoteOrderQty', 'cost');
+                    const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                     } else if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
-                        const quoteOrderQuantity = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                     } else {
                         quantityIsRequired = true;
