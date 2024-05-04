@@ -8,6 +8,7 @@ use ccxt\ExchangeNotAvailable;
 use ccxt\OnMaintenance;
 
 require_once __DIR__ . '/helpers_for_tests.php';
+
 class testMainClass extends baseMainTestClass {
     public function parse_cli_args() {
         $this->response_tests = get_cli_arg_value('--responseTests');
