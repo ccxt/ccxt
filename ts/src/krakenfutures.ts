@@ -25,6 +25,7 @@ export default class krakenfutures extends Exchange {
             'rateLimit': 600,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': false,
                 'margin': false,

@@ -25,6 +25,7 @@ export default class hollaex extends Exchange {
             'version': 'v2',
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,

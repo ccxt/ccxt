@@ -39,6 +39,7 @@ export default class alpaca extends Exchange {
                 'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
             },
             'has': {
+                'sandbox': true,
                 'CORS': false,
                 'spot': true,
                 'margin': false,
