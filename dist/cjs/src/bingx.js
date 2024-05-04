@@ -24,7 +24,6 @@ class bingx extends bingx$1 {
             'certified': true,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
@@ -84,6 +83,7 @@ class bingx extends bingx$1 {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,

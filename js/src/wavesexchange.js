@@ -24,7 +24,6 @@ export default class wavesexchange extends Exchange {
             'certified': false,
             'pro': false,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
@@ -83,6 +82,7 @@ export default class wavesexchange extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

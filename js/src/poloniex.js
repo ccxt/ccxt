@@ -26,7 +26,6 @@ export default class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
@@ -73,6 +72,7 @@ export default class poloniex extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'sandbox': true,
                 'transfer': true,
                 'withdraw': true,
             },

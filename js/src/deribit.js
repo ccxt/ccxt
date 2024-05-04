@@ -29,7 +29,6 @@ export default class deribit extends Exchange {
             'rateLimit': 50,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': true,
                 'spot': false,
                 'margin': false,
@@ -98,6 +97,7 @@ export default class deribit extends Exchange {
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'sandbox': true,
                 'transfer': true,
                 'withdraw': true,
             },

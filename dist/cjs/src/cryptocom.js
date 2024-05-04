@@ -22,7 +22,6 @@ class cryptocom extends cryptocom$1 {
             'certified': true,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': false,
                 'spot': true,
                 'margin': true,
@@ -103,6 +102,7 @@ class cryptocom extends cryptocom$1 {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

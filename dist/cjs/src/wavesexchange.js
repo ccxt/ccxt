@@ -21,7 +21,6 @@ class wavesexchange extends wavesexchange$1 {
             'certified': false,
             'pro': false,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
@@ -80,6 +79,7 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

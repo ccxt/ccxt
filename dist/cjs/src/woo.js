@@ -24,7 +24,6 @@ class woo extends woo$1 {
             'pro': true,
             'hostname': 'woo.org',
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
@@ -105,6 +104,7 @@ class woo extends woo$1 {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': true,

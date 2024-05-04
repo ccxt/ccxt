@@ -20,7 +20,6 @@ class probit extends probit$1 {
             'rateLimit': 50,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': true,
                 'spot': true,
                 'margin': false,
@@ -87,6 +86,7 @@ class probit extends probit$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

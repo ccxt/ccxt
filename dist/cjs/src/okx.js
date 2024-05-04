@@ -24,7 +24,6 @@ class okx extends okx$1 {
             'certified': true,
             'has': {
                 'CORS': undefined,
-                'sandbox': true,
                 'spot': true,
                 'margin': true,
                 'swap': true,
@@ -139,6 +138,7 @@ class okx extends okx$1 {
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,

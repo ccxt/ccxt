@@ -26,7 +26,6 @@ class deribit extends deribit$1 {
             'rateLimit': 50,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': true,
                 'spot': false,
                 'margin': false,
@@ -95,6 +94,7 @@ class deribit extends deribit$1 {
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'sandbox': true,
                 'transfer': true,
                 'withdraw': true,
             },

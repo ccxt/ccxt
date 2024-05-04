@@ -649,7 +649,7 @@ class zaif(Exchange, ImplicitAPI):
         }
 
     def custom_nonce(self):
-        num = (self.milliseconds() / str(1000))
+        num = self.number_to_string(self.milliseconds() / 1000)
         nonce = float(num)
         return format(nonce, '.8f')
 

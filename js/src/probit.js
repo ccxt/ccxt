@@ -23,7 +23,6 @@ export default class probit extends Exchange {
             'rateLimit': 50,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': true,
                 'spot': true,
                 'margin': false,
@@ -90,6 +89,7 @@ export default class probit extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

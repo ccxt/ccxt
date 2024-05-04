@@ -27,7 +27,6 @@ export default class woo extends Exchange {
             'pro': true,
             'hostname': 'woo.org',
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
@@ -108,6 +107,7 @@ export default class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': true,

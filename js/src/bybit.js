@@ -29,7 +29,6 @@ export default class bybit extends Exchange {
             'pro': true,
             'certified': true,
             'has': {
-                'sandbox': true,
                 'CORS': true,
                 'spot': true,
                 'margin': true,
@@ -123,6 +122,7 @@ export default class bybit extends Exchange {
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
                 'repayCrossMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,

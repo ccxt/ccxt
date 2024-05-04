@@ -445,6 +445,10 @@ public partial class hyperliquid : Exchange
         {
             object market = this.safeDict(meta, i, new Dictionary<string, object>() {});
             object marketName = this.safeString(market, "name");
+            if (isTrue(isLessThan(getIndexOf(marketName, "/"), 0)))
+            {
+                continue;
+            }
             object marketParts = ((string)marketName).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             object baseName = this.safeString(marketParts, 0);
             object quoteId = this.safeString(marketParts, 1);

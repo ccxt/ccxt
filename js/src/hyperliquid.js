@@ -28,7 +28,6 @@ export default class hyperliquid extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
@@ -110,6 +109,7 @@ export default class hyperliquid extends Exchange {
                 'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -444,6 +444,10 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict(meta, i, {});
             const marketName = this.safeString(market, 'name');
+            if (marketName.indexOf('/') < 0) {
+                // there are some weird spot markets in testnet, eg @2
+                continue;
+            }
             const marketParts = marketName.split('/');
             const baseName = this.safeString(marketParts, 0);
             const quoteId = this.safeString(marketParts, 1);

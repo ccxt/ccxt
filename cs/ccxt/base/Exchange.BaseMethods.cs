@@ -5796,28 +5796,31 @@ public partial class Exchange
         maxRetries = ((IList<object>)maxRetriesparametersVariable)[0];
         parameters = ((IList<object>)maxRetriesparametersVariable)[1];
         object errors = 0;
-        try
+        while (isLessThanOrEqual(errors, maxRetries))
         {
-            if (isTrue(isTrue(timeframe) && isTrue(!isEqual(method, "fetchFundingRateHistory"))))
+            try
             {
-                return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, parameters }));
-            } else
+                if (isTrue(isTrue(timeframe) && isTrue(!isEqual(method, "fetchFundingRateHistory"))))
+                {
+                    return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, parameters }));
+                } else
+                {
+                    return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
+                }
+            } catch(Exception e)
             {
-                return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
-            }
-        } catch(Exception e)
-        {
-            if (isTrue(e is RateLimitExceeded))
-            {
-                throw e;
-            }
-            errors = add(errors, 1);
-            if (isTrue(isGreaterThan(errors, maxRetries)))
-            {
-                throw e;
+                if (isTrue(e is RateLimitExceeded))
+                {
+                    throw e;
+                }
+                errors = add(errors, 1);
+                if (isTrue(isGreaterThan(errors, maxRetries)))
+                {
+                    throw e;
+                }
             }
         }
-        return null;
+        return new List<object>() {};
     }
 
     public async virtual Task<object> fetchPaginatedCallDeterministic(object method, object symbol = null, object since = null, object limit = null, object timeframe = null, object parameters = null, object maxEntriesPerRequest = null)
@@ -5838,6 +5841,9 @@ public partial class Exchange
         if (isTrue(!isEqual(since, null)))
         {
             currentSince = mathMax(currentSince, since);
+        } else
+        {
+            currentSince = mathMax(currentSince, 1241440531000); // avoid timestamps older than 2009
         }
         object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
         if (isTrue(!isEqual(until, null)))
@@ -5851,6 +5857,10 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, maxCalls); postFixIncrement(ref i))
         {
             if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isGreaterThanOrEqual(currentSince, until)))))
+            {
+                break;
+            }
+            if (isTrue(isGreaterThanOrEqual(currentSince, current)))
             {
                 break;
             }

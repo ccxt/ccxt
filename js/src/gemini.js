@@ -27,7 +27,6 @@ export default class gemini extends Exchange {
             'version': 'v1',
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
@@ -85,6 +84,7 @@ export default class gemini extends Exchange {
                 'fetchTransactions': 'emulated',
                 'postOnly': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

@@ -24,7 +24,6 @@ class currencycom extends currencycom$1 {
             'version': 'v2',
             // new metainfo interface
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
@@ -102,6 +101,7 @@ class currencycom extends currencycom$1 {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': undefined,
+                'sandbox': true,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,

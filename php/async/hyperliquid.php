@@ -453,6 +453,10 @@ class hyperliquid extends Exchange {
             for ($i = 0; $i < count($meta); $i++) {
                 $market = $this->safe_dict($meta, $i, array());
                 $marketName = $this->safe_string($market, 'name');
+                if (mb_strpos($marketName, '/') === false) {
+                    // there are some weird spot $markets in testnet, eg @2
+                    continue;
+                }
                 $marketParts = explode('/', $marketName);
                 $baseName = $this->safe_string($marketParts, 0);
                 $quoteId = $this->safe_string($marketParts, 1);

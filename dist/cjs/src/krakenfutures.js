@@ -24,7 +24,6 @@ class krakenfutures extends krakenfutures$1 {
             'rateLimit': 600,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': false,
                 'margin': false,
@@ -72,6 +71,7 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,

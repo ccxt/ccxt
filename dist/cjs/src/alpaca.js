@@ -39,7 +39,6 @@ class alpaca extends alpaca$1 {
                 'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
             },
             'has': {
-                'sandbox': true,
                 'CORS': false,
                 'spot': true,
                 'margin': false,
@@ -90,6 +89,7 @@ class alpaca extends alpaca$1 {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,

@@ -27,7 +27,6 @@ export default class okx extends Exchange {
             'certified': true,
             'has': {
                 'CORS': undefined,
-                'sandbox': true,
                 'spot': true,
                 'margin': true,
                 'swap': true,
@@ -142,6 +141,7 @@ export default class okx extends Exchange {
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,

@@ -26,7 +26,6 @@ export default class hollaex extends Exchange {
             'version': 'v2',
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
@@ -92,6 +91,7 @@ export default class hollaex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
