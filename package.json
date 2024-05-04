@@ -64,9 +64,8 @@
     "test-php-ws": "node run-tests --ws --php --useProxy",
     "test-csharp": "npm run commonjs-test && node run-tests --csharp --useProxy",
     "test-csharp-ws": "node run-tests --ws --csharp --useProxy",
-    "test-all-ts": "tsx ./ts/src/test/bootstrap.ts",
-    "test-base-ts": "tsx ./ts/src/test/base/test.base_auto.ts",
-    "test-js-base": "node ./js/src/test/base/test.base_auto.js",
+    "test-ts-base": "npm run test-bootstrap-ts -- --base",
+    "test-js-base": "npm run test-bootstrap-js -- --base",
     "test-js-base-ws": "npm run test-js-cache && npm run test-js-orderbook",
     "test-python-base": "python3 python/ccxt/test/base/test_number.py && python3 python/ccxt/test/base/test_crypto.py",
     "test-python-base-ws": "npm run test-python-cache && npm run test-python-orderbook",
@@ -144,7 +143,10 @@
     "id-tests-php": "php php/test/test_async.php --idTests",
     "id-tests-cs": "dotnet run --project cs/tests/tests.csproj --idTests",
     "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs",
-    "benchmark": "tsx examples/ts/benchmark.ts"
+    "benchmark": "tsx examples/ts/benchmark.ts",
+    "test-bootstrap-ts": "tsx ./ts/src/test/bootstrap.ts",
+    "test-bootstrap-js": "node ./js/src/test/bootstrap.js",
+    "test-bootstrap-py": "python3 python/ccxt/test/test_async.py"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
