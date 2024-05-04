@@ -756,6 +756,7 @@ export default class Exchange {
                 'reduceMargin': undefined,
                 'repayCrossMargin': undefined,
                 'repayIsolatedMargin': undefined,
+                'sandbox': undefined,
                 'setLeverage': undefined,
                 'setMargin': undefined,
                 'setMarginMode': undefined,

@@ -29,6 +29,7 @@ export default class binance extends Exchange {
             // new metainfo2 interface
             'has': {
                 'CORS': undefined,
+                'sandbox': true,
                 'spot': true,
                 'margin': true,
                 'swap': true,
@@ -3972,8 +3973,8 @@ export default class binance extends Exchange {
          * @name binance#fetchLastPrices
          * @description fetches the last price for multiple markets
          * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
-         * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
+         * @see https://binance-docs.github.io/apidocs/futures/en/#symbol-price-ticker       // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-tickers     // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"

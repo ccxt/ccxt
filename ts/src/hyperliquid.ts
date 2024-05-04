@@ -27,6 +27,7 @@ export default class hyperliquid extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

@@ -3886,8 +3886,8 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches the last price for multiple markets
         :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         # spot
-        :see: https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       # swap
-        :see: https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     # future
+        :see: https://binance-docs.github.io/apidocs/futures/en/#symbol-price-ticker       # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-tickers     # future
         :param str[]|None symbols: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
