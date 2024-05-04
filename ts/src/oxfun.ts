@@ -2,8 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/oxfun.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Market } from './base/types.js';
+import type { Bool, Currencies, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -217,6 +218,17 @@ export default class oxfun extends Exchange {
                 'networks': {
                     // todo: complete list of networks
                 },
+                'networksById': {
+                    'Bitcoin': 'BTC',
+                    'Ethereum': 'ERC20',
+                    'Avalanche': 'AVAX',
+                    'Solana': 'SOL',
+                    'Arbitrum': 'ERC20', // todo check
+                    'Polygon': 'MATIC', // todo check
+                    'Fantom': 'FTM', // todo check
+                    'Base': 'ERC20', // todo check
+                    'BNBSmartChain': 'BNB', // todo check
+                },
             },
             'exceptions': {
                 'exact': {
@@ -368,6 +380,220 @@ export default class oxfun extends Exchange {
             'index': undefined, // todo what is it?
             'info': market,
         });
+    }
+
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name oxfun#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.ox.fun/?json#get-v3-assets
+         * @param {dict} [params] extra parameters specific to the exchange API endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
+        const response = await this.publicGetV3Assets (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data":  [
+        //             {
+        //                 "asset": "OX",
+        //                 "isCollateral": true,
+        //                 "loanToValue": "1.000000000",
+        //                 "loanToValueFactor": "0.000000000",
+        //                 "networkList":  [
+        //                     {
+        //                         "network": "BNBSmartChain",
+        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
+        //                         "transactionPrecision": "18",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": false,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     },
+        //                     {
+        //                         "network": "Polygon",
+        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
+        //                         "transactionPrecision": "18",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": false,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     },
+        //                     {
+        //                         "network": "Arbitrum",
+        //                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
+        //                         "transactionPrecision": "18",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": true,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     },
+        //                     {
+        //                         "network": "Ethereum",
+        //                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
+        //                         "transactionPrecision": "18",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": true,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     },
+        //                     {
+        //                         "network": "Arbitrum",
+        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
+        //                         "transactionPrecision": "18",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": false, // todo check
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     },
+        //                     {
+        //                         "network": "Avalanche",
+        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
+        //                         "transactionPrecision": "18",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": false,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     },
+        //                     {
+        //                         "network": "Solana",
+        //                         "tokenId": "DV3845GEAVXfwpyVGGgWbqBVCtzHdCXNCGfcdboSEuZz",
+        //                         "transactionPrecision": "8",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": true,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     },
+        //                     {
+        //                         "network": "Ethereum",
+        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
+        //                         "transactionPrecision": "18",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": false,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     }
+        //                 ]
+        //             },
+        //             {
+        //                 "asset": "BTC",
+        //                 "isCollateral": true,
+        //                 "loanToValue": "0.950000000",
+        //                 "loanToValueFactor": "0.000000000",
+        //                 "networkList":  [
+        //                     {
+        //                         "network": "Bitcoin",
+        //                         "transactionPrecision": "8",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": true,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     }
+        //                 ]
+        //             },
+        //             {
+        //                 "asset": "USDT.ARB",
+        //                 "isCollateral": true,
+        //                 "loanToValue": "0.950000000",
+        //                 "loanToValueFactor": "0.000000000",
+        //                 "networkList": [
+        //                     {
+        //                         "network": "Arbitrum",
+        //                         "tokenId": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+        //                         "transactionPrecision": "18",
+        //                         "isWithdrawalFeeChargedToUser": true,
+        //                         "canDeposit": true,
+        //                         "canWithdraw": true,
+        //                         "minDeposit": "0.00010",
+        //                         "minWithdrawal": "0.00010"
+        //                     }
+        //                 ]
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'asset', ''); // todo check specific names like USDT.ARB
+            const code = this.safeCurrencyCode (id);
+            const networks = {};
+            const chains = this.safeList (currency, 'networkList', []);
+            let currencyMaxPrecision = undefined;
+            let currencyDepositEnabled: Bool = undefined;
+            let currencyWithdrawEnabled: Bool = undefined;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'network');
+                const networkCode = this.networkIdToCode (networkId);
+                const deposit = this.safeBool (chain, 'canDeposit');
+                const withdraw = this.safeBool (chain, 'canWithdraw');
+                const active = (deposit && withdraw);
+                const minDeposit = this.safeString (chain, 'minDeposit');
+                const minWithdrawal = this.safeString (chain, 'minWithdrawal');
+                const precision = this.parsePrecision (this.safeString (chain, 'transactionPrecision'));
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': active,
+                    'fee': undefined,
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'deposit': {
+                            'min': minDeposit,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawal,
+                            'max': undefined,
+                        },
+                    },
+                    'info': chain,
+                };
+                currencyDepositEnabled = ((currencyDepositEnabled === undefined) || deposit) ? deposit : currencyDepositEnabled;
+                currencyWithdrawEnabled = ((currencyWithdrawEnabled === undefined) || withdraw) ? withdraw : currencyWithdrawEnabled;
+                currencyMaxPrecision = ((currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision)) ? precision : currencyMaxPrecision;
+            }
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': undefined,
+                'type': undefined,
+                'active': undefined, // todo check
+                'deposit': currencyDepositEnabled,
+                'withdraw': currencyWithdrawEnabled,
+                'fee': undefined,
+                'precision': this.parseNumber (currencyMaxPrecision),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+                'info': currency,
+            };
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
