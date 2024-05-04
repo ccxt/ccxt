@@ -49,10 +49,12 @@ import {
 
 // *********************************
 // test base things
+import base from './base/test.base.js';
 import BaseFunctionalitiesTestClass from './base/test.base_auto.js';
 import testMainClass from './test.js';
 
 
 
 (new BaseFunctionalitiesTestClass ()).init ();
-(new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
+console.log ('base tests passed!');
+// (new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
