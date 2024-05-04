@@ -351,6 +351,7 @@ export default class Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'CORS': undefined,
+                'sandbox': undefined,
                 'spot': undefined,
                 'margin': undefined,
                 'swap': undefined,
@@ -5835,24 +5836,26 @@ export default class Exchange {
         let maxRetries = undefined;
         [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
         let errors = 0;
-        try {
-            if (timeframe && method !== 'fetchFundingRateHistory') {
-                return await this[method](symbol, timeframe, since, limit, params);
+        while (errors <= maxRetries) {
+            try {
+                if (timeframe && method !== 'fetchFundingRateHistory') {
+                    return await this[method](symbol, timeframe, since, limit, params);
+                }
+                else {
+                    return await this[method](symbol, since, limit, params);
+                }
             }
-            else {
-                return await this[method](symbol, since, limit, params);
+            catch (e) {
+                if (e instanceof RateLimitExceeded) {
+                    throw e; // if we are rate limited, we should not retry and fail fast
+                }
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
             }
         }
-        catch (e) {
-            if (e instanceof RateLimitExceeded) {
-                throw e; // if we are rate limited, we should not retry and fail fast
-            }
-            errors += 1;
-            if (errors > maxRetries) {
-                throw e;
-            }
-        }
-        return undefined;
+        return [];
     }
     async fetchPaginatedCallDeterministic(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined) {
         let maxCalls = undefined;
@@ -5866,6 +5869,9 @@ export default class Exchange {
         if (since !== undefined) {
             currentSince = Math.max(currentSince, since);
         }
+        else {
+            currentSince = Math.max(currentSince, 1241440531000); // avoid timestamps older than 2009
+        }
         const until = this.safeInteger2(params, 'until', 'till'); // do not omit it here
         if (until !== undefined) {
             const requiredCalls = Math.ceil((until - since) / step);
@@ -5875,6 +5881,9 @@ export default class Exchange {
         }
         for (let i = 0; i < maxCalls; i++) {
             if ((until !== undefined) && (currentSince >= until)) {
+                break;
+            }
+            if (currentSince >= current) {
                 break;
             }
             tasks.push(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));

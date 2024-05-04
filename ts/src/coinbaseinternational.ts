@@ -29,7 +29,6 @@ export default class coinbaseinternational extends Exchange {
                 'CB-VERSION': '2018-05-30',
             },
             'has': {
-                'sandbox': true,
                 'CORS': true,
                 'spot': true,
                 'margin': true,
@@ -107,6 +106,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMargin': true,
                 'setMarginMode': false,

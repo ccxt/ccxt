@@ -30,7 +30,6 @@ export default class bitmex extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
@@ -91,6 +90,7 @@ export default class bitmex extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': undefined,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': undefined,
                 'setMarginMode': true,

@@ -24,7 +24,6 @@ export default class coinmetro extends Exchange {
             'certified': false,
             'pro': false,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
@@ -115,6 +114,7 @@ export default class coinmetro extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,

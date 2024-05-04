@@ -29,7 +29,6 @@ export default class idex extends Exchange {
             'certified': false,
             'requiresWeb3': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
@@ -98,6 +97,7 @@ export default class idex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

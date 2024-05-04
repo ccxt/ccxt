@@ -175,6 +175,7 @@ class gate(Exchange, ImplicitAPI):
                 'reduceMargin': True,
                 'repayCrossMargin': True,
                 'repayIsolatedMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': True,

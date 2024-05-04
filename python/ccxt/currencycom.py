@@ -114,6 +114,7 @@ class currencycom(Exchange, ImplicitAPI):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': None,
+                'sandbox': True,
                 'setLeverage': None,
                 'setMarginMode': None,
                 'setPositionMode': None,

@@ -289,6 +289,7 @@ export default class Exchange {
             publicAPI: boolean;
             privateAPI: boolean;
             CORS: any;
+            sandbox: any;
             spot: any;
             margin: any;
             swap: any;

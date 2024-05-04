@@ -23,7 +23,6 @@ export default class cryptocom extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': false,
                 'spot': true,
                 'margin': true,
@@ -104,6 +103,7 @@ export default class cryptocom extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

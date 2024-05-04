@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.15';
+$version = '4.3.16';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.15';
+    const VERSION = '4.3.16';
 
     public $browser;
     public $marketsLoading = null;
@@ -5011,22 +5011,24 @@ class Exchange extends \ccxt\Exchange {
             $maxRetries = null;
             list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
             $errors = 0;
-            try {
-                if ($timeframe && $method !== 'fetchFundingRateHistory') {
-                    return Async\await($this->$method ($symbol, $timeframe, $since, $limit, $params));
-                } else {
-                    return Async\await($this->$method ($symbol, $since, $limit, $params));
-                }
-            } catch (Exception $e) {
-                if ($e instanceof RateLimitExceeded) {
-                    throw $e; // if we are rate limited, we should not retry and fail fast
-                }
-                $errors += 1;
-                if ($errors > $maxRetries) {
-                    throw $e;
+            while ($errors <= $maxRetries) {
+                try {
+                    if ($timeframe && $method !== 'fetchFundingRateHistory') {
+                        return Async\await($this->$method ($symbol, $timeframe, $since, $limit, $params));
+                    } else {
+                        return Async\await($this->$method ($symbol, $since, $limit, $params));
+                    }
+                } catch (Exception $e) {
+                    if ($e instanceof RateLimitExceeded) {
+                        throw $e; // if we are rate limited, we should not retry and fail fast
+                    }
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
                 }
             }
-            return null;
+            return array();
         }) ();
     }
 
@@ -5042,6 +5044,8 @@ class Exchange extends \ccxt\Exchange {
             $currentSince = $current - ($maxCalls * $step) - 1;
             if ($since !== null) {
                 $currentSince = max ($currentSince, $since);
+            } else {
+                $currentSince = max ($currentSince, 1241440531000); // avoid timestamps older than 2009
             }
             $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
             if ($until !== null) {
@@ -5052,6 +5056,9 @@ class Exchange extends \ccxt\Exchange {
             }
             for ($i = 0; $i < $maxCalls; $i++) {
                 if (($until !== null) && ($currentSince >= $until)) {
+                    break;
+                }
+                if ($currentSince >= $current) {
                     break;
                 }
                 $tasks[] = $this->safe_deterministic_call($method, $symbol, $currentSince, $maxEntriesPerRequest, $timeframe, $params);

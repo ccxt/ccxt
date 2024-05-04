@@ -162,6 +162,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': True,
                 'repayCrossMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': True,
