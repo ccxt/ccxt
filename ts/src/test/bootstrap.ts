@@ -46,23 +46,26 @@ import {
     argvMethod,
 } from './test-helper-methods.js';
 
-// if --base argv is provided
-const isBaseTests = getCliArgValue ('--base');
-const isExchangeTests = getCliArgValue ('--exchange');
-const isAllTest = !isBaseTests && !isExchangeTests; // if neither was chosen
-
 // *********************************
-// test base things
 import base from './base/test.base.js';
 import BaseFunctionalitiesTestClass from './base/test.base_auto.js';
 import testMainClass from './test.js';
+// *********************************
 
 
-if (isAllTest || isBaseTests) {
+const isBaseTests = getCliArgValue ('--baseTests');
+const isExchangeTests = getCliArgValue ('--exchangeTests');
+const isAllTest = !isBaseTests && !isExchangeTests; // if neither was chosen
+
+
+// ####### base tests #######
+if (isBaseTests || isAllTest) {
     (new BaseFunctionalitiesTestClass ()).init ();
     console.log ('base tests passed!');
 }
-if (isAllTest || isExchangeTests) {
+
+// ####### exchange tests #######
+if (isExchangeTests || isAllTest) {
     (new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
     console.log ('exchange tests passed!');
 }
