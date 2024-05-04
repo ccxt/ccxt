@@ -1,8 +1,8 @@
 // @ts-nocheck
 /* eslint-disable */
-import ccxt, { Exchange } from '../../../../ccxt.js';
+import ccxt, { Exchange, functions } from '../../../ccxt.js';
 import assert from 'assert';
-import { functions } from '../../../../ccxt.js';
+
 
 // import all methods from "test-helper-methods.ts"
 import {
@@ -46,7 +46,7 @@ import {
     close,
 } from './../test-helper-methods.js';
 
-import testBaseFunctionsExtend from './functions/test.extend.js';
+import testBaseFunctionsExtend from './functions_auto/test.extend.js';
  
 class BaseFunctionalitiesTestClass {
 

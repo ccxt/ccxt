@@ -210,3 +210,5 @@ function testBase () {
 }
 
 testUnCamelCase ()
+
+export default {};
