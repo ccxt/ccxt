@@ -122,7 +122,7 @@ export default class oxfun extends Exchange {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': false,
-                'ws': true,
+                'ws': false,
             },
             'timeframes': {
                 '1m': '60s',
