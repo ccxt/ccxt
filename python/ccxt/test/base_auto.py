@@ -2,7 +2,7 @@
 
 from helpers_for_tests import *
 
-from functions_auto.test_extend import testBaseFunctionsExtend
+from base.functions_auto.test_extend import test_base_functions_extend
  
 class BaseFunctionalitiesTestClass:
 
@@ -11,4 +11,4 @@ class BaseFunctionalitiesTestClass:
             'id': 'xyzexchange',
         })
 
-        testBaseFunctionsExtend(exchange)
+        test_base_functions_extend(exchange)
