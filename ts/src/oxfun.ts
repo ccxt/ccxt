@@ -565,9 +565,9 @@ export default class oxfun extends Exchange {
                     },
                     'info': chain,
                 };
-                currencyDepositEnabled = ((currencyDepositEnabled === undefined) || deposit) ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = ((currencyWithdrawEnabled === undefined) || withdraw) ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = ((currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision)) ? precision : currencyMaxPrecision;
+                currencyDepositEnabled = (currencyDepositEnabled === undefined) || deposit ? deposit : currencyDepositEnabled;
+                currencyWithdrawEnabled = (currencyWithdrawEnabled === undefined) || withdraw ? withdraw : currencyWithdrawEnabled;
+                currencyMaxPrecision = (currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision) ? precision : currencyMaxPrecision;
             }
             result[code] = {
                 'id': id,
