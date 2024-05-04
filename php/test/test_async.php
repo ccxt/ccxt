@@ -1,337 +1,13 @@
 <?php
 
-namespace ccxt;
-
-use Exception; // a common import
-
-error_reporting(E_ALL | E_STRICT);
-date_default_timezone_set('UTC');
-ini_set('memory_limit', '512M');
-
-define('rootDir', __DIR__ . '/../../');
-define('root_dir', __DIR__ . '/../../');
-
-include_once rootDir .'/vendor/autoload.php';
-use React\Async;
-use React\Promise;
-
-// the below approach is being deprecated in PHP (keep this commented area for a while)
-//
-// assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
-//     $args = func_get_args();
-//     $message = '';
-//     try {
-//         $message = "[ASSERT_ERROR] - [ $file : $line ] $description";
-//     } catch (\Exception $exc) {
-//         $message = "[ASSERT_ERROR] -" . json_encode($args);
-//     }
-//     $message = substr($message, 0, LOG_CHARS_LENGTH);
-//     dump($message);
-//     exit;
-// });
-//
-//
-// the below one is the accepted way of handling assertion errors nowadays (however, keep this also commented here for a while)
-//
-// set_exception_handler( function (\Throwable $e) {
-//     if ($e instanceof \AssertionError) {
-//         dump('[ASSERT_ERROR] -' . exception_message($e));
-//         exit_script(0);
-//     }
-//     throw $e;
-// } );
-
-// ############## detect cli arguments ############## //
-array_shift($argv); // remove first argument (which is script path "ccxt/php/test/test_async.php")
-
-function filter_argvs($argsArray, $needle, $include = true) {
-    return array_filter($argsArray, function ($x) use ($needle, $include) { return ($include && str_contains($x, $needle) || (!$include && !str_contains($x, $needle))); });
-};
-
-function select_argv ($argsArray, $needle) {
-    $foundArray = array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); });
-    return count($foundArray) > 0 ? $foundArray : null;
-}
-
-$argvs = filter_argvs ($argv, '--', false);
-$argvExchange = null;
-if (count($argvs) > 0) {
-    $argvExchange = $argvs[0];
-}
-$argvSymbol   = select_argv ($argv, '/');
-$argvMethod   = select_argv ($argv, '()');
-// #################################################### //
-
-
-
-// non-transpiled part, but shared names among langs
-function get_cli_arg_value ($arg) {
-    return in_array($arg, $GLOBALS['argv']);
-}
-
-define('is_synchronous', stripos(__FILE__, '_async') === false);
-define('rootDirForSkips', __DIR__ . '/../../');
-define('envVars', $_ENV);
-define('LOG_CHARS_LENGTH', 1000000); // no need to trim
-define('ext', 'php');
-define('proxyTestFileName', 'proxies');
-
-class baseMainTestClass {
-    public $lang = 'PHP';
-    public $is_synchronous = is_synchronous;
-    public $test_files = [];
-    public $skipped_settings_for_exchange = [];
-    public $skipped_methods = [];
-    public $checked_public_tests = [];
-    public $public_tests = [];
-    public $ws_tests = false;
-    public $info = false;
-    public $verbose = false;
-    public $debug = false;
-    public $private_test = false;
-    public $private_test_only = false;
-    public $sandbox = false;
-    public $static_tests = false;
-    public $request_tests_failed = false;
-    public $response_tests_failed = false;
-    public $id_tests = false;
-    public $response_tests = false;
-    public $request_tests = false;
-    public $load_keys = false;
-
-    public $new_line = "\n";
-    public $root_dir = root_dir;
-    public $env_vars = envVars;
-    public $root_dir_for_skips = rootDirForSkips;
-    public $only_specific_tests = [];
-    public $proxy_test_file_name = proxyTestFileName;
-    public $ext = ext;
-}
-
-function dump(...$s) {
-    $args = array_map(function ($arg) {
-        if (is_array($arg) || is_object($arg)) {
-            return json_encode($arg);
-        } else {
-            return $arg;
-        }
-    }, func_get_args());
-    echo implode(' ', $args) . "\n";
-}
-
-function convert_ascii($s) {
-    return $s; // stub
-}
-
-function json_parse($s) {
-    return json_decode($s, true);
-}
-
-function json_stringify($s) {
-    return json_encode($s);
-}
-
-function convert_to_snake_case($input) {
-    $res = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $input));
-    return str_replace('o_h_l_c_v', 'ohlcv', $res);
-}
-
-function get_test_name($methodName) {
-    return 'test_' . convert_to_snake_case($methodName);
-}
-
-function io_file_exists($path) {
-    return file_exists($path);
-}
-
-function io_file_read($path, $decode = true) {
-    $content = file_get_contents($path);
-    return $decode ? json_decode($content, true) : $content;
-}
-
-function io_dir_read($path) {
-    $files = scandir($path);
-    $cleanFiles = array();
-
-    foreach ($files as $file) {
-        if ($file !== '.' && $file !== '..') {
-            $cleanFiles[] = $file;
-        }
-    }
-
-    return $cleanFiles;
-}
-
-
-function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
-    $methodNameWithNameSpace = '\\ccxt\\' . $testFiles[$methodName];
-    return call_user_func($methodNameWithNameSpace, $exchange, $skippedProperties, ... $args);
-}
-
-function call_overriden_method($exchange, $methodName, $args) {
-    // $overridenMethod = $exchange->{$methodName};
-    // return $overridenMethod(... $args);
-    return $exchange->call_method($methodName, ... $args);
-}
-
-function call_exchange_method_dynamically($exchange, $methodName, $args) {
-    return $exchange->{$methodName}(... $args);
-}
-
-function exception_message($exc) {
-    $full_trace = $exc->getTrace();
-    // temporarily disable below line, so we dump whole array
-    // $items = array_slice($full_trace, 0, 12); // 12 members are enough for proper trace 
-    $items = $full_trace;
-    $output = '';
-    foreach ($items as $item) {
-        if (array_key_exists('file', $item)) {
-            $output .= $item['file'];
-            if (array_key_exists('line', $item)) {
-                $output .= ':' . $item['line'];
-            }
-            if (array_key_exists('class', $item)) {
-                $output .= ' ::: ' . $item['class'];
-            }
-            if (array_key_exists('function', $item)) {
-                $output .= ' > ' . $item['function'];
-            }
-            $output .= "\n";
-        }
-    }
-    $output = preg_replace('/(\n(.*?)\/home\/travis\/build\/ccxt\/ccxt\/vendor\/)(.*?)\r/', '', $output); // remove excessive lines like: https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L3483
-    $origin_message = null;
-    try{
-        $origin_message = $exc->getMessage() . "\n" . $exc->getFile() . ':' . $exc->getLine();
-    } catch (\Throwable $exc) { 
-        $origin_message = '';
-    }
-    $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output;
-    return substr($final_message, 0, LOG_CHARS_LENGTH);
-}
-
-function exit_script($code = 0) {
-    exit($code);
-}
-
-function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
-    return property_exists ($exchange, $prop) ? $exchange->{$prop} : $defaultValue;
-}
-
-function set_exchange_prop ($exchange, $prop, $value) {
-    $exchange->{$prop} = $value;
-    // set snake case too
-    $exchange->{convert_to_snake_case($prop)} = $value;
-}
-function create_dynamic_class ($exchangeId, $originalClass, $args) {
-    $async_suffix = is_synchronous ? '_async' : '_sync';
-    $filePath = sys_get_temp_dir() . '/temp_dynamic_class_' . $exchangeId . $async_suffix . '.php';
-    $newClassName = $exchangeId . '_mock' . $async_suffix ;
-    if (is_synchronous) {
-        $content = '<?php if (!class_exists("'.$newClassName.'"))  {
-            class '. $newClassName . ' extends ' . $originalClass . ' {
-                public $fetch_result = null;
-                public function fetch($url, $method = "GET", $headers = null, $body = null) {
-                    if ($this->fetch_result) {
-                        return $this->fetch_result;
-                    }
-                    return parent::fetch($url, $method, $headers, $body);
-                }
-            }
-        }';
-    } else {
-        $content = '<?php 
-        use React\Async;
-        if (!class_exists("'.$newClassName.'"))  {
-            class '. $newClassName . ' extends ' . $originalClass . ' {
-                public $fetch_result = null;
-                public function fetch($url, $method = "GET", $headers = null, $body = null) {
-                    return Async\async (function() use ($url, $method, $headers, $body){
-                        if ($this->fetch_result) {
-                            return $this->fetch_result;
-                        }
-                        return  Async\await(parent::fetch($url, $method, $headers, $body));
-                    })();
-                }
-            }
-        }';
-    }
-    file_put_contents ($filePath, $content);
-    include_once $filePath;
-    $initedClass = new $newClassName($args);
-    // unlink ($filePath);
-    return $initedClass;
-}
-
-function init_exchange ($exchangeId, $args, $is_ws = false) {
-    $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
-    if ($is_ws) {
-        $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
-    }
-    $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
-    return $newClass;
-}
-
-function get_test_files ($properties, $ws = false) {
-    $func = function() use ($properties, $ws){
-        $tests = array();
-        $finalPropList = array_merge ($properties, [proxyTestFileName]);
-        for ($i = 0; $i < count($finalPropList); $i++) {
-            $methodName = $finalPropList[$i];
-            $name_snake_case = convert_to_snake_case($methodName);
-            $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async') .'/';
-            $test_method_name = 'test_'. $name_snake_case;
-            $test_file = $dir_to_test . $test_method_name . '.' . ext;
-            if (io_file_exists ($test_file)) {
-                include_once $test_file;
-                $tests[$methodName] = $test_method_name;
-            }
-        }
-        return $tests;
-    };
-    if (is_synchronous) {
-        return $func();
-    } else {
-        return Async\async ($func)();
-    }
-}
-
-function is_null_value($value) {
-    return $value === null;
-}
-
-function close($exchange) {
-    $func = function() use ($exchange) {
-        // for WS classes
-        if (method_exists($exchange, 'close')) {
-            return $exchange->close();
-        }
-        return true;
-    };
-    if (is_synchronous) {
-        return $func();
-    } else {
-        return Async\async ($func)();
-    }
-}
-
-function set_fetch_response($exchange, $data) {
-    $exchange->fetch_result = $data;
-    return $exchange;
-}
-
-// Required imports
+use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use ccxt\ProxyError;
-use ccxt\NetworkError;
 use ccxt\OperationFailed;
 use ccxt\ExchangeNotAvailable;
 use ccxt\OnMaintenance;
-use ccxt\AuthenticationError;
-use ccxt\ExchangeError;
 
-// *********************************
-// ***** AUTO-TRANSPILER-START *****
+require_once __DIR__ . '/helpers_for_tests.php';
 class testMainClass extends baseMainTestClass {
     public function parse_cli_args() {
         $this->response_tests = get_cli_arg_value('--responseTests');
@@ -562,7 +238,7 @@ class testMainClass extends baseMainTestClass {
                 return;
             }
             if ($this->info) {
-                $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+                $args_stringified = '(' . implode(',', $args) . ')';
                 dump($this->add_padding('[INFO] TESTING', 25), $this->exchange_hint($exchange), $method_name, $args_stringified);
             }
             Async\await(call_method($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args));
@@ -1392,7 +1068,6 @@ class testMainClass extends baseMainTestClass {
             'privateKey' => '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid' => 'uid',
             'token' => 'token',
-            'accountId' => 'accountId',
             'accounts' => [array(
     'id' => 'myAccount',
     'code' => 'USDT',
@@ -1417,23 +1092,6 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
             $exchange = $this->init_offline_exchange($exchange_name);
             $global_options = $exchange->safe_dict($exchange_data, 'options', array());
-            // read apiKey/secret from the test file
-            $api_key = $exchange->safe_string($exchange_data, 'apiKey');
-            if ($api_key) {
-                $exchange->apiKey = ((string) $api_key);
-            }
-            $secret = $exchange->safe_string($exchange_data, 'secret');
-            if ($secret) {
-                $exchange->secret = ((string) $secret);
-            }
-            $private_key = $exchange->safe_string($exchange_data, 'privateKey');
-            if ($private_key) {
-                $exchange->privateKey = ((string) $private_key);
-            }
-            $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
-            if ($wallet_address) {
-                $exchange->walletAddress = ((string) $wallet_address);
-            }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             $exchange->extend_exchange_options($global_options);
             $methods = $exchange->safe_value($exchange_data, 'methods', array());
@@ -1471,23 +1129,6 @@ class testMainClass extends baseMainTestClass {
     public function test_exchange_response_statically($exchange_name, $exchange_data, $test_name = null) {
         return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
             $exchange = $this->init_offline_exchange($exchange_name);
-            // read apiKey/secret from the test file
-            $api_key = $exchange->safe_string($exchange_data, 'apiKey');
-            if ($api_key) {
-                $exchange->apiKey = ((string) $api_key);
-            }
-            $secret = $exchange->safe_string($exchange_data, 'secret');
-            if ($secret) {
-                $exchange->secret = ((string) $secret);
-            }
-            $private_key = $exchange->safe_string($exchange_data, 'privateKey');
-            if ($private_key) {
-                $exchange->privateKey = ((string) $private_key);
-            }
-            $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
-            if ($wallet_address) {
-                $exchange->walletAddress = ((string) $wallet_address);
-            }
             $methods = $exchange->safe_value($exchange_data, 'methods', array());
             $options = $exchange->safe_value($exchange_data, 'options', array());
             // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
@@ -1606,7 +1247,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1998,101 +1639,4 @@ class testMainClass extends baseMainTestClass {
             return true;
         }) ();
     }
-
-    public function test_woofi_pro() {
-        return Async\async(function () {
-            $exchange = $this->init_offline_exchange('woofipro');
-            $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
-            $id = 'CCXT';
-            Async\await($exchange->load_markets());
-            $request = null;
-            try {
-                Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
-            } catch(\Throwable $e) {
-                $request = json_parse($exchange->last_request_body);
-            }
-            $broker_id = $request['order_tag'];
-            assert($broker_id === $id, 'woofipro - id: ' . $id . ' different from  broker_id: ' . $broker_id);
-            Async\await(close($exchange));
-            return true;
-        }) ();
-    }
-
-    public function test_oxfun() {
-        return Async\async(function () {
-            $exchange = $this->init_offline_exchange('oxfun');
-            $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
-            $id = 1000;
-            Async\await($exchange->load_markets());
-            $request = null;
-            try {
-                Async\await($exchange->create_order('BTC/USD:OX', 'limit', 'buy', 1, 20000));
-            } catch(\Throwable $e) {
-                $request = json_parse($exchange->last_request_body);
-            }
-            $orders = $request['orders'];
-            $first = $orders[0];
-            $broker_id = $first['source'];
-            assert($broker_id === $id, 'oxfun - id: ' . ((string) $id) . ' different from  broker_id: ' . ((string) $broker_id));
-            return true;
-        }) ();
-    }
-
-    public function test_xt() {
-        return Async\async(function () {
-            $exchange = $this->init_offline_exchange('xt');
-            $id = 'CCXT';
-            $spot_order_request = null;
-            try {
-                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
-            } catch(\Throwable $e) {
-                $spot_order_request = json_parse($exchange->last_request_body);
-            }
-            $spot_media = $spot_order_request['media'];
-            assert($spot_media === $id, 'xt - id: ' . $id . ' different from swap tag: ' . $spot_media);
-            $swap_order_request = null;
-            try {
-                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
-            } catch(\Throwable $e) {
-                $swap_order_request = json_parse($exchange->last_request_body);
-            }
-            $swap_media = $swap_order_request['clientMedia'];
-            assert($swap_media === $id, 'xt - id: ' . $id . ' different from swap tag: ' . $swap_media);
-            Async\await(close($exchange));
-            return true;
-        }) ();
-    }
-
-    public function test_vertex() {
-        return Async\async(function () {
-            $exchange = $this->init_offline_exchange('vertex');
-            $exchange->walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
-            $exchange->privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
-            $exchange->options['v1contracts'] = array(
-                'chain_id' => '42161',
-                'endpoint_addr' => '0xbbee07b3e8121227afcfe1e2b82772246226128e',
-                'book_addrs' => ['0x0000000000000000000000000000000000000000', '0x70e5911371472e406f1291c621d1c8f207764d73', '0xf03f457a30e598d5020164a339727ef40f2b8fbc', '0x1c6281a78aa0ed88949c319cba5f0f0de2ce8353', '0xfe653438a1a4a7f56e727509c341d60a7b54fa91', '0xb6304e9a6ca241376a5fc9294daa8fca65ddcdcd', '0x01ec802ae0ab1b2cc4f028b9fe6eb954aef06ed1', '0x0000000000000000000000000000000000000000', '0x9c52d5c4df5a68955ad088a781b4ab364a861e9e', '0x0000000000000000000000000000000000000000', '0x2a3bcda1bb3ef649f3571c96c597c3d2b25edc79', '0x0000000000000000000000000000000000000000', '0x0492ff9807f82856781488015ef7aa5526c0edd6', '0x0000000000000000000000000000000000000000', '0xea884c82418ebc21cd080b8f40ecc4d06a6a6883', '0x0000000000000000000000000000000000000000', '0x5ecf68f983253a818ca8c17a56a4f2fb48d6ec6b', '0x0000000000000000000000000000000000000000', '0xba3f57a977f099905531f7c2f294aad7b56ed254', '0x0000000000000000000000000000000000000000', '0x0ac8c26d207d0c6aabb3644fea18f530c4d6fc8e', '0x0000000000000000000000000000000000000000', '0x8bd80ad7630b3864bed66cf28f548143ea43dc3b', '0x0000000000000000000000000000000000000000', '0x045391227fc4b2cdd27b95f066864225afc9314e', '0x0000000000000000000000000000000000000000', '0x7d512bef2e6cfd7e7f5f6b2f8027e3728eb7b6c3', '0x0000000000000000000000000000000000000000', '0x678a6c5003b56b5e9a81559e9a0df880407c796f', '0x0000000000000000000000000000000000000000', '0x14b5a17208fa98843cc602b3f74e31c95ded3567', '0xe442a89a07b3888ab10579fbb2824aeceff3a282', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xac28ac205275d7c2d6877bea8657cebe04fd9ae9', '0x0000000000000000000000000000000000000000', '0xed811409bfea901e75cb19ba347c08a154e860c9', '0x0000000000000000000000000000000000000000', '0x0f7afcb1612b305626cff84f84e4169ba2d0f12c', '0x0000000000000000000000000000000000000000', '0xe4b8d903db2ce2d3891ef04cfc3ac56330c1b0c3', '0x5f44362bad629846b7455ad9d36bbc3759a3ef62', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xa64e04ed4b223a71e524dc7ebb7f28e422ccfdde', '0x0000000000000000000000000000000000000000', '0x2ee573caab73c1d8cf0ca6bd3589b67de79628a4', '0x0000000000000000000000000000000000000000', '0x01bb96883a8a478d4410387d4aaf11067edc2c74', '0x0000000000000000000000000000000000000000', '0xe7ed0c559d905436a867cddf07e06921d572363c', '0x0000000000000000000000000000000000000000', '0xa94f9e3433c92a5cd1925494811a67b1943557d9', '0x0000000000000000000000000000000000000000', '0xa63de7f89ba1270b85f3dcc193ff1a1390a7c7c7', '0x0000000000000000000000000000000000000000', '0xc8b0b37dffe3a711a076dc86dd617cc203f36121', '0x0000000000000000000000000000000000000000', '0x646df48947ff785fe609969ff634e7be9d1c34cd', '0x0000000000000000000000000000000000000000', '0x42582b404b0bec4a266631a0e178840b107a0c69', '0x0000000000000000000000000000000000000000', '0x36a94bc3edb1b629d1413091e22dc65fa050f17f', '0x0000000000000000000000000000000000000000', '0xb398d00b5a336f0ad33cfb352fd7646171cec442', '0x0000000000000000000000000000000000000000', '0xb4bc3b00de98e1c0498699379f6607b1f00bd5a1', '0x0000000000000000000000000000000000000000', '0xfe8b7baf68952bac2c04f386223d2013c1b4c601', '0x0000000000000000000000000000000000000000', '0x9c8764ec71f175c97c6c2fd558eb6546fcdbea32', '0x0000000000000000000000000000000000000000', '0x94d31188982c8eccf243e555b22dc57de1dba4e1', '0x0000000000000000000000000000000000000000', '0x407c5e2fadd7555be927c028bc358daa907c797a', '0x0000000000000000000000000000000000000000', '0x7e97da2dbbbdd7fb313cf9dc0581ac7cec999c70', '0x0000000000000000000000000000000000000000', '0x7f8d2662f64dd468c423805f98a6579ad59b28fa', '0x0000000000000000000000000000000000000000', '0x3398adf63fed17cbadd6080a1fb771e6a2a55958', '0x0000000000000000000000000000000000000000', '0xba8910a1d7ab62129729047d453091a1e6356170', '0x0000000000000000000000000000000000000000', '0xdc054bce222fe725da0f17abcef38253bd8bb745', '0x0000000000000000000000000000000000000000', '0xca21693467d0a5ea9e10a5a7c5044b9b3837e694', '0x0000000000000000000000000000000000000000', '0xe0b02de2139256dbae55cf350094b882fbe629ea', '0x0000000000000000000000000000000000000000', '0x02c38368a6f53858aab5a3a8d91d73eb59edf9b9', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xfe8c4778843c3cb047ffe7c0c0154a724c05cab9', '0x0000000000000000000000000000000000000000', '0xe2e88862d9b7379e21c82fc4aec8d71bddbcdb4b', '0x0000000000000000000000000000000000000000', '0xbbaff9e73b30f9cea5c01481f12de75050947fd6', '0x0000000000000000000000000000000000000000', '0xa20f6f381fe0fec5a1035d37ebf8890726377ab9', '0x0000000000000000000000000000000000000000', '0xbad68032d012bf35d3a2a177b242e86684027ed0', '0x0000000000000000000000000000000000000000', '0x0e61ca37f0c67e8a8794e45e264970a2a23a513c', '0x0000000000000000000000000000000000000000', '0xa77b7048e378c5270b15918449ededf87c3a3db3', '0x0000000000000000000000000000000000000000', '0x15afca1e6f02b556fa6551021b3493a1e4a7f44f'],
-            );
-            $id = 5930043274845996;
-            Async\await($exchange->load_markets());
-            $request = null;
-            try {
-                Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
-            } catch(\Throwable $e) {
-                $request = json_parse($exchange->last_request_body);
-            }
-            $order = $request['place_order'];
-            $broker_id = $order['id'];
-            assert($broker_id === $id, 'vertex - id: ' . ((string) $id) . ' different from  broker_id: ' . ((string) $broker_id));
-            Async\await(close($exchange));
-            return true;
-        }) ();
-    }
-}
-
-// ***** AUTO-TRANSPILER-END *****
-// *******************************
-$promise = (new testMainClass())->init($argvExchange, $argvSymbol, $argvMethod);
-if (!is_synchronous) {
-    Async\await($promise);
 }
