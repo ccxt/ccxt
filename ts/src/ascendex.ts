@@ -27,7 +27,6 @@ export default class ascendex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
@@ -94,6 +93,7 @@ export default class ascendex extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,

@@ -77,6 +77,7 @@ public partial class bitmex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "reduceMargin", null },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", null },
                 { "setMarginMode", true },

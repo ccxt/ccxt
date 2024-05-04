@@ -117,6 +117,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,

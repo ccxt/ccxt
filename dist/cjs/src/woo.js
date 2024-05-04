@@ -24,6 +24,7 @@ class woo extends woo$1 {
             'pro': true,
             'hostname': 'woo.org',
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,

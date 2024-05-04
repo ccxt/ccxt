@@ -22,6 +22,7 @@ class hitbtc extends hitbtc$1 {
             'rateLimit': 3.333,
             'version': '3',
             'has': {
+                'sandbox': true,
                 'CORS': false,
                 'spot': true,
                 'margin': true,

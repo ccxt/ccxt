@@ -109,6 +109,7 @@ class hyperliquid extends Exchange {
                 'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,

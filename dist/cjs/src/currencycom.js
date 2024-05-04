@@ -24,6 +24,7 @@ class currencycom extends currencycom$1 {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,

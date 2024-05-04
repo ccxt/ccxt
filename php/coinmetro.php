@@ -110,6 +110,7 @@ class coinmetro extends Exchange {
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,

@@ -24,6 +24,7 @@ export default class wavesexchange extends Exchange {
             'certified': false,
             'pro': false,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

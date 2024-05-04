@@ -22,6 +22,7 @@ class cryptocom extends cryptocom$1 {
             'certified': true,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': false,
                 'spot': true,
                 'margin': true,

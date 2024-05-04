@@ -70,6 +70,7 @@ class gate extends gate$1 {
                 },
             },
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,

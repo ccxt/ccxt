@@ -85,6 +85,7 @@ class bitmex extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => null,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => null,
                 'setMarginMode' => true,

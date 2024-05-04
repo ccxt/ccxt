@@ -122,6 +122,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,

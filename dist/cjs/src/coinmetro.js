@@ -22,6 +22,7 @@ class coinmetro extends coinmetro$1 {
             'certified': false,
             'pro': false,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,

@@ -24,6 +24,7 @@ class phemex extends phemex$1 {
             'pro': true,
             'hostname': 'api.phemex.com',
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

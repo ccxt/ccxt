@@ -27,6 +27,7 @@ export default class currencycom extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,

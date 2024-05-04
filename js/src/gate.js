@@ -73,6 +73,7 @@ export default class gate extends Exchange {
                 },
             },
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,

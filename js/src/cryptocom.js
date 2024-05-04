@@ -25,6 +25,7 @@ export default class cryptocom extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': false,
                 'spot': true,
                 'margin': true,

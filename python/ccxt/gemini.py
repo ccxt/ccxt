@@ -95,6 +95,7 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'postOnly': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,

@@ -81,6 +81,7 @@ public partial class alpaca : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawals", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "transfer", false },

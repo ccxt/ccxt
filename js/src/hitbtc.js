@@ -25,6 +25,7 @@ export default class hitbtc extends Exchange {
             'rateLimit': 3.333,
             'version': '3',
             'has': {
+                'sandbox': true,
                 'CORS': false,
                 'spot': true,
                 'margin': true,

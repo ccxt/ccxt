@@ -351,6 +351,7 @@ export default class Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'CORS': undefined,
+                'sandbox': undefined,
                 'spot': undefined,
                 'margin': undefined,
                 'swap': undefined,

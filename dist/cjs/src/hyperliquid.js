@@ -25,6 +25,7 @@ class hyperliquid extends hyperliquid$1 {
             'certified': false,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

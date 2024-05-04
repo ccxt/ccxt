@@ -27,6 +27,7 @@ class binance extends binance$1 {
             // new metainfo2 interface
             'has': {
                 'CORS': undefined,
+                'sandbox': true,
                 'spot': true,
                 'margin': true,
                 'swap': true,

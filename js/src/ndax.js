@@ -25,6 +25,7 @@ export default class ndax extends Exchange {
             'rateLimit': 1000,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

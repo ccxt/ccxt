@@ -108,6 +108,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': False,

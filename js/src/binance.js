@@ -30,6 +30,7 @@ export default class binance extends Exchange {
             // new metainfo2 interface
             'has': {
                 'CORS': undefined,
+                'sandbox': true,
                 'spot': true,
                 'margin': true,
                 'swap': true,

@@ -24,6 +24,7 @@ class bingx extends bingx$1 {
             'certified': true,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

@@ -26,6 +26,7 @@ class bybit extends bybit$1 {
             'pro': true,
             'certified': true,
             'has': {
+                'sandbox': true,
                 'CORS': true,
                 'spot': true,
                 'margin': true,

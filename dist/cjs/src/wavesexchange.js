@@ -21,6 +21,7 @@ class wavesexchange extends wavesexchange$1 {
             'certified': false,
             'pro': false,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

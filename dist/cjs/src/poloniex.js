@@ -23,6 +23,7 @@ class poloniex extends poloniex$1 {
             'certified': false,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,

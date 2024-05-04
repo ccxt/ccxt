@@ -27,6 +27,7 @@ export default class okx extends Exchange {
             'certified': true,
             'has': {
                 'CORS': undefined,
+                'sandbox': true,
                 'spot': true,
                 'margin': true,
                 'swap': true,

@@ -24,6 +24,7 @@ class okx extends okx$1 {
             'certified': true,
             'has': {
                 'CORS': undefined,
+                'sandbox': true,
                 'spot': true,
                 'margin': true,
                 'swap': true,

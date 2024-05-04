@@ -31,6 +31,7 @@ export default class bitmex extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

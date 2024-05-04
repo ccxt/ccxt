@@ -61,6 +61,7 @@ public partial class poloniex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawals", true },
+                { "sandbox", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },

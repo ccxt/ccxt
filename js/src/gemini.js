@@ -27,6 +27,7 @@ export default class gemini extends Exchange {
             'version': 'v1',
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

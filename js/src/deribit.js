@@ -29,6 +29,7 @@ export default class deribit extends Exchange {
             'rateLimit': 50,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': true,
                 'spot': false,
                 'margin': false,

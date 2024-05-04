@@ -113,6 +113,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setPositionMode': True,

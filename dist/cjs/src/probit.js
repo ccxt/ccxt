@@ -20,6 +20,7 @@ class probit extends probit$1 {
             'rateLimit': 50,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': true,
                 'spot': true,
                 'margin': false,

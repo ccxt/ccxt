@@ -25,6 +25,7 @@ export default class coinmetro extends Exchange {
             'certified': false,
             'pro': false,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,

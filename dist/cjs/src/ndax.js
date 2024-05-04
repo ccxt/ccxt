@@ -22,6 +22,7 @@ class ndax extends ndax$1 {
             'rateLimit': 1000,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

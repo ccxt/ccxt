@@ -27,7 +27,6 @@ export default class hyperliquid extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
@@ -109,6 +108,7 @@ export default class hyperliquid extends Exchange {
                 'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,

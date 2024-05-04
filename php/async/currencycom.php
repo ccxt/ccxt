@@ -106,6 +106,7 @@ class currencycom extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => null,
+                'sandbox' => true,
                 'setLeverage' => null,
                 'setMarginMode' => null,
                 'setPositionMode' => null,

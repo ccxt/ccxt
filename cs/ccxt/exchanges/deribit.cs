@@ -84,6 +84,7 @@ public partial class deribit : Exchange
                 { "fetchVolatilityHistory", true },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
+                { "sandbox", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },

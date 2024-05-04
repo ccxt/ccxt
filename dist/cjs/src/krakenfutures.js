@@ -24,6 +24,7 @@ class krakenfutures extends krakenfutures$1 {
             'rateLimit': 600,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': false,
                 'margin': false,

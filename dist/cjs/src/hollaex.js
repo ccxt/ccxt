@@ -23,6 +23,7 @@ class hollaex extends hollaex$1 {
             'version': 'v2',
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,

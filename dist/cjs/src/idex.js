@@ -27,6 +27,7 @@ class idex extends idex$1 {
             'certified': false,
             'requiresWeb3': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

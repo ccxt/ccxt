@@ -24,6 +24,7 @@ class gemini extends gemini$1 {
             'version': 'v1',
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

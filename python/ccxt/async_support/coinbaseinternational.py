@@ -113,6 +113,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMargin': True,
                 'setMarginMode': False,

@@ -70,7 +70,6 @@ export default class gate extends Exchange {
                 },
             },
             'has': {
-                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
@@ -158,6 +157,7 @@ export default class gate extends Exchange {
                 'reduceMargin': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': true,

@@ -27,6 +27,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 'CB-VERSION': '2018-05-30',
             },
             'has': {
+                'sandbox': true,
                 'CORS': true,
                 'spot': true,
                 'margin': true,
