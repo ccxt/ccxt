@@ -2406,7 +2406,15 @@ class Transpiler {
 
         // ########### PHP ###########
         const phpReform = (cont) => {
-            let newContent = cont ;
+            // add exceptions
+            let exceptions = '';
+            for (const eType of Object.keys(errors)) {
+                if (cont.includes (' ' + eType)) {
+                    exceptions += `use ccxt\\${eType};\n`;
+                }
+            }
+            let newContent = '<?php\n\n' + exceptions + '\nrequire_once __DIR__ . \'/helpers_for_tests.php\';\n';
+            newContent += cont;
             newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
