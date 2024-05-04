@@ -192,7 +192,24 @@ export default class oxfun extends Exchange {
                 },
             },
             'fees': {
-                // todo: deduce the fees from the API
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true, // todo check
+                    'maker': this.parseNumber ('0.00020'),
+                    'taker': this.parseNumber ('0.00070'),
+                    'tiers': {
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00020') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.00010') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00070') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.00050') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.00040') ],
+                        ],
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             // exchange-specific options
