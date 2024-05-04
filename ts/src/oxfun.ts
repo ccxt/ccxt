@@ -223,7 +223,7 @@ export default class oxfun extends Exchange {
                     'Ethereum': 'ERC20',
                     'Avalanche': 'AVAX',
                     'Solana': 'SOL',
-                    'Arbitrum': 'ERC20', // todo check
+                    'Arbitrum': 'ARB', // todo check
                     'Polygon': 'MATIC', // todo check
                     'Fantom': 'FTM', // todo check
                     'Base': 'ERC20', // todo check
