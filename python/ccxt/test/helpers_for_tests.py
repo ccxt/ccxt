@@ -50,6 +50,8 @@ class Argv(object):
     symbol = None
     info = False
     is_sync = False
+    baseTests = False
+    exchangeTests = False
     pass
 
 
@@ -68,6 +70,8 @@ parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
 parser.add_argument('--requestTests', action='store_true', help='run response tests')
 parser.add_argument('--is_sync', action='store_true', help='is sync')
+parser.add_argument('--baseTests', action='store_true', help='is base tests')
+parser.add_argument('--exchangeTests', action='store_true', help='is exchange tests')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -263,3 +267,7 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
     exchange.fetch = fetch
     return exchange
 
+
+argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
+# in python, we check it through "symbol" arg (as opposed to JS/PHP) because argvs were already built above
+argvMethod = argv.symbol if argv.symbol and '()' in argv.symbol else None
