@@ -53,6 +53,19 @@
                 "output": "timestamp=1707174812474&symbol=LTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S8281350e594e8f4383a36f19&type=LIMIT_MAKER&quantity=0.2&price=50&recvWindow=10000&signature=4e01e6b644312f26fce0be6524ed2eda08079dec6b6f1f2670a685362e39c6f1"
             },
             {
+                "description": "spot order with weird amount",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0007856509959147719,
+                  55000
+                ],
+                "output": "timestamp=1714835089402&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8248a31eddb97c4bd496a6b0&newOrderRespType=FULL&type=LIMIT&quantity=0.00078&price=55000&timeInForce=GTC&recvWindow=10000&signature=50aeda30bb2261723ead2d178f4fa1c8a270af2ec9d787cf4ae8cfe44c11516f"
+            },
+            {
                 "description": "Swap market buy order",
                 "method": "createOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order",
