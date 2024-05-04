@@ -25,6 +25,7 @@ export default class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but not fully implemented

@@ -29,6 +29,7 @@ export default class idex extends Exchange {
             'certified': false,
             'requiresWeb3': true,
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,

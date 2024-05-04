@@ -26,6 +26,7 @@ export default class phemex extends Exchange {
             'pro': true,
             'hostname': 'api.phemex.com',
             'has': {
+                'sandbox': true,
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
