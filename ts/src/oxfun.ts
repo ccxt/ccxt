@@ -4,7 +4,7 @@
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Currencies, Market } from './base/types.js';
+import type { Bool, Currencies, Market, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -122,7 +122,7 @@ export default class oxfun extends Exchange {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': false,
-                'ws': false,
+                'ws': true,
             },
             'timeframes': {
                 '1m': '60s',
@@ -345,7 +345,7 @@ export default class oxfun extends Exchange {
             'swap': isFuture,
             'future': false,
             'option': false,
-            'active': undefined, // todo check
+            'active': true, // todo check
             'contract': isFuture,
             'linear': true, // todo check
             'inverse': false,
@@ -596,6 +596,146 @@ export default class oxfun extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name oxfun#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.ox.fun/?json#get-v3-tickers
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV3Tickers (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "NII-USDT",
+        //                 "markPrice": "0",
+        //                 "open24h": "0",
+        //                 "high24h": "0",
+        //                 "low24h": "0",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "0",
+        //                 "lastTradedPrice": "0",
+        //                 "lastTradedQuantity": "0",
+        //                 "lastUpdatedAt": "1714853388621"
+        //             },
+        //             {
+        //                 "marketCode": "GEC-USDT",
+        //                 "markPrice": "0",
+        //                 "open24h": "0",
+        //                 "high24h": "0",
+        //                 "low24h": "0",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "0",
+        //                 "lastTradedPrice": "0",
+        //                 "lastTradedQuantity": "0",
+        //                 "lastUpdatedAt": "1714853388621"
+        //             },
+        //             {
+        //                 "marketCode": "DYM-USD-SWAP-LIN",
+        //                 "markPrice": "3.321",
+        //                 "open24h": "3.315",
+        //                 "high24h": "3.356",
+        //                 "low24h": "3.255",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "1768.1",
+        //                 "lastTradedPrice": "3.543",
+        //                 "lastTradedQuantity": "1.0",
+        //                 "lastUpdatedAt": "1714853388102"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList (response, 'data', []);
+        return this.parseTickers (tickers, symbols);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker { // todo make sure the parsed ticker is correct
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "NII-USDT",
+        //                 "markPrice": "0",
+        //                 "open24h": "0",
+        //                 "high24h": "0",
+        //                 "low24h": "0",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "0",
+        //                 "lastTradedPrice": "0",
+        //                 "lastTradedQuantity": "0",
+        //                 "lastUpdatedAt": "1714853388621"
+        //             },
+        //             {
+        //                 "marketCode": "GEC-USDT",
+        //                 "markPrice": "0",
+        //                 "open24h": "0",
+        //                 "high24h": "0",
+        //                 "low24h": "0",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "0",
+        //                 "lastTradedPrice": "0",
+        //                 "lastTradedQuantity": "0",
+        //                 "lastUpdatedAt": "1714853388621"
+        //             },
+        //             {
+        //                 "marketCode": "DYM-USD-SWAP-LIN",
+        //                 "markPrice": "3.321",
+        //                 "open24h": "3.315",
+        //                 "high24h": "3.356",
+        //                 "low24h": "3.255",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "1768.1",
+        //                 "lastTradedPrice": "3.543",
+        //                 "lastTradedQuantity": "1.0",
+        //                 "lastUpdatedAt": "1714853388102"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct (ticker, 'lastUpdatedAt', 0.001);
+        const marketId = this.safeString (ticker, 'marketCode');
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeString (ticker, 'lastTradedPrice');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (ticker, 'high24h'),
+            'low': this.safeNumber (ticker, 'low24h'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'open24h'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeNumber (ticker, 'volume24h'),
+            'quoteVolume': this.safeNumber (ticker, 'currencyVolume24h'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
