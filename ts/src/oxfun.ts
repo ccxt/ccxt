@@ -618,9 +618,15 @@ export default class oxfun extends Exchange {
                     },
                     'info': chain,
                 };
-                currencyDepositEnabled = ((currencyDepositEnabled === undefined) || deposit) ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = ((currencyWithdrawEnabled === undefined) || withdraw) ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = ((currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision)) ? precision : currencyMaxPrecision;
+                if ((currencyDepositEnabled === undefined) || deposit) {
+                    currencyDepositEnabled = deposit;
+                }
+                if ((currencyWithdrawEnabled === undefined) || withdraw) {
+                    currencyWithdrawEnabled = withdraw;
+                }
+                if ((currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision)) {
+                    currencyMaxPrecision = precision;
+                }
             }
             result[code] = {
                 'id': id,
