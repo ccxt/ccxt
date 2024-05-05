@@ -4,7 +4,7 @@
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Currencies, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Bool, Currencies, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ export default class oxfun extends Exchange {
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
@@ -101,7 +101,7 @@ export default class oxfun extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': true,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -151,13 +151,13 @@ export default class oxfun extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v3/markets': 1,
-                        'v3/assets': 1,
-                        'v3/tickers': 1,
+                        'v3/markets': 1, // unified
+                        'v3/assets': 1, // unified
+                        'v3/tickers': 1, // unified
                         'v3/funding/estimates': 1,
-                        'v3/candles': 1,
-                        'v3/depth': 1,
-                        'v3/markets/operational': 1,
+                        'v3/candles': 1, // unified
+                        'v3/depth': 1, // unified
+                        'v3/markets/operational': 1, // todo check if it is useful
                         'v3/exchange-trades': 1,
                         'v3/funding/rates': 1,
                         'v3/leverage/tiers': 1,
@@ -826,7 +826,7 @@ export default class oxfun extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeNumber (params, 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
             params = this.omit (params, 'until');
@@ -936,6 +936,98 @@ export default class oxfun extends Exchange {
         const data = this.safeDict (response, 'data');
         const timestamp = this.safeInteger (data, 'lastUpdatedAt');
         return this.parseOrderBook (data, market['symbol'], timestamp);
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name oxfun#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.ox.fun/?json#get-v3-exchange-trades
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketCode': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        // todo should we add this?
+        // else if (since !== undefined) {
+        //     request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000);
+        // }
+        const response = await this.publicGetV3ExchangeTrades (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "BTC-USD-SWAP-LIN",
+        //                 "matchPrice": "63900",
+        //                 "matchQuantity": "1",
+        //                 "side": "SELL",
+        //                 "matchType": "TAKER",
+        //                 "matchedAt": "1714934112352"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    parseTrade (trade, market: Market = undefined): Trade {
+        //
+        //  public fetchTrades
+        //
+        //     {
+        //         "marketCode": "BTC-USD-SWAP-LIN",
+        //         "matchPrice": "63900",
+        //         "matchQuantity": "1",
+        //         "side": "SELL",
+        //         "matchType": "TAKER",
+        //         "matchedAt": "1714934112352"
+        //     }
+        //
+        const marketId = this.safeString (trade, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (trade, 'matchedAt');
+        const price = this.safeString (trade, 'matchPrice');
+        const amount = this.safeString2 (trade, 'matchQuantity', 'matchedQuantity');
+        const side = this.safeStringLower (trade, 'side');
+        const type = this.safeStringLower2 (trade, 'matchType', 'orderMatchType');
+        return this.safeTrade ({
+            'id': undefined, // check for fetchMyTrades
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'order': undefined, // check for fetchMyTrades
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
