@@ -101,6 +101,7 @@ class probit(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,

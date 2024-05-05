@@ -81,6 +81,7 @@ export default class phemex extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
@@ -2389,7 +2390,7 @@ export default class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.omitZero (this.safeNumber2 (order, 'stopPx', 'stopPxRp'));
+        const stopPrice = this.omitZero (this.safeString2 (order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue (order, 'reduceOnly');
         const execInst = this.safeString (order, 'execInst');

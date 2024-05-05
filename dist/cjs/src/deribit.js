@@ -94,6 +94,7 @@ class deribit extends deribit$1 {
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'sandbox': true,
                 'transfer': true,
                 'withdraw': true,
             },

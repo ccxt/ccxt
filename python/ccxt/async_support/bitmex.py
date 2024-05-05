@@ -100,6 +100,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'reduceMargin': None,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': None,
                 'setMarginMode': True,

@@ -104,6 +104,7 @@ class woo extends woo$1 {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': true,

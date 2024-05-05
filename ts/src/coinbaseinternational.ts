@@ -106,6 +106,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMargin': true,
                 'setMarginMode': false,

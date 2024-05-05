@@ -90,6 +90,7 @@ export default class hitbtc extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -614,6 +615,7 @@ export default class hitbtc extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {

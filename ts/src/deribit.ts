@@ -96,6 +96,7 @@ export default class deribit extends Exchange {
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'sandbox': true,
                 'transfer': true,
                 'withdraw': true,
             },

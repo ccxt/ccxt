@@ -131,6 +131,7 @@ public partial class okx : Exchange
                 { "fetchWithdrawalWhitelist", false },
                 { "reduceMargin", true },
                 { "repayCrossMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setMarginMode", true },

@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.13';
+$version = '4.3.16';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.13';
+    const VERSION = '4.3.16';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1202,6 +1202,11 @@ class Exchange {
         }
 
         $this->after_construct();
+
+        $is_sandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', False);
+        if ($is_sandbox) {
+            $this->set_sandbox_mode($is_sandbox);
+        }
     }
 
     public static function underscore($camelcase) {
@@ -3826,15 +3831,15 @@ class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return array_merge($ticker, array(
-            'bid' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'bid'))),
+            'bid' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'bid'))),
             'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
-            'ask' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'ask'))),
+            'ask' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'ask'))),
             'askVolume' => $this->safe_number($ticker, 'askVolume'),
             'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high'))),
-            'low' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'low'))),
-            'open' => $this->parse_number($this->omit_zero($this->parse_number($open))),
-            'close' => $this->parse_number($this->omit_zero($this->parse_number($close))),
-            'last' => $this->parse_number($this->omit_zero($this->parse_number($last))),
+            'low' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'low'))),
+            'open' => $this->parse_number($this->omit_zero($open)),
+            'close' => $this->parse_number($this->omit_zero($close)),
+            'last' => $this->parse_number($this->omit_zero($last)),
             'change' => $this->parse_number($change),
             'percentage' => $this->parse_number($percentage),
             'average' => $this->parse_number($average),
@@ -6755,22 +6760,24 @@ class Exchange {
         $maxRetries = null;
         list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
         $errors = 0;
-        try {
-            if ($timeframe && $method !== 'fetchFundingRateHistory') {
-                return $this->$method ($symbol, $timeframe, $since, $limit, $params);
-            } else {
-                return $this->$method ($symbol, $since, $limit, $params);
-            }
-        } catch (Exception $e) {
-            if ($e instanceof RateLimitExceeded) {
-                throw $e; // if we are rate limited, we should not retry and fail fast
-            }
-            $errors += 1;
-            if ($errors > $maxRetries) {
-                throw $e;
+        while ($errors <= $maxRetries) {
+            try {
+                if ($timeframe && $method !== 'fetchFundingRateHistory') {
+                    return $this->$method ($symbol, $timeframe, $since, $limit, $params);
+                } else {
+                    return $this->$method ($symbol, $since, $limit, $params);
+                }
+            } catch (Exception $e) {
+                if ($e instanceof RateLimitExceeded) {
+                    throw $e; // if we are rate limited, we should not retry and fail fast
+                }
+                $errors += 1;
+                if ($errors > $maxRetries) {
+                    throw $e;
+                }
             }
         }
-        return null;
+        return array();
     }
 
     public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array (), $maxEntriesPerRequest = null) {
@@ -6784,6 +6791,8 @@ class Exchange {
         $currentSince = $current - ($maxCalls * $step) - 1;
         if ($since !== null) {
             $currentSince = max ($currentSince, $since);
+        } else {
+            $currentSince = max ($currentSince, 1241440531000); // avoid timestamps older than 2009
         }
         $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
         if ($until !== null) {
@@ -6794,6 +6803,9 @@ class Exchange {
         }
         for ($i = 0; $i < $maxCalls; $i++) {
             if (($until !== null) && ($currentSince >= $until)) {
+                break;
+            }
+            if ($currentSince >= $current) {
                 break;
             }
             $tasks[] = $this->safe_deterministic_call($method, $symbol, $currentSince, $maxEntriesPerRequest, $timeframe, $params);

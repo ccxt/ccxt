@@ -108,6 +108,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -632,6 +633,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {

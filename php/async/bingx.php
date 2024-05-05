@@ -89,6 +89,7 @@ class bingx extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
                 'setMarginMode' => true,
@@ -392,6 +393,7 @@ class bingx extends Exchange {
                     '100202' => '\\ccxt\\InsufficientFunds',
                     '100204' => '\\ccxt\\BadRequest',
                     '100400' => '\\ccxt\\BadRequest',
+                    '100410' => '\\ccxt\\OperationFailed', // array("code":100410,"msg":"The current system is busy, please try again later")
                     '100421' => '\\ccxt\\BadSymbol', // array("code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":"")
                     '100440' => '\\ccxt\\ExchangeError',
                     '100500' => '\\ccxt\\OperationFailed', // array("code":100500,"msg":"The current system is busy, please try again later","debugMsg":"")

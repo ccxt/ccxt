@@ -98,6 +98,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': False,

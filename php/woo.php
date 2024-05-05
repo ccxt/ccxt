@@ -101,6 +101,7 @@ class woo extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setPositionMode' => true,

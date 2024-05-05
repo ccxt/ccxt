@@ -86,6 +86,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,

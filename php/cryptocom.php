@@ -100,6 +100,7 @@ class cryptocom extends Exchange {
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -493,7 +494,8 @@ class cryptocom extends Exchange {
             $strike = $this->safe_string($market, 'strike');
             $marginBuyEnabled = $this->safe_value($market, 'margin_buy_enabled');
             $marginSellEnabled = $this->safe_value($market, 'margin_sell_enabled');
-            $expiry = $this->omit_zero($this->safe_integer($market, 'expiry_timestamp_ms'));
+            $expiryString = $this->omit_zero($this->safe_string($market, 'expiry_timestamp_ms'));
+            $expiry = ($expiryString !== null) ? intval($expiryString) : null;
             $symbol = $base . '/' . $quote;
             $type = null;
             $contract = null;

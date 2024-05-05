@@ -145,6 +145,7 @@ class okx extends Exchange {
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => true,
                 'repayCrossMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => true,

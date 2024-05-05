@@ -79,6 +79,7 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,

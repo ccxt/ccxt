@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.13'
+__version__ = '4.3.16'
 
 # -----------------------------------------------------------------------------
 
@@ -460,6 +460,10 @@ class Exchange(object):
             self.set_markets(self.markets)
 
         self.after_construct()
+
+        is_sandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
+        if is_sandbox:
+            self.set_sandbox_mode(is_sandbox)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -3088,15 +3092,15 @@ class Exchange(object):
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
         return self.extend(ticker, {
-            'bid': self.parse_number(self.omit_zero(self.safe_number(ticker, 'bid'))),
+            'bid': self.parse_number(self.omit_zero(self.safe_string(ticker, 'bid'))),
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
-            'ask': self.parse_number(self.omit_zero(self.safe_number(ticker, 'ask'))),
+            'ask': self.parse_number(self.omit_zero(self.safe_string(ticker, 'ask'))),
             'askVolume': self.safe_number(ticker, 'askVolume'),
             'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high'))),
-            'low': self.parse_number(self.omit_zero(self.safe_number(ticker, 'low'))),
-            'open': self.parse_number(self.omit_zero(self.parse_number(open))),
-            'close': self.parse_number(self.omit_zero(self.parse_number(close))),
-            'last': self.parse_number(self.omit_zero(self.parse_number(last))),
+            'low': self.parse_number(self.omit_zero(self.safe_string(ticker, 'low'))),
+            'open': self.parse_number(self.omit_zero(open)),
+            'close': self.parse_number(self.omit_zero(close)),
+            'last': self.parse_number(self.omit_zero(last)),
             'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
             'average': self.parse_number(average),
@@ -5464,18 +5468,19 @@ class Exchange(object):
         maxRetries = None
         maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
         errors = 0
-        try:
-            if timeframe and method != 'fetchFundingRateHistory':
-                return getattr(self, method)(symbol, timeframe, since, limit, params)
-            else:
-                return getattr(self, method)(symbol, since, limit, params)
-        except Exception as e:
-            if isinstance(e, RateLimitExceeded):
-                raise e  # if we are rate limited, we should not retry and fail fast
-            errors += 1
-            if errors > maxRetries:
-                raise e
-        return None
+        while(errors <= maxRetries):
+            try:
+                if timeframe and method != 'fetchFundingRateHistory':
+                    return getattr(self, method)(symbol, timeframe, since, limit, params)
+                else:
+                    return getattr(self, method)(symbol, since, limit, params)
+            except Exception as e:
+                if isinstance(e, RateLimitExceeded):
+                    raise e  # if we are rate limited, we should not retry and fail fast
+                errors += 1
+                if errors > maxRetries:
+                    raise e
+        return []
 
     def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest=None):
         maxCalls = None
@@ -5488,6 +5493,8 @@ class Exchange(object):
         currentSince = current - (maxCalls * step) - 1
         if since is not None:
             currentSince = max(currentSince, since)
+        else:
+            currentSince = max(currentSince, 1241440531000)  # avoid timestamps older than 2009
         until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
         if until is not None:
             requiredCalls = int(math.ceil((until - since)) / step)
@@ -5495,6 +5502,8 @@ class Exchange(object):
                 raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCalls) + ' required calls is ' + str(requiredCalls))
         for i in range(0, maxCalls):
             if (until is not None) and (currentSince >= until):
+                break
+            if currentSince >= current:
                 break
             tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
             currentSince = self.sum(currentSince, step) - 1

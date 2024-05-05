@@ -96,6 +96,7 @@ public partial class cryptocom : Exchange
                 { "reduceMargin", false },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -469,7 +470,8 @@ public partial class cryptocom : Exchange
             object strike = this.safeString(market, "strike");
             object marginBuyEnabled = this.safeValue(market, "margin_buy_enabled");
             object marginSellEnabled = this.safeValue(market, "margin_sell_enabled");
-            object expiry = this.omitZero(this.safeInteger(market, "expiry_timestamp_ms"));
+            object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
+            object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
             object type = null;
             object contract = null;

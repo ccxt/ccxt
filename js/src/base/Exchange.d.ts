@@ -200,13 +200,13 @@ export default class Exchange {
     numberToBE: (n: number, padding: number) => Uint8Array;
     base16ToBinary: (str: string) => Uint8Array;
     iso8601: (timestamp: any) => string;
-    omit: (x: Dictionary<any>, ...args: any[]) => any;
+    omit: (x: Dictionary<any>, ...args: any) => any;
     isJsonEncodedObject: (object: any) => boolean;
     safeInteger: (o: any, k: IndexType, $default?: number) => number;
     sum: (...xs: any[]) => any;
     omitZero: typeof functions.omitZero;
-    implodeParams: (string: any, params: any) => any;
-    extractParams: (string: any) => any[];
+    implodeParams: (string: string, params: any[] | Dictionary<any>) => string;
+    extractParams: (string: string) => string[];
     json: (data: any, params?: any) => string;
     vwap: typeof functions.vwap;
     merge: (target: Dictionary<any>, ...args: any) => Dictionary<any>;
@@ -289,6 +289,7 @@ export default class Exchange {
             publicAPI: boolean;
             privateAPI: boolean;
             CORS: any;
+            sandbox: any;
             spot: any;
             margin: any;
             swap: any;
@@ -993,7 +994,7 @@ export default class Exchange {
     amountToPrecision(symbol: string, amount: any): any;
     feeToPrecision(symbol: string, fee: any): any;
     currencyToPrecision(code: string, fee: any, networkCode?: any): any;
-    forceString(value: any): any;
+    forceString(value: any): string;
     isTickPrecision(): boolean;
     isDecimalPrecision(): boolean;
     isSignificantPrecision(): boolean;
@@ -1002,7 +1003,7 @@ export default class Exchange {
     parsePrecision(precision?: string): string;
     integerPrecisionToAmount(precision: Str): string;
     loadTimeDifference(params?: {}): Promise<any>;
-    implodeHostname(url: string): any;
+    implodeHostname(url: string): string;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;
     createPostOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createPostOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;

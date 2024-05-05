@@ -1967,15 +1967,15 @@ public partial class Exchange
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend(ticker, new Dictionary<string, object>() {
-            { "bid", this.parseNumber(this.omitZero(this.safeNumber(ticker, "bid"))) },
+            { "bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))) },
             { "bidVolume", this.safeNumber(ticker, "bidVolume") },
-            { "ask", this.parseNumber(this.omitZero(this.safeNumber(ticker, "ask"))) },
+            { "ask", this.parseNumber(this.omitZero(this.safeString(ticker, "ask"))) },
             { "askVolume", this.safeNumber(ticker, "askVolume") },
             { "high", this.parseNumber(this.omitZero(this.safeString(ticker, "high"))) },
-            { "low", this.parseNumber(this.omitZero(this.safeNumber(ticker, "low"))) },
-            { "open", this.parseNumber(this.omitZero(this.parseNumber(open))) },
-            { "close", this.parseNumber(this.omitZero(this.parseNumber(close))) },
-            { "last", this.parseNumber(this.omitZero(this.parseNumber(last))) },
+            { "low", this.parseNumber(this.omitZero(this.safeString(ticker, "low"))) },
+            { "open", this.parseNumber(this.omitZero(open)) },
+            { "close", this.parseNumber(this.omitZero(close)) },
+            { "last", this.parseNumber(this.omitZero(last)) },
             { "change", this.parseNumber(change) },
             { "percentage", this.parseNumber(percentage) },
             { "average", this.parseNumber(average) },
@@ -5796,28 +5796,31 @@ public partial class Exchange
         maxRetries = ((IList<object>)maxRetriesparametersVariable)[0];
         parameters = ((IList<object>)maxRetriesparametersVariable)[1];
         object errors = 0;
-        try
+        while (isLessThanOrEqual(errors, maxRetries))
         {
-            if (isTrue(isTrue(timeframe) && isTrue(!isEqual(method, "fetchFundingRateHistory"))))
+            try
             {
-                return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, parameters }));
-            } else
+                if (isTrue(isTrue(timeframe) && isTrue(!isEqual(method, "fetchFundingRateHistory"))))
+                {
+                    return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, parameters }));
+                } else
+                {
+                    return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
+                }
+            } catch(Exception e)
             {
-                return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
-            }
-        } catch(Exception e)
-        {
-            if (isTrue(e is RateLimitExceeded))
-            {
-                throw e;
-            }
-            errors = add(errors, 1);
-            if (isTrue(isGreaterThan(errors, maxRetries)))
-            {
-                throw e;
+                if (isTrue(e is RateLimitExceeded))
+                {
+                    throw e;
+                }
+                errors = add(errors, 1);
+                if (isTrue(isGreaterThan(errors, maxRetries)))
+                {
+                    throw e;
+                }
             }
         }
-        return null;
+        return new List<object>() {};
     }
 
     public async virtual Task<object> fetchPaginatedCallDeterministic(object method, object symbol = null, object since = null, object limit = null, object timeframe = null, object parameters = null, object maxEntriesPerRequest = null)
@@ -5838,6 +5841,9 @@ public partial class Exchange
         if (isTrue(!isEqual(since, null)))
         {
             currentSince = mathMax(currentSince, since);
+        } else
+        {
+            currentSince = mathMax(currentSince, 1241440531000); // avoid timestamps older than 2009
         }
         object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
         if (isTrue(!isEqual(until, null)))
@@ -5851,6 +5857,10 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, maxCalls); postFixIncrement(ref i))
         {
             if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isGreaterThanOrEqual(currentSince, until)))))
+            {
+                break;
+            }
+            if (isTrue(isGreaterThanOrEqual(currentSince, current)))
             {
                 break;
             }
