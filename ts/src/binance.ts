@@ -2620,7 +2620,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
+        const fetchCurrenciesEnabled = this.safeBool (this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
             return undefined;
         }
@@ -4506,7 +4506,7 @@ export default class binance extends Exchange {
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         let side = undefined;
-        const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
+        const buyerMaker = this.safeBool2 (trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
@@ -4811,7 +4811,7 @@ export default class binance extends Exchange {
                 uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
-        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+        const validOrderTypes = this.safeList (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
                 throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
@@ -4820,7 +4820,7 @@ export default class binance extends Exchange {
             }
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker');
+            const broker = this.safeDict (this.options, 'broker');
             if (broker !== undefined) {
                 const brokerId = this.safeString (broker, 'spot');
                 if (brokerId !== undefined) {
@@ -7529,7 +7529,7 @@ export default class binance extends Exchange {
                 request['endTime'] = until;
             }
             const raw = await this.sapiGetFiatOrders (this.extend (request, params));
-            response = this.safeValue (raw, 'data');
+            response = this.safeList (raw, 'data', []);
             //     {
             //       "code": "000000",
             //       "message": "success",
@@ -7644,7 +7644,7 @@ export default class binance extends Exchange {
                 request['beginTime'] = since;
             }
             const raw = await this.sapiGetFiatOrders (this.extend (request, params));
-            response = this.safeValue (raw, 'data');
+            response = this.safeList (raw, 'data', []);
             //     {
             //       "code": "000000",
             //       "message": "success",
@@ -7863,7 +7863,7 @@ export default class binance extends Exchange {
             if (txType !== undefined) {
                 type = (txType === '0') ? 'deposit' : 'withdrawal';
             }
-            const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
+            const legalMoneyCurrenciesById = this.safeDict (this.options, 'legalMoneyCurrenciesById');
             code = this.safeString (legalMoneyCurrenciesById, code, code);
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
@@ -8218,7 +8218,7 @@ export default class binance extends Exchange {
                 }
             }
             impliedNetwork = this.safeString (reverseNetworks, topLevel);
-            const impliedNetworks = this.safeValue (this.options, 'impliedNetworks', {
+            const impliedNetworks = this.safeDict (this.options, 'impliedNetworks', {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
             });
@@ -9519,7 +9519,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
+        const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
         if ((leverageBrackets === undefined) || (reload)) {
             const defaultType = this.safeString (this.options, 'defaultType', 'future');
             const type = this.safeString (params, 'type', defaultType);
