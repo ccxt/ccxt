@@ -1342,6 +1342,13 @@
             }
         }
     },
+    "oxfun": {
+	"skipMethods": {
+	    "loadMarkets": {
+		"currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325",
+	    }
+	}
+    },
     "exmo": {
         "skipMethods": {
             "loadMarkets": {
