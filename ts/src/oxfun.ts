@@ -57,7 +57,7 @@ export default class oxfun extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -80,7 +80,7 @@ export default class oxfun extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
@@ -99,7 +99,7 @@ export default class oxfun extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -232,8 +232,13 @@ export default class oxfun extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    // AuthenticationError oxfun GET https://api.ox.fun/v3/trades 401 Unauthorized
-                    // todo: add more error codes
+                    // {"success":false,"code":"20001","message":"marketCode is invalid"}
+                    // {"success":false,"code":"20001","message":"timeframe is invalid"}
+                    // {"success":false,"code":"20001","message":"limit exceeds the maximum"}
+                    // {"success":false,"code":"20001","message":"limit is invalid"}
+                    // {"success":false,"code":"20001","message":"startTime/endTime is invalid"}
+                    // {"success":false,"code":"20001","message":"startTime and endTime must be within 7 days of each other"}
+                    // {"success":false,"code":"20001","message":"endTime must be greater than startTime"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -314,32 +319,6 @@ export default class oxfun extends Exchange {
         //     {
         //         "success": true,
         //         "data": [
-        //             {
-        //                 "marketCode": "NII-USDT",
-        //                 "markPrice": "0",
-        //                 "open24h": "0",
-        //                 "high24h": "0",
-        //                 "low24h": "0",
-        //                 "volume24h": "0",
-        //                 "currencyVolume24h": "0",
-        //                 "openInterest": "0",
-        //                 "lastTradedPrice": "0",
-        //                 "lastTradedQuantity": "0",
-        //                 "lastUpdatedAt": "1714853388621"
-        //             },
-        //             {
-        //                 "marketCode": "GEC-USDT",
-        //                 "markPrice": "0",
-        //                 "open24h": "0",
-        //                 "high24h": "0",
-        //                 "low24h": "0",
-        //                 "volume24h": "0",
-        //                 "currencyVolume24h": "0",
-        //                 "openInterest": "0",
-        //                 "lastTradedPrice": "0",
-        //                 "lastTradedQuantity": "0",
-        //                 "lastUpdatedAt": "1714853388621"
-        //             },
         //             {
         //                 "marketCode": "DYM-USD-SWAP-LIN",
         //                 "markPrice": "3.321",
@@ -731,25 +710,67 @@ export default class oxfun extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name oxfun#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.ox.fun/?json#get-v3-tickers
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketCode': market['id'],
+        };
+        const response = await this.publicGetV3Tickers (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "BTC-USD-SWAP-LIN",
+        //                 "markPrice": "64276",
+        //                 "open24h": "63674",
+        //                 "high24h": "64607",
+        //                 "low24h": "62933",
+        //                 "volume24h": "306317655.80000",
+        //                 "currencyVolume24h": "48.06810",
+        //                 "openInterest": "72.39250",
+        //                 "lastTradedPrice": "64300.0",
+        //                 "lastTradedQuantity": "1.0",
+        //                 "lastUpdatedAt": "1714925196034"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const ticker = this.safeDict (data, 0, {});
+        return this.parseTicker (ticker, market);
+    }
+
     parseTicker (ticker, market: Market = undefined): Ticker { // todo make sure the parsed ticker is correct
         //
         //     {
-        //         "marketCode": "DYM-USD-SWAP-LIN",
-        //         "markPrice": "3.321",
-        //         "open24h": "3.315",
-        //         "high24h": "3.356",
-        //         "low24h": "3.255",
-        //         "volume24h": "0",
-        //         "currencyVolume24h": "0",
-        //         "openInterest": "1768.1",
-        //         "lastTradedPrice": "3.543",
+        //         "marketCode": "BTC-USD-SWAP-LIN",
+        //         "markPrice": "64276",
+        //         "open24h": "63674",
+        //         "high24h": "64607",
+        //         "low24h": "62933",
+        //         "volume24h": "306317655.80000",
+        //         "currencyVolume24h": "48.06810",
+        //         "openInterest": "72.39250",
+        //         "lastTradedPrice": "64300.0",
         //         "lastTradedQuantity": "1.0",
-        //         "lastUpdatedAt": "1714853388102"
+        //         "lastUpdatedAt": "1714925196034"
         //     }
         //
         const timestamp = this.safeIntegerProduct (ticker, 'lastUpdatedAt', 0.001);
         const marketId = this.safeString (ticker, 'marketCode');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'lastTradedPrice');
         return this.safeTicker ({
             'symbol': symbol,
@@ -769,8 +790,8 @@ export default class oxfun extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume24h'), // todo check
-            'quoteVolume': this.safeNumber (ticker, 'currencyVolume24h'), // todo check
+            'baseVolume': this.safeNumber (ticker, 'currencyVolume24h'), // todo check
+            'quoteVolume': undefined,
             'info': ticker,
         }, market);
     }
@@ -783,17 +804,34 @@ export default class oxfun extends Exchange {
          * @see https://docs.ox.fun/?json#get-v3-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch (default 24 hours ago)
+         * @param {int} [limit] the maximum amount of candles to fetch (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch (default now)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
+        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const request = {
             'marketCode': market['id'],
-            'resolution': resolution,
+            'timeframe': timeframe,
         };
+        if (since !== undefined) {
+            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeNumber (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        // todo should we add this?
+        // else if (since !== undefined) {
+        //     request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000);
+        // }
         const response = await this.publicGetV3Candles (this.extend (request, params));
         //
         //     {
@@ -829,29 +867,13 @@ export default class oxfun extends Exchange {
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
-        //         "success": true,
-        //         "timeframe": "3600s",
-        //         "data": [
-        //             {
-        //                 "open": "0.03240000",
-        //                 "high": "0.03240000",
-        //                 "low": "0.03240000",
-        //                 "close": "0.03240000",
-        //                 "volume": "0",
-        //                 "currencyVolume": "0",
-        //                 "openedAt": "1714906800000"
-        //             },
-        //             {
-        //                 "open": "0.03240000",
-        //                 "high": "0.03240000",
-        //                 "low": "0.03240000",
-        //                 "close": "0.03240000",
-        //                 "volume": "0",
-        //                 "currencyVolume": "0",
-        //                 "openedAt": "1714903200000"
-        //             },
-        //             ...
-        //         ]
+        //         "open": "0.03240000",
+        //         "high": "0.03240000",
+        //         "low": "0.03240000",
+        //         "close": "0.03240000",
+        //         "volume": "0",
+        //         "currencyVolume": "0",
+        //         "openedAt": "1714906800000"
         //     }
         //
         return [
@@ -860,7 +882,7 @@ export default class oxfun extends Exchange {
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'currencyVolume'),
         ];
     }
 
