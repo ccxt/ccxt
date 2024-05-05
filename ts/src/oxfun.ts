@@ -767,7 +767,7 @@ export default class oxfun extends Exchange {
         //         "lastUpdatedAt": "1714925196034"
         //     }
         //
-        const timestamp = this.safeIntegerProduct (ticker, 'lastUpdatedAt', 0.001);
+        const timestamp = this.safeInteger (ticker, 'lastUpdatedAt');
         const marketId = this.safeString (ticker, 'marketCode');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -877,7 +877,7 @@ export default class oxfun extends Exchange {
         //     }
         //
         return [
-            this.safeTimestamp (ohlcv, 'openedAt'),
+            this.safeInteger (ohlcv, 'openedAt'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
