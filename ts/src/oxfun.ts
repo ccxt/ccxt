@@ -346,12 +346,12 @@ export default class oxfun extends Exchange {
             'future': false,
             'option': false,
             'active': true, // todo check
-            'contract': isFuture ? true : undefined,
+            'contract': isFuture,
             'linear': isFuture ? true : undefined, // todo check
-            'inverse': isFuture ? false : undefined,
+            'inverse': isFuture ? false : undefined, // todo check
             'taker': this.fees['trading']['taker'],
             'maker': this.fees['trading']['maker'],
-            'contractSize': 1, // todo check
+            'contractSize': isFuture ? 1 : undefined, // todo check
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
