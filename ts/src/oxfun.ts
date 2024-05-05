@@ -4,7 +4,7 @@
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Currencies, Int, Market, OHLCV, Strings, Ticker, Tickers } from './base/types.js';
+import type { Bool, Currencies, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -184,7 +184,7 @@ export default class oxfun extends Exchange {
                     'post': {
                         'v3/transfer': 1,
                         'v3/withdrawal': 1,
-                        'v3/orders/place': 1,
+                        'v3/orders/ploxfun': 1,
                     },
                     'delete': {
                         'v3/orders/cancel': 1,
@@ -239,6 +239,9 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"20001","message":"startTime/endTime is invalid"}
                     // {"success":false,"code":"20001","message":"startTime and endTime must be within 7 days of each other"}
                     // {"success":false,"code":"20001","message":"endTime must be greater than startTime"}
+                    // {"success":false,"code":"20001","message":"level exceeds the maximum"}
+                    // {"success":false,"code":"20001","message":"marketCode is invalid"}
+                    // {"success":false,"code":"30001","message":"Required parameter 'marketCode' is missing"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -884,6 +887,55 @@ export default class oxfun extends Exchange {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'currencyVolume'),
         ];
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name oxfun#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.ox.fun/?json#get-v3-depth
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return (default 5, max 100)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketCode': market['id'],
+        };
+        if (limit !== undefined) {
+            request['level'] = limit;
+        }
+        const response = await this.publicGetV3Depth (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "level": "5",
+        //         "data": {
+        //             "marketCode": "BTC-USD-SWAP-LIN",
+        //             "lastUpdatedAt": "1714933499266",
+        //             "asks": [
+        //                 [ 64073.0, 8.4622 ],
+        //                 [ 64092.0, 8.1912 ],
+        //                 [ 64111.0, 8.0669 ],
+        //                 [ 64130.0, 11.7195 ],
+        //                 [ 64151.0, 10.1798 ]
+        //             ],
+        //             "bids": [
+        //                 [ 64022.0, 10.1292 ],
+        //                 [ 64003.0, 8.1619 ],
+        //                 [ 64000.0, 1.0 ],
+        //                 [ 63984.0, 12.7724 ],
+        //                 [ 63963.0, 11.0073 ]
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data');
+        const timestamp = this.safeInteger (data, 'lastUpdatedAt');
+        return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
