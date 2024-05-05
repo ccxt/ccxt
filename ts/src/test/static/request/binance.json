@@ -54,7 +54,6 @@
             },
             {
                 "description": "spot order with weird amount",
-                "disabledCS": true,
                 "method": "createOrder",
                 "url": "https://testnet.binance.vision/api/v3/order",
                 "input": [
@@ -65,6 +64,32 @@
                   55000
                 ],
                 "output": "timestamp=1714835089402&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8248a31eddb97c4bd496a6b0&newOrderRespType=FULL&type=LIMIT&quantity=0.00078&price=55000&timeInForce=GTC&recvWindow=10000&signature=50aeda30bb2261723ead2d178f4fa1c8a270af2ec9d787cf4ae8cfe44c11516f"
+            },
+            {
+                "description": "spot order with weird price/amount",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.4234234234,
+                  55.324242343
+                ],
+                "output": "timestamp=1714922933332&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82bf9e78bb5d9948fa89b20d&newOrderRespType=FULL&type=LIMIT&quantity=0.423&price=55.32&timeInForce=GTC&recvWindow=10000&signature=84f7265b067e1fd1a244e6b1af168109652359c1204942330a6ac77ba7f7c93e"
+            },
+            {
+                "description": "spot limit buy with weird price/amount",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.4234234234,
+                  55.324242343
+                ],
+                "output": "timestamp=1714923006076&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu8cef5fd759c2493f8eff0b&newOrderRespType=RESULT&type=LIMIT&quantity=0.423&price=55.32&timeInForce=GTC&recvWindow=10000&signature=e0c49a6da870de7264a84603c2a5f33bb5d8e24b8935cb4fdb303ee2dbf39d79"
             },
             {
                 "description": "Swap market buy order",
