@@ -4,7 +4,7 @@
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Currencies, Market, Strings, Ticker, Tickers } from './base/types.js';
+import type { Bool, Currencies, Int, Market, OHLCV, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -704,6 +704,95 @@ export default class oxfun extends Exchange {
             'quoteVolume': this.safeNumber (ticker, 'currencyVolume24h'), // todo check
             'info': ticker,
         }, market);
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name oxfun#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.ox.fun/?json#get-v3-candles
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
+        const request = {
+            'marketCode': market['id'],
+            'resolution': resolution,
+        };
+        const response = await this.publicGetV3Candles (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "timeframe": "3600s",
+        //         "data": [
+        //             {
+        //                 "open": "0.03240000",
+        //                 "high": "0.03240000",
+        //                 "low": "0.03240000",
+        //                 "close": "0.03240000",
+        //                 "volume": "0",
+        //                 "currencyVolume": "0",
+        //                 "openedAt": "1714906800000"
+        //             },
+        //             {
+        //                 "open": "0.03240000",
+        //                 "high": "0.03240000",
+        //                 "low": "0.03240000",
+        //                 "close": "0.03240000",
+        //                 "volume": "0",
+        //                 "currencyVolume": "0",
+        //                 "openedAt": "1714903200000"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const result = this.safeList (response, 'data', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "success": true,
+        //         "timeframe": "3600s",
+        //         "data": [
+        //             {
+        //                 "open": "0.03240000",
+        //                 "high": "0.03240000",
+        //                 "low": "0.03240000",
+        //                 "close": "0.03240000",
+        //                 "volume": "0",
+        //                 "currencyVolume": "0",
+        //                 "openedAt": "1714906800000"
+        //             },
+        //             {
+        //                 "open": "0.03240000",
+        //                 "high": "0.03240000",
+        //                 "low": "0.03240000",
+        //                 "close": "0.03240000",
+        //                 "volume": "0",
+        //                 "currencyVolume": "0",
+        //                 "openedAt": "1714903200000"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'openedAt'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
