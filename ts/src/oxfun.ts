@@ -158,7 +158,7 @@ export default class oxfun extends Exchange {
                         'v3/candles': 1, // unified
                         'v3/depth': 1, // unified
                         'v3/markets/operational': 1, // todo check if it is useful
-                        'v3/exchange-trades': 1,
+                        'v3/exchange-trades': 1, // unified
                         'v3/funding/rates': 1,
                         'v3/leverage/tiers': 1,
                     },
@@ -618,9 +618,9 @@ export default class oxfun extends Exchange {
                     },
                     'info': chain,
                 };
-                currencyDepositEnabled = (currencyDepositEnabled === undefined) || deposit ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = (currencyWithdrawEnabled === undefined) || withdraw ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = (currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision) ? precision : currencyMaxPrecision;
+                currencyDepositEnabled = ((currencyDepositEnabled === undefined) || deposit) ? deposit : currencyDepositEnabled;
+                currencyWithdrawEnabled = ((currencyWithdrawEnabled === undefined) || withdraw) ? withdraw : currencyWithdrawEnabled;
+                currencyMaxPrecision = ((currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision)) ? precision : currencyMaxPrecision;
             }
             result[code] = {
                 'id': id,
