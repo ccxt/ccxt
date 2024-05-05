@@ -232,6 +232,7 @@ export default class oxfun extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // AuthenticationError oxfun GET https://api.ox.fun/v3/trades 401 Unauthorized
                     // todo: add more error codes
                 },
                 'broad': {
@@ -250,7 +251,7 @@ export default class oxfun extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetV3Markets (params);
+        const responseFromMarkets = await this.publicGetV3Markets (params);
         //
         //         {
         //             success: true,
@@ -307,26 +308,94 @@ export default class oxfun extends Exchange {
         //             ]
         //         }
         //
-        const markets = this.safeList (response, 'data', []);
+        const marketsFromMarkets = this.safeList (responseFromMarkets, 'data', []);
+        const responseFromTickers = await this.publicGetV3Tickers (params); // response from this endpoint has additional markets
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "NII-USDT",
+        //                 "markPrice": "0",
+        //                 "open24h": "0",
+        //                 "high24h": "0",
+        //                 "low24h": "0",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "0",
+        //                 "lastTradedPrice": "0",
+        //                 "lastTradedQuantity": "0",
+        //                 "lastUpdatedAt": "1714853388621"
+        //             },
+        //             {
+        //                 "marketCode": "GEC-USDT",
+        //                 "markPrice": "0",
+        //                 "open24h": "0",
+        //                 "high24h": "0",
+        //                 "low24h": "0",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "0",
+        //                 "lastTradedPrice": "0",
+        //                 "lastTradedQuantity": "0",
+        //                 "lastUpdatedAt": "1714853388621"
+        //             },
+        //             {
+        //                 "marketCode": "DYM-USD-SWAP-LIN",
+        //                 "markPrice": "3.321",
+        //                 "open24h": "3.315",
+        //                 "high24h": "3.356",
+        //                 "low24h": "3.255",
+        //                 "volume24h": "0",
+        //                 "currencyVolume24h": "0",
+        //                 "openInterest": "1768.1",
+        //                 "lastTradedPrice": "3.543",
+        //                 "lastTradedQuantity": "1.0",
+        //                 "lastUpdatedAt": "1714853388102"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const marketsFromTickers = this.safeList (responseFromTickers, 'data', []);
+        const markets = this.arrayConcat (marketsFromMarkets, marketsFromTickers);
         return this.parseMarkets (markets);
     }
 
+    parseMarkets (markets): Market[] {
+        const marketIds = [];
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const marketId = this.safeString (market, 'marketCode');
+            if (!this.inArray (marketId, marketIds)) {
+                marketIds.push (marketId);
+                result.push (this.parseMarket (market));
+            }
+        }
+        return result;
+    }
+
     parseMarket (market): Market {
-        const id = this.safeString (market, 'marketCode');
-        const baseId = this.safeString (market, 'base');
-        const quoteId = this.safeString (market, 'counter');
+        const id = this.safeString (market, 'marketCode', '');
+        const parts = id.split ('-');
+        const baseId = this.safeString (parts, 0);
+        let quoteId = this.safeString (parts, 1);
+        if (quoteId === 'USD') {
+            quoteId = 'USDT'; // todo check
+        }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
-        let type = this.safeStringLower (market, 'type');
+        let type = this.safeStringLower (market, 'type', 'spot'); // markets from v3/tickers are spot and have no type
         let settleId = undefined;
         let settle = undefined;
-        const isFuture = (type === 'future');
+        const isFuture = (type === 'future'); // the exchange has only perpetual futures
         if (isFuture) {
-            symbol = symbol + ':' + quote;
             type = 'swap'; // todo check
-            settleId = quoteId; // todo check
-            settle = quote; // todo check
+            settleId = 'OX'; // todo check
+            settle = this.safeCurrencyCode ('OX'); // todo check
+            symbol = symbol + ':' + settle;
         }
         const isSpot = type === 'spot';
         return this.safeMarketStructure ({
