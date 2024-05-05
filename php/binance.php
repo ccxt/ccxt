@@ -2608,7 +2608,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $fetchCurrenciesEnabled = $this->safe_value($this->options, 'fetchCurrencies');
+        $fetchCurrenciesEnabled = $this->safe_bool($this->options, 'fetchCurrencies');
         if (!$fetchCurrenciesEnabled) {
             return null;
         }
@@ -4476,7 +4476,7 @@ class binance extends Exchange {
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $side = null;
-        $buyerMaker = $this->safe_value_2($trade, 'm', 'isBuyerMaker');
+        $buyerMaker = $this->safe_bool_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
             $side = $buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
@@ -4775,7 +4775,7 @@ class binance extends Exchange {
                 $uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
-        $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
+        $validOrderTypes = $this->safe_list($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
             if ($initialUppercaseType !== $uppercaseType) {
                 throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
@@ -4784,7 +4784,7 @@ class binance extends Exchange {
             }
         }
         if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker');
+            $broker = $this->safe_dict($this->options, 'broker');
             if ($broker !== null) {
                 $brokerId = $this->safe_string($broker, 'spot');
                 if ($brokerId !== null) {
@@ -7449,7 +7449,7 @@ class binance extends Exchange {
                 $request['endTime'] = $until;
             }
             $raw = $this->sapiGetFiatOrders (array_merge($request, $params));
-            $response = $this->safe_value($raw, 'data');
+            $response = $this->safe_list($raw, 'data', array());
             //     {
             //       "code" => "000000",
             //       "message" => "success",
@@ -7562,7 +7562,7 @@ class binance extends Exchange {
                 $request['beginTime'] = $since;
             }
             $raw = $this->sapiGetFiatOrders (array_merge($request, $params));
-            $response = $this->safe_value($raw, 'data');
+            $response = $this->safe_list($raw, 'data', array());
             //     {
             //       "code" => "000000",
             //       "message" => "success",
@@ -7781,7 +7781,7 @@ class binance extends Exchange {
             if ($txType !== null) {
                 $type = ($txType === '0') ? 'deposit' : 'withdrawal';
             }
-            $legalMoneyCurrenciesById = $this->safe_value($this->options, 'legalMoneyCurrenciesById');
+            $legalMoneyCurrenciesById = $this->safe_dict($this->options, 'legalMoneyCurrenciesById');
             $code = $this->safe_string($legalMoneyCurrenciesById, $code, $code);
         }
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
@@ -8130,7 +8130,7 @@ class binance extends Exchange {
                 }
             }
             $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
-            $impliedNetworks = $this->safe_value($this->options, 'impliedNetworks', array(
+            $impliedNetworks = $this->safe_dict($this->options, 'impliedNetworks', array(
                 'ETH' => array( 'ERC20' => 'ETH' ),
                 'TRX' => array( 'TRC20' => 'TRX' ),
             ));
@@ -9413,7 +9413,7 @@ class binance extends Exchange {
         $this->load_markets();
         // by default cache the leverage $bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets');
+        $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets', array());
         if (($leverageBrackets === null) || ($reload)) {
             $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
             $type = $this->safe_string($params, 'type', $defaultType);
