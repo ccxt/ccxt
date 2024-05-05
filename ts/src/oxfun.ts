@@ -347,8 +347,8 @@ export default class oxfun extends Exchange {
             'option': false,
             'active': true, // todo check
             'contract': isFuture,
-            'linear': true, // todo check
-            'inverse': false,
+            'linear': isFuture ? true : undefined, // todo check
+            'inverse': isFuture ? false : undefined,
             'taker': this.fees['trading']['taker'],
             'maker': this.fees['trading']['maker'],
             'contractSize': 1, // todo check
@@ -665,49 +665,17 @@ export default class oxfun extends Exchange {
     parseTicker (ticker, market: Market = undefined): Ticker { // todo make sure the parsed ticker is correct
         //
         //     {
-        //         "success": true,
-        //         "data": [
-        //             {
-        //                 "marketCode": "NII-USDT",
-        //                 "markPrice": "0",
-        //                 "open24h": "0",
-        //                 "high24h": "0",
-        //                 "low24h": "0",
-        //                 "volume24h": "0",
-        //                 "currencyVolume24h": "0",
-        //                 "openInterest": "0",
-        //                 "lastTradedPrice": "0",
-        //                 "lastTradedQuantity": "0",
-        //                 "lastUpdatedAt": "1714853388621"
-        //             },
-        //             {
-        //                 "marketCode": "GEC-USDT",
-        //                 "markPrice": "0",
-        //                 "open24h": "0",
-        //                 "high24h": "0",
-        //                 "low24h": "0",
-        //                 "volume24h": "0",
-        //                 "currencyVolume24h": "0",
-        //                 "openInterest": "0",
-        //                 "lastTradedPrice": "0",
-        //                 "lastTradedQuantity": "0",
-        //                 "lastUpdatedAt": "1714853388621"
-        //             },
-        //             {
-        //                 "marketCode": "DYM-USD-SWAP-LIN",
-        //                 "markPrice": "3.321",
-        //                 "open24h": "3.315",
-        //                 "high24h": "3.356",
-        //                 "low24h": "3.255",
-        //                 "volume24h": "0",
-        //                 "currencyVolume24h": "0",
-        //                 "openInterest": "1768.1",
-        //                 "lastTradedPrice": "3.543",
-        //                 "lastTradedQuantity": "1.0",
-        //                 "lastUpdatedAt": "1714853388102"
-        //             },
-        //             ...
-        //         ]
+        //         "marketCode": "DYM-USD-SWAP-LIN",
+        //         "markPrice": "3.321",
+        //         "open24h": "3.315",
+        //         "high24h": "3.356",
+        //         "low24h": "3.255",
+        //         "volume24h": "0",
+        //         "currencyVolume24h": "0",
+        //         "openInterest": "1768.1",
+        //         "lastTradedPrice": "3.543",
+        //         "lastTradedQuantity": "1.0",
+        //         "lastUpdatedAt": "1714853388102"
         //     }
         //
         const timestamp = this.safeIntegerProduct (ticker, 'lastUpdatedAt', 0.001);
@@ -718,8 +686,8 @@ export default class oxfun extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high24h'),
-            'low': this.safeNumber (ticker, 'low24h'),
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -732,8 +700,8 @@ export default class oxfun extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume24h'),
-            'quoteVolume': this.safeNumber (ticker, 'currencyVolume24h'),
+            'baseVolume': this.safeNumber (ticker, 'volume24h'), // todo check
+            'quoteVolume': this.safeNumber (ticker, 'currencyVolume24h'), // todo check
             'info': ticker,
         }, market);
     }
