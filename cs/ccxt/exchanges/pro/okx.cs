@@ -484,10 +484,12 @@ public partial class okx : ccxt.okx
         /**
         * @method
         * @name okx#watchOrderBook
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         //
@@ -522,17 +524,21 @@ public partial class okx : ccxt.okx
         /**
         * @method
         * @name okx#watchOrderBookForSymbols
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        object depth = this.safeString(options, "depth", "books");
+        object depth = null;
+        var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+        depth = ((IList<object>)depthparametersVariable)[0];
+        parameters = ((IList<object>)depthparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             if (isTrue(isEqual(limit, 1)))
@@ -541,19 +547,20 @@ public partial class okx : ccxt.okx
             } else if (isTrue(isTrue(isGreaterThan(limit, 1)) && isTrue(isLessThanOrEqual(limit, 5))))
             {
                 depth = "books5";
-            } else if (isTrue(isEqual(limit, 400)))
-            {
-                depth = "books";
             } else if (isTrue(isEqual(limit, 50)))
             {
                 depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
-            } else if (isTrue(isEqual(limit, 4000)))
+            } else if (isTrue(isEqual(limit, 400)))
             {
-                depth = "books-l2-tbt"; // Make sure you have VIP5 and above
+                depth = "books";
             }
         }
         if (isTrue(isTrue((isEqual(depth, "books-l2-tbt"))) || isTrue((isEqual(depth, "books50-l2-tbt")))))
         {
+            if (!isTrue(this.checkRequiredCredentials(false)))
+            {
+                throw new AuthenticationError ((string)add(this.id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
+            }
             await this.authenticate(new Dictionary<string, object>() {
                 { "access", "public" },
             });
