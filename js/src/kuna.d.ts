@@ -21,7 +21,7 @@ export default class kuna extends Exchange {
         deposit: any;
         withdraw: any;
         fee: any;
-        precision: any;
+        precision: string;
         limits: {
             amount: {
                 min: any;

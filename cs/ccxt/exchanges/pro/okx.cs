@@ -634,6 +634,8 @@ public partial class okx : ccxt.okx
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
+        object marketId = this.safeString(message, "instId");
+        object symbol = this.safeSymbol(marketId);
         object checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(checksum))
         {
@@ -659,6 +661,8 @@ public partial class okx : ccxt.okx
             if (isTrue(!isEqual(responseChecksum, localChecksum)))
             {
                 var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }
@@ -755,10 +759,10 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         object action = this.safeString(message, "action");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object data = this.safeList(message, "data", new List<object>() {});
         object marketId = this.safeString(arg, "instId");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -1699,10 +1703,10 @@ public partial class okx : ccxt.okx
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        object errorCode = this.safeInteger(message, "code");
+        object errorCode = this.safeString(message, "code");
         try
         {
-            if (isTrue(errorCode))
+            if (isTrue(isTrue(errorCode) && isTrue(!isEqual(errorCode, "0"))))
             {
                 object feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
@@ -1711,22 +1715,12 @@ public partial class okx : ccxt.okx
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
                 }
+                throw new ExchangeError ((string)feedback) ;
             }
         } catch(Exception e)
         {
-            if (isTrue(e is AuthenticationError))
-            {
-                object messageHash = "authenticated";
-                ((WebSocketClient)client).reject(e, messageHash);
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-                {
-
-                }
-                return false;
-            } else
-            {
-                ((WebSocketClient)client).reject(e);
-            }
+            ((WebSocketClient)client).reject(e);
+            return false;
         }
         return message;
     }

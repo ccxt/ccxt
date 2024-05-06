@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -543,6 +544,8 @@ class okx(ccxt.async_support.okx):
         storedBids = orderbook['bids']
         self.handle_deltas(storedAsks, asks)
         self.handle_deltas(storedBids, bids)
+        marketId = self.safe_string(message, 'instId')
+        symbol = self.safe_symbol(marketId)
         checksum = self.safe_bool(self.options, 'checksum', True)
         if checksum:
             asksLength = len(storedAsks)
@@ -560,6 +563,8 @@ class okx(ccxt.async_support.okx):
             localChecksum = self.crc32(payload, True)
             if responseChecksum != localChecksum:
                 error = InvalidNonce(self.id + ' invalid checksum')
+                del client.subscriptions[messageHash]
+                del self.orderbooks[symbol]
                 client.reject(error, messageHash)
         timestamp = self.safe_integer(message, 'ts')
         orderbook['timestamp'] = timestamp
@@ -652,10 +657,10 @@ class okx(ccxt.async_support.okx):
         #         ]
         #     }
         #
-        arg = self.safe_value(message, 'arg', {})
+        arg = self.safe_dict(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
         action = self.safe_string(message, 'action')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
         symbol = market['symbol']
@@ -1420,23 +1425,18 @@ class okx(ccxt.async_support.okx):
         #     {event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012"}
         #     {event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018"}
         #
-        errorCode = self.safe_integer(message, 'code')
+        errorCode = self.safe_string(message, 'code')
         try:
-            if errorCode:
+            if errorCode and errorCode != '0':
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'msg')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+                raise ExchangeError(feedback)
         except Exception as e:
-            if isinstance(e, AuthenticationError):
-                messageHash = 'authenticated'
-                client.reject(e, messageHash)
-                if messageHash in client.subscriptions:
-                    del client.subscriptions[messageHash]
-                return False
-            else:
-                client.reject(e)
+            client.reject(e)
+            return False
         return message
 
     def handle_message(self, client: Client, message):

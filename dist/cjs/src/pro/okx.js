@@ -580,6 +580,8 @@ class okx extends okx$1 {
         const storedBids = orderbook['bids'];
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
+        const marketId = this.safeString(message, 'instId');
+        const symbol = this.safeSymbol(marketId);
         const checksum = this.safeBool(this.options, 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
@@ -600,6 +602,8 @@ class okx extends okx$1 {
             const localChecksum = this.crc32(payload, true);
             if (responseChecksum !== localChecksum) {
                 const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
             }
         }
@@ -694,10 +698,10 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const action = this.safeString(message, 'action');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -1527,29 +1531,21 @@ class okx extends okx$1 {
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        const errorCode = this.safeInteger(message, 'code');
+        const errorCode = this.safeString(message, 'code');
         try {
-            if (errorCode) {
+            if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue(message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
+                throw new errors.ExchangeError(feedback);
             }
         }
         catch (e) {
-            if (e instanceof errors.AuthenticationError) {
-                const messageHash = 'authenticated';
-                client.reject(e, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
-                }
-                return false;
-            }
-            else {
-                client.reject(e);
-            }
+            client.reject(e);
+            return false;
         }
         return message;
     }

@@ -571,7 +571,10 @@ class bitget extends \ccxt\async\bitget {
                 $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
                 if ($calculatedChecksum !== $responseChecksum) {
                     $error = new InvalidNonce ($this->id . ' invalid checksum');
+                    unset($client->subscriptions[$messageHash]);
+                    unset($this->orderbooks[$symbol]);
                     $client->reject ($error, $messageHash);
+                    return;
                 }
             }
         } else {

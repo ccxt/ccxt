@@ -541,7 +541,10 @@ class bitget(ccxt.async_support.bitget):
                 responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
                 if calculatedChecksum != responseChecksum:
                     error = InvalidNonce(self.id + ' invalid checksum')
+                    del client.subscriptions[messageHash]
+                    del self.orderbooks[symbol]
                     client.reject(error, messageHash)
+                    return
         else:
             orderbook = self.order_book({})
             parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp)

@@ -847,6 +847,8 @@ public partial class kraken : ccxt.kraken
                 if (isTrue(!isEqual(localChecksum, c)))
                 {
                     var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
                     ((WebSocketClient)client).reject(error, messageHash);
                     return;
                 }

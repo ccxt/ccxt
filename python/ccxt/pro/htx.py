@@ -418,6 +418,8 @@ class htx(ccxt.async_support.htx):
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
+            del client.subscriptions[messageHash]
+            del self.orderbooks[symbol]
             client.reject(e, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):

@@ -605,7 +605,10 @@ public partial class bitget : ccxt.bitget
                 if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
                 {
                     var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
                     ((WebSocketClient)client).reject(error, messageHash);
+                    return;
                 }
             }
         } else

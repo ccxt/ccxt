@@ -887,7 +887,24 @@ class okx extends Exchange {
                     '60017' => '\\ccxt\\BadRequest', // Invalid url path
                     '60018' => '\\ccxt\\BadRequest', // The {0} {1} {2} {3} {4} does not exist
                     '60019' => '\\ccxt\\BadRequest', // Invalid op {op}
+                    '60020' => '\\ccxt\\ExchangeError',  // APIKey subscription amount exceeds the limit
+                    '60021' => '\\ccxt\\AccountNotEnabled',  // This operation does not support multiple accounts login
+                    '60022' => '\\ccxt\\AuthenticationError',  // Bulk login partially succeeded
+                    '60023' => '\\ccxt\\DDoSProtection',  // Bulk login requests too frequent
+                    '60024' => '\\ccxt\\AuthenticationError',  // Wrong passphrase
+                    '60025' => '\\ccxt\\ExchangeError',  // Token subscription amount exceeds the limit
+                    '60026' => '\\ccxt\\AuthenticationError',  // Batch login by APIKey and token simultaneously is not supported
+                    '60027' => '\\ccxt\\ArgumentsRequired',  // Parameter {0} can not be empty
+                    '60028' => '\\ccxt\\NotSupported',  // The current operation is not supported by this URL
+                    '60029' => '\\ccxt\\AccountNotEnabled',  // Only users who are VIP5 and above in trading fee tier are allowed to subscribe to books-l2-tbt channel
+                    '60030' => '\\ccxt\\AccountNotEnabled',  // Only users who are VIP4 and above in trading fee tier are allowed to subscribe to books50-l2-tbt channel
+                    '60031' => '\\ccxt\\AuthenticationError', // The WebSocket endpoint does not support multiple account batch login,
+                    '60032' => '\\ccxt\\AuthenticationError', // API key doesn't exist,
                     '63999' => '\\ccxt\\ExchangeError', // Internal system error
+                    '64000' => '\\ccxt\\BadRequest', // Subscription parameter uly is unavailable anymore, please replace uly with instFamily. More details can refer to => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64001' => '\\ccxt\\BadRequest', // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64002' => '\\ccxt\\BadRequest', // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64003' => '\\ccxt\\AccountNotEnabled', // Your trading fee tier doesnt meet the requirement to access this channel
                     '70010' => '\\ccxt\\BadRequest', // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013' => '\\ccxt\\BadRequest', // endTs needs to be bigger than or equal to beginTs.
                     '70016' => '\\ccxt\\BadRequest', // Please specify your instrument settings for at least one instType.

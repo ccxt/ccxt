@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -604,6 +605,8 @@ class okx extends \ccxt\async\okx {
         $storedBids = $orderbook['bids'];
         $this->handle_deltas($storedAsks, $asks);
         $this->handle_deltas($storedBids, $bids);
+        $marketId = $this->safe_string($message, 'instId');
+        $symbol = $this->safe_symbol($marketId);
         $checksum = $this->safe_bool($this->options, 'checksum', true);
         if ($checksum) {
             $asksLength = count($storedAsks);
@@ -624,6 +627,8 @@ class okx extends \ccxt\async\okx {
             $localChecksum = $this->crc32($payload, true);
             if ($responseChecksum !== $localChecksum) {
                 $error = new InvalidNonce ($this->id . ' invalid checksum');
+                unset($client->subscriptions[$messageHash]);
+                unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);
             }
         }
@@ -719,10 +724,10 @@ class okx extends \ccxt\async\okx {
         //         ]
         //     }
         //
-        $arg = $this->safe_value($message, 'arg', array());
+        $arg = $this->safe_dict($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
         $action = $this->safe_string($message, 'action');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -1572,27 +1577,20 @@ class okx extends \ccxt\async\okx {
         //     array( event => 'error', msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
         //     array( event => 'error", msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
         //
-        $errorCode = $this->safe_integer($message, 'code');
+        $errorCode = $this->safe_string($message, 'code');
         try {
-            if ($errorCode) {
+            if ($errorCode && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $messageString = $this->safe_value($message, 'msg');
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
+                throw new ExchangeError($feedback);
             }
         } catch (Exception $e) {
-            if ($e instanceof AuthenticationError) {
-                $messageHash = 'authenticated';
-                $client->reject ($e, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                    unset($client->subscriptions[$messageHash]);
-                }
-                return false;
-            } else {
-                $client->reject ($e);
-            }
+            $client->reject ($e);
+            return false;
         }
         return $message;
     }
