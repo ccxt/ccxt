@@ -4,6 +4,7 @@
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Bool, Currencies, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -1040,8 +1041,26 @@ export default class oxfun extends Exchange {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
-        url = url + '/' + endpoint;
         query = this.urlencode (query);
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ();
+            const isoDatetime = this.iso8601 (timestamp);
+            const datetimeParts = isoDatetime.split ('.');
+            const datetime = datetimeParts[0];
+            const nonce = this.nonce ();
+            const urlParts = url.split ('//');
+            const msgString = datetime + '\n' + nonce + '\n' + method + '\n' + urlParts[1] + '\n/' + endpoint + '\n' + query;
+            const signature = this.hmac (this.encode (msgString), this.encode (this.secret), sha256, 'base64');
+            headers = {
+                'Content-Type': 'application/json',
+                'AccessKey': this.apiKey,
+                'Timestamp': datetime,
+                'Signature': signature,
+                'Nonce': nonce,
+            };
+        }
+        url = url + '/' + endpoint;
         if (query.length !== 0) {
             url += '?' + query;
         }
