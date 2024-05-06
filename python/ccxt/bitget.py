@@ -1915,7 +1915,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {}
         response = None
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params, 'isolated')
+        marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params)
         if (market['swap']) or (market['future']):
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
