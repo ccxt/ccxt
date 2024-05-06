@@ -596,6 +596,8 @@ export default class okx extends okxRest {
         const storedBids = orderbook['bids'];
         this.handleDeltas (storedAsks, asks);
         this.handleDeltas (storedBids, bids);
+        const marketId = this.safeString (message, 'instId');
+        const symbol = this.safeSymbol (marketId);
         const checksum = this.safeBool (this.options, 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
@@ -616,6 +618,8 @@ export default class okx extends okxRest {
             const localChecksum = this.crc32 (payload, true);
             if (responseChecksum !== localChecksum) {
                 const error = new InvalidNonce (this.id + ' invalid checksum');
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
             }
         }
@@ -711,10 +715,10 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];

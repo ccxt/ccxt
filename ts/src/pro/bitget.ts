@@ -571,7 +571,10 @@ export default class bitget extends bitgetRest {
                 const responseChecksum = this.safeInteger (rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
                     const error = new InvalidNonce (this.id + ' invalid checksum');
+                    delete client.subscriptions[messageHash];
+                    delete this.orderbooks[symbol];
                     client.reject (error, messageHash);
+                    return;
                 }
             }
         } else {
