@@ -5,7 +5,7 @@ import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Bool, Currencies, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Currencies, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -167,8 +167,8 @@ export default class oxfun extends Exchange {
                 'private': {
                     'get': {
                         'v3/account': 1,
-                        'v3/account/names': 1,
-                        'v3/wallets': 1,
+                        'v3/account/names': 1, // todo returns only subaccounts
+                        'v3/wallet': 1,
                         'v3/transfer': 1,
                         'v3/balances': 1,
                         'v3/positions': 1,
@@ -180,7 +180,7 @@ export default class oxfun extends Exchange {
                         'v3/withdrawal-fees': 1,
                         'v3/orders/status': 1,
                         'v3/orders/working': 1,
-                        'v3/trades': 1,
+                        'v3/trades': 1, // unified
                     },
                     'post': {
                         'v3/transfer': 1,
@@ -1019,7 +1019,7 @@ export default class oxfun extends Exchange {
             market = this.market (symbol);
             request['pairId'] = market['numericId'];
         }
-        if (since !== undefined) {
+        if (since !== undefined) { // startTime and endTime must be within 7 days of each other
             request['startTime'] = since;
         }
         if (limit !== undefined) {
@@ -1030,10 +1030,15 @@ export default class oxfun extends Exchange {
             request['endTime'] = until;
             params = this.omit (params, 'until');
         }
+        // todo should we add this?
+        // else if (since !== undefined) {
+        //     request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000);
+        // }
         const response = await this.privateGetV3Trades (this.extend (request, params));
         //
         //     {
-        //         "success": true,"data": [
+        //         "success": true,
+        //         "data": [
         //             {
         //                 "orderId": "1000104903698",
         //                 "clientOrderId": "1715000260094",
@@ -1111,6 +1116,105 @@ export default class oxfun extends Exchange {
             'fee': fee,
             'info': trade,
         }, market);
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name oxfun#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.ox.fun/?json#get-v3-balances
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.asset] currency id, if empty the exchange returns info about all currencies
+         * @param {string} [params.subAcc] Name of sub account. If no subAcc is given, then the response contains only the account linked to the API-Key.
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetV3Balances (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "accountId": "106490",
+        //                 "name": "main",
+        //                 "balances": [
+        //                     {
+        //                         "asset": "OX",
+        //                         "total": "-7.55145065000",
+        //                         "available": "-71.16445065000",
+        //                         "reserved": "0",
+        //                         "lastUpdatedAt": "1715000448946"
+        //                     },
+        //                     {
+        //                         "asset": "ETH",
+        //                         "total": "0.01",
+        //                         "available": "0.01",
+        //                         "reserved": "0",
+        //                         "lastUpdatedAt": "1714914512750"
+        //                     },
+        //                     ...
+        //                 ]
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        let balance = data[0];
+        const subAcc = this.safeString (params, 'subAcc');
+        if (subAcc !== undefined) {
+            for (let i = 0; i < data.length; i++) {
+                const b = data[i];
+                const name = this.safeString (b, 'name');
+                if (name === subAcc) {
+                    balance = b;
+                    break;
+                }
+            }
+        }
+        return this.parseBalance (balance);
+    }
+
+    parseBalance (balance): Balances {
+        //
+        //     {
+        //         "accountId": "106490",
+        //         "name": "main",
+        //         "balances": [
+        //             {
+        //                 "asset": "OX",
+        //                 "total": "-7.55145065000",
+        //                 "available": "-71.16445065000",
+        //                 "reserved": "0",
+        //                 "lastUpdatedAt": "1715000448946"
+        //             },
+        //             {
+        //                 "asset": "ETH",
+        //                 "total": "0.01",
+        //                 "available": "0.01",
+        //                 "reserved": "0",
+        //                 "lastUpdatedAt": "1714914512750"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const result = {
+            'info': balance,
+        };
+        const balances = this.safeList (balance, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = balances[i];
+            const currencyId = this.safeString (balanceEntry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balanceEntry, 'total');
+            account['free'] = this.safeString (balanceEntry, 'available');
+            account['used'] = this.safeString (balanceEntry, 'reserved');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
