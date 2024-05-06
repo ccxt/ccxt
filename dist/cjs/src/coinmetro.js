@@ -112,6 +112,7 @@ class coinmetro extends coinmetro$1 {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -161,6 +162,7 @@ class coinmetro extends coinmetro$1 {
                 'private': {
                     'get': {
                         'users/balances': 1,
+                        'users/wallets': 1,
                         'users/wallets/history/{since}': 1.67,
                         'exchange/orders/status/{orderID}': 1,
                         'exchange/orders/active': 1,
@@ -505,9 +507,9 @@ class coinmetro extends coinmetro$1 {
         else {
             request['from'] = ':from'; // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         }
-        until = this.safeInteger2(params, 'till', 'until', until);
+        until = this.safeInteger(params, 'until', until);
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['to'] = until;
         }
         else {
@@ -541,7 +543,7 @@ class coinmetro extends coinmetro$1 {
         //         ]
         //     }
         //
-        const candleHistory = this.safeValue(response, 'candleHistory', []);
+        const candleHistory = this.safeList(response, 'candleHistory', []);
         return this.parseOHLCVs(candleHistory, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -607,7 +609,7 @@ class coinmetro extends coinmetro$1 {
         //         ]
         //     }
         //
-        const tickHistory = this.safeValue(response, 'tickHistory', []);
+        const tickHistory = this.safeList(response, 'tickHistory', []);
         return this.parseTrades(tickHistory, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -880,7 +882,7 @@ class coinmetro extends coinmetro$1 {
          */
         await this.loadMarkets();
         const response = await this.publicGetExchangePrices(params);
-        const latestPrices = this.safeValue(response, 'latestPrices', []);
+        const latestPrices = this.safeList(response, 'latestPrices', []);
         return this.parseTickers(latestPrices, symbols);
     }
     parseTicker(ticker, market = undefined) {
@@ -941,49 +943,48 @@ class coinmetro extends coinmetro$1 {
          * @method
          * @name coinmetro#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
-        const response = await this.privateGetUsersBalances(params);
-        return this.parseBalance(response);
+        const response = await this.privateGetUsersWallets(params);
+        const list = this.safeList(response, 'list', []);
+        return this.parseBalance(list);
     }
-    parseBalance(response) {
+    parseBalance(balances) {
         //
-        //     {
-        //         "USDC": {
-        //             "USDC": 99,
-        //             "EUR": 91.16,
-        //             "BTC": 0.002334
+        //     [
+        //         {
+        //             "xcmLocks": [],
+        //             "xcmLockAmounts": [],
+        //             "refList": [],
+        //             "balanceHistory": [],
+        //             "_id": "5fecd3c998e75c2e4d63f7c3",
+        //             "currency": "BTC",
+        //             "label": "BTC",
+        //             "userId": "5fecd3c97fbfed1521db23bd",
+        //             "__v": 0,
+        //             "balance": 0.5,
+        //             "createdAt": "2020-12-30T19:23:53.646Z",
+        //             "disabled": false,
+        //             "updatedAt": "2020-12-30T19:23:53.653Z",
+        //             "reserved": 0,
+        //             "id": "5fecd3c998e75c2e4d63f7c3"
         //         },
-        //         "XCM": {
-        //             "XCM": 0,
-        //             "EUR": 0,
-        //             "BTC": 0
-        //         },
-        //         "TOTAL": {
-        //             "EUR": 91.16,
-        //             "BTC": 0.002334
-        //         },
-        //         "REF": {
-        //             "XCM": 0,
-        //             "EUR": 0,
-        //             "BTC": 0
-        //         }
-        //     }
+        //         ...
+        //     ]
         //
         const result = {
-            'info': response,
+            'info': balances,
         };
-        const balances = this.omit(response, ['TOTAL', 'REF']);
-        const currencyIds = Object.keys(balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = this.safeDict(balances, i, {});
+            const currencyId = this.safeString(balanceEntry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            const currency = this.safeValue(balances, currencyId, {});
-            account['total'] = this.safeString(currency, currencyId);
+            account['total'] = this.safeString(balanceEntry, 'balance');
+            account['used'] = this.safeString(balanceEntry, 'reserved');
             result[code] = account;
         }
         return this.safeBalance(result);

@@ -17,7 +17,7 @@ export default class woo extends wooRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -75,7 +75,6 @@ export default class woo extends wooRest {
         return newValue;
     }
     async watchPublic(messageHash, message) {
-        this.checkRequiredUid();
         const url = this.urls['api']['ws']['public'] + '/' + this.uid;
         const requestId = this.requestId(url);
         const subscribe = {
@@ -88,6 +87,7 @@ export default class woo extends wooRest {
         /**
          * @method
          * @name woo#watchOrderBook
+         * @see https://docs.woo.org/#orderbook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
@@ -232,7 +232,8 @@ export default class woo extends wooRest {
         /**
          * @method
          * @name woo#watchTickers
-         * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://docs.woo.org/#24h-tickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -293,6 +294,18 @@ export default class woo extends wooRest {
         client.resolve(result, topic);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.woo.org/#k-line
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets();
         if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
             throw new ExchangeError(this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
@@ -361,6 +374,7 @@ export default class woo extends wooRest {
          * @method
          * @name woo#watchTrades
          * @description watches information on multiple trades made in a market
+         * @see https://docs.woo.org/#trade
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -422,17 +436,60 @@ export default class woo extends wooRest {
         //         "side":"BUY",
         //         "source":0
         //     }
+        // private trade
+        //    {
+        //     "msgType": 0,  // execution report
+        //     "symbol": "SPOT_BTC_USDT",
+        //     "clientOrderId": 0,
+        //     "orderId": 54774393,
+        //     "type": "MARKET",
+        //     "side": "BUY",
+        //     "quantity": 0.0,
+        //     "price": 0.0,
+        //     "tradeId": 56201985,
+        //     "executedPrice": 23534.06,
+        //     "executedQuantity": 0.00040791,
+        //     "fee": 2.1E-7,
+        //     "feeAsset": "BTC",
+        //     "totalExecutedQuantity": 0.00040791,
+        //     "avgPrice": 23534.06,
+        //     "status": "FILLED",
+        //     "reason": "",
+        //     "orderTag": "default",
+        //     "totalFee": 2.1E-7,
+        //     "feeCurrency": "BTC",
+        //     "totalRebate": 0,
+        //     "rebateCurrency": "USDT",
+        //     "visible": 0.0,
+        //     "timestamp": 1675406261689,
+        //     "reduceOnly": false,
+        //     "maker": false
+        //   }
         //
         const marketId = this.safeString(trade, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString(trade, 'price');
-        const amount = this.safeString(trade, 'size');
+        const price = this.safeString(trade, 'executedPrice', 'price');
+        const amount = this.safeString2(trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const timestamp = this.safeInteger(trade, 'timestamp');
+        const maker = this.safeBool(trade, 'marker');
+        let takerOrMaker = undefined;
+        if (maker !== undefined) {
+            takerOrMaker = maker ? 'maker' : 'taker';
+        }
+        const type = this.safeStringLower(trade, 'type');
+        let fee = undefined;
+        const feeCost = this.safeNumber(trade, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency')),
+            };
+        }
         return this.safeTrade({
-            'id': undefined,
+            'id': this.safeString(trade, 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
@@ -440,10 +497,10 @@ export default class woo extends wooRest {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'order': undefined,
-            'takerOrMaker': undefined,
-            'type': undefined,
-            'fee': undefined,
+            'order': this.safeString(trade, 'orderId'),
+            'takerOrMaker': takerOrMaker,
+            'type': type,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -497,6 +554,8 @@ export default class woo extends wooRest {
         /**
          * @method
          * @name woo#watchOrders
+         * @see https://docs.woo.org/#executionreport
+         * @see https://docs.woo.org/#algoexecutionreportv2
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -522,6 +581,37 @@ export default class woo extends wooRest {
             limit = orders.getLimit(symbol, limit);
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOrders
+         * @see https://docs.woo.org/#executionreport
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const topic = 'executionreport';
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend(request, params);
+        const trades = await this.watchPrivate(messageHash, message);
+        if (this.newUpdates) {
+            limit = trades.getLimit(symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -631,7 +721,11 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const order = this.safeValue(message, 'data');
+        const order = this.safeDict(message, 'data');
+        const tradeId = this.safeString(order, 'tradeId');
+        if ((tradeId !== undefined) && (tradeId !== '0')) {
+            this.handleMyTrade(client, order);
+        }
         this.handleOrder(client, order);
     }
     handleOrder(client, message) {
@@ -665,6 +759,49 @@ export default class woo extends wooRest {
             const messageHashSymbol = topic + ':' + symbol;
             client.resolve(this.orders, messageHashSymbol);
         }
+    }
+    handleMyTrade(client, message) {
+        //
+        //    {
+        //     "msgType": 0,  // execution report
+        //     "symbol": "SPOT_BTC_USDT",
+        //     "clientOrderId": 0,
+        //     "orderId": 54774393,
+        //     "type": "MARKET",
+        //     "side": "BUY",
+        //     "quantity": 0.0,
+        //     "price": 0.0,
+        //     "tradeId": 56201985,
+        //     "executedPrice": 23534.06,
+        //     "executedQuantity": 0.00040791,
+        //     "fee": 2.1E-7,
+        //     "feeAsset": "BTC",
+        //     "totalExecutedQuantity": 0.00040791,
+        //     "avgPrice": 23534.06,
+        //     "status": "FILLED",
+        //     "reason": "",
+        //     "orderTag": "default",
+        //     "totalFee": 2.1E-7,
+        //     "feeCurrency": "BTC",
+        //     "totalRebate": 0,
+        //     "rebateCurrency": "USDT",
+        //     "visible": 0.0,
+        //     "timestamp": 1675406261689,
+        //     "reduceOnly": false,
+        //     "maker": false
+        //   }
+        //
+        let myTrades = this.myTrades;
+        if (myTrades === undefined) {
+            const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            myTrades = new ArrayCacheBySymbolById(limit);
+        }
+        const trade = this.parseWsTrade(message);
+        myTrades.append(trade);
+        let messageHash = 'myTrades:' + trade['symbol'];
+        client.resolve(myTrades, messageHash);
+        messageHash = 'myTrades';
+        client.resolve(myTrades, messageHash);
     }
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**

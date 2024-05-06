@@ -12,6 +12,10 @@ import { Future } from './Future.js';
 // eslint-disable-next-line no-restricted-globals
 const WebSocketPlatform = isNode ? WebSocket : self.WebSocket;
 export default class WsClient extends Client {
+    constructor() {
+        super(...arguments);
+        this.startedConnecting = false;
+    }
     createConnection() {
         if (this.verbose) {
             this.log(new Date(), 'connecting to', this.url);

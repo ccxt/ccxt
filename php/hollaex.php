@@ -85,6 +85,7 @@ class hollaex extends Exchange {
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -205,7 +206,7 @@ class hollaex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for hollaex
          * @see https://apidocs.hollaex.com/#constants
@@ -320,7 +321,7 @@ class hollaex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apidocs.hollaex.com/#constants
@@ -624,7 +625,7 @@ class hollaex extends Exchange {
         //         )
         //     }
         //
-        $trades = $this->safe_value($response, $market['id'], array());
+        $trades = $this->safe_list($response, $market['id'], array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -684,7 +685,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://apidocs.hollaex.com/#tiers
@@ -1040,7 +1041,7 @@ class hollaex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -1302,7 +1303,7 @@ class hollaex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -1454,7 +1455,7 @@ class hollaex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -1501,7 +1502,7 @@ class hollaex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $transaction = $this->safe_value($data, 0, array());
+        $transaction = $this->safe_dict($data, 0, array());
         return $this->parse_transaction($transaction, $currency);
     }
 
@@ -1560,7 +1561,7 @@ class hollaex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -1663,7 +1664,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://apidocs.hollaex.com/#withdrawal
@@ -1818,7 +1819,7 @@ class hollaex extends Exchange {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        $coins = $this->safe_value($response, 'coins');
+        $coins = $this->safe_list($response, 'coins');
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
     }
 

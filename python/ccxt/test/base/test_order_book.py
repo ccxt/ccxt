@@ -24,7 +24,9 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
         'datetime': '2017-09-01T00:00:00',
         'nonce': 134234234,
     }
-    empty_allowed_for = ['symbol', 'nonce', 'datetime', 'timestamp']  # todo: make timestamp required
+    empty_allowed_for = ['nonce']
+    # turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
+    orderbook = exchange.deep_extend({}, orderbook)
     test_shared_methods.assert_structure(exchange, skipped_properties, method, orderbook, format, empty_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, orderbook)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, orderbook, 'symbol', symbol)
@@ -37,24 +39,28 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
     bids_length = len(bids)
     for i in range(0, bids_length):
         current_bid_string = exchange.safe_string(bids[i], 0)
-        next_i = i + 1
-        if bids_length > next_i:
-            next_bid_string = exchange.safe_string(bids[next_i], 0)
-            has_correct_order = Precise.string_gt(current_bid_string, next_bid_string)
-            assert has_correct_order, 'current bid should be > than the next one: ' + current_bid_string + '>' + next_bid_string + log_text
-        test_shared_methods.assert_greater(exchange, skipped_properties, method, bids[i], 0, '0')
-        test_shared_methods.assert_greater(exchange, skipped_properties, method, bids[i], 1, '0')
+        if not ('compareToNextItem' in skipped_properties):
+            next_i = i + 1
+            if bids_length > next_i:
+                next_bid_string = exchange.safe_string(bids[next_i], 0)
+                assert Precise.string_gt(current_bid_string, next_bid_string), 'current bid should be > than the next one: ' + current_bid_string + '>' + next_bid_string + log_text
+        if not ('compareToZero' in skipped_properties):
+            # compare price & volume to zero
+            test_shared_methods.assert_greater(exchange, skipped_properties, method, bids[i], 0, '0')
+            test_shared_methods.assert_greater(exchange, skipped_properties, method, bids[i], 1, '0')
     asks = orderbook['asks']
     asks_length = len(asks)
     for i in range(0, asks_length):
         current_ask_string = exchange.safe_string(asks[i], 0)
-        next_i = i + 1
-        if asks_length > next_i:
-            next_ask_string = exchange.safe_string(asks[next_i], 0)
-            has_correct_order = Precise.string_lt(current_ask_string, next_ask_string)
-            assert has_correct_order, 'current ask should be < than the next one: ' + current_ask_string + '<' + next_ask_string + log_text
-        test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 0, '0')
-        test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 1, '0')
+        if not ('compareToNextItem' in skipped_properties):
+            next_i = i + 1
+            if asks_length > next_i:
+                next_ask_string = exchange.safe_string(asks[next_i], 0)
+                assert Precise.string_lt(current_ask_string, next_ask_string), 'current ask should be < than the next one: ' + current_ask_string + '<' + next_ask_string + log_text
+        if not ('compareToZero' in skipped_properties):
+            # compare price & volume to zero
+            test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 0, '0')
+            test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 1, '0')
     if not ('spread' in skipped_properties):
         if bids_length and asks_length:
             first_bid = exchange.safe_string(bids[0], 0)

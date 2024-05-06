@@ -90,6 +90,7 @@ class hitbtc extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -614,6 +615,7 @@ class hitbtc extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'funding' => 'wallet',
+                    'swap' => 'derivatives',
                     'future' => 'derivatives',
                 ),
                 'withdraw' => array(
@@ -649,7 +651,7 @@ class hitbtc extends Exchange {
         return $this->milliseconds();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for hitbtc
          * @see https://api.hitbtc.com/#symbols
@@ -791,7 +793,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://api.hitbtc.com/#$currencies
@@ -1423,7 +1425,7 @@ class hitbtc extends Exchange {
         //       "status" => "SUCCESS",
         //       "type" => "DEPOSIT", // DEPOSIT, WITHDRAW, ..
         //       "subtype" => "BLOCKCHAIN",
-        //       "native" => {
+        //       "native" => array(
         //         "tx_id" => "e20b0965-4024-44d0-b63f-7fb8996a6706",
         //         "index" => "881652766",
         //         "currency" => "ETH",
@@ -1436,15 +1438,16 @@ class hitbtc extends Exchange {
         //         ),
         //         "fee" => "1.22" // only for WITHDRAW
         //       }
-        //     }
-        //
+        //     ),
+        //     "operation_id" => "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk" => array()
         // withdraw
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        $id = $this->safe_string_2($transaction, 'operation_id', 'id');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
@@ -1589,7 +1592,7 @@ class hitbtc extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask');
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -1606,10 +1609,12 @@ class hitbtc extends Exchange {
             'symbol' => $symbol,
             'taker' => $taker,
             'maker' => $maker,
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://api.hitbtc.com/#get-trading-commission
@@ -1640,7 +1645,7 @@ class hitbtc extends Exchange {
         return $this->parse_trading_fee($response, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://api.hitbtc.com/#get-all-trading-commissions
@@ -1706,9 +1711,9 @@ class hitbtc extends Exchange {
         if ($since !== null) {
             $request['from'] = $this->iso8601($since);
         }
-        list($request, $params) = $this->handle_until_option('till', $request, $params);
+        list($request, $params) = $this->handle_until_option('until', $request, $params);
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 1000);
         }
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
@@ -1894,7 +1899,7 @@ class hitbtc extends Exchange {
         //       }
         //     )
         //
-        $order = $this->safe_value($response, 0);
+        $order = $this->safe_dict($response, 0);
         return $this->parse_order($order, $market);
     }
 
@@ -2609,7 +2614,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://api.hitbtc.com/#withdraw-crypto
@@ -2732,11 +2737,11 @@ class hitbtc extends Exchange {
             // 'symbols' => Comma separated list of $symbol codes,
             // 'sort' => 'DESC' or 'ASC'
             // 'from' => 'Datetime or Number',
-            // 'till' => 'Datetime or Number',
+            // 'until' => 'Datetime or Number',
             // 'limit' => 100,
             // 'offset' => 0,
         );
-        list($request, $params) = $this->handle_until_option('till', $request, $params);
+        list($request, $params) = $this->handle_until_option('until', $request, $params);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -3152,7 +3157,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $leverage = $this->safe_string($params, 'leverage');
@@ -3161,8 +3166,9 @@ class hitbtc extends Exchange {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
             }
         }
-        if ($amount !== 0) {
-            $amount = $this->amount_to_precision($symbol, $amount);
+        $stringAmount = $this->number_to_string($amount);
+        if ($stringAmount !== '0') {
+            $amount = $this->amount_to_precision($symbol, $stringAmount);
         } else {
             $amount = '0';
         }
@@ -3211,20 +3217,45 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //         "symbol" => "BTCUSDT_PERP",
+        //         "type" => "isolated",
+        //         "leverage" => "8.00",
+        //         "created_at" => "2022-03-30T23:34:27.161Z",
+        //         "updated_at" => "2022-03-30T23:34:27.161Z",
+        //         "currencies" => array(
+        //             {
+        //                 "code" => "USDT",
+        //                 "margin_balance" => "7.000000000000",
+        //                 "reserved_orders" => "0",
+        //                 "reserved_positions" => "0"
+        //             }
+        //         ),
+        //         "positions" => null
+        //     }
+        //
         $currencies = $this->safe_value($data, 'currencies', array());
         $currencyInfo = $this->safe_value($currencies, 0);
+        $datetime = $this->safe_string($data, 'updated_at');
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => $this->safe_string($currencyInfo, 'code'),
             'symbol' => $market['symbol'],
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => $this->safe_string($currencyInfo, 'code'),
             'status' => null,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://api.hitbtc.com/#create-update-margin-account-2
@@ -3236,13 +3267,13 @@ class hitbtc extends Exchange {
          * @param {bool} [$params->margin] true for reducing spot-margin
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
          */
-        if ($amount !== 0) {
+        if ($this->number_to_string($amount) !== '0') {
             throw new BadRequest($this->id . ' reduceMargin() on hitbtc requires the $amount to be 0 and that will remove the entire margin amount');
         }
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://api.hitbtc.com/#create-update-margin-account-2

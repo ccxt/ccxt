@@ -185,6 +185,8 @@ public partial class blofin : Exchange
                         { "trade/orders-tpsl-pending", 1 },
                         { "trade/orders-history", 1 },
                         { "trade/orders-tpsl-history", 1 },
+                        { "user/query-apikey", 1 },
+                        { "affiliate/basic", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "trade/order", 1 },
@@ -997,6 +999,8 @@ public partial class blofin : Exchange
             { "symbol", this.safeSymbol(null, market) },
             { "maker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "maker", "makerU"))) },
             { "taker", this.parseNumber(Precise.stringNeg(this.safeString2(fee, "taker", "takerU"))) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

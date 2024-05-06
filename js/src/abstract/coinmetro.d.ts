@@ -10,6 +10,7 @@ interface Exchange {
     publicGetExchangeBookPair(params?: {}): Promise<implicitReturnType>;
     publicGetExchangeBookUpdatesPairFrom(params?: {}): Promise<implicitReturnType>;
     privateGetUsersBalances(params?: {}): Promise<implicitReturnType>;
+    privateGetUsersWallets(params?: {}): Promise<implicitReturnType>;
     privateGetUsersWalletsHistorySince(params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrdersStatusOrderID(params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrdersActive(params?: {}): Promise<implicitReturnType>;

@@ -70,8 +70,11 @@ class timex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -288,7 +291,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for timex
@@ -322,7 +325,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -560,7 +563,7 @@ class timex extends Exchange {
             //         }
             //     )
             //
-            $ticker = $this->safe_value($response, 0);
+            $ticker = $this->safe_dict($response, 0);
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -823,7 +826,7 @@ class timex extends Exchange {
             //     }
             //
             $orders = $this->safe_value($response, 'orders', array());
-            $order = $this->safe_value($orders, 0, array());
+            $order = $this->safe_dict($orders, 0, array());
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -877,7 +880,7 @@ class timex extends Exchange {
             }
             $orders = $this->safe_value($response, 'changedOrders', array());
             $firstOrder = $this->safe_value($orders, 0, array());
-            $order = $this->safe_value($firstOrder, 'newOrder', array());
+            $order = $this->safe_dict($firstOrder, 'newOrder', array());
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -988,7 +991,7 @@ class timex extends Exchange {
             //     }
             //
             $order = $this->safe_value($response, 'order', array());
-            $trades = $this->safe_value($response, 'trades', array());
+            $trades = $this->safe_list($response, 'trades', array());
             return $this->parse_order(array_merge($order, array( 'trades' => $trades )));
         }) ();
     }
@@ -1044,7 +1047,7 @@ class timex extends Exchange {
             //         )
             //     }
             //
-            $orders = $this->safe_value($response, 'orders', array());
+            $orders = $this->safe_list($response, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -1105,7 +1108,7 @@ class timex extends Exchange {
             //         )
             //     }
             //
-            $orders = $this->safe_value($response, 'orders', array());
+            $orders = $this->safe_list($response, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -1169,12 +1172,12 @@ class timex extends Exchange {
             //         )
             //     }
             //
-            $trades = $this->safe_value($response, 'trades', array());
+            $trades = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null): array {
         //
         //     {
         //         "fee" => 0.0075,
@@ -1188,10 +1191,12 @@ class timex extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $rate,
             'taker' => $rate,
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market

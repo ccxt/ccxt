@@ -15,6 +15,7 @@ const errorHierarchy = {
                 'NoChange': {
                     'MarginModeAlreadySet': {},
                 },
+                'MarketClosed': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -34,6 +35,7 @@ const errorHierarchy = {
             },
             'NotSupported': {},
             'ProxyError': {},
+            'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
             'NetworkError': {
@@ -46,7 +48,6 @@ const errorHierarchy = {
                 'RequestTimeout': {},
             },
         },
-        'ExchangeClosedByUser': {},
     },
 };
 

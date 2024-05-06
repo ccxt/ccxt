@@ -651,7 +651,7 @@ public partial class zaif : Exchange
         //         }
         //     }
         //
-        object returnData = this.safeValue(result, "return");
+        object returnData = this.safeDict(result, "return");
         return this.parseTransaction(returnData, currency);
     }
 
@@ -706,7 +706,7 @@ public partial class zaif : Exchange
 
     public virtual object customNonce()
     {
-        object num = ((object)(divide(this.milliseconds(), 1000))).ToString();
+        object num = this.numberToString(divide(this.milliseconds(), 1000));
         object nonce = parseFloat(num);
         return toFixed(nonce, 8);
     }

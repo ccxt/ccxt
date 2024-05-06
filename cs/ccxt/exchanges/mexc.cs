@@ -68,6 +68,7 @@ public partial class mexc : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", null },
                 { "fetchMarkets", true },
@@ -82,8 +83,10 @@ public partial class mexc : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPositionsRisk", null },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
@@ -1402,7 +1405,7 @@ public partial class mexc : Exchange
         object trades = null;
         if (isTrue(getValue(market, "spot")))
         {
-            object until = this.safeIntegerN(parameters, new List<object>() {"endTime", "until", "till"});
+            object until = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1687,7 +1690,7 @@ public partial class mexc : Exchange
         object candles = null;
         if (isTrue(getValue(market, "spot")))
         {
-            object until = this.safeIntegerN(parameters, new List<object>() {"until", "endTime", "till"});
+            object until = this.safeIntegerN(parameters, new List<object>() {"until", "endTime"});
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1705,7 +1708,7 @@ public partial class mexc : Exchange
             }
             if (isTrue(!isEqual(until, null)))
             {
-                parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                parameters = this.omit(parameters, new List<object>() {"until"});
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
             object response = await this.spotPublicGetKlines(this.extend(request, parameters));
@@ -1726,14 +1729,14 @@ public partial class mexc : Exchange
             candles = response;
         } else if (isTrue(getValue(market, "swap")))
         {
-            object until = this.safeIntegerProductN(parameters, new List<object>() {"until", "endTime", "till"}, 0.001);
+            object until = this.safeIntegerProductN(parameters, new List<object>() {"until", "endTime"}, 0.001);
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
             }
             if (isTrue(!isEqual(until, null)))
             {
-                parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                parameters = this.omit(parameters, new List<object>() {"until"});
                 ((IDictionary<string,object>)request)["end"] = until;
             }
             object priceType = this.safeString(parameters, "price", "default");
@@ -2750,7 +2753,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            object data = this.safeValue(response, "data");
+            object data = this.safeList(response, "data");
             return this.parseOrders(data, market);
         }
     }
@@ -3045,7 +3048,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            object data = this.safeValue(response, "data");
+            object data = this.safeList(response, "data");
             return this.parseOrders(data, market);
         }
     }
@@ -3152,7 +3155,7 @@ public partial class mexc : Exchange
             //         "code": "0"
             //     }
             //
-            object data = this.safeValue(response, "data", new List<object>() {});
+            object data = this.safeList(response, "data", new List<object>() {});
             return this.parseOrders(data, market);
         }
     }
@@ -4260,8 +4263,9 @@ public partial class mexc : Exchange
         /**
         * @method
         * @name mexc#fetchLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
         */
@@ -4314,16 +4318,50 @@ public partial class mexc : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)
     {
-        /**
-        @param info {object} Exchange response for 1 market
-        @param market {object} CCXT market
-         */
+        //
+        //    {
+        //        "symbol": "BTC_USDT",
+        //        "displayName": "BTC_USDT永续",
+        //        "displayNameEn": "BTC_USDT SWAP",
+        //        "positionOpenType": 3,
+        //        "baseCoin": "BTC",
+        //        "quoteCoin": "USDT",
+        //        "settleCoin": "USDT",
+        //        "contractSize": 0.0001,
+        //        "minLeverage": 1,
+        //        "maxLeverage": 125,
+        //        "priceScale": 2,
+        //        "volScale": 0,
+        //        "amountScale": 4,
+        //        "priceUnit": 0.5,
+        //        "volUnit": 1,
+        //        "minVol": 1,
+        //        "maxVol": 1000000,
+        //        "bidLimitPriceRate": 0.1,
+        //        "askLimitPriceRate": 0.1,
+        //        "takerFeeRate": 0.0006,
+        //        "makerFeeRate": 0.0002,
+        //        "maintenanceMarginRate": 0.004,
+        //        "initialMarginRate": 0.008,
+        //        "riskBaseVol": 10000,
+        //        "riskIncrVol": 200000,
+        //        "riskIncrMmr": 0.004,
+        //        "riskIncrImr": 0.004,
+        //        "riskLevelLimit": 5,
+        //        "priceCoefficientVariation": 0.1,
+        //        "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        //        "state": 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //        "isNew": false,
+        //        "isHot": true,
+        //        "isHidden": false
+        //    }
+        //
         object maintenanceMarginRate = this.safeString(info, "maintenanceMarginRate");
         object initialMarginRate = this.safeString(info, "initialMarginRate");
         object maxVol = this.safeString(info, "maxVol");
@@ -4333,6 +4371,18 @@ public partial class mexc : Exchange
         object floor = "0";
         object tiers = new List<object>() {};
         object quoteId = this.safeString(info, "quoteCoin");
+        if (isTrue(isEqual(riskIncrVol, "0")))
+        {
+            return new List<object>() {new Dictionary<string, object>() {
+    { "tier", 0 },
+    { "currency", this.safeCurrencyCode(quoteId) },
+    { "notionalFloor", null },
+    { "notionalCap", null },
+    { "maintenanceMarginRate", null },
+    { "maxLeverage", this.safeNumber(info, "maxLeverage") },
+    { "info", info },
+}};
+        }
         while (Precise.stringLt(floor, maxVol))
         {
             object cap = Precise.stringAdd(floor, riskIncrVol);
@@ -4494,7 +4544,7 @@ public partial class mexc : Exchange
         }
         if (isTrue(isEqual(result, null)))
         {
-            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using the MEXC platform")) ;
+            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using .createDepositAddress() method or in MEXC website")) ;
         }
         return result;
     }
@@ -4810,12 +4860,14 @@ public partial class mexc : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parsePositions(data, symbols);
     }
 
     public override object parsePosition(object position, object market = null)
     {
+        //
+        // fetchPositions
         //
         //     {
         //         "positionId": 1394650,
@@ -4839,6 +4891,40 @@ public partial class mexc : Exchange
         //         "updateTime": 1609991676000,
         //         "autoAddIm": false
         //     }
+        //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        positionId: '390281084',
+        //        symbol: 'RVN_USDT',
+        //        positionType: '1',
+        //        openType: '2',
+        //        state: '3',
+        //        holdVol: '0',
+        //        frozenVol: '0',
+        //        closeVol: '1141',
+        //        holdAvgPrice: '0.03491',
+        //        holdAvgPriceFullyScale: '0.03491',
+        //        openAvgPrice: '0.03491',
+        //        openAvgPriceFullyScale: '0.03491',
+        //        closeAvgPrice: '0.03494',
+        //        liquidatePrice: '0.03433',
+        //        oim: '0',
+        //        im: '0',
+        //        holdFee: '0',
+        //        realised: '0.1829',
+        //        leverage: '50',
+        //        createTime: '1711512408000',
+        //        updateTime: '1711512553000',
+        //        autoAddIm: false,
+        //        version: '4',
+        //        profitRatio: '0.0227',
+        //        newOpenAvgPrice: '0.03491',
+        //        newCloseAvgPrice: '0.03494',
+        //        closeProfitLoss: '0.3423',
+        //        fee: '0.1593977',
+        //        positionShowStatus: 'CLOSED'
+        //    }
         //
         market = this.safeMarket(this.safeString(position, "symbol"), market);
         object symbol = getValue(market, "symbol");
@@ -4909,7 +4995,7 @@ public partial class mexc : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseTransfer(data);
         } else if (isTrue(isEqual(marketType, "swap")))
         {
@@ -5525,6 +5611,85 @@ public partial class mexc : Exchange
             marginMode = "isolated";
         }
         return new List<object>() {marginMode, parameters};
+    }
+
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+        * @param {string[]} [symbols] unified contract symbols
+        * @param {int} [since] not used by mexc fetchPositionsHistory
+        * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} type position type，1: long, 2: short
+        * @param {int} page_num current page number, default is 1
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["page_size"] = limit;
+        }
+        object response = await this.contractPrivateGetPositionListHistoryPositions(this.extend(request, parameters));
+        //
+        //    {
+        //        success: true,
+        //        code: '0',
+        //        data: [
+        //            {
+        //                positionId: '390281084',
+        //                symbol: 'RVN_USDT',
+        //                positionType: '1',
+        //                openType: '2',
+        //                state: '3',
+        //                holdVol: '0',
+        //                frozenVol: '0',
+        //                closeVol: '1141',
+        //                holdAvgPrice: '0.03491',
+        //                holdAvgPriceFullyScale: '0.03491',
+        //                openAvgPrice: '0.03491',
+        //                openAvgPriceFullyScale: '0.03491',
+        //                closeAvgPrice: '0.03494',
+        //                liquidatePrice: '0.03433',
+        //                oim: '0',
+        //                im: '0',
+        //                holdFee: '0',
+        //                realised: '0.1829',
+        //                leverage: '50',
+        //                createTime: '1711512408000',
+        //                updateTime: '1711512553000',
+        //                autoAddIm: false,
+        //                version: '4',
+        //                profitRatio: '0.0227',
+        //                newOpenAvgPrice: '0.03491',
+        //                newCloseAvgPrice: '0.03494',
+        //                closeProfitLoss: '0.3423',
+        //                fee: '0.1593977',
+        //                positionShowStatus: 'CLOSED'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        object data = this.safeList(response, "data");
+        object positions = this.parsePositions(data, symbols, parameters);
+        return this.filterBySinceLimit(positions, since, limit);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

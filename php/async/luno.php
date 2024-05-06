@@ -64,8 +64,11 @@ class luno extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -147,6 +150,7 @@ class luno extends Exchange {
                         'withdrawals' => 1,
                         'send' => 1,
                         'oauth2/grant' => 1,
+                        'beneficiaries' => 1,
                         // POST /api/exchange/1/move
                     ),
                     'put' => array(
@@ -154,6 +158,7 @@ class luno extends Exchange {
                     ),
                     'delete' => array(
                         'withdrawals/{id}' => 1,
+                        'beneficiaries/{id}' => 1,
                     ),
                 ),
             ),
@@ -181,7 +186,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for luno
@@ -494,7 +499,7 @@ class luno extends Exchange {
                 $request['pair'] = $market['id'];
             }
             $response = Async\await($this->privateGetListorders (array_merge($request, $params)));
-            $orders = $this->safe_value($response, 'orders', array());
+            $orders = $this->safe_list($response, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -760,7 +765,7 @@ class luno extends Exchange {
             //          )
             //      }
             //
-            $trades = $this->safe_value($response, 'trades', array());
+            $trades = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -806,7 +811,7 @@ class luno extends Exchange {
             //          "pair" => "XBTEUR"
             //     }
             //
-            $ohlcvs = $this->safe_value($response, 'candles', array());
+            $ohlcvs = $this->safe_list($response, 'candles', array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -877,12 +882,12 @@ class luno extends Exchange {
             //          )
             //      }
             //
-            $trades = $this->safe_value($response, 'trades', array());
+            $trades = $this->safe_list($response, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -909,6 +914,8 @@ class luno extends Exchange {
                 'symbol' => $symbol,
                 'maker' => $this->safe_number($response, 'maker_fee'),
                 'taker' => $this->safe_number($response, 'taker_fee'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }) ();
     }

@@ -88,6 +88,7 @@ class hollaex extends hollaex$1 {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -632,7 +633,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, market['id'], []);
+        const trades = this.safeList(response, market['id'], []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1055,7 +1056,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -1319,7 +1320,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -1472,7 +1473,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -1520,7 +1521,7 @@ class hollaex extends hollaex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const transaction = this.safeValue(data, 0, {});
+        const transaction = this.safeDict(data, 0, {});
         return this.parseTransaction(transaction, currency);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1580,7 +1581,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -1841,7 +1842,7 @@ class hollaex extends hollaex$1 {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeValue(response, 'coins');
+        const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
     normalizeNumberIfNeeded(number) {

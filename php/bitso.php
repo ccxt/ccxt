@@ -66,8 +66,11 @@ class bitso extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -334,7 +337,7 @@ class bitso extends Exchange {
         ), $currency);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitso
          * @see https://docs.bitso.com/bitso-api/docs/list-available-books
@@ -678,7 +681,7 @@ class bitso extends Exchange {
         //         )
         //     }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_list($response, 'payload', array());
         return $this->parse_ohlcvs($payload, $market, $timeframe, $since, $limit);
     }
 
@@ -832,7 +835,7 @@ class bitso extends Exchange {
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://docs.bitso.com/bitso-api/docs/list-$fees
@@ -1226,7 +1229,7 @@ class bitso extends Exchange {
         //     }
         //
         $transactions = $this->safe_value($response, 'payload', array());
-        $first = $this->safe_value($transactions, 0, array());
+        $first = $this->safe_dict($transactions, 0, array());
         return $this->parse_transaction($first);
     }
 
@@ -1269,7 +1272,7 @@ class bitso extends Exchange {
         //         )]
         //     }
         //
-        $transactions = $this->safe_value($response, 'payload', array());
+        $transactions = $this->safe_list($response, 'payload', array());
         return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
     }
 
@@ -1449,7 +1452,7 @@ class bitso extends Exchange {
         //        }
         //    }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_list($response, 'payload', array());
         return $this->parse_deposit_withdraw_fees($payload, $codes);
     }
 
@@ -1533,7 +1536,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1585,7 +1588,7 @@ class bitso extends Exchange {
         //     }
         //
         $payload = $this->safe_value($response, 'payload', array());
-        $first = $this->safe_value($payload, 0);
+        $first = $this->safe_dict($payload, 0);
         return $this->parse_transaction($first, $currency);
     }
 

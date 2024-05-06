@@ -327,7 +327,7 @@ class bigone extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {dict} [$params] extra parameters specific to the exchange API endpoint
@@ -433,16 +433,16 @@ class bigone extends Exchange {
         //     ),
         // }
         //
-        $currenciesData = $this->safe_value($data, 'data', array());
+        $currenciesData = $this->safe_list($data, 'data', array());
         $result = array();
         for ($i = 0; $i < count($currenciesData); $i++) {
             $currency = $currenciesData[$i];
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
-            $type = $this->safe_value($currency, 'is_fiat') ? 'fiat' : 'crypto';
+            $type = $this->safe_bool($currency, 'is_fiat') ? 'fiat' : 'crypto';
             $networks = array();
-            $chains = $this->safe_value($currency, 'binding_gateways', array());
+            $chains = $this->safe_list($currency, 'binding_gateways', array());
             $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($currency, 'withdrawal_scale', 'scale'));
             $currencyDepositEnabled = null;
             $currencyWithdrawEnabled = null;
@@ -450,8 +450,8 @@ class bigone extends Exchange {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'gateway_name');
                 $networkCode = $this->network_id_to_code($networkId);
-                $deposit = $this->safe_value($chain, 'is_deposit_enabled');
-                $withdraw = $this->safe_value($chain, 'is_withdrawal_enabled');
+                $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
+                $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
                 $isActive = ($deposit && $withdraw);
                 $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
                 $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
@@ -510,7 +510,7 @@ class bigone extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bigone
          * @see https://open.big.one/docs/spot_asset_pair.html
@@ -573,12 +573,12 @@ class bigone extends Exchange {
         //        ...
         //    )
         //
-        $markets = $this->safe_value($response, 'data', array());
+        $markets = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $baseAsset = $this->safe_value($market, 'base_asset', array());
-            $quoteAsset = $this->safe_value($market, 'quote_asset', array());
+            $baseAsset = $this->safe_dict($market, 'base_asset', array());
+            $quoteAsset = $this->safe_dict($market, 'quote_asset', array());
             $baseId = $this->safe_string($baseAsset, 'symbol');
             $quoteId = $this->safe_string($quoteAsset, 'symbol');
             $base = $this->safe_currency_code($baseId);
@@ -643,7 +643,7 @@ class bigone extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
-            $inverse = $this->safe_value($market, 'isInverse');
+            $inverse = $this->safe_bool($market, 'isInverse');
             $result[] = $this->safe_market_structure(array(
                 'id' => $marketId,
                 'symbol' => $base . '/' . $quote . ':' . $settle,
@@ -659,7 +659,7 @@ class bigone extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'active' => $this->safe_value($market, 'enable'),
+                'active' => $this->safe_bool($market, 'enable'),
                 'contract' => true,
                 'linear' => !$inverse,
                 'inverse' => $inverse,
@@ -747,8 +747,8 @@ class bigone extends Exchange {
         $marketId = $this->safe_string_2($ticker, 'asset_pair_name', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-', $marketType);
         $close = $this->safe_string_2($ticker, 'close', 'latestPrice');
-        $bid = $this->safe_value($ticker, 'bid', array());
-        $ask = $this->safe_value($ticker, 'ask', array());
+        $bid = $this->safe_dict($ticker, 'bid', array());
+        $ask = $this->safe_dict($ticker, 'ask', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -806,7 +806,7 @@ class bigone extends Exchange {
             //         }
             //     }
             //
-            $ticker = $this->safe_value($response, 'data', array());
+            $ticker = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($ticker, $market);
         } else {
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
@@ -867,7 +867,7 @@ class bigone extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
         } else {
             $data = $this->contractPublicGetInstruments ($params);
             //
@@ -915,7 +915,7 @@ class bigone extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'Timestamp');
         return $this->parse_to_int($timestamp / 1000000);
     }
@@ -987,7 +987,7 @@ class bigone extends Exchange {
             //         }
             //     }
             //
-            $orderbook = $this->safe_value($response, 'data', array());
+            $orderbook = $this->safe_dict($response, 'data', array());
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'quantity');
         }
     }
@@ -1193,7 +1193,7 @@ class bigone extends Exchange {
         //         )
         //     }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1272,7 +1272,7 @@ class bigone extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1282,7 +1282,7 @@ class bigone extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $balances = $this->safe_value($response, 'data', array());
+        $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $symbol = $this->safe_string($balance, 'asset_symbol');
@@ -1369,7 +1369,7 @@ class bigone extends Exchange {
         if (Precise::string_eq($triggerPrice, '0')) {
             $triggerPrice = null;
         }
-        $immediateOrCancel = $this->safe_value($order, 'immediate_or_cancel');
+        $immediateOrCancel = $this->safe_bool($order, 'immediate_or_cancel');
         $timeInForce = null;
         if ($immediateOrCancel) {
             $timeInForce = 'IOC';
@@ -1395,7 +1395,7 @@ class bigone extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
-            'postOnly' => $this->safe_value($order, 'post_only'),
+            'postOnly' => $this->safe_bool($order, 'post_only'),
             'side' => $side,
             'price' => $price,
             'stopPrice' => $triggerPrice,
@@ -1533,7 +1533,7 @@ class bigone extends Exchange {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        $order = $this->safe_value($response, 'data');
+        $order = $this->safe_dict($response, 'data');
         return $this->parse_order($order, $market);
     }
 
@@ -1561,7 +1561,7 @@ class bigone extends Exchange {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        $order = $this->safe_value($response, 'data');
+        $order = $this->safe_dict($response, 'data');
         return $this->parse_order($order);
     }
 
@@ -1605,7 +1605,7 @@ class bigone extends Exchange {
         $this->load_markets();
         $request = array( 'id' => $id );
         $response = $this->privateGetOrdersId (array_merge($request, $params));
-        $order = $this->safe_value($response, 'data', array());
+        $order = $this->safe_dict($response, 'data', array());
         return $this->parse_order($order);
     }
 
@@ -1655,7 +1655,7 @@ class bigone extends Exchange {
         //        "page_token":"dxzef",
         //    }
         //
-        $orders = $this->safe_value($response, 'data', array());
+        $orders = $this->safe_list($response, 'data', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -1716,7 +1716,7 @@ class bigone extends Exchange {
         //         "page_token":"dxfv"
         //     }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1831,14 +1831,14 @@ class bigone extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $dataLength = count($data);
         if ($dataLength < 1) {
             throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty $address response');
         }
         $chainsIndexedById = $this->index_by($data, 'chain');
         $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
-        $addressObject = $this->safe_value($chainsIndexedById, $selectedNetworkId, array());
+        $addressObject = $this->safe_dict($chainsIndexedById, $selectedNetworkId, array());
         $address = $this->safe_string($addressObject, 'value');
         $tag = $this->safe_string($addressObject, 'memo');
         $this->check_address($address);
@@ -1926,7 +1926,7 @@ class bigone extends Exchange {
         $address = $this->safe_string($transaction, 'target_address');
         $tag = $this->safe_string($transaction, 'memo');
         $type = (is_array($transaction) && array_key_exists('customer_id', $transaction)) ? 'withdrawal' : 'deposit';
-        $internal = $this->safe_value($transaction, 'is_internal');
+        $internal = $this->safe_bool($transaction, 'is_internal');
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1998,7 +1998,7 @@ class bigone extends Exchange {
         //         )
         //     }
         //
-        $deposits = $this->safe_value($response, 'data', array());
+        $deposits = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
@@ -2049,7 +2049,7 @@ class bigone extends Exchange {
         //         "page_token":"dxvf"
         //     }
         //
-        $withdrawals = $this->safe_value($response, 'data', array());
+        $withdrawals = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
@@ -2066,7 +2066,7 @@ class bigone extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $guid = $this->safe_string($params, 'guid', $this->uuid());
@@ -2087,7 +2087,7 @@ class bigone extends Exchange {
         //     }
         //
         $transfer = $this->parse_transfer($response, $currency);
-        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $transfer['fromAccount'] = $fromAccount;
@@ -2126,7 +2126,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
@@ -2176,7 +2176,7 @@ class bigone extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 

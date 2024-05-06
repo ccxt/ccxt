@@ -242,15 +242,6 @@ class delta extends Exchange {
         ));
     }
 
-    public function convert_expire_date($date) {
-        // parse YYMMDD to timestamp
-        $year = mb_substr($date, 0, 2 - 0);
-        $month = mb_substr($date, 2, 4 - 2);
-        $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
-        return $reconstructedDate;
-    }
-
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
@@ -412,7 +403,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.delta.exchange/#get-list-of-all-assets
@@ -517,7 +508,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for delta
          * @see https://docs.delta.exchange/#get-list-of-products
@@ -2563,7 +2554,7 @@ class delta extends Exchange {
         );
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://docs.delta.exchange/#add-remove-position-margin
@@ -2575,7 +2566,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://docs.delta.exchange/#add-remove-position-margin
@@ -2587,7 +2578,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $amount = (string) $amount;
@@ -2626,7 +2617,7 @@ class delta extends Exchange {
         return $this->parse_margin_modification($result, $market);
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //     {
         //         "auto_topup" => false,
@@ -2651,12 +2642,15 @@ class delta extends Exchange {
         $market = $this->safe_market($marketId, $market);
         return array(
             'info' => $data,
+            'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => $this->safe_number($data, 'margin'),
             'code' => null,
-            'symbol' => $market['symbol'],
             'status' => null,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

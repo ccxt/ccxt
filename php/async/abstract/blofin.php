@@ -73,6 +73,12 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function private_get_trade_orders_tpsl_history($params = array()) {
         return $this->request('trade/orders-tpsl-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_user_query_apikey($params = array()) {
+        return $this->request('user/query-apikey', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_affiliate_basic($params = array()) {
+        return $this->request('affiliate/basic', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_trade_order($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -165,6 +171,12 @@ abstract class blofin extends \ccxt\async\Exchange {
     }
     public function privateGetTradeOrdersTpslHistory($params = array()) {
         return $this->request('trade/orders-tpsl-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetUserQueryApikey($params = array()) {
+        return $this->request('user/query-apikey', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAffiliateBasic($params = array()) {
+        return $this->request('affiliate/basic', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradeOrder($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));

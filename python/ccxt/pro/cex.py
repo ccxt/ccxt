@@ -131,6 +131,7 @@ class cex(ccxt.async_support.cex):
         url = self.urls['api']['ws']
         messageHash = 'trades'
         subscriptionHash = 'old:' + symbol
+        self.options['currentWatchTradeSymbol'] = symbol  # exchange supports only 1 symbol for self watchTrades channel
         client = self.safe_value(self.clients, url)
         if client is not None:
             subscriptionKeys = list(client.subscriptions.keys())
@@ -167,11 +168,15 @@ class cex(ccxt.async_support.cex):
         data = self.safe_list(message, 'data', [])
         limit = self.safe_integer(self.options, 'tradesLimit', 1000)
         stored = ArrayCache(limit)
+        symbol = self.safe_string(self.options, 'currentWatchTradeSymbol')
+        if symbol is None:
+            return
+        market = self.market(symbol)
         dataLength = len(data)
         for i in range(0, dataLength):
             index = dataLength - 1 - i
             rawTrade = data[index]
-            parsed = self.parse_ws_old_trade(rawTrade)
+            parsed = self.parse_ws_old_trade(rawTrade, market)
             stored.append(parsed)
         messageHash = 'trades'
         self.trades = stored  # trades don't have symbol
@@ -196,7 +201,7 @@ class cex(ccxt.async_support.cex):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': None,
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'side': side,
             'order': None,
@@ -218,8 +223,10 @@ class cex(ccxt.async_support.cex):
         #
         data = self.safe_value(message, 'data', [])
         stored = self.trades  # to do fix self, self.trades is not meant to be used like self
-        for i in range(0, len(data)):
-            rawTrade = data[i]
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            index = dataLength - 1 - i
+            rawTrade = data[index]
             parsed = self.parse_ws_old_trade(rawTrade)
             stored.append(parsed)
         messageHash = 'trades'
@@ -290,7 +297,7 @@ class cex(ccxt.async_support.cex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def fetch_ticker_ws(self, symbol: str, params={}):
+    async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://docs.cex.io/#ws-api-ticker-deprecated
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -325,12 +332,15 @@ class cex(ccxt.async_support.cex):
         data = self.safe_value(message, 'data', {})
         ticker = self.parse_ws_ticker(data)
         symbol = ticker['symbol']
+        if symbol is None:
+            return
         self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
         client.resolve(ticker, 'tickers')
         messageHash = self.safe_string(message, 'oid')
-        client.resolve(ticker, messageHash)
+        if messageHash is not None:
+            client.resolve(ticker, messageHash)
 
     def parse_ws_ticker(self, ticker, market=None):
         #

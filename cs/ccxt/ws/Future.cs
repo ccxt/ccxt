@@ -19,7 +19,10 @@ public partial class Exchange
 
         public void resolve(object data = null)
         {
-            this.tcs.SetResult(data);
+            if (!this.tcs.Task.IsCompleted)
+            {
+                this.tcs.SetResult(data);
+            }
             // this.tcs = new TaskCompletionSource<object>(); // reset
             // this.task = this.tcs.Task;
         }
@@ -43,7 +46,11 @@ public partial class Exchange
             {
                 f.task.ContinueWith((task) =>
                 {
-                    if (task.IsCompleted)
+                    if (task.IsFaulted)
+                    {
+                        future.reject(task.Exception);
+                    }
+                    else if (task.IsCompleted)
                     {
                         future.resolve(task.Result);
                     }

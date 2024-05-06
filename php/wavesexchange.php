@@ -63,8 +63,11 @@ class wavesexchange extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -73,6 +76,7 @@ class wavesexchange extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -486,7 +490,7 @@ class wavesexchange extends Exchange {
         }
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for wavesexchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -879,7 +883,7 @@ class wavesexchange extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ticker = $this->safe_value($data, 0, array());
-        $dataTicker = $this->safe_value($ticker, 'data', array());
+        $dataTicker = $this->safe_dict($ticker, 'data', array());
         return $this->parse_ticker($dataTicker, $market);
     }
 
@@ -1453,11 +1457,11 @@ class wavesexchange extends Exchange {
         //
         if ($isMarketOrder) {
             $response = $this->matcherPostMatcherOrderbookMarket ($body);
-            $value = $this->safe_value($response, 'message');
+            $value = $this->safe_dict($response, 'message');
             return $this->parse_order($value, $market);
         } else {
             $response = $this->matcherPostMatcherOrderbook ($body);
-            $value = $this->safe_value($response, 'message');
+            $value = $this->safe_dict($response, 'message');
             return $this->parse_order($value, $market);
         }
     }
@@ -2413,7 +2417,7 @@ class wavesexchange extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

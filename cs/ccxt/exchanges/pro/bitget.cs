@@ -76,6 +76,7 @@ public partial class bitget : ccxt.bitget
                         { "30015", typeof(AuthenticationError) },
                         { "30016", typeof(BadRequest) },
                     } },
+                    { "broad", new Dictionary<string, object>() {} },
                 } },
             } },
         });
@@ -757,57 +758,72 @@ public partial class bitget : ccxt.bitget
         //         "side": "buy",
         //         "tradeId": "1116461060594286593"
         //     }
+        // swap private
         //
-        // order with trade in it
-        //     {
-        //         accBaseVolume: '0.1',
-        //         baseVolume: '0.1',
-        //         cTime: '1709221342922',
-        //         clientOid: '1147122943507734528',
-        //         enterPointSource: 'API',
-        //         feeDetail: [Array],
-        //         fillFee: '-0.0049578',
-        //         fillFeeCoin: 'USDT',
-        //         fillNotionalUsd: '8.263',
-        //         fillPrice: '82.63',
-        //         fillTime: '1709221342986',
-        //         force: 'gtc',
-        //         instId: 'LTCUSDT',
-        //         leverage: '10',
-        //         marginCoin: 'USDT',
-        //         marginMode: 'crossed',
-        //         notionalUsd: '8.268',
-        //         orderId: '1147122943499345921',
-        //         orderType: 'market',
-        //         pnl: '0',
-        //         posMode: 'hedge_mode',
-        //         posSide: 'short',
-        //         price: '0',
-        //         priceAvg: '82.63',
-        //         reduceOnly: 'no',
-        //         side: 'sell',
-        //         size: '0.1',
-        //         status: 'filled',
-        //         tradeId: '1147122943772479563',
-        //         tradeScope: 'T',
-        //         tradeSide: 'open',
-        //         uTime: '1709221342986'
-        //     }
+        //            {
+        //               "orderId": "1169142761031114781",
+        //               "tradeId": "1169142761312637004",
+        //               "symbol": "LTCUSDT",
+        //               "orderType": "market",
+        //               "side": "buy",
+        //               "price": "80.87",
+        //               "baseVolume": "0.1",
+        //               "quoteVolume": "8.087",
+        //               "profit": "0",
+        //               "tradeSide": "open",
+        //               "posMode": "hedge_mode",
+        //               "tradeScope": "taker",
+        //               "feeDetail": [
+        //                  {
+        //                     "feeCoin": "USDT",
+        //                     "deduction": "no",
+        //                     "totalDeductionFee": "0",
+        //                     "totalFee": "-0.0048522"
+        //                  }
+        //               ],
+        //               "cTime": "1714471276596",
+        //               "uTime": "1714471276596"
+        //            }
+        // spot private
+        //        {
+        //           "orderId": "1169142457356959747",
+        //           "tradeId": "1169142457636958209",
+        //           "symbol": "LTCUSDT",
+        //           "orderType": "market",
+        //           "side": "buy",
+        //           "priceAvg": "81.069",
+        //           "size": "0.074",
+        //           "amount": "5.999106",
+        //           "tradeScope": "taker",
+        //           "feeDetail": [
+        //              {
+        //                 "feeCoin": "LTC",
+        //                 "deduction": "no",
+        //                 "totalDeductionFee": "0",
+        //                 "totalFee": "0.000074"
+        //              }
+        //           ],
+        //           "cTime": "1714471204194",
+        //           "uTime": "1714471204194"
+        //        }
         //
-        object instId = this.safeString(trade, "instId");
+        object instId = this.safeString2(trade, "symbol", "instId");
+        object posMode = this.safeString(trade, "posMode");
+        object defaultType = ((bool) isTrue((!isEqual(posMode, null)))) ? "contract" : "spot";
         if (isTrue(isEqual(market, null)))
         {
-            market = this.safeMarket(instId, null, null, "contract");
+            market = this.safeMarket(instId, null, null, defaultType);
         }
         object timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts"});
-        object feeCost = this.safeString(trade, "fillFee");
+        object feeDetail = this.safeList(trade, "feeDetail", new List<object>() {});
+        object first = this.safeDict(feeDetail, 0);
         object fee = null;
-        if (isTrue(!isEqual(feeCost, null)))
+        if (isTrue(!isEqual(first, null)))
         {
-            object feeCurrencyId = this.safeString(trade, "fillFeeCoin");
+            object feeCurrencyId = this.safeString(first, "feeCoin");
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
-                { "cost", Precise.stringAbs(feeCost) },
+                { "cost", Precise.stringAbs(this.safeString(first, "totalFee")) },
                 { "currency", feeCurrencyCode },
             };
         }
@@ -818,12 +834,12 @@ public partial class bitget : ccxt.bitget
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", getValue(market, "symbol") },
-            { "type", null },
+            { "type", this.safeString(trade, "orderType") },
             { "side", this.safeString(trade, "side") },
-            { "takerOrMaker", null },
+            { "takerOrMaker", this.safeString(trade, "tradeScope") },
             { "price", this.safeString2(trade, "priceAvg", "price") },
-            { "amount", this.safeString(trade, "size") },
-            { "cost", this.safeString(trade, "fillNotionalUsd") },
+            { "amount", this.safeString2(trade, "size", "baseVolume") },
+            { "cost", this.safeString2(trade, "amount", "quoteVolume") },
             { "fee", fee },
         }, market);
     }
@@ -1108,7 +1124,7 @@ public partial class bitget : ccxt.bitget
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
         // spot
@@ -1269,10 +1285,6 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
-            if (isTrue(inOp(order, "tradeId")))
-            {
-                this.handleMyTrades(client as WebSocketClient, order);
-            }
             object marketId = this.safeString(order, "instId");
             object market = this.safeMarket(marketId, null, null, marketType);
             object parsed = this.parseWsOrder(order, market);
@@ -1483,8 +1495,6 @@ public partial class bitget : ccxt.bitget
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
-        // only contracts stream provides the trade info consistently in between order updates
-        // the spot stream only provides on limit orders updates so we can't support it for spot
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1495,22 +1505,14 @@ public partial class bitget : ccxt.bitget
             symbol = getValue(market, "symbol");
             messageHash = add(add(messageHash, ":"), symbol);
         }
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isEqual(type, "spot")))
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " watchMyTrades is not supported for "), type), " markets.")) ;
-        }
         object instType = null;
         var instTypeparametersVariable = this.getInstType(market, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
-        object subscriptionHash = "order:trades";
+        object subscriptionHash = add("fill:", instType);
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", "orders" },
+            { "channel", "fill" },
             { "instId", "default" },
         };
         object trades = await this.watchPrivate(messageHash, subscriptionHash, args, parameters);
@@ -1524,34 +1526,74 @@ public partial class bitget : ccxt.bitget
     public virtual void handleMyTrades(WebSocketClient client, object message)
     {
         //
-        // order and trade mixin (contract)
-        //
+        // spot
+        // {
+        //     "action": "snapshot",
+        //     "arg": {
+        //        "instType": "SPOT",
+        //        "channel": "fill",
+        //        "instId": "default"
+        //     },
+        //     "data": [
+        //        {
+        //           "orderId": "1169142457356959747",
+        //           "tradeId": "1169142457636958209",
+        //           "symbol": "LTCUSDT",
+        //           "orderType": "market",
+        //           "side": "buy",
+        //           "priceAvg": "81.069",
+        //           "size": "0.074",
+        //           "amount": "5.999106",
+        //           "tradeScope": "taker",
+        //           "feeDetail": [
+        //              {
+        //                 "feeCoin": "LTC",
+        //                 "deduction": "no",
+        //                 "totalDeductionFee": "0",
+        //                 "totalFee": "0.000074"
+        //              }
+        //           ],
+        //           "cTime": "1714471204194",
+        //           "uTime": "1714471204194"
+        //        }
+        //     ],
+        //     "ts": 1714471204270
+        // }
+        // swap
         //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
-        //             "feeCoin": "USDT",
-        //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
+        //         "action": "snapshot",
+        //         "arg": {
+        //            "instType": "USDT-FUTURES",
+        //            "channel": "fill",
+        //            "instId": "default"
+        //         },
+        //         "data": [
+        //            {
+        //               "orderId": "1169142761031114781",
+        //               "tradeId": "1169142761312637004",
+        //               "symbol": "LTCUSDT",
+        //               "orderType": "market",
+        //               "side": "buy",
+        //               "price": "80.87",
+        //               "baseVolume": "0.1",
+        //               "quoteVolume": "8.087",
+        //               "profit": "0",
+        //               "tradeSide": "open",
+        //               "posMode": "hedge_mode",
+        //               "tradeScope": "taker",
+        //               "feeDetail": [
+        //                  {
+        //                     "feeCoin": "USDT",
+        //                     "deduction": "no",
+        //                     "totalDeductionFee": "0",
+        //                     "totalFee": "-0.0048522"
+        //                  }
+        //               ],
+        //               "cTime": "1714471276596",
+        //               "uTime": "1714471276596"
+        //            }
+        //         ],
+        //         "ts": 1714471276629
         //     }
         //
         if (isTrue(isEqual(this.myTrades, null)))
@@ -1560,13 +1602,19 @@ public partial class bitget : ccxt.bitget
             this.myTrades = new ArrayCache(limit);
         }
         object stored = this.myTrades;
-        object parsed = this.parseWsTrade(message);
-        callDynamically(stored, "append", new object[] {parsed});
-        object symbol = getValue(parsed, "symbol");
+        object data = this.safeList(message, "data", new List<object>() {});
+        object length = getArrayLength(data);
         object messageHash = "myTrades";
+        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        {
+            object trade = getValue(data, i);
+            object parsed = this.parseWsTrade(trade);
+            callDynamically(stored, "append", new object[] {parsed});
+            object symbol = getValue(parsed, "symbol");
+            object symbolSpecificMessageHash = add("myTrades:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, symbolSpecificMessageHash});
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
-        object symbolSpecificMessageHash = add("myTrades:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, symbolSpecificMessageHash});
     }
 
     public async override Task<object> watchBalance(object parameters = null)
@@ -1890,10 +1938,13 @@ public partial class bitget : ccxt.bitget
         object methods = new Dictionary<string, object>() {
             { "ticker", this.handleTicker },
             { "trade", this.handleTrades },
+            { "fill", this.handleMyTrades },
             { "orders", this.handleOrder },
             { "ordersAlgo", this.handleOrder },
             { "account", this.handleBalance },
             { "positions", this.handlePositions },
+            { "account-isolated", this.handleBalance },
+            { "account-crossed", this.handleBalance },
         };
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object topic = this.safeValue(arg, "channel", "");

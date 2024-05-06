@@ -10,8 +10,8 @@ from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, Ord
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class hitbtc(ccxt.async_support.hitbtc):
@@ -1123,7 +1123,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        "id": 1700233093414
         #    }
         #
-        messageHash = self.safe_integer(message, 'id')
+        messageHash = self.safe_string(message, 'id')
         result = self.safe_value(message, 'result', {})
         if isinstance(result, list):
             parsedOrders = []

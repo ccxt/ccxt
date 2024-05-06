@@ -62,10 +62,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetch all the accounts associated with a profile
@@ -782,7 +782,7 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.till</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
     /// </description>
@@ -861,7 +861,7 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.till</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
     /// </description>
@@ -1065,7 +1065,7 @@ public partial class kucoin
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-trade-histories"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1099,7 +1099,7 @@ public partial class kucoin
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1110,16 +1110,16 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#apply-withdraw-2"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1130,7 +1130,7 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1139,8 +1139,8 @@ public partial class kucoin
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-deposit-list"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/#get-v1-historical-deposits-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1186,8 +1186,8 @@ public partial class kucoin
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-withdrawals-list"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/#get-v1-historical-withdrawals-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1233,9 +1233,9 @@ public partial class kucoin
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#list-accounts"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/#query-isolated-margin-account-info"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1273,7 +1273,7 @@ public partial class kucoin
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#inner-transfer"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer"/>  <br/>
     /// See <see href="https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2"/>  <br/>
     /// See <see href="https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts"/>  <br/>
     /// <list type="table">
@@ -1295,7 +1295,7 @@ public partial class kucoin
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-account-ledgers"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf"/>  <br/>
     /// <list type="table">

@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +22,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -108,6 +108,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -632,6 +633,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {
@@ -665,7 +667,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for hitbtc
         :see: https://api.hitbtc.com/#symbols
@@ -802,7 +804,7 @@ class hitbtc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://api.hitbtc.com/#currencies
@@ -1404,15 +1406,16 @@ class hitbtc(Exchange, ImplicitAPI):
         #         ],
         #         "fee": "1.22"  # only for WITHDRAW
         #       }
-        #     }
-        #
+        #     },
+        #     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d",  # only for WITHDRAW
+        #     "commit_risk": {}
         # withdraw
         #
         #     {
         #         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        id = self.safe_string_2(transaction, 'operation_id', 'id')
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
         updated = self.parse8601(self.safe_string(transaction, 'updated_at'))
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
@@ -1546,7 +1549,7 @@ class hitbtc(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
         return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask')
 
-    def parse_trading_fee(self, fee, market: Market = None):
+    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
@@ -1563,9 +1566,11 @@ class hitbtc(Exchange, ImplicitAPI):
             'symbol': symbol,
             'taker': taker,
             'maker': maker,
+            'percentage': None,
+            'tierBased': None,
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://api.hitbtc.com/#get-trading-commission
@@ -1594,7 +1599,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fee(response, market)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://api.hitbtc.com/#get-all-trading-commissions
@@ -1655,9 +1660,9 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['from'] = self.iso8601(since)
-        request, params = self.handle_until_option('till', request, params)
+        request, params = self.handle_until_option('until', request, params)
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
         response = None
@@ -1830,7 +1835,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        order = self.safe_value(response, 0)
+        order = self.safe_dict(response, 0)
         return self.parse_order(order, market)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2488,7 +2493,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://api.hitbtc.com/#withdraw-crypto
@@ -2601,11 +2606,11 @@ class hitbtc(Exchange, ImplicitAPI):
             # 'symbols': Comma separated list of symbol codes,
             # 'sort': 'DESC' or 'ASC'
             # 'from': 'Datetime or Number',
-            # 'till': 'Datetime or Number',
+            # 'until': 'Datetime or Number',
             # 'limit': 100,
             # 'offset': 0,
         }
-        request, params = self.handle_until_option('till', request, params)
+        request, params = self.handle_until_option('until', request, params)
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -2998,15 +3003,16 @@ class hitbtc(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def modify_margin_helper(self, symbol: str, amount, type, params={}):
+    def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
         if market['swap']:
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
-        if amount != 0:
-            amount = self.amount_to_precision(symbol, amount)
+        stringAmount = self.number_to_string(amount)
+        if stringAmount != '0':
+            amount = self.amount_to_precision(symbol, stringAmount)
         else:
             amount = '0'
         request = {
@@ -3051,19 +3057,44 @@ class hitbtc(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+        #
+        # addMargin/reduceMargin
+        #
+        #     {
+        #         "symbol": "BTCUSDT_PERP",
+        #         "type": "isolated",
+        #         "leverage": "8.00",
+        #         "created_at": "2022-03-30T23:34:27.161Z",
+        #         "updated_at": "2022-03-30T23:34:27.161Z",
+        #         "currencies": [
+        #             {
+        #                 "code": "USDT",
+        #                 "margin_balance": "7.000000000000",
+        #                 "reserved_orders": "0",
+        #                 "reserved_positions": "0"
+        #             }
+        #         ],
+        #         "positions": null
+        #     }
+        #
         currencies = self.safe_value(data, 'currencies', [])
         currencyInfo = self.safe_value(currencies, 0)
+        datetime = self.safe_string(data, 'updated_at')
         return {
             'info': data,
-            'type': None,
-            'amount': None,
-            'code': self.safe_string(currencyInfo, 'code'),
             'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': self.safe_string(currencyInfo, 'code'),
             'status': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}):
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://api.hitbtc.com/#create-update-margin-account-2
@@ -3075,11 +3106,11 @@ class hitbtc(Exchange, ImplicitAPI):
         :param bool [params.margin]: True for reducing spot-margin
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
-        if amount != 0:
+        if self.number_to_string(amount) != '0':
             raise BadRequest(self.id + ' reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount')
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://api.hitbtc.com/#create-update-margin-account-2

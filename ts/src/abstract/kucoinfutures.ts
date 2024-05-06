@@ -191,6 +191,8 @@ interface kucoin {
     futuresPrivateGetWithdrawalList (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetSubApiKey (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetTradeStatistics (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetTradeFees (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetHistoryPositions (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferOut (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferIn (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders (params?: {}): Promise<implicitReturnType>;

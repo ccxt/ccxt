@@ -66,8 +66,11 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -76,6 +79,7 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -887,7 +891,7 @@ class wavesexchange extends wavesexchange$1 {
         //
         const data = this.safeValue(response, 'data', []);
         const ticker = this.safeValue(data, 0, {});
-        const dataTicker = this.safeValue(ticker, 'data', {});
+        const dataTicker = this.safeDict(ticker, 'data', {});
         return this.parseTicker(dataTicker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1459,12 +1463,12 @@ class wavesexchange extends wavesexchange$1 {
         //
         if (isMarketOrder) {
             const response = await this.matcherPostMatcherOrderbookMarket(body);
-            const value = this.safeValue(response, 'message');
+            const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
         else {
             const response = await this.matcherPostMatcherOrderbook(body);
-            const value = this.safeValue(response, 'message');
+            const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
     }

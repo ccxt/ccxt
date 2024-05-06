@@ -66,8 +66,11 @@ class mercado extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -161,7 +164,7 @@ class mercado extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for mercado
@@ -524,7 +527,7 @@ class mercado extends Exchange {
             //     }
             //
             $responseData = $this->safe_value($response, 'response_data', array());
-            $order = $this->safe_value($responseData, 'order', array());
+            $order = $this->safe_dict($responseData, 'order', array());
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -630,12 +633,12 @@ class mercado extends Exchange {
             );
             $response = Async\await($this->privatePostGetOrder (array_merge($request, $params)));
             $responseData = $this->safe_value($response, 'response_data', array());
-            $order = $this->safe_value($responseData, 'order');
+            $order = $this->safe_dict($responseData, 'order');
             return $this->parse_order($order, $market);
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a $withdrawal
@@ -696,7 +699,7 @@ class mercado extends Exchange {
             //     }
             //
             $responseData = $this->safe_value($response, 'response_data', array());
-            $withdrawal = $this->safe_value($responseData, 'withdrawal');
+            $withdrawal = $this->safe_dict($responseData, 'withdrawal');
             return $this->parse_transaction($withdrawal, $currency);
         }) ();
     }
@@ -804,7 +807,7 @@ class mercado extends Exchange {
             );
             $response = Async\await($this->privatePostListOrders (array_merge($request, $params)));
             $responseData = $this->safe_value($response, 'response_data', array());
-            $orders = $this->safe_value($responseData, 'orders', array());
+            $orders = $this->safe_list($responseData, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -830,7 +833,7 @@ class mercado extends Exchange {
             );
             $response = Async\await($this->privatePostListOrders (array_merge($request, $params)));
             $responseData = $this->safe_value($response, 'response_data', array());
-            $orders = $this->safe_value($responseData, 'orders', array());
+            $orders = $this->safe_list($responseData, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }

@@ -71,8 +71,11 @@ export default class indodax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -227,7 +230,7 @@ export default class indodax extends Exchange {
         return this.safeInteger (response, 'server_time');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name indodax#fetchMarkets
@@ -486,7 +489,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue (response, 'ticker', {});
+        const ticker = this.safeDict (response, 'ticker', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -518,7 +521,7 @@ export default class indodax extends Exchange {
         // }
         //
         const response = await this.publicGetApiTickerAll (params);
-        const tickers = this.safeValue (response, 'tickers');
+        const tickers = this.safeList (response, 'tickers');
         return this.parseTickers (tickers, symbols);
     }
 
@@ -601,8 +604,8 @@ export default class indodax extends Exchange {
         const timeframes = this.options['timeframes'];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
         const now = this.seconds ();
-        const until = this.safeInteger2 (params, 'until', 'till', now);
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until', now);
+        params = this.omit (params, [ 'until' ]);
         const request = {
             'to': until,
             'tf': selectedTimeframe,
@@ -811,7 +814,7 @@ export default class indodax extends Exchange {
         };
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market);
-        orders = this.filterBy (orders, 'status', 'closed');
+        orders = this.filterBy (orders, 'status', 'closed') as Order[];
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
 
@@ -1020,7 +1023,7 @@ export default class indodax extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name indodax#withdraw

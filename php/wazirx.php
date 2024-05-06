@@ -70,8 +70,11 @@ class wazirx extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -185,7 +188,7 @@ class wazirx extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#exchange-info
          * retrieves data on all $markets for wazirx
@@ -317,7 +320,7 @@ class wazirx extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 2000);
         }
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'until' ));
@@ -911,7 +914,7 @@ class wazirx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.wazirx.com/#all-coins-39-information-user_data

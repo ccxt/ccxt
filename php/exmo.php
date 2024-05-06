@@ -59,7 +59,12 @@ class exmo extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -254,22 +259,25 @@ class exmo extends Exchange {
         return $margin;
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification($data, ?array $market = null): array {
         //
         //      array()
         //
         return array(
             'info' => $data,
-            'type' => null,
-            'amount' => null,
-            'code' => $this->safe_value($market, 'quote'),
             'symbol' => $this->safe_symbol(null, $market),
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
             'total' => null,
+            'code' => $this->safe_value($market, 'quote'),
             'status' => 'ok',
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
@@ -281,7 +289,7 @@ class exmo extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
@@ -293,7 +301,7 @@ class exmo extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#90927062-256c-4b03-900f-2b99131f9a54
@@ -582,7 +590,7 @@ class exmo extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7cdf0ca8-9ff6-4cf3-aa33-bcec83155c49
@@ -705,7 +713,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for exmo
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
@@ -849,30 +857,26 @@ class exmo extends Exchange {
             'symbol' => $market['id'],
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $options = $this->safe_value($this->options, 'fetchOHLCV');
-        $maxLimit = $this->safe_integer($options, 'maxLimit', 3000);
+        $maxLimit = 3000;
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
                 $limit = 1000; // cap default at generous amount
-            }
-            if ($limit > $maxLimit) {
-                $limit = $maxLimit; // avoid exception
+            } else {
+                $limit = min ($limit, $maxLimit);
             }
             $request['from'] = $this->parse_to_int($now / 1000) - $limit * $duration - 1;
             $request['to'] = $this->parse_to_int($now / 1000);
         } else {
             $request['from'] = $this->parse_to_int($since / 1000) - 1;
             if ($limit === null) {
-                $request['to'] = $this->parse_to_int($now / 1000);
+                $limit = $maxLimit;
             } else {
-                if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
-                }
-                $to = $this->sum($since, $limit * $duration * 1000);
-                $request['to'] = $this->parse_to_int($to / 1000);
+                $limit = min ($limit, $maxLimit);
             }
+            $to = $this->sum($since, $limit * $duration * 1000);
+            $request['to'] = $this->parse_to_int($to / 1000);
         }
         $response = $this->publicGetCandlesHistory (array_merge($request, $params));
         //
@@ -884,7 +888,7 @@ class exmo extends Exchange {
         //         )
         //     }
         //
-        $candles = $this->safe_value($response, 'candles', array());
+        $candles = $this->safe_list($response, 'candles', array());
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
@@ -1009,7 +1013,7 @@ class exmo extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->publicGetOrderBook (array_merge($request, $params));
-        $result = $this->safe_value($response, $market['id']);
+        $result = $this->safe_dict($response, $market['id']);
         return $this->parse_order_book($result, $market['symbol'], null, 'bid', 'ask');
     }
 
@@ -1274,7 +1278,7 @@ class exmo extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, $market['id'], array());
+        $data = $this->safe_list($response, $market['id'], array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -1645,7 +1649,7 @@ class exmo extends Exchange {
             //     }
             //
         }
-        $trades = $this->safe_value($response, 'trades');
+        $trades = $this->safe_list($response, 'trades');
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2099,7 +2103,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325
@@ -2381,7 +2385,7 @@ class exmo extends Exchange {
         //         "count" => 23
         //     }
         //
-        $items = $this->safe_value($response, 'items', array());
+        $items = $this->safe_list($response, 'items', array());
         return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
@@ -2432,7 +2436,7 @@ class exmo extends Exchange {
         //     }
         //
         $items = $this->safe_value($response, 'items', array());
-        $first = $this->safe_value($items, 0, array());
+        $first = $this->safe_dict($items, 0, array());
         return $this->parse_transaction($first, $currency);
     }
 
@@ -2483,7 +2487,7 @@ class exmo extends Exchange {
         //     }
         //
         $items = $this->safe_value($response, 'items', array());
-        $first = $this->safe_value($items, 0, array());
+        $first = $this->safe_dict($items, 0, array());
         return $this->parse_transaction($first, $currency);
     }
 
@@ -2536,7 +2540,7 @@ class exmo extends Exchange {
         //         "count" => 23
         //     }
         //
-        $items = $this->safe_value($response, 'items', array());
+        $items = $this->safe_list($response, 'items', array());
         return $this->parse_transactions($items, $currency, $since, $limit);
     }
 

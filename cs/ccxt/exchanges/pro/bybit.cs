@@ -50,6 +50,7 @@ public partial class bybit : ccxt.bybit
                             } },
                             { "contract", "wss://stream.{hostname}/v5/private" },
                             { "usdc", "wss://stream.{hostname}/trade/option/usdc/private/v1" },
+                            { "trade", "wss://stream-testnet.bybit.com/v5/trade" },
                         } },
                     } },
                 } },
@@ -68,6 +69,7 @@ public partial class bybit : ccxt.bybit
                             } },
                             { "contract", "wss://stream-testnet.{hostname}/v5/private" },
                             { "usdc", "wss://stream-testnet.{hostname}/trade/option/usdc/private/v1" },
+                            { "trade", "wss://stream-testnet.bybit.com/v5/trade" },
                         } },
                     } },
                 } },
@@ -117,7 +119,7 @@ public partial class bybit : ccxt.bybit
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
-                { "keepAlive", 20000 },
+                { "keepAlive", 19000 },
             } },
         });
     }
@@ -185,6 +187,136 @@ public partial class bybit : ccxt.bybit
         return parameters;
     }
 
+    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#createOrderWs
+        * @description create a trade order
+        * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
+        * @param {bool} [params.postOnly] true or false whether the order is post-only
+        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+        * @param {string} [params.positionIdx] *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+        * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
+        * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+        * @param {string} [params.mmp] *option only* market maker protection
+        * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+        * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+        * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+        * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "trade");
+        await this.authenticate(url);
+        object requestId = ((object)this.requestId()).ToString();
+        object request = new Dictionary<string, object>() {
+            { "op", "order.create" },
+            { "reqId", requestId },
+            { "args", new List<object>() {orderRequest} },
+            { "header", new Dictionary<string, object>() {
+                { "X-BAPI-TIMESTAMP", ((object)this.milliseconds()).ToString() },
+                { "X-BAPI-RECV-WINDOW", ((object)getValue(this.options, "recvWindow")).ToString() },
+            } },
+        };
+        return await this.watch(url, requestId, request, requestId, true);
+    }
+
+    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#editOrderWs
+        * @description edit a trade order
+        * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+        * @param {string} id cancel order id
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
+        * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
+        * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
+        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+        * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+        * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+        * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "trade");
+        await this.authenticate(url);
+        object requestId = ((object)this.requestId()).ToString();
+        object request = new Dictionary<string, object>() {
+            { "op", "order.amend" },
+            { "reqId", requestId },
+            { "args", new List<object>() {orderRequest} },
+            { "header", new Dictionary<string, object>() {
+                { "X-BAPI-TIMESTAMP", ((object)this.milliseconds()).ToString() },
+                { "X-BAPI-RECV-WINDOW", ((object)getValue(this.options, "recvWindow")).ToString() },
+            } },
+        };
+        return await this.watch(url, requestId, request, requestId, true);
+    }
+
+    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#cancelOrderWs
+        * @description cancels an open order
+        * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+        * @param {string} id order id
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] *spot only* whether the order is a stop order
+        * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object orderRequest = this.cancelOrderRequest(id, symbol, parameters);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "trade");
+        await this.authenticate(url);
+        object requestId = ((object)this.requestId()).ToString();
+
+        object request = new Dictionary<string, object>() {
+            { "op", "order.cancel" },
+            { "reqId", requestId },
+            { "args", new List<object>() {orderRequest} },
+            { "header", new Dictionary<string, object>() {
+                { "X-BAPI-TIMESTAMP", ((object)this.milliseconds()).ToString() },
+                { "X-BAPI-RECV-WINDOW", ((object)getValue(this.options, "recvWindow")).ToString() },
+            } },
+        };
+        return await this.watch(url, requestId, request, requestId, true);
+    }
+
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         /**
@@ -220,7 +352,7 @@ public partial class bybit : ccxt.bybit
         /**
         * @method
         * @name bybit#watchTickers
-        * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -1216,6 +1348,34 @@ public partial class bybit : ccxt.bybit
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
+    public virtual void handleOrderWs(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "reqId":"1",
+        //        "retCode":0,
+        //        "retMsg":"OK",
+        //        "op":"order.create",
+        //        "data":{
+        //            "orderId":"1673523595617593600",
+        //            "orderLinkId":"1673523595617593601"
+        //        },
+        //        "header":{
+        //            "X-Bapi-Limit":"20",
+        //            "X-Bapi-Limit-Status":"19",
+        //            "X-Bapi-Limit-Reset-Timestamp":"1714235558880",
+        //            "Traceid":"584a06d373f2fdcb3a4dfdd81d27df11",
+        //            "Timenow":"1714235558881"
+        //        },
+        //        "connId":"cojidqec0hv9fgvhtbt0-40e"
+        //    }
+        //
+        object messageHash = this.safeString(message, "reqId");
+        object data = this.safeDict(message, "data");
+        object order = this.parseOrder(data);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
+    }
+
     public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
@@ -1870,13 +2030,34 @@ public partial class bybit : ccxt.bybit
         //
         //   { code: '-10009', desc: "Invalid period!" }
         //
-        object code = this.safeString2(message, "code", "ret_code");
+        //   {
+        //       "reqId":"1",
+        //       "retCode":170131,
+        //       "retMsg":"Insufficient balance.",
+        //       "op":"order.create",
+        //       "data":{
+        //
+        //       },
+        //       "header":{
+        //           "X-Bapi-Limit":"20",
+        //           "X-Bapi-Limit-Status":"19",
+        //           "X-Bapi-Limit-Reset-Timestamp":"1714236608944",
+        //           "Traceid":"3d7168a137bf32a947b7e5e6a575ac7f",
+        //           "Timenow":"1714236608946"
+        //       },
+        //       "connId":"cojifin88smerbj9t560-406"
+        //   }
+        //
+        object code = this.safeStringN(message, new List<object>() {"code", "ret_code", "retCode"});
         try
         {
-            if (isTrue(!isEqual(code, null)))
+            if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, "0"))))
             {
                 object feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                object msg = this.safeString2(message, "retMsg", "ret_msg");
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
+                throw new ExchangeError ((string)feedback) ;
             }
             object success = this.safeValue(message, "success");
             if (isTrue(isTrue(!isEqual(success, null)) && !isTrue(success)))
@@ -1905,7 +2086,8 @@ public partial class bybit : ccxt.bybit
                 }
             } else
             {
-                ((WebSocketClient)client).reject(error);
+                object messageHash = this.safeString(message, "reqId");
+                ((WebSocketClient)client).reject(error, messageHash);
             }
             return true;
         }
@@ -1932,19 +2114,13 @@ public partial class bybit : ccxt.bybit
             return;
         }
         // pong
-        object op = this.safeString(message, "op");
-        if (isTrue(isEqual(op, "pong")))
-        {
-            this.handlePong(client as WebSocketClient, message);
-            return;
-        }
         object eventVar = this.safeString(message, "event");
         if (isTrue(isEqual(eventVar, "sub")))
         {
             this.handleSubscriptionStatus(client as WebSocketClient, message);
             return;
         }
-        object topic = this.safeString(message, "topic", "");
+        object topic = this.safeString2(message, "topic", "op");
         object methods = new Dictionary<string, object>() {
             { "orderbook", this.handleOrderBook },
             { "kline", this.handleOHLCV },
@@ -1960,6 +2136,11 @@ public partial class bybit : ccxt.bybit
             { "ticketInfo", this.handleMyTrades },
             { "user.openapi.perp.trade", this.handleMyTrades },
             { "position", this.handlePositions },
+            { "pong", this.handlePong },
+            { "order.create", this.handleOrderWs },
+            { "order.amend", this.handleOrderWs },
+            { "order.cancel", this.handleOrderWs },
+            { "auth", this.handleAuthenticate },
         };
         object exacMethod = this.safeValue(methods, topic);
         if (isTrue(!isEqual(exacMethod, null)))
@@ -1980,7 +2161,7 @@ public partial class bybit : ccxt.bybit
         }
         // unified auth acknowledgement
         object type = this.safeString(message, "type");
-        if (isTrue(isTrue((isEqual(op, "auth"))) || isTrue((isEqual(type, "AUTH_RESP")))))
+        if (isTrue(isEqual(type, "AUTH_RESP")))
         {
             this.handleAuthenticate(client as WebSocketClient, message);
         }
@@ -2020,9 +2201,17 @@ public partial class bybit : ccxt.bybit
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
+        //    {
+        //        "retCode":0,
+        //        "retMsg":"OK",
+        //        "op":"auth",
+        //        "connId":"cojifin88smerbj9t560-404"
+        //    }
+        //
         object success = this.safeValue(message, "success");
+        object code = this.safeInteger(message, "retCode");
         object messageHash = "authenticated";
-        if (isTrue(success))
+        if (isTrue(isTrue(success) || isTrue(isEqual(code, 0))))
         {
             var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);

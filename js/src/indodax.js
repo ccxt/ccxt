@@ -72,8 +72,11 @@ export default class indodax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -479,7 +482,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue(response, 'ticker', {});
+        const ticker = this.safeDict(response, 'ticker', {});
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -510,7 +513,7 @@ export default class indodax extends Exchange {
         // }
         //
         const response = await this.publicGetApiTickerAll(params);
-        const tickers = this.safeValue(response, 'tickers');
+        const tickers = this.safeList(response, 'tickers');
         return this.parseTickers(tickers, symbols);
     }
     parseTrade(trade, market = undefined) {
@@ -589,8 +592,8 @@ export default class indodax extends Exchange {
         const timeframes = this.options['timeframes'];
         const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const now = this.seconds();
-        const until = this.safeInteger2(params, 'until', 'till', now);
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until', now);
+        params = this.omit(params, ['until']);
         const request = {
             'to': until,
             'tf': selectedTimeframe,

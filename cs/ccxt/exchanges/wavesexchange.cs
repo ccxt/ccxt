@@ -59,8 +59,11 @@ public partial class wavesexchange : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -69,6 +72,7 @@ public partial class wavesexchange : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -783,7 +787,7 @@ public partial class wavesexchange : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        object dataTicker = this.safeValue(ticker, "data", new Dictionary<string, object>() {});
+        object dataTicker = this.safeDict(ticker, "data", new Dictionary<string, object>() {});
         return this.parseTicker(dataTicker, market);
     }
 
@@ -1423,12 +1427,12 @@ public partial class wavesexchange : Exchange
         if (isTrue(isMarketOrder))
         {
             object response = await this.matcherPostMatcherOrderbookMarket(body);
-            object value = this.safeValue(response, "message");
+            object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         } else
         {
             object response = await this.matcherPostMatcherOrderbook(body);
-            object value = this.safeValue(response, "message");
+            object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         }
     }

@@ -7,9 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
@@ -20,7 +20,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'createOrderWs' => false,
+                'createOrderWs' => false, // available only in sandbox
                 'editOrderWs' => false,
                 'fetchOpenOrdersWs' => false,
                 'fetchOrderWs' => false,
@@ -58,6 +58,7 @@ class bybit extends \ccxt\async\bybit {
                             ),
                             'contract' => 'wss://stream.{hostname}/v5/private',
                             'usdc' => 'wss://stream.{hostname}/trade/option/usdc/private/v1',
+                            'trade' => 'wss://stream-testnet.bybit.com/v5/trade',
                         ),
                     ),
                 ),
@@ -76,6 +77,7 @@ class bybit extends \ccxt\async\bybit {
                             ),
                             'contract' => 'wss://stream-testnet.{hostname}/v5/private',
                             'usdc' => 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1',
+                            'trade' => 'wss://stream-testnet.bybit.com/v5/trade',
                         ),
                     ),
                 ),
@@ -125,7 +127,7 @@ class bybit extends \ccxt\async\bybit {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 20000,
+                'keepAlive' => 19000,
             ),
         ));
     }
@@ -177,6 +179,136 @@ class bybit extends \ccxt\async\bybit {
         return $params;
     }
 
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK"
+             * @param {bool} [$params->postOnly] true or false whether the order is post-only
+             * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
+             * @param {string} [$params->positionIdx] *contracts only*  0 for one-way mode, 1 buy $side  of hedged mode, 2 sell $side of hedged mode
+             * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
+             * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
+             * @param {string} [$params->mmp] *option only* market maker protection
+             * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
+             * @param {float} [$params->takeProfitPrice] The $price at which a take profit order is triggered at
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
+             * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
+             * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+             * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current market $price
+             * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, true);
+            $url = $this->urls['api']['ws']['private']['trade'];
+            Async\await($this->authenticate($url));
+            $requestId = (string) $this->request_id();
+            $request = array(
+                'op' => 'order.create',
+                'reqId' => $requestId,
+                'args' => array(
+                    $orderRequest,
+                ),
+                'header' => array(
+                    'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
+                    'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+                ),
+            );
+            return Async\await($this->watch($url, $requestId, $request, $requestId, true));
+        }) ();
+    }
+
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+             * @param {string} $id cancel order $id
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
+             * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
+             * @param {float} [$params->takeProfitPrice] The $price that a take profit order is triggered at
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice that the attached take profit order will be triggered
+             * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice that the attached stop loss order will be triggered
+             * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+             * @param {string} [$params->triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+             * @param {string} [$params->slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+             * @param {string} [$params->tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
+            $url = $this->urls['api']['ws']['private']['trade'];
+            Async\await($this->authenticate($url));
+            $requestId = (string) $this->request_id();
+            $request = array(
+                'op' => 'order.amend',
+                'reqId' => $requestId,
+                'args' => array(
+                    $orderRequest,
+                ),
+                'header' => array(
+                    'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
+                    'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+                ),
+            );
+            return Async\await($this->watch($url, $requestId, $request, $requestId, true));
+        }) ();
+    }
+
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->stop] *spot only* whether the order is a stop order
+             * @param {string} [$params->orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $orderRequest = $this->cancelOrderRequest ($id, $symbol, $params);
+            $url = $this->urls['api']['ws']['private']['trade'];
+            Async\await($this->authenticate($url));
+            $requestId = (string) $this->request_id();
+            unset($orderRequest['orderFilter']);
+            $request = array(
+                'op' => 'order.cancel',
+                'reqId' => $requestId,
+                'args' => array(
+                    $orderRequest,
+                ),
+                'header' => array(
+                    'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
+                    'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+                ),
+            );
+            return Async\await($this->watch($url, $requestId, $request, $requestId, true));
+        }) ();
+    }
+
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -207,7 +339,7 @@ class bybit extends \ccxt\async\bybit {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * n watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
@@ -1125,6 +1257,33 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
+    public function handle_order_ws(Client $client, $message) {
+        //
+        //    {
+        //        "reqId":"1",
+        //        "retCode":0,
+        //        "retMsg":"OK",
+        //        "op":"order.create",
+        //        "data":array(
+        //            "orderId":"1673523595617593600",
+        //            "orderLinkId":"1673523595617593601"
+        //        ),
+        //        "header":array(
+        //            "X-Bapi-Limit":"20",
+        //            "X-Bapi-Limit-Status":"19",
+        //            "X-Bapi-Limit-Reset-Timestamp":"1714235558880",
+        //            "Traceid":"584a06d373f2fdcb3a4dfdd81d27df11",
+        //            "Timenow":"1714235558881"
+        //        ),
+        //        "connId":"cojidqec0hv9fgvhtbt0-40e"
+        //    }
+        //
+        $messageHash = $this->safe_string($message, 'reqId');
+        $data = $this->safe_dict($message, 'data');
+        $order = $this->parse_order($data);
+        $client->resolve ($order, $messageHash);
+    }
+
     public function handle_order(Client $client, $message) {
         //
         //     spot
@@ -1735,11 +1894,32 @@ class bybit extends \ccxt\async\bybit {
         //
         //   array( $code => '-10009', desc => "Invalid period!" )
         //
-        $code = $this->safe_string_2($message, 'code', 'ret_code');
+        //   {
+        //       "reqId":"1",
+        //       "retCode":170131,
+        //       "retMsg":"Insufficient balance.",
+        //       "op":"order.create",
+        //       "data":array(
+        //
+        //       ),
+        //       "header":array(
+        //           "X-Bapi-Limit":"20",
+        //           "X-Bapi-Limit-Status":"19",
+        //           "X-Bapi-Limit-Reset-Timestamp":"1714236608944",
+        //           "Traceid":"3d7168a137bf32a947b7e5e6a575ac7f",
+        //           "Timenow":"1714236608946"
+        //       ),
+        //       "connId":"cojifin88smerbj9t560-406"
+        //   }
+        //
+        $code = $this->safe_string_n($message, array( 'code', 'ret_code', 'retCode' ));
         try {
-            if ($code !== null) {
+            if ($code !== null && $code !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $msg = $this->safe_string_2($message, 'retMsg', 'ret_msg');
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $msg, $feedback);
+                throw new ExchangeError($feedback);
             }
             $success = $this->safe_value($message, 'success');
             if ($success !== null && !$success) {
@@ -1761,7 +1941,8 @@ class bybit extends \ccxt\async\bybit {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
-                $client->reject ($error);
+                $messageHash = $this->safe_string($message, 'reqId');
+                $client->reject ($error, $messageHash);
             }
             return true;
         }
@@ -1784,17 +1965,12 @@ class bybit extends \ccxt\async\bybit {
             return;
         }
         // $pong
-        $op = $this->safe_string($message, 'op');
-        if ($op === 'pong') {
-            $this->handle_pong($client, $message);
-            return;
-        }
         $event = $this->safe_string($message, 'event');
         if ($event === 'sub') {
             $this->handle_subscription_status($client, $message);
             return;
         }
-        $topic = $this->safe_string($message, 'topic', '');
+        $topic = $this->safe_string_2($message, 'topic', 'op');
         $methods = array(
             'orderbook' => array($this, 'handle_order_book'),
             'kline' => array($this, 'handle_ohlcv'),
@@ -1810,6 +1986,11 @@ class bybit extends \ccxt\async\bybit {
             'ticketInfo' => array($this, 'handle_my_trades'),
             'user.openapi.perp.trade' => array($this, 'handle_my_trades'),
             'position' => array($this, 'handle_positions'),
+            'pong' => array($this, 'handle_pong'),
+            'order.create' => array($this, 'handle_order_ws'),
+            'order.amend' => array($this, 'handle_order_ws'),
+            'order.cancel' => array($this, 'handle_order_ws'),
+            'auth' => array($this, 'handle_authenticate'),
         );
         $exacMethod = $this->safe_value($methods, $topic);
         if ($exacMethod !== null) {
@@ -1827,7 +2008,7 @@ class bybit extends \ccxt\async\bybit {
         }
         // unified auth acknowledgement
         $type = $this->safe_string($message, 'type');
-        if (($op === 'auth') || ($type === 'AUTH_RESP')) {
+        if ($type === 'AUTH_RESP') {
             $this->handle_authenticate($client, $message);
         }
     }
@@ -1863,9 +2044,17 @@ class bybit extends \ccxt\async\bybit {
         //        "conn_id" => "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
+        //    {
+        //        "retCode":0,
+        //        "retMsg":"OK",
+        //        "op":"auth",
+        //        "connId":"cojifin88smerbj9t560-404"
+        //    }
+        //
         $success = $this->safe_value($message, 'success');
+        $code = $this->safe_integer($message, 'retCode');
         $messageHash = 'authenticated';
-        if ($success) {
+        if ($success || $code === 0) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve (true);
         } else {

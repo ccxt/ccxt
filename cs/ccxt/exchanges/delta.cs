@@ -166,16 +166,6 @@ public partial class delta : Exchange
         });
     }
 
-    public virtual object convertExpireDate(object date)
-    {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
-    }
-
     public override object createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
@@ -2696,7 +2686,7 @@ public partial class delta : Exchange
         return this.parseMarginModification(result, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -2722,12 +2712,15 @@ public partial class delta : Exchange
         market = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", this.safeNumber(data, "margin") },
             { "code", null },
-            { "symbol", getValue(market, "symbol") },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
