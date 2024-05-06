@@ -1470,6 +1470,7 @@ class bybit(Exchange, ImplicitAPI):
         #                     "quoteCoin": "USDT",
         #                     "innovation": "0",
         #                     "status": "Trading",
+        #                     "marginTrading": "both",
         #                     "lotSizeFilter": {
         #                         "basePrecision": "0.000001",
         #                         "quotePrecision": "0.00000001",
@@ -1506,7 +1507,9 @@ class bybit(Exchange, ImplicitAPI):
             lotSizeFilter = self.safe_dict(market, 'lotSizeFilter')
             priceFilter = self.safe_dict(market, 'priceFilter')
             quotePrecision = self.safe_number(lotSizeFilter, 'quotePrecision')
-            result.append({
+            marginTrading = self.safe_string(market, 'marginTrading', 'none')
+            allowsMargin = marginTrading != 'none'
+            result.append(self.safe_market_structure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -1517,7 +1520,7 @@ class bybit(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': None,
+                'margin': allowsMargin,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -1556,7 +1559,7 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'created': None,
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_future_markets(self, params):
@@ -1669,7 +1672,7 @@ class bybit(Exchange, ImplicitAPI):
             if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
             contractSize = self.safe_number_2(lotSizeFilter, 'minTradingQty', 'minOrderQty') if inverse else self.parse_number('1')
-            result.append({
+            result.append(self.safe_market_structure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -1719,7 +1722,7 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_option_markets(self, params):
@@ -1797,7 +1800,7 @@ class bybit(Exchange, ImplicitAPI):
             optionLetter = self.safe_string(splitId, 3)
             isActive = (status == 'Trading')
             if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
-                result.append({
+                result.append(self.safe_market_structure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
                     'base': base,
@@ -1847,7 +1850,7 @@ class bybit(Exchange, ImplicitAPI):
                     },
                     'created': self.safe_integer(market, 'launchTime'),
                     'info': market,
-                })
+                }))
         return result
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

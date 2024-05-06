@@ -1494,6 +1494,7 @@ public partial class bybit : Exchange
         //                     "quoteCoin": "USDT",
         //                     "innovation": "0",
         //                     "status": "Trading",
+        //                     "marginTrading": "both",
         //                     "lotSizeFilter": {
         //                         "basePrecision": "0.000001",
         //                         "quotePrecision": "0.00000001",
@@ -1531,7 +1532,9 @@ public partial class bybit : Exchange
             object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
             object priceFilter = this.safeDict(market, "priceFilter");
             object quotePrecision = this.safeNumber(lotSizeFilter, "quotePrecision");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            object marginTrading = this.safeString(market, "marginTrading", "none");
+            object allowsMargin = !isEqual(marginTrading, "none");
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1542,7 +1545,7 @@ public partial class bybit : Exchange
                 { "settleId", null },
                 { "type", "spot" },
                 { "spot", true },
-                { "margin", null },
+                { "margin", allowsMargin },
                 { "swap", false },
                 { "future", false },
                 { "option", false },
@@ -1581,7 +1584,7 @@ public partial class bybit : Exchange
                 } },
                 { "created", null },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -1718,7 +1721,7 @@ public partial class bybit : Exchange
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
             object contractSize = ((bool) isTrue(inverse)) ? this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") : this.parseNumber("1");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1768,7 +1771,7 @@ public partial class bybit : Exchange
                 } },
                 { "created", this.safeInteger(market, "launchTime") },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -1859,7 +1862,7 @@ public partial class bybit : Exchange
             object isActive = (isEqual(status, "Trading"));
             if (isTrue(isTrue(isTrue(isActive) || isTrue((getValue(this.options, "loadAllOptions")))) || isTrue((getValue(this.options, "loadExpiredOptions")))))
             {
-                ((IList<object>)result).Add(new Dictionary<string, object>() {
+                ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter) },
                     { "base", bs },
@@ -1909,7 +1912,7 @@ public partial class bybit : Exchange
                     } },
                     { "created", this.safeInteger(market, "launchTime") },
                     { "info", market },
-                });
+                }));
             }
         }
         return result;

@@ -12,11 +12,11 @@ public partial class bybit : ccxt.bybit
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
-                { "createOrderWs", false },
-                { "editOrderWs", false },
+                { "createOrderWs", true },
+                { "editOrderWs", true },
                 { "fetchOpenOrdersWs", false },
                 { "fetchOrderWs", false },
-                { "cancelOrderWs", false },
+                { "cancelOrderWs", true },
                 { "cancelOrdersWs", false },
                 { "cancelAllOrdersWs", false },
                 { "fetchTradesWs", false },

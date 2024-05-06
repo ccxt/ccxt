@@ -12,11 +12,11 @@ class bybit extends bybit$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'createOrderWs': false,
-                'editOrderWs': false,
+                'createOrderWs': true,
+                'editOrderWs': true,
                 'fetchOpenOrdersWs': false,
                 'fetchOrderWs': false,
-                'cancelOrderWs': false,
+                'cancelOrderWs': true,
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': false,
                 'fetchTradesWs': false,

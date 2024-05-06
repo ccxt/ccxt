@@ -20,11 +20,11 @@ class bybit extends \ccxt\async\bybit {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'createOrderWs' => false, // available only in sandbox
-                'editOrderWs' => false,
+                'createOrderWs' => true,
+                'editOrderWs' => true,
                 'fetchOpenOrdersWs' => false,
                 'fetchOrderWs' => false,
-                'cancelOrderWs' => false,
+                'cancelOrderWs' => true,
                 'cancelOrdersWs' => false,
                 'cancelAllOrdersWs' => false,
                 'fetchTradesWs' => false,

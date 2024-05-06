@@ -1491,6 +1491,7 @@ class bybit extends bybit$1 {
         //                     "quoteCoin": "USDT",
         //                     "innovation": "0",
         //                     "status": "Trading",
+        //                     "marginTrading": "both",
         //                     "lotSizeFilter": {
         //                         "basePrecision": "0.000001",
         //                         "quotePrecision": "0.00000001",
@@ -1527,7 +1528,9 @@ class bybit extends bybit$1 {
             const lotSizeFilter = this.safeDict(market, 'lotSizeFilter');
             const priceFilter = this.safeDict(market, 'priceFilter');
             const quotePrecision = this.safeNumber(lotSizeFilter, 'quotePrecision');
-            result.push({
+            const marginTrading = this.safeString(market, 'marginTrading', 'none');
+            const allowsMargin = marginTrading !== 'none';
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -1538,7 +1541,7 @@ class bybit extends bybit$1 {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': allowsMargin,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -1577,7 +1580,7 @@ class bybit extends bybit$1 {
                 },
                 'created': undefined,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1702,7 +1705,7 @@ class bybit extends bybit$1 {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
             const contractSize = inverse ? this.safeNumber2(lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber('1');
-            result.push({
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -1752,7 +1755,7 @@ class bybit extends bybit$1 {
                 },
                 'created': this.safeInteger(market, 'launchTime'),
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1835,7 +1838,7 @@ class bybit extends bybit$1 {
             const optionLetter = this.safeString(splitId, 3);
             const isActive = (status === 'Trading');
             if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
-                result.push({
+                result.push(this.safeMarketStructure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
                     'base': base,
@@ -1885,7 +1888,7 @@ class bybit extends bybit$1 {
                     },
                     'created': this.safeInteger(market, 'launchTime'),
                     'info': market,
-                });
+                }));
             }
         }
         return result;

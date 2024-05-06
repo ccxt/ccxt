@@ -1503,6 +1503,7 @@ class bybit extends Exchange {
             //                     "quoteCoin" => "USDT",
             //                     "innovation" => "0",
             //                     "status" => "Trading",
+            //                     "marginTrading" => "both",
             //                     "lotSizeFilter" => array(
             //                         "basePrecision" => "0.000001",
             //                         "quotePrecision" => "0.00000001",
@@ -1539,7 +1540,9 @@ class bybit extends Exchange {
                 $lotSizeFilter = $this->safe_dict($market, 'lotSizeFilter');
                 $priceFilter = $this->safe_dict($market, 'priceFilter');
                 $quotePrecision = $this->safe_number($lotSizeFilter, 'quotePrecision');
-                $result[] = array(
+                $marginTrading = $this->safe_string($market, 'marginTrading', 'none');
+                $allowsMargin = $marginTrading !== 'none';
+                $result[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -1550,7 +1553,7 @@ class bybit extends Exchange {
                     'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
-                    'margin' => null,
+                    'margin' => $allowsMargin,
                     'swap' => false,
                     'future' => false,
                     'option' => false,
@@ -1589,7 +1592,7 @@ class bybit extends Exchange {
                     ),
                     'created' => null,
                     'info' => $market,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -1715,7 +1718,7 @@ class bybit extends Exchange {
                     $symbol = $symbol . '-' . $this->yymmdd($expiry);
                 }
                 $contractSize = $inverse ? $this->safe_number_2($lotSizeFilter, 'minTradingQty', 'minOrderQty') : $this->parse_number('1');
-                $result[] = array(
+                $result[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -1765,7 +1768,7 @@ class bybit extends Exchange {
                     ),
                     'created' => $this->safe_integer($market, 'launchTime'),
                     'info' => $market,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -1851,7 +1854,7 @@ class bybit extends Exchange {
                 $optionLetter = $this->safe_string($splitId, 3);
                 $isActive = ($status === 'Trading');
                 if ($isActive || ($this->options['loadAllOptions']) || ($this->options['loadExpiredOptions'])) {
-                    $result[] = array(
+                    $result[] = $this->safe_market_structure(array(
                         'id' => $id,
                         'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter,
                         'base' => $base,
@@ -1901,7 +1904,7 @@ class bybit extends Exchange {
                         ),
                         'created' => $this->safe_integer($market, 'launchTime'),
                         'info' => $market,
-                    );
+                    ));
                 }
             }
             return $result;
