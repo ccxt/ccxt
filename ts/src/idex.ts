@@ -1394,7 +1394,7 @@ export default class idex extends Exchange {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const nonce = this.uuidv1 ();
-        const amountString = this.currencyToPrecision (code, amount);
+        const amountString = this.currencyToPrecision (code, this.numberToString (amount));
         const currency = this.currency (code);
         const walletBytes = this.remove0xPrefix (this.walletAddress);
         const byteArray = [

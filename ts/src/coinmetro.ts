@@ -1849,7 +1849,7 @@ export default class coinmetro extends Exchange {
         const currency = this.currency (code);
         const currencyId = currency['id'];
         const request = {};
-        request[currencyId] = this.currencyToPrecision (code, amount);
+        request[currencyId] = this.currencyToPrecision (code, this.numberToString (amount));
         const response = await this.privatePutUsersMarginCollateral (this.extend (request, params));
         //
         //     { "message": "OK" }

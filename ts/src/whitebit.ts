@@ -1916,7 +1916,7 @@ export default class whitebit extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
-        const amountString = this.currencyToPrecision (code, amount);
+        const amountString = this.currencyToPrecision (code, this.numberToString (amount));
         const request = {
             'ticker': currency['id'],
             'amount': amountString,
@@ -1964,7 +1964,7 @@ export default class whitebit extends Exchange {
         const currency = this.currency (code); // check if it has canDeposit
         const request = {
             'ticker': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'address': address,
         };
         let uniqueId = this.safeValue (params, 'uniqueId');

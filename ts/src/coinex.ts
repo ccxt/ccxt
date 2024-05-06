@@ -5137,7 +5137,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const amountToPrecision = this.currencyToPrecision (code, amount);
+        const amountToPrecision = this.currencyToPrecision (code, this.numberToString (amount));
         const request = {
             'amount': amountToPrecision,
             'coin_type': currency['id'],
@@ -5687,7 +5687,7 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
             'coin_type': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         const response = await this.v1PrivatePostMarginLoan (this.extend (request, params));
         //

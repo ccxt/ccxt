@@ -281,7 +281,7 @@ export default class bitvavo extends Exchange {
         });
     }
 
-    currencyToPrecision (code, fee, networkCode = undefined) {
+    currencyToPrecision (code: string, fee: string, networkCode: Str = undefined): string {
         return this.decimalToPrecision (fee, 0, this.currencies[code]['precision'], DECIMAL_PLACES);
     }
 

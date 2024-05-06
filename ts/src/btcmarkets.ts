@@ -1207,7 +1207,7 @@ export default class btcmarkets extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency_id': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         if (code !== 'AUD') {
             this.checkAddress (address);

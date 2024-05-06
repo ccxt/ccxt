@@ -640,7 +640,7 @@ export default class coinmate extends Exchange {
             throw new ExchangeError (this.id + ' withdraw() only allows withdrawing the following currencies: ' + allowedCurrencies.join (', '));
         }
         const request = {
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'address': address,
         };
         if (tag !== undefined) {

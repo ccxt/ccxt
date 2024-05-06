@@ -455,7 +455,7 @@ export default class bitrue extends Exchange {
         });
     }
 
-    currencyToPrecision (code, fee, networkCode = undefined) {
+    currencyToPrecision (code: string, fee: string, networkCode: Str = undefined): string {
         // info is available in currencies only if the user has configured his api keys
         if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
             return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
@@ -2974,7 +2974,7 @@ export default class bitrue extends Exchange {
         const toId = this.safeString (accountTypes, toAccount, toAccount);
         const request = {
             'coinSymbol': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'transferType': fromId + '_to_' + toId,
         };
         const response = await this.fapiV2PrivatePostFuturesTransfer (this.extend (request, params));

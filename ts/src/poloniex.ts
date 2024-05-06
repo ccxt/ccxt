@@ -257,6 +257,7 @@ export default class poloniex extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'swap': 'futures',
                     'future': 'futures',
                 },
                 'accountsById': {
@@ -1867,12 +1868,11 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        amount = this.currencyToPrecision (code, amount);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,

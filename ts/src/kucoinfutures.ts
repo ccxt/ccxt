@@ -2248,7 +2248,7 @@ export default class kucoinfutures extends kucoin {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const amountToPrecision = this.currencyToPrecision (code, amount);
+        const amountToPrecision = this.currencyToPrecision (code, this.numberToString (amount));
         const request = {
             'currency': this.safeString (currency, 'id'), // Currency,including XBT,USDT
             'amount': amountToPrecision,

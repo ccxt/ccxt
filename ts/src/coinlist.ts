@@ -1756,12 +1756,11 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        amount = this.currencyToPrecision (code, amount);
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromAcc = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAcc = this.safeString (accountsByType, toAccount, toAccount);
         let response = undefined;
@@ -2009,7 +2008,7 @@ export default class coinlist extends Exchange {
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'destination_address': address,
         };
         const response = await this.privatePostV1TransfersWithdrawalRequest (this.extend (request, params));

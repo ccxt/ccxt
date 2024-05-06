@@ -3602,7 +3602,7 @@ export default class gate extends Exchange {
         const request = {
             'currency': currency['id'], // todo: currencies have network-junctions
             'address': address,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         if (tag !== undefined) {
             request['memo'] = tag;
@@ -5083,7 +5083,7 @@ export default class gate extends Exchange {
         const currency = this.currency (code);
         const fromId = this.convertTypeToAccount (fromAccount);
         const toId = this.convertTypeToAccount (toAccount);
-        const truncated = this.currencyToPrecision (code, amount);
+        const truncated = this.currencyToPrecision (code, this.numberToString (amount));
         const request = {
             'currency': currency['id'], // todo: currencies have network-junctions
             'amount': truncated,
@@ -5865,7 +5865,7 @@ export default class gate extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         let response = undefined;
         const market = this.market (symbol);
@@ -5911,7 +5911,7 @@ export default class gate extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         const response = await this.privateMarginPostCrossLoans (this.extend (request, params));
         //

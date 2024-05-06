@@ -1287,7 +1287,7 @@ export default class lykke extends Exchange {
         const currency = this.currency (code);
         const request = {
             'assetId': currency['id'],
-            'volume': parseFloat (this.currencyToPrecision (code, amount)),
+            'volume': parseFloat (this.currencyToPrecision (code, this.numberToString (amount))),
             'destinationAddress': address,
             // 'destinationAddressExtension': tag,
         };

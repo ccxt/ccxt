@@ -1623,7 +1623,7 @@ export default class zonda extends Exchange {
             'source': fromAccount,
             'destination': toAccount,
             'currency': code,
-            'funds': this.currencyToPrecision (code, amount),
+            'funds': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         const response = await this.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
         //

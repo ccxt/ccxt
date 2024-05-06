@@ -7133,7 +7133,7 @@ export default class bybit extends Exchange {
         const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
         const toId = this.safeString (accountTypes, toAccount, toAccount);
         const currency = this.currency (code);
-        const amountToPrecision = this.currencyToPrecision (code, amount);
+        const amountToPrecision = this.currencyToPrecision (code, this.numberToString (amount));
         const request = {
             'transferId': transferId,
             'fromAccountType': fromId,
@@ -7242,7 +7242,7 @@ export default class bybit extends Exchange {
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
-            'qty': this.currencyToPrecision (code, amount),
+            'qty': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         const response = await this.privatePostV5SpotCrossMarginTradeLoan (this.extend (request, params));
         //

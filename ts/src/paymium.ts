@@ -467,7 +467,7 @@ export default class paymium extends Exchange {
         }
         const request = {
             'currency': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'email': toAccount,
             // 'comment': 'a small note explaining the transfer'
         };

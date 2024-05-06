@@ -2924,7 +2924,7 @@ export default class kraken extends Exchange {
         fromAccount = this.parseAccountType (fromAccount);
         toAccount = this.parseAccountType (toAccount);
         const request = {
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'from': fromAccount,
             'to': toAccount,
             'asset': currency['id'],

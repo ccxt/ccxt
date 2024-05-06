@@ -2570,7 +2570,7 @@ export default class binance extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (code, fee, networkCode = undefined) {
+    currencyToPrecision (code: string, fee: string, networkCode: Str = undefined): string {
         // info is available in currencies only if the user has configured his api keys
         if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
             return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
@@ -8005,7 +8005,7 @@ export default class binance extends Exchange {
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         request['type'] = this.safeString (params, 'type');
         params = this.omit (params, 'type');
@@ -11624,7 +11624,7 @@ export default class binance extends Exchange {
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         let response = undefined;
         let isPortfolioMargin = undefined;
@@ -11662,7 +11662,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const request = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
             'type': 'BORROW',

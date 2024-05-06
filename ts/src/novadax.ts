@@ -1169,7 +1169,7 @@ export default class novadax extends Exchange {
         // master-transfer-out = from subaccount to master account
         const type = (fromAccount === 'main') ? 'master-transfer-in' : 'master-transfer-out';
         const request = {
-            'transferAmount': this.currencyToPrecision (code, amount),
+            'transferAmount': this.currencyToPrecision (code, this.numberToString (amount)),
             'currency': currency['id'],
             'subId': (type === 'master-transfer-in') ? toAccount : fromAccount,
             'transferType': type,
@@ -1243,7 +1243,7 @@ export default class novadax extends Exchange {
         const currency = this.currency (code);
         const request = {
             'code': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'wallet': address,
         };
         if (tag !== undefined) {
