@@ -440,6 +440,8 @@ export default class htx extends htxRest {
                 client.resolve (orderbook, messageHash);
             }
         } catch (e) {
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject (e, messageHash);
         }
     }
