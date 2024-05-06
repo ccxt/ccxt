@@ -989,10 +989,10 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
-            'Any': /: Any =/,
+            'Any': /: ([\w\[\]]+ \| )*(List\[)?Any/, //  ([\w\[\]]+ \| ) match other types preceeding a | character
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
-            'Bool': /: Bool =/,
+            'Bool': /: ([\w\[\]]+ \| )*(List\[)?Bool/,
             'Conversion': /-> Conversion:/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
             'CrossBorrowRates': /-> CrossBorrowRates:/,
@@ -1001,7 +1001,7 @@ class Transpiler {
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
-            'Int': /: Int =/,
+            'Int': /: ([\w\[\]]+ \| )*(List\[)?Int/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
@@ -1015,7 +1015,7 @@ class Transpiler {
             'Market': /(-> Market:|: Market)/,
             'MarketInterface': /-> MarketInterface:/,
             'MarketType': /: MarketType/,
-            'Num': /: Num =/,
+            'Num': /: ([\w\[\]]+ \| )*(List\[)?Num/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:List\[)?Order\]?:/,
@@ -1025,8 +1025,8 @@ class Transpiler {
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
-            'Str': /: Str =/,
-            'Strings': /: Strings =/,
+            'Str': /: ([\w\[\]]+ \| )*(List\[)?Str[^i]/,
+            'Strings': /: ([\w\[\]]+ \| )*(List\[)?Strings/,
             'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
@@ -1754,24 +1754,28 @@ class Transpiler {
             }
             const unwrapLists = (type) => {
                 const output = []
-                let count = 0
-                while (type.slice (-2) == '[]') {
-                    type = type.slice (0, -2)
-                    count++
-                }
-                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
+                const types = type.split ('|').map (t => {
+                    t = t.trim();
+                    let count = 0
+                    while (t.slice (-2) == '[]') {
+                        t = t.slice (0, -2);
+                        count++;
+                    }
+                    return 'List['.repeat (count) + (pythonTypes[t] ?? t) + ']'.repeat (count);
+                })
+                return types.join(' | ');
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
                     const parts = x.split(':')
-                    let typeParts = parts[1].trim ().split (' ')
+                    let typeParts = parts[1].trim ().split ('=').map(part => part.trim())
                     const type = typeParts[0]
                     typeParts[0] = ''
                     let variable = parts[0]
                     // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
                     const rawType = unwrapLists (type)
-                    return variable + ': ' + rawType + typeParts.join (' ')
+                    return variable + ': ' + rawType + typeParts.join (' = ')
                 } else {
                     return x.replace (' = ', '=')
                 }
