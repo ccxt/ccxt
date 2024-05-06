@@ -330,7 +330,7 @@ class NewTranspiler {
         }
 
         const csharpReplacements = {
-            'DictOrDictList': 'List<Dictionary<string, T>>',
+            'DictOrDictList': 'List<Dictionary<string, object>>',
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
         }
