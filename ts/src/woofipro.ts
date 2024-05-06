@@ -2600,6 +2600,9 @@ export default class woofipro extends Exchange {
                     auth += '?' + this.rawencode (params);
                 }
                 headers['content-type'] = 'application/x-www-form-urlencoded';
+                if (method === 'DELETE') {
+                    body = '';
+                }
             }
             let secret = this.secret;
             if (secret.indexOf ('ed25519:') >= 0) {
