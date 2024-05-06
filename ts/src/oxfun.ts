@@ -5,7 +5,7 @@ import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Bool, Currencies, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Bool, Currencies, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -80,7 +80,7 @@ export default class oxfun extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -999,6 +999,63 @@ export default class oxfun extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://docs.ox.fun/?json#get-v3-trades
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pairId'] = market['numericId'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetV3Trades (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,"data": [
+        //             {
+        //                 "orderId": "1000104903698",
+        //                 "clientOrderId": "1715000260094",
+        //                 "matchId": "400017129522773178",
+        //                 "marketCode": "ETH-USD-SWAP-LIN",
+        //                 "side": "BUY",
+        //                 "matchedQuantity": "0.001",
+        //                 "matchPrice": "3100.2",
+        //                 "total": "310.02",
+        //                 "orderMatchType": "MAKER",
+        //                 "feeAsset": "OX",
+        //                 "fee": "0.062004",
+        //                 "source": "0",
+        //                 "matchedAt": "1715000267420"
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList (response, 'data', []);
+        return this.parseTrades (result, market, since, limit);
+    }
+
     parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
@@ -1016,19 +1073,19 @@ export default class oxfun extends Exchange {
         // private fetchMyTrades
         //
         //     {
-        //         "orderId": "1000104177460",
-        //         "clientOrderId": "1714915840869",
-        //         "matchId": "300017129522783806",
-        //         "marketCode": "BTC-USD-SWAP-LIN",
+        //         "orderId": "1000104903698",
+        //         "clientOrderId": "1715000260094",
+        //         "matchId": "400017129522773178",
+        //         "marketCode": "ETH-USD-SWAP-LIN",
         //         "side": "BUY",
-        //         "matchedQuantity": "0.0001",
-        //         "matchPrice": "64300",
-        //         "total": "643",
-        //         "orderMatchType": "TAKER",
+        //         "matchedQuantity": "0.001",
+        //         "matchPrice": "3100.2",
+        //         "total": "310.02",
+        //         "orderMatchType": "MAKER",
         //         "feeAsset": "OX",
-        //         "fee": "0.4501",
+        //         "fee": "0.062004",
         //         "source": "0",
-        //         "matchedAt": "1714915841312"
+        //         "matchedAt": "1715000267420"
         //     }
         //
         const marketId = this.safeString (trade, 'marketCode');
