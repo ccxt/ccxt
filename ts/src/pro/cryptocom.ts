@@ -310,7 +310,7 @@ export default class cryptocom extends cryptocomRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const data = this.safeValue (message, 'data', []);
@@ -452,7 +452,7 @@ export default class cryptocom extends cryptocomRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const data = this.safeValue (message, 'data');
@@ -529,7 +529,7 @@ export default class cryptocom extends cryptocomRest {
         if (ordersLength > 0) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
+                this.orders = new ArrayCacheBySymbolById<Order> (limit);
             }
             const stored = this.orders;
             const parsed = this.parseOrders (orders);
@@ -593,13 +593,13 @@ export default class cryptocom extends cryptocomRest {
                 this.spawn (this.loadPositionsSnapshot, client, messageHash);
             }
         } else {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolBySide<Position> ();
         }
     }
 
     async loadPositionsSnapshot (client, messageHash) {
         const positions = await this.fetchPositions ();
-        this.positions = new ArrayCacheBySymbolBySide ();
+        this.positions = new ArrayCacheBySymbolBySide<Position> ();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -645,7 +645,7 @@ export default class cryptocom extends cryptocomRest {
         const firstData = this.safeValue (data, 0, {});
         const rawPositions = this.safeValue (firstData, 'positions', []);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolBySide<Position> ();
         }
         const cache = this.positions;
         const newPositions = [];

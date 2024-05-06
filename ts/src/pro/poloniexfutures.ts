@@ -385,7 +385,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                stored = new ArrayCache (tradesLimit);
+                stored = new ArrayCache<Trade> (tradesLimit);
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
@@ -539,7 +539,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            orders = new ArrayCacheBySymbolById (limit);
+            orders = new ArrayCacheBySymbolById<Order> (limit);
             this.orders = orders;
         }
         const messageHash = '/contractMarket/tradeOrders';

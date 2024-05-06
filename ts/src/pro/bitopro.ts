@@ -173,7 +173,7 @@ export default class bitopro extends bitoproRest {
         let tradesCache = this.safeValue (this.trades, symbol);
         if (tradesCache === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesCache = new ArrayCache (limit);
+            tradesCache = new ArrayCache<Trade> (limit);
         }
         for (let i = 0; i < trades.length; i++) {
             tradesCache.append (trades[i]);
@@ -243,7 +243,7 @@ export default class bitopro extends bitoproRest {
         const messageHash = this.safeString (message, 'event');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const trades = this.myTrades;
         const parsed = this.parseWsTrade (data);

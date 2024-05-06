@@ -83,7 +83,7 @@ class ArrayCache<T> extends BaseCache<T> implements CustomArray<T> {
         }
     }
 
-    append (item) {
+    append (item: T) {
         // maxSize may be 0 when initialized by a .filter() copy-construction
         if (this.maxSize && (this.length === this.maxSize)) {
             this.shift ()
@@ -138,7 +138,7 @@ class ArrayCacheByTimestamp<T> extends BaseCache<T> {
         return Math.min (this.newUpdates, limit)
     }
 
-    append (item) {
+    append (item: T) {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]]
             if (reference !== item) {
@@ -176,7 +176,7 @@ class ArrayCacheBySymbolById<T> extends ArrayCache<T> {
         // })
     }
 
-    append (item) {
+    append (item: T) {
         const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.id in byId) {
             const reference = byId[item.id]
@@ -231,7 +231,7 @@ class ArrayCacheBySymbolBySide<T> extends ArrayCache<T> {
         })
     }
 
-    append (item) {
+    append (item: T) {
         const bySide = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.side in bySide) {
             const reference = bySide[item.side]

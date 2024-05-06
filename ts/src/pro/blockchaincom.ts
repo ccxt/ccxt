@@ -191,7 +191,7 @@ export default class blockchaincom extends blockchaincomRest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (ohlcv);
@@ -369,7 +369,7 @@ export default class blockchaincom extends blockchaincomRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const parsed = this.parseWsTrade (message, market);
@@ -522,7 +522,7 @@ export default class blockchaincom extends blockchaincomRest {
         const cachedOrders = this.orders;
         if (cachedOrders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         if (event === 'subscribed') {
             return;

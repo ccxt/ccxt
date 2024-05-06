@@ -468,7 +468,7 @@ export default class coinbase extends coinbaseRest {
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCacheBySymbolById (tradesLimit);
+            tradesArray = new ArrayCacheBySymbolById<Trade> (tradesLimit);
             this.trades[symbol] = tradesArray;
         }
         for (let i = 0; i < events.length; i++) {
@@ -519,7 +519,7 @@ export default class coinbase extends coinbaseRest {
         const marketIds = [];
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         for (let i = 0; i < events.length; i++) {
             const event = events[i];

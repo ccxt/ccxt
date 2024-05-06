@@ -246,7 +246,7 @@ export default class okx extends okxRest {
             const messageHash = channel + ':' + symbol;
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
+                stored = new ArrayCache<Trade> (tradesLimit);
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
@@ -447,7 +447,7 @@ export default class okx extends okxRest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
@@ -1044,7 +1044,7 @@ export default class okx extends okxRest {
         const channel = this.safeString (arg, 'channel', '');
         const data = this.safeValue (message, 'data', []);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolBySide<Position> ();
         }
         const cache = this.positions;
         const newPositions = [];
@@ -1181,8 +1181,8 @@ export default class okx extends okxRest {
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
-                this.orders = new ArrayCacheBySymbolById (limit);
-                this.triggerOrders = new ArrayCacheBySymbolById (limit);
+                this.orders = new ArrayCacheBySymbolById<Order> (limit);
+                this.triggerOrders = new ArrayCacheBySymbolById<Order> (limit);
             }
             const stored = (channel === 'orders-algo') ? this.triggerOrders : this.orders;
             const marketIds = [];
@@ -1276,7 +1276,7 @@ export default class okx extends okxRest {
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const myTrades = this.myTrades;
         const symbols = {};

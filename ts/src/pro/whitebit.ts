@@ -368,7 +368,7 @@ export default class whitebit extends whitebitRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const data = this.safeValue (params, 1, []);
@@ -427,7 +427,7 @@ export default class whitebit extends whitebitRest {
         const trade = this.safeValue (message, 'params');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCache (limit);
+            this.myTrades = new ArrayCache<Trade> (limit);
         }
         const stored = this.myTrades;
         const parsed = this.parseWsTrade (trade);
@@ -540,7 +540,7 @@ export default class whitebit extends whitebitRest {
         const data = this.safeValue (params, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const stored = this.orders;
         const status = this.safeInteger (params, 0);

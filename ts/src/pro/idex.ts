@@ -180,7 +180,7 @@ export default class idex extends idexRest {
         const length = keys.length;
         if (length === 0) {
             const limit = this.safeInteger (this.options, 'tradesLimit');
-            this.trades = new ArrayCacheBySymbolById (limit) as any;
+            this.trades = new ArrayCacheBySymbolById<Trade> (limit) as any;
         }
         const trades = this.trades as any;
         trades.append (trade);
@@ -305,7 +305,7 @@ export default class idex extends idexRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
@@ -642,7 +642,7 @@ export default class idex extends idexRest {
         });
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         orders.append (parsedOrder);

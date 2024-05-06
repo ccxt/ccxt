@@ -349,7 +349,7 @@ export default class wazirx extends wazirxRest {
         let trades = this.safeValue (this.trades, symbol);
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCache (limit);
+            trades = new ArrayCache<Trade> (limit);
             this.trades[symbol] = trades;
         }
         for (let i = 0; i < rawTrades.length; i++) {
@@ -449,7 +449,7 @@ export default class wazirx extends wazirxRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const parsed = this.parseWsOHLCV (data, market);
@@ -606,7 +606,7 @@ export default class wazirx extends wazirxRest {
         const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         orders.append (parsedOrder);
@@ -691,7 +691,7 @@ export default class wazirx extends wazirxRest {
         let myTrades = undefined;
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            myTrades = new ArrayCacheBySymbolById (limit);
+            myTrades = new ArrayCacheBySymbolById<Trade> (limit);
             this.myTrades = myTrades;
         } else {
             myTrades = this.myTrades;

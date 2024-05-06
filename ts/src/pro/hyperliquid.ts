@@ -193,7 +193,7 @@ export default class hyperliquid extends hyperliquidRest {
         const entry = this.safeDict (message, 'data', {});
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const trades = this.myTrades;
         const symbols = {};
@@ -485,7 +485,7 @@ export default class hyperliquid extends hyperliquidRest {
         const data = this.safeList (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const dataLength = data.length;
         if (dataLength === 0) {

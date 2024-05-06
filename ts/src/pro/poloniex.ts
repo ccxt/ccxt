@@ -563,7 +563,7 @@ export default class poloniex extends poloniexRest {
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
@@ -602,7 +602,7 @@ export default class poloniex extends poloniexRest {
                 let tradesArray = this.safeValue (this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                    tradesArray = new ArrayCache (tradesLimit);
+                    tradesArray = new ArrayCache<Trade> (tradesLimit);
                     this.trades[symbol] = tradesArray;
                 }
                 tradesArray.append (trade);
@@ -785,7 +785,7 @@ export default class poloniex extends poloniexRest {
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            orders = new ArrayCacheBySymbolById (limit);
+            orders = new ArrayCacheBySymbolById<Order> (limit);
             this.orders = orders;
         }
         const marketIds = [];
@@ -1150,7 +1150,7 @@ export default class poloniex extends poloniexRest {
         const symbol = parsedTrade['symbol'];
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const trades = this.myTrades;
         trades.append (parsedTrade);

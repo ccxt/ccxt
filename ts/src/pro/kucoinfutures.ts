@@ -375,7 +375,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async loadPositionSnapshot (client, messageHash, symbol) {
         const position = await this.fetchPosition (symbol);
-        this.positions = new ArrayCacheBySymbolById ();
+        this.positions = new ArrayCacheBySymbolById<Position> ();
         const cache = this.positions;
         cache.append (position);
         // don't remove the future from the .futures cache
@@ -578,7 +578,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         let trades = this.safeValue (this.trades, symbol);
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCache (limit);
+            trades = new ArrayCache<Trade> (limit);
             this.trades[symbol] = trades;
         }
         trades.append (trade);
@@ -869,7 +869,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         if (symbol !== undefined) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
+                this.orders = new ArrayCacheBySymbolById<Order> (limit);
             }
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});

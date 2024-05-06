@@ -409,7 +409,7 @@ export default class coinbasepro extends coinbaseproRest {
             let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                tradesArray = new ArrayCache (tradesLimit);
+                tradesArray = new ArrayCache<Trade> (tradesLimit);
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
@@ -427,7 +427,7 @@ export default class coinbasepro extends coinbaseproRest {
             let tradesArray = this.myTrades;
             if (tradesArray === undefined) {
                 const limit = this.safeInteger (this.options, 'myTradesLimit', 1000);
-                tradesArray = new ArrayCacheBySymbolById (limit);
+                tradesArray = new ArrayCacheBySymbolById<Trade> (limit);
                 this.myTrades = tradesArray;
             }
             tradesArray.append (trade);
@@ -612,7 +612,7 @@ export default class coinbasepro extends coinbaseproRest {
         let currentOrders = this.orders;
         if (currentOrders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            currentOrders = new ArrayCacheBySymbolById (limit);
+            currentOrders = new ArrayCacheBySymbolById<Order> (limit);
             this.orders = currentOrders;
         }
         const type = this.safeString (message, 'type');

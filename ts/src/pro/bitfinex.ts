@@ -121,7 +121,7 @@ export default class bitfinex extends bitfinexRest {
         const data = this.safeValue (message, 1);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
-            stored = new ArrayCache (tradesLimit);
+            stored = new ArrayCache<Trade> (tradesLimit);
             this.trades[symbol] = stored;
         }
         if (Array.isArray (data)) {
@@ -616,7 +616,7 @@ export default class bitfinex extends bitfinexRest {
         });
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         orders.append (parsed);

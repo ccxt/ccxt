@@ -380,7 +380,7 @@ export default class kraken extends krakenRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const trades = this.safeValue (message, 1, []);
@@ -436,7 +436,7 @@ export default class kraken extends krakenRest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (result);
@@ -952,7 +952,7 @@ export default class kraken extends krakenRest {
         if (allTradesLength > 0) {
             if (this.myTrades === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                this.myTrades = new ArrayCache (limit);
+                this.myTrades = new ArrayCache<Trade> (limit);
             }
             const stored = this.myTrades;
             const symbols = {};
@@ -1156,7 +1156,7 @@ export default class kraken extends krakenRest {
         if (allOrdersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
-                this.orders = new ArrayCacheBySymbolById (limit);
+                this.orders = new ArrayCacheBySymbolById<Order> (limit);
             }
             const stored = this.orders;
             const symbols = {};

@@ -474,7 +474,7 @@ export default class bitmart extends bitmartRest {
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
-                this.orders = new ArrayCacheBySymbolById (limit);
+                this.orders = new ArrayCacheBySymbolById<Order> (limit);
             }
             const stored = this.orders;
             for (let i = 0; i < orders.length; i++) {
@@ -721,7 +721,7 @@ export default class bitmart extends bitmartRest {
         //
         const data = this.safeValue (message, 'data', []);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolBySide<Position> ();
         }
         const cache = this.positions;
         const newPositions = [];
@@ -863,7 +863,7 @@ export default class bitmart extends bitmartRest {
         const symbol = trade['symbol'];
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         if (this.safeValue (this.trades, symbol) === undefined) {
-            this.trades[symbol] = new ArrayCache (tradesLimit);
+            this.trades[symbol] = new ArrayCache<Trade> (tradesLimit);
         }
         const stored = this.trades[symbol];
         stored.append (trade);
@@ -1103,7 +1103,7 @@ export default class bitmart extends bitmartRest {
                 let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
                 if (stored === undefined) {
                     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                    stored = new ArrayCacheByTimestamp (limit);
+                    stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                     this.ohlcvs[symbol][timeframe] = stored;
                 }
                 stored.append (parsed);
@@ -1119,7 +1119,7 @@ export default class bitmart extends bitmartRest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             for (let i = 0; i < items.length; i++) {

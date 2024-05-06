@@ -135,7 +135,7 @@ export default class ascendex extends ascendexRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
@@ -197,7 +197,7 @@ export default class ascendex extends ascendexRest {
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (limit);
+            tradesArray = new ArrayCache<Trade> (limit);
         }
         for (let i = 0; i < trades.length; i++) {
             tradesArray.append (trades[i]);
@@ -580,7 +580,7 @@ export default class ascendex extends ascendexRest {
         const order = this.parseWsOrder (data);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         orders.append (order);

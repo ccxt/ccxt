@@ -180,7 +180,7 @@ export default class huobijp extends huobijpRest {
         let tradesCache = this.safeValue (this.trades, symbol);
         if (tradesCache === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesCache = new ArrayCache (limit);
+            tradesCache = new ArrayCache<Trade> (limit);
             this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
@@ -258,7 +258,7 @@ export default class huobijp extends huobijpRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const tick = this.safeValue (message, 'tick');

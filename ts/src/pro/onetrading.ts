@@ -518,7 +518,7 @@ export default class onetrading extends onetradingRest {
         //
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const order = this.parseTradingOrder (message);
         const orders = this.orders;
@@ -711,11 +711,11 @@ export default class onetrading extends onetradingRest {
         //
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const rawOrders = this.safeValue (message, 'orders', []);
         const rawOrdersLength = rawOrders.length;
@@ -964,11 +964,11 @@ export default class onetrading extends onetradingRest {
         //
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         let symbol = undefined;
         const orders = this.orders;
@@ -985,13 +985,13 @@ export default class onetrading extends onetradingRest {
             if (updateType === 'ORDER_CLOSED' && filled === 0) {
                 status = 'canceled';
             }
-            const orderObject = {
+            const orderObject = this.safeOrder ({
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
                 'timestamp': this.parse8601 (datetime),
                 'datetime': datetime,
-            };
+            });
             orders.append (orderObject);
         } else {
             const parsed = this.parseOrder (update);
@@ -1175,7 +1175,7 @@ export default class onetrading extends onetradingRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
         }
         stored.append (parsed);
         this.ohlcvs[symbol][timeframe] = stored;

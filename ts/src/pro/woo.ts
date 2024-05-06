@@ -373,7 +373,7 @@ export default class woo extends wooRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
@@ -432,7 +432,7 @@ export default class woo extends wooRest {
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (limit);
+            tradesArray = new ArrayCache<Trade> (limit);
         }
         tradesArray.append (trade);
         this.trades[symbol] = tradesArray;
@@ -756,7 +756,7 @@ export default class woo extends wooRest {
         if (symbol !== undefined) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
+                this.orders = new ArrayCacheBySymbolById<Order> (limit);
             }
             const cachedOrders = this.orders;
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
@@ -815,7 +815,7 @@ export default class woo extends wooRest {
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            myTrades = new ArrayCacheBySymbolById (limit);
+            myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const trade = this.parseWsTrade (message);
         myTrades.append (trade);
@@ -871,13 +871,13 @@ export default class woo extends wooRest {
                 this.spawn (this.loadPositionsSnapshot, client, messageHash);
             }
         } else {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolBySide<Position> ();
         }
     }
 
     async loadPositionsSnapshot (client, messageHash) {
         const positions = await this.fetchPositions ();
-        this.positions = new ArrayCacheBySymbolBySide ();
+        this.positions = new ArrayCacheBySymbolBySide<Position> ();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -922,7 +922,7 @@ export default class woo extends wooRest {
         const rawPositions = this.safeValue (data, 'positions', {});
         const postitionsIds = Object.keys (rawPositions);
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolBySide<Position> ();
         }
         const cache = this.positions;
         const newPositions = [];

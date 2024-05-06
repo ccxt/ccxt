@@ -229,7 +229,7 @@ export default class bitrue extends bitrueRest {
         const parsed = this.parseWsOrder (message);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         orders.append (parsed);
