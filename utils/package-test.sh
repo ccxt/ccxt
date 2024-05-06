@@ -11,7 +11,7 @@ node test-cjs.cjs
 cjs_return_code=$?
 npm run test:ts && npm run test:ts:esnext
 ts_return_code=$?
-rm -rf node_modules ccxt-*.tgz package-lock.json package.json
+rm -rf node_modules ccxt-*.tgz
 npm init -y > /dev/null
 if [ $return_code -eq 0 ] && [ $cjs_return_code -eq 0 ] && [ $ts_return_code -eq 0 ]; then
   echo "Package test successful"
