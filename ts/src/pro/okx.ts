@@ -527,10 +527,8 @@ export default class okx extends okxRest {
             }
         }
         if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
-            try {
-                this.checkRequiredCredentials ();
-            } catch (e) {
-                throw new AuthenticationError (this.id + ' watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5');
+            if (!this.checkRequiredCredentials (false)) {
+                throw new AuthenticationError (this.id + ' watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5');
             }
             await this.authenticate ({ 'access': 'public' });
         }
