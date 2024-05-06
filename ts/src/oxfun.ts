@@ -1001,7 +1001,7 @@ export default class oxfun extends Exchange {
 
     parseTrade (trade, market: Market = undefined): Trade {
         //
-        //  public fetchTrades
+        // public fetchTrades
         //
         //     {
         //         "marketCode": "BTC-USD-SWAP-LIN",
@@ -1012,27 +1012,46 @@ export default class oxfun extends Exchange {
         //         "matchedAt": "1714934112352"
         //     }
         //
+        //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "orderId": "1000104177460",
+        //         "clientOrderId": "1714915840869",
+        //         "matchId": "300017129522783806",
+        //         "marketCode": "BTC-USD-SWAP-LIN",
+        //         "side": "BUY",
+        //         "matchedQuantity": "0.0001",
+        //         "matchPrice": "64300",
+        //         "total": "643",
+        //         "orderMatchType": "TAKER",
+        //         "feeAsset": "OX",
+        //         "fee": "0.4501",
+        //         "source": "0",
+        //         "matchedAt": "1714915841312"
+        //     }
+        //
         const marketId = this.safeString (trade, 'marketCode');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (trade, 'matchedAt');
-        const price = this.safeString (trade, 'matchPrice');
-        const amount = this.safeString2 (trade, 'matchQuantity', 'matchedQuantity');
-        const side = this.safeStringLower (trade, 'side');
-        const type = this.safeStringLower2 (trade, 'matchType', 'orderMatchType');
+        const fee = {
+            'cost': this.safeString (trade, 'fee'),
+            'currency': this.safeCurrencyCode (this.safeString (trade, 'feeAsset')),
+        };
         return this.safeTrade ({
-            'id': undefined, // check for fetchMyTrades
+            'id': this.safeString (trade, 'matchId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': type,
-            'order': undefined, // check for fetchMyTrades
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
+            'type': undefined,
+            'order': this.safeString (trade, 'orderId'),
+            'side': this.safeStringLower (trade, 'side'),
+            'takerOrMaker': this.safeStringLower2 (trade, 'matchType', 'orderMatchType'),
+            'price': this.safeString (trade, 'matchPrice'),
+            'amount': this.safeString2 (trade, 'matchQuantity', 'matchedQuantity'),
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
