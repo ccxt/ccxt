@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
