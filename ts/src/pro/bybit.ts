@@ -15,11 +15,11 @@ export default class bybit extends bybitRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'createOrderWs': false, // available only in sandbox
-                'editOrderWs': false,
+                'createOrderWs': true,
+                'editOrderWs': true,
                 'fetchOpenOrdersWs': false,
                 'fetchOrderWs': false,
-                'cancelOrderWs': false,
+                'cancelOrderWs': true,
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': false,
                 'fetchTradesWs': false,
