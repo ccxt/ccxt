@@ -135,9 +135,9 @@ class independentreserve(ccxt.async_support.independentreserve):
         symbol = market['symbol']
         if limit is None:
             limit = 100
-        limit = self.number_to_string(limit)
-        url = self.urls['api']['ws'] + '/orderbook/' + limit + '?subscribe=' + market['base'] + '-' + market['quote']
-        messageHash = 'orderbook:' + symbol + ':' + limit
+        limitString = self.number_to_string(limit)
+        url = self.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
+        messageHash = 'orderbook:' + symbol + ':' + limitString
         subscription = {
             'receivedSnapshot': False,
         }

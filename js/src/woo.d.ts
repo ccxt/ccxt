@@ -111,7 +111,7 @@ export default class woo extends Exchange {
     };
     nonce(): number;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+        url: string;
         method: string;
         body: any;
         headers: any;

@@ -145,6 +145,7 @@ class okx extends Exchange {
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => true,
                 'repayCrossMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => true,
@@ -4009,10 +4010,10 @@ class okx extends Exchange {
                 if ($since !== null) {
                     $request['begin'] = $since;
                 }
-                $until = $this->safe_integer_2($query, 'till', 'until');
+                $until = $this->safe_integer($query, 'until');
                 if ($until !== null) {
                     $request['end'] = $until;
-                    $query = $this->omit($query, array( 'until', 'till' ));
+                    $query = $this->omit($query, array( 'until' ));
                 }
             }
             $send = $this->omit($query, array( 'method', 'stop', 'trigger', 'trailing' ));
@@ -4196,10 +4197,10 @@ class okx extends Exchange {
                 if ($since !== null) {
                     $request['begin'] = $since;
                 }
-                $until = $this->safe_integer_2($query, 'till', 'until');
+                $until = $this->safe_integer($query, 'until');
                 if ($until !== null) {
                     $request['end'] = $until;
-                    $query = $this->omit($query, array( 'until', 'till' ));
+                    $query = $this->omit($query, array( 'until' ));
                 }
                 $request['state'] = 'filled';
             }
@@ -5568,7 +5569,7 @@ class okx extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($position, 'instId');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $market['symbol'];
         $pos = $this->safe_string($position, 'pos'); // 'pos' field => One way mode => 0 if $position is not open, 1 if open | Two way (hedge) mode => -1 if short, 1 if long, 0 if $position is not open
         $contractsAbs = Precise::string_abs($pos);
@@ -7133,10 +7134,10 @@ class okx extends Exchange {
                 if ($since !== null) {
                     $request['begin'] = $since;
                 }
-                $until = $this->safe_integer_2($params, 'till', 'until');
+                $until = $this->safe_integer($params, 'until');
                 if ($until !== null) {
                     $request['end'] = $until;
-                    $params = $this->omit($params, array( 'until', 'till' ));
+                    $params = $this->omit($params, array( 'until' ));
                 }
                 $response = Async\await($this->publicGetRubikStatContractsOpenInterestVolume (array_merge($request, $params)));
             }

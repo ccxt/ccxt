@@ -84,6 +84,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'sandbox': True,
                 'transfer': True,
                 'withdraw': True,
             },

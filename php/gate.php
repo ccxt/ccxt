@@ -155,6 +155,7 @@ class gate extends Exchange {
                 'reduceMargin' => true,
                 'repayCrossMargin' => true,
                 'repayIsolatedMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => true,
@@ -3206,8 +3207,8 @@ class gate extends Exchange {
         $marginMode = null;
         $request = array();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
         list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
         if ($contract) {

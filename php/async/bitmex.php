@@ -95,6 +95,7 @@ class bitmex extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => null,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => null,
                 'setMarginMode' => true,
@@ -2595,8 +2596,8 @@ class bitmex extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['endTime'] = $this->iso8601($until);
             }

@@ -80,6 +80,7 @@ public partial class probit : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -1631,11 +1632,11 @@ public partial class probit : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(1);
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
         } else
         {
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(this.milliseconds());

@@ -109,6 +109,7 @@ class cryptocom extends Exchange {
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -503,7 +504,8 @@ class cryptocom extends Exchange {
                 $strike = $this->safe_string($market, 'strike');
                 $marginBuyEnabled = $this->safe_value($market, 'margin_buy_enabled');
                 $marginSellEnabled = $this->safe_value($market, 'margin_sell_enabled');
-                $expiry = $this->omit_zero($this->safe_integer($market, 'expiry_timestamp_ms'));
+                $expiryString = $this->omit_zero($this->safe_string($market, 'expiry_timestamp_ms'));
+                $expiry = ($expiryString !== null) ? intval($expiryString) : null;
                 $symbol = $base . '/' . $quote;
                 $type = null;
                 $contract = null;
@@ -683,8 +685,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_time'] = $until;
             }
@@ -763,8 +765,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
@@ -826,8 +828,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
@@ -1578,8 +1580,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_time'] = $until;
             }
@@ -1805,8 +1807,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
@@ -1865,8 +1867,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
@@ -2389,8 +2391,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_time'] = $until;
             }
@@ -2719,8 +2721,8 @@ class cryptocom extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }

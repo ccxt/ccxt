@@ -460,6 +460,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/, '$1List[List[$2]]' ],  // typed variables with double list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -611,8 +613,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[\])*);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[\])*)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -1530,7 +1532,8 @@ class Transpiler {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
                         overwriteFile (qualifiedPath, code)
-                        fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // this line makes it impossible to detect if the files were properly transpiled or not (to avoid stale files)
                     }
                 })
 
@@ -2948,15 +2951,21 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges, processes = undefined) {
+function parallelizeTranspiling (exchanges, processes = undefined, force = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
+    const args = [];
+    if (force) {
+        args.push ('--force')
+    }
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
-        const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
-        isFirst = false
         fork (process.argv[1], toProcess.concat (args))
+        if (isFirst) {
+            args.push ('--child');
+            isFirst = false
+        }
     }
 }
 
@@ -2991,7 +3000,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        parallelizeTranspiling (exchangeIds, undefined, force)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

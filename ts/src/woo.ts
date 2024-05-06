@@ -106,6 +106,7 @@ export default class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': true,
@@ -2336,8 +2337,8 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
+        params = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['end_t'] = until;
         }

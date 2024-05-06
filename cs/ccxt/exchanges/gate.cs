@@ -151,6 +151,7 @@ public partial class gate : Exchange
                 { "reduceMargin", true },
                 { "repayCrossMargin", true },
                 { "repayIsolatedMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", false },
                 { "setPositionMode", true },
@@ -3404,8 +3405,8 @@ public partial class gate : Exchange
         object marginMode = null;
         object request = new Dictionary<string, object>() {};
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];

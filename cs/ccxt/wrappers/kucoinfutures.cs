@@ -581,7 +581,7 @@ public partial class kucoinfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.till</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
     /// </description>
@@ -640,7 +640,7 @@ public partial class kucoinfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.till</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
     /// </description>

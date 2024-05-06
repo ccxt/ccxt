@@ -162,6 +162,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': True,
                 'repayCrossMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': True,
@@ -3774,10 +3775,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(query, 'till', 'until')
+            until = self.safe_integer(query, 'until')
             if until is not None:
                 request['end'] = until
-                query = self.omit(query, ['until', 'till'])
+                query = self.omit(query, ['until'])
         send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
         response = None
         if method == 'privateGetTradeOrdersAlgoHistory':
@@ -3949,10 +3950,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(query, 'till', 'until')
+            until = self.safe_integer(query, 'until')
             if until is not None:
                 request['end'] = until
-                query = self.omit(query, ['until', 'till'])
+                query = self.omit(query, ['until'])
             request['state'] = 'filled'
         send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
         response = None
@@ -5220,7 +5221,7 @@ class okx(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string(position, 'instId')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'contract')
         symbol = market['symbol']
         pos = self.safe_string(position, 'pos')  # 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way(hedge) mode: -1 if short, 1 if long, 0 if position is not open
         contractsAbs = Precise.string_abs(pos)
@@ -6637,10 +6638,10 @@ class okx(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['begin'] = since
-            until = self.safe_integer_2(params, 'till', 'until')
+            until = self.safe_integer(params, 'until')
             if until is not None:
                 request['end'] = until
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
             response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {

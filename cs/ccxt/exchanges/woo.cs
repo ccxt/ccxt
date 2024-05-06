@@ -97,6 +97,7 @@ public partial class woo : Exchange
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setPositionMode", true },
@@ -2471,8 +2472,8 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_t"] = until;

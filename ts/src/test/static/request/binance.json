@@ -53,6 +53,45 @@
                 "output": "timestamp=1707174812474&symbol=LTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S8281350e594e8f4383a36f19&type=LIMIT_MAKER&quantity=0.2&price=50&recvWindow=10000&signature=4e01e6b644312f26fce0be6524ed2eda08079dec6b6f1f2670a685362e39c6f1"
             },
             {
+                "description": "spot order with weird amount",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0007856509959147719,
+                  55000
+                ],
+                "output": "timestamp=1714835089402&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8248a31eddb97c4bd496a6b0&newOrderRespType=FULL&type=LIMIT&quantity=0.00078&price=55000&timeInForce=GTC&recvWindow=10000&signature=50aeda30bb2261723ead2d178f4fa1c8a270af2ec9d787cf4ae8cfe44c11516f"
+            },
+            {
+                "description": "spot order with weird price/amount",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.4234234234,
+                  55.324242343
+                ],
+                "output": "timestamp=1714922933332&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82bf9e78bb5d9948fa89b20d&newOrderRespType=FULL&type=LIMIT&quantity=0.423&price=55.32&timeInForce=GTC&recvWindow=10000&signature=84f7265b067e1fd1a244e6b1af168109652359c1204942330a6ac77ba7f7c93e"
+            },
+            {
+                "description": "spot limit buy with weird price/amount",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.4234234234,
+                  55.324242343
+                ],
+                "output": "timestamp=1714923006076&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu8cef5fd759c2493f8eff0b&newOrderRespType=RESULT&type=LIMIT&quantity=0.423&price=55.32&timeInForce=GTC&recvWindow=10000&signature=e0c49a6da870de7264a84603c2a5f33bb5d8e24b8935cb4fdb303ee2dbf39d79"
+            },
+            {
                 "description": "Swap market buy order",
                 "method": "createOrder",
                 "url": "https://testnet.binancefuture.com/fapi/v1/order",
@@ -3076,6 +3115,24 @@
                   4
                 ],
                 "output": "timestamp=1713536455384&quoteId=844f131de9994643a0b6ce7805d08cfb&recvWindow=10000&signature=39e6351a5061356643aa48f6e335b6d3c903710206f2543bd9443af07885948b"
+            }
+        ],
+        "fetchIsolatedBorrowRate": [
+            {
+                "description": "fetchIsolatedBorrowRate",
+                "method": "fetchIsolatedBorrowRate",
+                "url": "https://api.binance.com/sapi/v1/margin/isolatedMarginData?timestamp=1714664548704&symbol=BTCUSDT&recvWindow=10000&signature=6bed3101b0139a52896c5ac2cba8c9c16371153e133ecdef782c7cd398bb470f",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchIsolatedBorrowRates": [
+            {
+                "description": "fetchIsolatedBorrowRates",
+                "method": "fetchIsolatedBorrowRates",
+                "url": "https://api.binance.com/sapi/v1/margin/isolatedMarginData?timestamp=1714664627834&recvWindow=10000&signature=9b4fa07568a385ee7a642e31375bb1c6e0640d1491508b2f5bbd4e36ce31f117",
+                "input": []
             }
         ]
     }

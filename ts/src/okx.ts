@@ -140,6 +140,7 @@ export default class okx extends Exchange {
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
@@ -4004,10 +4005,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2 (query, 'till', 'until');
+            const until = this.safeInteger (query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit (query, [ 'until', 'till' ]);
+                query = this.omit (query, [ 'until' ]);
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'trigger', 'trailing' ]);
@@ -4191,10 +4192,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2 (query, 'till', 'until');
+            const until = this.safeInteger (query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit (query, [ 'until', 'till' ]);
+                query = this.omit (query, [ 'until' ]);
             }
             request['state'] = 'filled';
         }
@@ -5562,7 +5563,7 @@ export default class okx extends Exchange {
         //    }
         //
         const marketId = this.safeString (position, 'instId');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise.stringAbs (pos);
@@ -7125,10 +7126,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2 (params, 'till', 'until');
+            const until = this.safeInteger (params, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                params = this.omit (params, [ 'until', 'till' ]);
+                params = this.omit (params, [ 'until' ]);
             }
             response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
         }

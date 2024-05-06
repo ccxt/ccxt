@@ -332,6 +332,10 @@ export default class Exchange {
         }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
         this.afterConstruct();
+        const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
+        if (isSandbox) {
+            this.setSandboxMode(isSandbox);
+        }
     }
     describe() {
         return {
@@ -347,6 +351,7 @@ export default class Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'CORS': undefined,
+                'sandbox': undefined,
                 'spot': undefined,
                 'margin': undefined,
                 'swap': undefined,
@@ -428,6 +433,8 @@ export default class Exchange {
                 'fetchClosedOrdersWs': undefined,
                 'fetchConvertCurrencies': undefined,
                 'fetchConvertQuote': undefined,
+                'fetchConvertTrade': undefined,
+                'fetchConvertTradeHistory': undefined,
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
@@ -783,6 +790,10 @@ export default class Exchange {
     }
     setProxyAgents(httpProxy, httpsProxy, socksProxy) {
         let chosenAgent = undefined;
+        // in browser-side, proxy modules are not supported in 'fetch/ws' methods
+        if (!isNode && (httpProxy || httpsProxy || socksProxy)) {
+            throw new NotSupported(this.id + ' - proxies in browser-side projects are not supported. You have several choices: [A] Use `exchange.proxyUrl` property to redirect requests through local/remote cors-proxy server (find sample file named "sample-local-proxy-server-with-cors" in https://github.com/ccxt/ccxt/tree/master/examples/ folder, which can be used for REST requests only) [B] override `exchange.fetch` && `exchange.watch` methods to send requests through your custom proxy');
+        }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
                 throw new NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
@@ -3035,15 +3046,15 @@ export default class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend(ticker, {
-            'bid': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'bid'))),
+            'bid': this.parseNumber(this.omitZero(this.safeString(ticker, 'bid'))),
             'bidVolume': this.safeNumber(ticker, 'bidVolume'),
-            'ask': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'ask'))),
+            'ask': this.parseNumber(this.omitZero(this.safeString(ticker, 'ask'))),
             'askVolume': this.safeNumber(ticker, 'askVolume'),
             'high': this.parseNumber(this.omitZero(this.safeString(ticker, 'high'))),
-            'low': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'low'))),
-            'open': this.parseNumber(this.omitZero(this.parseNumber(open))),
-            'close': this.parseNumber(this.omitZero(this.parseNumber(close))),
-            'last': this.parseNumber(this.omitZero(this.parseNumber(last))),
+            'low': this.parseNumber(this.omitZero(this.safeString(ticker, 'low'))),
+            'open': this.parseNumber(this.omitZero(open)),
+            'close': this.parseNumber(this.omitZero(close)),
+            'last': this.parseNumber(this.omitZero(last)),
             'change': this.parseNumber(change),
             'percentage': this.parseNumber(percentage),
             'average': this.parseNumber(average),
@@ -5825,24 +5836,26 @@ export default class Exchange {
         let maxRetries = undefined;
         [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
         let errors = 0;
-        try {
-            if (timeframe && method !== 'fetchFundingRateHistory') {
-                return await this[method](symbol, timeframe, since, limit, params);
+        while (errors <= maxRetries) {
+            try {
+                if (timeframe && method !== 'fetchFundingRateHistory') {
+                    return await this[method](symbol, timeframe, since, limit, params);
+                }
+                else {
+                    return await this[method](symbol, since, limit, params);
+                }
             }
-            else {
-                return await this[method](symbol, since, limit, params);
+            catch (e) {
+                if (e instanceof RateLimitExceeded) {
+                    throw e; // if we are rate limited, we should not retry and fail fast
+                }
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
             }
         }
-        catch (e) {
-            if (e instanceof RateLimitExceeded) {
-                throw e; // if we are rate limited, we should not retry and fail fast
-            }
-            errors += 1;
-            if (errors > maxRetries) {
-                throw e;
-            }
-        }
-        return undefined;
+        return [];
     }
     async fetchPaginatedCallDeterministic(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined) {
         let maxCalls = undefined;
@@ -5856,6 +5869,9 @@ export default class Exchange {
         if (since !== undefined) {
             currentSince = Math.max(currentSince, since);
         }
+        else {
+            currentSince = Math.max(currentSince, 1241440531000); // avoid timestamps older than 2009
+        }
         const until = this.safeInteger2(params, 'until', 'till'); // do not omit it here
         if (until !== undefined) {
             const requiredCalls = Math.ceil((until - since) / step);
@@ -5865,6 +5881,9 @@ export default class Exchange {
         }
         for (let i = 0; i < maxCalls; i++) {
             if ((until !== undefined) && (currentSince >= until)) {
+                break;
+            }
+            if (currentSince >= current) {
                 break;
             }
             tasks.push(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));

@@ -75,6 +75,7 @@ public partial class bingx : Exchange
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", true },
                 { "setMarginMode", true },
@@ -378,6 +379,7 @@ public partial class bingx : Exchange
                     { "100202", typeof(InsufficientFunds) },
                     { "100204", typeof(BadRequest) },
                     { "100400", typeof(BadRequest) },
+                    { "100410", typeof(OperationFailed) },
                     { "100421", typeof(BadSymbol) },
                     { "100440", typeof(ExchangeError) },
                     { "100500", typeof(OperationFailed) },
@@ -3095,9 +3097,9 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;

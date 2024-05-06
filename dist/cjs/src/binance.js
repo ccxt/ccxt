@@ -93,8 +93,8 @@ class binance extends binance$1 {
                 'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedBorrowRate': false,
-                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedBorrowRate': 'emulated',
+                'fetchIsolatedBorrowRates': true,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
@@ -154,6 +154,7 @@ class binance extends binance$1 {
                 'reduceMargin': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
@@ -2396,7 +2397,7 @@ class binance extends binance$1 {
                     'Rest API trading is not enabled.': errors.PermissionDenied,
                     'This account may not place or cancel orders.': errors.PermissionDenied,
                     "You don't have permission.": errors.PermissionDenied,
-                    'Market is closed.': errors.OperationRejected,
+                    'Market is closed.': errors.MarketClosed,
                     'Too many requests. Please try again later.': errors.RateLimitExceeded,
                     'This action is disabled on this account.': errors.AccountSuspended,
                     'Limit orders require GTC for this phase.': errors.BadRequest,
@@ -2618,7 +2619,7 @@ class binance extends binance$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const fetchCurrenciesEnabled = this.safeValue(this.options, 'fetchCurrencies');
+        const fetchCurrenciesEnabled = this.safeBool(this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
             return undefined;
         }
@@ -3999,8 +4000,8 @@ class binance extends binance$1 {
          * @name binance#fetchLastPrices
          * @description fetches the last price for multiple markets
          * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
-         * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
+         * @see https://binance-docs.github.io/apidocs/futures/en/#symbol-price-ticker       // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-tickers     // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
@@ -4542,7 +4543,7 @@ class binance extends binance$1 {
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         let side = undefined;
-        const buyerMaker = this.safeValue2(trade, 'm', 'isBuyerMaker');
+        const buyerMaker = this.safeBool2(trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
@@ -4850,7 +4851,7 @@ class binance extends binance$1 {
                 uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
-        const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+        const validOrderTypes = this.safeList(market['info'], 'orderTypes');
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
                 throw new errors.InvalidOrder(this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
@@ -4860,7 +4861,7 @@ class binance extends binance$1 {
             }
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeValue(this.options, 'broker');
+            const broker = this.safeDict(this.options, 'broker');
             if (broker !== undefined) {
                 const brokerId = this.safeString(broker, 'spot');
                 if (brokerId !== undefined) {
@@ -7659,7 +7660,7 @@ class binance extends binance$1 {
                 request['endTime'] = until;
             }
             const raw = await this.sapiGetFiatOrders(this.extend(request, params));
-            response = this.safeValue(raw, 'data');
+            response = this.safeList(raw, 'data', []);
             //     {
             //       "code": "000000",
             //       "message": "success",
@@ -7774,7 +7775,7 @@ class binance extends binance$1 {
                 request['beginTime'] = since;
             }
             const raw = await this.sapiGetFiatOrders(this.extend(request, params));
-            response = this.safeValue(raw, 'data');
+            response = this.safeList(raw, 'data', []);
             //     {
             //       "code": "000000",
             //       "message": "success",
@@ -7992,7 +7993,7 @@ class binance extends binance$1 {
             if (txType !== undefined) {
                 type = (txType === '0') ? 'deposit' : 'withdrawal';
             }
-            const legalMoneyCurrenciesById = this.safeValue(this.options, 'legalMoneyCurrenciesById');
+            const legalMoneyCurrenciesById = this.safeDict(this.options, 'legalMoneyCurrenciesById');
             code = this.safeString(legalMoneyCurrenciesById, code, code);
         }
         const status = this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type);
@@ -8346,7 +8347,7 @@ class binance extends binance$1 {
                 }
             }
             impliedNetwork = this.safeString(reverseNetworks, topLevel);
-            const impliedNetworks = this.safeValue(this.options, 'impliedNetworks', {
+            const impliedNetworks = this.safeDict(this.options, 'impliedNetworks', {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
             });
@@ -9039,9 +9040,9 @@ class binance extends binance$1 {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'till', 'until']);
+        params = this.omit(params, ['endTime', 'until']);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -9655,7 +9656,7 @@ class binance extends binance$1 {
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeValue(this.options, 'leverageBrackets');
+        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets', {});
         if ((leverageBrackets === undefined) || (reload)) {
             const defaultType = this.safeString(this.options, 'defaultType', 'future');
             const type = this.safeString(params, 'type', defaultType);
@@ -11337,6 +11338,70 @@ class binance extends binance$1 {
         const rate = this.safeDict(response, 0);
         return this.parseBorrowRate(rate);
     }
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchIsolatedBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+         * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+         */
+        const request = {
+            'symbol': symbol,
+        };
+        const borrowRates = await this.fetchIsolatedBorrowRates(this.extend(request, params));
+        return this.safeDict(borrowRates, symbol);
+    }
+    async fetchIsolatedBorrowRates(params = {}) {
+        /**
+         * @method
+         * @name binance#fetchIsolatedBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.symbol] unified market symbol
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        const symbol = this.safeString(params, 'symbol');
+        params = this.omit(params, 'symbol');
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.sapiGetMarginIsolatedMarginData(this.extend(request, params));
+        //
+        //    [
+        //        {
+        //            "vipLevel": 0,
+        //            "symbol": "BTCUSDT",
+        //            "leverage": "10",
+        //            "data": [
+        //                {
+        //                    "coin": "BTC",
+        //                    "dailyInterest": "0.00026125",
+        //                    "borrowLimit": "270"
+        //                },
+        //                {
+        //                    "coin": "USDT",
+        //                    "dailyInterest": "0.000475",
+        //                    "borrowLimit": "2100000"
+        //                }
+        //            ]
+        //        }
+        //    ]
+        //
+        return this.parseIsolatedBorrowRates(response);
+    }
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -11409,6 +11474,43 @@ class binance extends binance$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
+        };
+    }
+    parseIsolatedBorrowRate(info, market = undefined) {
+        //
+        //    {
+        //        "vipLevel": 0,
+        //        "symbol": "BTCUSDT",
+        //        "leverage": "10",
+        //        "data": [
+        //            {
+        //                "coin": "BTC",
+        //                "dailyInterest": "0.00026125",
+        //                "borrowLimit": "270"
+        //            },
+        //            {
+        //                "coin": "USDT",
+        //                "dailyInterest": "0.000475",
+        //                "borrowLimit": "2100000"
+        //            }
+        //        ]
+        //    }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'spot');
+        const data = this.safeList(info, 'data');
+        const baseInfo = this.safeDict(data, 0);
+        const quoteInfo = this.safeDict(data, 1);
+        return {
+            'info': info,
+            'symbol': this.safeString(market, 'symbol'),
+            'base': this.safeString(baseInfo, 'coin'),
+            'baseRate': this.safeNumber(baseInfo, 'dailyInterest'),
+            'quote': this.safeString(quoteInfo, 'coin'),
+            'quoteRate': this.safeNumber(quoteInfo, 'dailyInterest'),
+            'period': 86400000,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async createGiftCode(code, amount, params = {}) {
@@ -11794,9 +11896,9 @@ class binance extends binance$1 {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'until', 'till']);
+        params = this.omit(params, ['endTime', 'until']);
         if (endTime) {
             request['endTime'] = endTime;
         }

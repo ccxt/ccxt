@@ -149,6 +149,7 @@ export default class luno extends Exchange {
                         'withdrawals': 1,
                         'send': 1,
                         'oauth2/grant': 1,
+                        'beneficiaries': 1,
                         // POST /api/exchange/1/move
                     },
                     'put': {
@@ -156,6 +157,7 @@ export default class luno extends Exchange {
                     },
                     'delete': {
                         'withdrawals/{id}': 1,
+                        'beneficiaries/{id}': 1,
                     },
                 },
             },

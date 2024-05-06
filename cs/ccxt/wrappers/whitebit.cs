@@ -764,4 +764,68 @@ public partial class whitebit
         var res = await this.fetchFundingRates(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetch history of deposits and withdrawals
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code for the currency of the deposit/withdrawals, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest deposit/withdrawal, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.transactionMethod</term>
+    /// <description>
+    /// number : Method. Example: 1 to display deposits / 2 to display withdraws. Do not send this parameter in order to receive both deposits and withdraws.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.address</term>
+    /// <description>
+    /// string : Can be used for filtering transactions by specific address or memo.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uniqueId</term>
+    /// <description>
+    /// string : Can be used for filtering transactions by specific unique id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.offset</term>
+    /// <description>
+    /// int : If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
 }

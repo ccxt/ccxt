@@ -101,6 +101,7 @@ class coinbaseinternational extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMargin' => true,
                 'setMarginMode' => false,
@@ -1810,9 +1811,9 @@ class coinbaseinternational extends Exchange {
         if ($since !== null) {
             $request['time_from'] = $this->iso8601($since);
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till' ));
+        $until = $this->safe_string_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['ref_datetime'] = $this->iso8601($until);
         }
         $response = $this->v1PrivateGetPortfoliosFills (array_merge($request, $params));

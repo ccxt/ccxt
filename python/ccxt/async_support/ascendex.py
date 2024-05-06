@@ -102,6 +102,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,

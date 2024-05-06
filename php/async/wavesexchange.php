@@ -86,6 +86,7 @@ class wavesexchange extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,

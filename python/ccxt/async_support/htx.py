@@ -8014,8 +8014,8 @@ class htx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchSettlementHistory() requires a symbol argument')
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         market = self.market(symbol)
         request = {}
         if market['future']:

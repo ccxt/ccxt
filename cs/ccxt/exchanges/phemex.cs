@@ -72,6 +72,7 @@ public partial class phemex : Exchange
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", true },
                 { "setMarginMode", true },
@@ -2482,7 +2483,7 @@ public partial class phemex : Exchange
             lastTradeTimestamp = null;
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        object stopPrice = this.omitZero(this.safeNumber2(order, "stopPx", "stopPxRp"));
+        object stopPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         object postOnly = (isEqual(timeInForce, "PO"));
         object reduceOnly = this.safeValue(order, "reduceOnly");
         object execInst = this.safeString(order, "execInst");

@@ -88,6 +88,7 @@ export default class probit extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1537,10 +1538,10 @@ export default class probit extends Exchange {
         } else {
             request['start_time'] = this.iso8601 (1);
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['end_time'] = this.iso8601 (until);
-            params = this.omit (params, [ 'until', 'till' ]);
+            params = this.omit (params, [ 'until' ]);
         } else {
             request['end_time'] = this.iso8601 (this.milliseconds ());
         }

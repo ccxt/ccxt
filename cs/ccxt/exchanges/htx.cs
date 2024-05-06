@@ -8912,8 +8912,8 @@ public partial class htx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "future")))

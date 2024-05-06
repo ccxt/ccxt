@@ -84,6 +84,7 @@ class probit extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -1491,10 +1492,10 @@ class probit extends Exchange {
         } else {
             $request['start_time'] = $this->iso8601(1);
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $request['end_time'] = $this->iso8601($until);
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
         } else {
             $request['end_time'] = $this->iso8601($this->milliseconds());
         }

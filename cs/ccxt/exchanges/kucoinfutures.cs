@@ -1833,8 +1833,8 @@ public partial class kucoinfutures : kucoin
             return await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters);
         }
         object stop = this.safeValue2(parameters, "stop", "trigger");
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"stop", "until", "till", "trigger"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"stop", "until", "trigger"});
         if (isTrue(isEqual(status, "closed")))
         {
             status = "done";
@@ -1939,7 +1939,7 @@ public partial class kucoinfutures : kucoin
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1970,7 +1970,7 @@ public partial class kucoinfutures : kucoin
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
@@ -2888,8 +2888,8 @@ public partial class kucoinfutures : kucoin
             { "from", 0 },
             { "to", this.milliseconds() },
         };
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = since;

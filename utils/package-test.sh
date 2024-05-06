@@ -2,8 +2,8 @@
 
 # Asserts the npm package works as expected, using ESM and CJS.
 npm pack .
-mv ccxt-*.tgz package-test/
-cd package-test
+mv ccxt-*.tgz ./utils/package-test/
+cd ./utils/package-test
 npm install ccxt-*.tgz
 node test-esm.mjs
 return_code=$?

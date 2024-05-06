@@ -98,6 +98,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
                 'setMarginMode': True,
@@ -401,6 +402,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100202': InsufficientFunds,
                     '100204': BadRequest,
                     '100400': BadRequest,
+                    '100410': OperationFailed,  # {"code":100410,"msg":"The current system is busy, please try again later"}
                     '100421': BadSymbol,  # {"code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":""}
                     '100440': ExchangeError,
                     '100500': OperationFailed,  # {"code":100500,"msg":"The current system is busy, please try again later","debugMsg":""}
@@ -2735,9 +2737,9 @@ class bingx(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = await self.swapV1PrivateGetTradeFullOrder(self.extend(request, params))

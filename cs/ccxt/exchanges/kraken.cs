@@ -501,6 +501,8 @@ public partial class kraken : Exchange
             object leverageBuy = this.safeValue(market, "leverage_buy", new List<object>() {});
             object leverageBuyLength = getArrayLength(leverageBuy);
             object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
+            object status = this.safeString(market, "status");
+            object isActive = isEqual(status, "online");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "wsId", this.safeString(market, "wsname") },
@@ -519,7 +521,7 @@ public partial class kraken : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", true },
+                { "active", isActive },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },

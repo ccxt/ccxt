@@ -89,6 +89,7 @@ class alpaca extends alpaca$1 {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,

@@ -113,6 +113,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMargin': True,
                 'setMarginMode': False,
@@ -1725,9 +1726,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             request['result_limit'] = limit
         if since is not None:
             request['time_from'] = self.iso8601(since)
-        until = self.safe_string_n(params, ['until', 'till'])
+        until = self.safe_string_n(params, ['until'])
         if until is not None:
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
             request['ref_datetime'] = self.iso8601(until)
         response = await self.v1PrivateGetPortfoliosFills(self.extend(request, params))
         #

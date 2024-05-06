@@ -1219,8 +1219,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['triger', 'stop', 'until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['trigger', 'stop', 'until'])
         if status == 'closed':
             status = 'done'
         request = {}
@@ -1308,7 +1308,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1324,7 +1324,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
