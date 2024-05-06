@@ -9,7 +9,7 @@ import { ecdsa, eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import type { Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -431,35 +431,14 @@ export default class woofipro extends Exchange {
         //
         const marketId = this.safeString (market, 'symbol');
         const parts = marketId.split ('_');
-        const first = this.safeString (parts, 0);
-        let marketType: MarketType;
-        let spot = false;
-        let swap = false;
-        if (first === 'SPOT') {
-            spot = true;
-            marketType = 'spot';
-        } else if (first === 'PERP') {
-            swap = true;
-            marketType = 'swap';
-        }
+        const marketType: MarketType = 'swap';
         const baseId = this.safeString (parts, 1);
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let settleId: Str = undefined;
-        let settle: Str = undefined;
-        let symbol = base + '/' + quote;
-        let contractSize: Num = undefined;
-        let linear: Bool = undefined;
-        let margin = true;
-        if (swap) {
-            margin = false;
-            settleId = this.safeString (parts, 2);
-            settle = this.safeCurrencyCode (settleId);
-            symbol = base + '/' + quote + ':' + settle;
-            contractSize = this.parseNumber ('1');
-            linear = true;
-        }
+        const settleId: Str = this.safeString (parts, 2);
+        const settle: Str = this.safeCurrencyCode (settleId);
+        const symbol = base + '/' + quote + ':' + settle;
         return {
             'id': marketId,
             'symbol': symbol,
@@ -470,16 +449,16 @@ export default class woofipro extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': marketType,
-            'spot': spot,
-            'margin': margin,
-            'swap': swap,
+            'spot': false,
+            'margin': false,
+            'swap': true,
             'future': false,
             'option': false,
             'active': undefined,
-            'contract': swap,
-            'linear': linear,
+            'contract': true,
+            'linear': true,
             'inverse': undefined,
-            'contractSize': contractSize,
+            'contractSize': this.parseNumber ('1'),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -1293,7 +1272,7 @@ export default class woofipro extends Exchange {
             'symbol': market['id'],
             'side': orderSide,
         };
-        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const algoType = this.safeString (params, 'algoType');
@@ -1430,7 +1409,7 @@ export default class woofipro extends Exchange {
         const request = {
             'order_id': id,
         };
-        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
+        const stopPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
         }

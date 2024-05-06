@@ -69,7 +69,7 @@ export default class woofipro extends woofiproRest {
     }
 
     requestId (url) {
-        const options = this.safeValue (this.options, 'requestId', {});
+        const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
@@ -132,7 +132,7 @@ export default class woofipro extends woofiproRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -224,8 +224,8 @@ export default class woofipro extends woofiproRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data');
-        const topic = this.safeValue (message, 'topic');
+        const data = this.safeDict (message, 'data', {});
+        const topic = this.safeString (message, 'topic');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (message, 'ts');
@@ -280,8 +280,8 @@ export default class woofipro extends woofiproRest {
         //         ]
         //     }
         //
-        const topic = this.safeValue (message, 'topic');
-        const data = this.safeValue (message, 'data');
+        const topic = this.safeString (message, 'topic');
+        const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (message, 'ts');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -346,8 +346,8 @@ export default class woofipro extends woofiproRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data');
-        const topic = this.safeValue (message, 'topic');
+        const data = this.safeDict (message, 'data', {});
+        const topic = this.safeString (message, 'topic');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -415,7 +415,7 @@ export default class woofipro extends woofiproRest {
         //
         const topic = this.safeString (message, 'topic');
         const timestamp = this.safeInteger (message, 'ts');
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
