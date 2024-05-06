@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
@@ -1562,27 +1562,20 @@ export default class okx extends okxRest {
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        const errorCode = this.safeInteger (message, 'code');
+        const errorCode = this.safeString (message, 'code');
         try {
-            if (errorCode) {
+            if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue (message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
+                throw new ExchangeError (feedback);
             }
         } catch (e) {
-            if (e instanceof AuthenticationError) {
-                const messageHash = 'authenticated';
-                client.reject (e, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
-                }
-                return false;
-            } else {
-                client.reject (e);
-            }
+            client.reject (e);
+            return false;
         }
         return message;
     }

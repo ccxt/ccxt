@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -891,7 +891,24 @@ export default class okx extends Exchange {
                     '60017': BadRequest, // Invalid url path
                     '60018': BadRequest, // The {0} {1} {2} {3} {4} does not exist
                     '60019': BadRequest, // Invalid op {op}
+                    '60020': ExchangeError,  // APIKey subscription amount exceeds the limit
+                    '60021': AccountNotEnabled,  // This operation does not support multiple accounts login
+                    '60022': AuthenticationError,  // Bulk login partially succeeded
+                    '60023': DDoSProtection,  // Bulk login requests too frequent
+                    '60024': AuthenticationError,  // Wrong passphrase
+                    '60025': ExchangeError,  // Token subscription amount exceeds the limit
+                    '60026': AuthenticationError,  // Batch login by APIKey and token simultaneously is not supported
+                    '60027': ArgumentsRequired,  // Parameter {0} can not be empty
+                    '60028': NotSupported,  // The current operation is not supported by this URL
+                    '60029': AccountNotEnabled,  // Only users who are VIP5 and above in trading fee tier are allowed to subscribe to books-l2-tbt channel
+                    '60030': AccountNotEnabled,  // Only users who are VIP4 and above in trading fee tier are allowed to subscribe to books50-l2-tbt channel
+                    '60031': AuthenticationError, // The WebSocket endpoint does not support multiple account batch login,
+                    '60032': AuthenticationError, // API key doesn't exist,
                     '63999': ExchangeError, // Internal system error
+                    '64000': BadRequest, // Subscription parameter uly is unavailable anymore, please replace uly with instFamily. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64001': BadRequest, // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64002': BadRequest, // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64003': AccountNotEnabled, // Your trading fee tier doesnt meet the requirement to access this channel
                     '70010': BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest, // endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest, // Please specify your instrument settings for at least one instType.
