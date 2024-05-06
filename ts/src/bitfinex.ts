@@ -6,7 +6,7 @@ import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied,
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees, Dict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -872,7 +872,7 @@ export default class bitfinex extends Exchange {
         const response = await this.publicGetTickers (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
+            const ticker = this.parseTickerList (response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -895,10 +895,10 @@ export default class bitfinex extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetPubtickerSymbol (this.extend (request, params));
-        return this.parseTicker (ticker, market);
+        return this.parseTickerList (ticker, market);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseTickerList (ticker: any[], market: Market = undefined): Ticker {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'pair');
         market = this.safeMarket (marketId, market);

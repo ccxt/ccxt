@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1082,7 +1082,7 @@ export default class bitfinex2 extends Exchange {
         return result as OrderBook;
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseTickerList (ticker: any[], market: Market = undefined): Ticker {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1215,7 +1215,7 @@ export default class bitfinex2 extends Exchange {
             const marketId = this.safeString (ticker, 0);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTickerList (ticker, market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -1236,7 +1236,7 @@ export default class bitfinex2 extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol (this.extend (request, params));
-        return this.parseTicker (ticker, market);
+        return this.parseTickerList (ticker, market);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
