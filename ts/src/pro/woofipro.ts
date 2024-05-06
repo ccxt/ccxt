@@ -43,7 +43,7 @@ export default class woofipro extends woofiproRest {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'uid': true,
+                'accountId': true,
             },
             'options': {
                 'tradesLimit': 1000,
@@ -77,7 +77,7 @@ export default class woofipro extends woofiproRest {
     }
 
     async watchPublic (messageHash, message) {
-        const url = this.urls['api']['ws']['public'] + '/' + this.uid;
+        const url = this.urls['api']['ws']['public'] + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe = {
             'id': requestId,
@@ -465,17 +465,6 @@ export default class woofipro extends woofiproRest {
         }, market);
     }
 
-    checkRequiredUid (error = true) {
-        if (!this.uid) {
-            if (error) {
-                throw new AuthenticationError (this.id + ' requires `uid` credential');
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
-
     handleAuth (client: Client, message) {
         //
         //     {
@@ -502,7 +491,7 @@ export default class woofipro extends woofiproRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -533,7 +522,7 @@ export default class woofipro extends woofiproRest {
 
     async watchPrivate (messageHash, message, params = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe = {
             'id': requestId,
@@ -790,7 +779,7 @@ export default class woofipro extends woofiproRest {
             messageHash = '::' + symbols.join (',');
         }
         messageHash = 'positions' + messageHash;
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);

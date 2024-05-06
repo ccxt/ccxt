@@ -210,6 +210,7 @@ class Exchange {
     public $password = '';
     public $login = '';
     public $uid = '';
+    public $accountId = '';
     public $privateKey = '';
     public $walletAddress = '';
     public $token = ''; // reserved for HTTP auth in some cases
@@ -229,6 +230,7 @@ class Exchange {
         'apiKey' => true,
         'secret' => true,
         'uid' => false,
+        'accountId' => false,
         'login' => false,
         'password' => false,
         'twofa' => false, // 2-factor authentication (one-time password key)
@@ -472,6 +474,7 @@ class Exchange {
         'wazirx',
         'whitebit',
         'woo',
+        'woofipro',
         'yobit',
         'zaif',
         'zonda',
