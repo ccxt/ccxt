@@ -1050,25 +1050,7 @@ export default class bitget extends bitgetRest {
         //         "action": "snapshot",
         //         "arg": { "instType": "SPOT", "channel": "orders", "instId": "BTCUSDT" },
         //         "data": [
-        //             {
-        //                 "instId": "BTCUSDT",
-        //                 "orderId": "1116512721422422017",
-        //                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        //                 "price": "35000.00",
-        //                 "size": "7.0000",
-        //                 "newSize": "500.0000",
-        //                 "notional": "7.000000",
-        //                 "orderType": "limit",
-        //                 "force": "gtc",
-        //                 "side": "buy",
-        //                 "accBaseVolume": "0.0000",
-        //                 "priceAvg": "0.00",
-        //                 "status": "live",
-        //                 "cTime": "1701923297267",
-        //                 "uTime": "1701923297267",
-        //                 "feeDetail": [],
-        //                 "enterPointSource": "WEB"
-        //             }
+        //             // see all examples in parseWsOrder
         //         ],
         //         "ts": 1701923297285
         //     }
@@ -1079,73 +1061,9 @@ export default class bitget extends bitgetRest {
         //         "action": "snapshot",
         //         "arg": { "instType": "USDT-FUTURES", "channel": "orders", "instId": "default" },
         //         "data": [
-        //             {
-        //                 "accBaseVolume": "0",
-        //                 "cTime": "1701920553759",
-        //                 "clientOid": "1116501214318198793",
-        //                 "enterPointSource": "WEB",
-        //                 "feeDetail": [{
-        //                     "feeCoin": "USDT",
-        //                     "fee": "-0.162003"
-        //                 }],
-        //                 "force": "gtc",
-        //                 "instId": "BTCUSDT",
-        //                 "leverage": "20",
-        //                 "marginCoin": "USDT",
-        //                 "marginMode": "isolated",
-        //                 "notionalUsd": "105",
-        //                 "orderId": "1116501214293032964",
-        //                 "orderType": "limit",
-        //                 "posMode": "hedge_mode",
-        //                 "posSide": "long",
-        //                 "price": "35000",
-        //                 "reduceOnly": "no",
-        //                 "side": "buy",
-        //                 "size": "0.003",
-        //                 "status": "canceled",
-        //                 "tradeSide": "open",
-        //                 "uTime": "1701920595866"
-        //             }
+        //             // see all examples in parseWsOrder
         //         ],
         //         "ts": 1701920595879
-        //     }
-        //
-        // trigger
-        //
-        //     {
-        //         "action": "snapshot",
-        //         "arg": {
-        //             "instType": "USDT-FUTURES",
-        //             "channel": "orders-algo",
-        //             "instId": "default"
-        //         },
-        //         "data": [
-        //             {
-        //                 "instId": "BTCUSDT",
-        //                 "orderId": "1116508960750899201",
-        //                 "clientOid": "1116508960750899200",
-        //                 "triggerPrice": "35000.000000000",
-        //                 "triggerType": "mark_price",
-        //                 "triggerTime": "1701922464373",
-        //                 "planType": "pl",
-        //                 "price": "35000.000000000",
-        //                 "size": "0.001000000",
-        //                 "actualSize": "0.000000000",
-        //                 "orderType": "limit",
-        //                 "side": "buy",
-        //                 "tradeSide": "open",
-        //                 "posSide": "long",
-        //                 "marginCoin": "USDT",
-        //                 "status": "cancelled",
-        //                 "posMode": "hedge_mode",
-        //                 "enterPointSource": "api",
-        //                 "stopSurplusTriggerType": "fill_price",
-        //                 "stopLossTriggerType": "fill_price",
-        //                 "cTime": "1701922400653",
-        //                 "uTime": "1701922464373"
-        //             }
-        //         ],
-        //         "ts": 1701922464417
         //     }
         //
         // isolated and cross margin
@@ -1154,23 +1072,7 @@ export default class bitget extends bitgetRest {
         //         "action": "snapshot",
         //         "arg": { "instType": "MARGIN", "channel": "orders-crossed", "instId": "BTCUSDT" },
         //         "data": [
-        //             {
-        //                 "enterPointSource": "web",
-        //                 "force": "gtc",
-        //                 "orderType": "limit",
-        //                 "price": "35000.000000000",
-        //                 "quoteSize": "10.500000000",
-        //                 "side": "buy",
-        //                 "status": "live",
-        //                 "baseSize": "0.000300000",
-        //                 "cTime": "1701923982427",
-        //                 "clientOid": "4902047879864dc980c4840e9906db4e",
-        //                 "fillPrice": "0.000000000",
-        //                 "baseVolume": "0.000000000",
-        //                 "fillTotalAmount": "0.000000000",
-        //                 "loanType": "auto-loan-and-repay",
-        //                 "orderId": "1116515595178356737"
-        //             }
+        //             // see examples in parseWsOrder
         //         ],
         //         "ts": 1701923982497
         //     }
@@ -1251,18 +1153,18 @@ export default class bitget extends bitgetRest {
         //         force: 'gtc',
         //         instId: 'SEOSSUSDT',
         //         leverage: '10',
-        //         marginCoin: 'SUSDT',
+        //         marginCoin: 'USDT',
         //         marginMode: 'crossed',
         //         notionalUsd: '10.4468',
         //         orderId: '1171636690028761089',
         //         orderType: 'market',
         //         posMode: 'hedge_mode', // one_way_mode, hedge_mode
-        //         posSide: 'short',
+        //         posSide: 'short', // short, long, net
         //         price: '0', // zero for market order
         //         reduceOnly: 'no',
         //         side: 'sell',
         //         size: '13',
-        //         status: 'live', // live, filled
+        //         status: 'live', // live, filled, cancelled
         //         tradeSide: 'open',
         //         uTime: '1715065875539'
         //         //
@@ -1279,33 +1181,17 @@ export default class bitget extends bitgetRest {
         //         priceAvg: '0.804',
         //         tradeId: '1171636690314407937',
         //         tradeScope: 'T',
-        //     }
-        //
-        // trigger
-        //
-        //     {
-        //         "instId": "BTCUSDT",
-        //         "orderId": "1116508960750899201",
-        //         "clientOid": "1116508960750899200",
-        //         "triggerPrice": "35000.000000000",
+        //         //
+        //         // trigger order has these additional fields:
+        //         //
+        //         "triggerPrice": "0.800000000",
         //         "triggerType": "mark_price",
-        //         "triggerTime": "1701922464373",
+        //         "triggerTime": "1715082796679",
         //         "planType": "pl",
-        //         "price": "35000.000000000",
-        //         "size": "0.001000000",
         //         "actualSize": "0.000000000",
-        //         "orderType": "limit",
-        //         "side": "buy",
-        //         "tradeSide": "open",
-        //         "posSide": "long",
-        //         "marginCoin": "USDT",
-        //         "status": "cancelled",
-        //         "posMode": "hedge_mode",
-        //         "enterPointSource": "api",
+        //         "price": "0.800000000",  // <-- this is trigger price, actual limit-price is not present in initial response
         //         "stopSurplusTriggerType": "fill_price",
         //         "stopLossTriggerType": "fill_price",
-        //         "cTime": "1701922400653",
-        //         "uTime": "1701922464373"
         //     }
         //
         // isolated and cross margin
@@ -1346,7 +1232,11 @@ export default class bitget extends bitgetRest {
             };
         }
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
-        const price = this.safeString (order, 'price');
+        const isTriggerOrder = (triggerPrice !== undefined);
+        let price = undefined;
+        if (!isTriggerOrder) {
+            price = this.safeNumber (order, 'price');
+        }
         const avgPrice = this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice'));
         // notional / notionalUsd / quoteSize is not cost!
         // https://github.com/ccxt/ccxt/issues/22310
@@ -1817,6 +1707,7 @@ export default class bitget extends bitgetRest {
             'fill': this.handleMyTrades,
             'orders': this.handleOrder,
             'ordersAlgo': this.handleOrder,
+            'orders-algo': this.handleOrder,
             'account': this.handleBalance,
             'positions': this.handlePositions,
             'account-isolated': this.handleBalance,
