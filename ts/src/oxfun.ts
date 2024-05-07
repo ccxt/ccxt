@@ -1291,22 +1291,98 @@ export default class oxfun extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @see https://developer-pro.oxfun.com/en/futures/#get-transfer-list-signed
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        // API keys linked to the parent account can get all account transfers, while API keys linked to a sub-account can only see transfers where the sub-account is either the "fromAccount" or "toAccount"
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        // todo should we add this?
+        // else if (since !== undefined) {
+        //     request['endTime'] = this.sum (since, 7 * 24 * 60 * 60 * 1000);
+        // }
+        const response = await this.privateGetV3Transfer (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "quantity": "5",
+        //                 "fromAccount": "106490",
+        //                 "toAccount": "106526",
+        //                 "id": "966706320886267905",
+        //                 "status": "COMPLETED",
+        //                 "transferredAt": "1715085756708"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfers (data, currency, since, limit);
+    }
+
     parseTransfer (transfer, currency: Currency = undefined) {
         //
+        // fetchTransfers
+        //
+        //     {
+        //         "asset": "USDT",
+        //         "quantity": "5",
+        //         "fromAccount": "106490",
+        //         "toAccount": "106526",
+        //         "id": "966706320886267905",
+        //         "status": "COMPLETED",
+        //         "transferredAt": "1715085756708"
+        //     }
         //
         const timestamp = this.safeInteger (transfer, 'transferredAt');
         const currencyId = this.safeString (transfer, 'asset');
         return {
-            'id': undefined,
+            'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transfer, 'quantity'),
             'fromAccount': this.safeString (transfer, 'fromAccount'),
             'toAccount': this.safeString (transfer, 'toAccount'),
-            'status': undefined, // todo or ok
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
             'info': transfer,
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'COMPLETED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
