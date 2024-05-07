@@ -5515,6 +5515,7 @@ class binance(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param boolean [params.portfolioMargin]: set to True if you would like to create an order in a portfolio margin account
+        :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -5613,8 +5614,8 @@ class binance(Exchange, ImplicitAPI):
         stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         trailingDelta = self.safe_string(params, 'trailingDelta')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', self.number_to_string(price))
-        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice')
+        trailingPercent = self.safe_string_n(params, ['trailingPercent', 'callbackRate', 'trailingDelta'])
         priceMatch = self.safe_string(params, 'priceMatch')
         isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
@@ -5626,10 +5627,26 @@ class binance(Exchange, ImplicitAPI):
         uppercaseType = type.upper()
         stopPrice = None
         if isTrailingPercentOrder:
-            uppercaseType = 'TRAILING_STOP_MARKET'
-            request['callbackRate'] = trailingPercent
-            if trailingTriggerPrice is not None:
-                request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+            if market['swap']:
+                uppercaseType = 'TRAILING_STOP_MARKET'
+                request['callbackRate'] = trailingPercent
+                if trailingTriggerPrice is not None:
+                    request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+            else:
+                if isMarketOrder:
+                    raise InvalidOrder(self.id + ' trailingPercent orders are not supported for ' + symbol + ' ' + type + ' orders')
+                stopLossOrTakeProfit = self.safe_string(params, 'stopLossOrTakeProfit')
+                params = self.omit(params, 'stopLossOrTakeProfit')
+                if stopLossOrTakeProfit != 'stopLoss' and stopLossOrTakeProfit != 'takeProfit':
+                    raise InvalidOrder(self.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
+                if stopLossOrTakeProfit == 'stopLoss':
+                    uppercaseType = 'STOP_LOSS_LIMIT'
+                elif stopLossOrTakeProfit == 'takeProfit':
+                    uppercaseType = 'TAKE_PROFIT_LIMIT'
+                if trailingTriggerPrice is not None:
+                    stopPrice = self.price_to_precision(symbol, trailingTriggerPrice)
+                trailingPercentConverted = Precise.string_mul(trailingPercent, '100')
+                request['trailingDelta'] = trailingPercentConverted
         elif isStopLoss:
             stopPrice = stopLossPrice
             if isMarketOrder:
@@ -5769,8 +5786,8 @@ class binance(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 # check for delta price
-                if trailingDelta is None and stopPrice is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order')
+                if trailingDelta is None and stopPrice is None and trailingPercent is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a ' + type + ' order')
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None):

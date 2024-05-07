@@ -50,7 +50,7 @@ public partial class bybit : ccxt.bybit
                             } },
                             { "contract", "wss://stream.{hostname}/v5/private" },
                             { "usdc", "wss://stream.{hostname}/trade/option/usdc/private/v1" },
-                            { "trade", "wss://stream-testnet.bybit.com/v5/trade" },
+                            { "trade", "wss://stream.bybit.com/v5/trade" },
                         } },
                     } },
                 } },
@@ -304,7 +304,10 @@ public partial class bybit : ccxt.bybit
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "trade");
         await this.authenticate(url);
         object requestId = ((object)this.requestId()).ToString();
+        if (isTrue(inOp(orderRequest, "orderFilter")))
+        {
 
+        }
         object request = new Dictionary<string, object>() {
             { "op", "order.cancel" },
             { "reqId", requestId },

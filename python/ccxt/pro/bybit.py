@@ -60,7 +60,7 @@ class bybit(ccxt.async_support.bybit):
                             },
                             'contract': 'wss://stream.{hostname}/v5/private',
                             'usdc': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
-                            'trade': 'wss://stream-testnet.bybit.com/v5/trade',
+                            'trade': 'wss://stream.bybit.com/v5/trade',
                         },
                     },
                 },
@@ -277,11 +277,12 @@ class bybit(ccxt.async_support.bybit):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        orderRequest = self.cancelOrderRequest(id, symbol, params)
+        orderRequest = self.cancel_order_request(id, symbol, params)
         url = self.urls['api']['ws']['private']['trade']
         await self.authenticate(url)
         requestId = str(self.request_id())
-        del orderRequest['orderFilter']
+        if 'orderFilter' in orderRequest:
+            del orderRequest['orderFilter']
         request = {
             'op': 'order.cancel',
             'reqId': requestId,

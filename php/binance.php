@@ -5655,6 +5655,7 @@ class binance extends Exchange {
          * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+         * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -5766,8 +5767,8 @@ class binance extends Exchange {
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice); // fallback to stopLoss
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $trailingDelta = $this->safe_string($params, 'trailingDelta');
-        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $this->number_to_string($price));
-        $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice');
+        $trailingPercent = $this->safe_string_n($params, array( 'trailingPercent', 'callbackRate', 'trailingDelta' ));
         $priceMatch = $this->safe_string($params, 'priceMatch');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
@@ -5779,10 +5780,31 @@ class binance extends Exchange {
         $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
-            $uppercaseType = 'TRAILING_STOP_MARKET';
-            $request['callbackRate'] = $trailingPercent;
-            if ($trailingTriggerPrice !== null) {
-                $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+            if ($market['swap']) {
+                $uppercaseType = 'TRAILING_STOP_MARKET';
+                $request['callbackRate'] = $trailingPercent;
+                if ($trailingTriggerPrice !== null) {
+                    $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+                }
+            } else {
+                if ($isMarketOrder) {
+                    throw new InvalidOrder($this->id . ' $trailingPercent orders are not supported for ' . $symbol . ' ' . $type . ' orders');
+                }
+                $stopLossOrTakeProfit = $this->safe_string($params, 'stopLossOrTakeProfit');
+                $params = $this->omit($params, 'stopLossOrTakeProfit');
+                if ($stopLossOrTakeProfit !== 'stopLoss' && $stopLossOrTakeProfit !== 'takeProfit') {
+                    throw new InvalidOrder($this->id . $symbol . ' $trailingPercent orders require a $stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                }
+                if ($stopLossOrTakeProfit === 'stopLoss') {
+                    $uppercaseType = 'STOP_LOSS_LIMIT';
+                } elseif ($stopLossOrTakeProfit === 'takeProfit') {
+                    $uppercaseType = 'TAKE_PROFIT_LIMIT';
+                }
+                if ($trailingTriggerPrice !== null) {
+                    $stopPrice = $this->price_to_precision($symbol, $trailingTriggerPrice);
+                }
+                $trailingPercentConverted = Precise::string_mul($trailingPercent, '100');
+                $request['trailingDelta'] = $trailingPercentConverted;
             }
         } elseif ($isStopLoss) {
             $stopPrice = $stopLossPrice;
@@ -5948,8 +5970,8 @@ class binance extends Exchange {
                 }
             } else {
                 // check for delta $price
-                if ($trailingDelta === null && $stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice or $trailingDelta param for a ' . $type . ' order');
+                if ($trailingDelta === null && $stopPrice === null && $trailingPercent === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice, $trailingDelta or $trailingPercent param for a ' . $type . ' order');
                 }
             }
             if ($stopPrice !== null) {
