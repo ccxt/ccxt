@@ -2544,7 +2544,7 @@ public partial class binance : Exchange
         * @returns {object} an associative dictionary of currencies
         */
         parameters ??= new Dictionary<string, object>();
-        object fetchCurrenciesEnabled = this.safeValue(this.options, "fetchCurrencies");
+        object fetchCurrenciesEnabled = this.safeBool(this.options, "fetchCurrencies");
         if (!isTrue(fetchCurrenciesEnabled))
         {
             return null;
@@ -4563,7 +4563,7 @@ public partial class binance : Exchange
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
         object side = null;
-        object buyerMaker = this.safeValue2(trade, "m", "isBuyerMaker");
+        object buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         object takerOrMaker = null;
         if (isTrue(!isEqual(buyerMaker, null)))
         {
@@ -4898,7 +4898,7 @@ public partial class binance : Exchange
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
         }
-        object validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
+        object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes");
         if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
         {
             if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
@@ -4911,7 +4911,7 @@ public partial class binance : Exchange
         }
         if (isTrue(isEqual(clientOrderId, null)))
         {
-            object broker = this.safeValue(this.options, "broker");
+            object broker = this.safeDict(this.options, "broker");
             if (isTrue(!isEqual(broker, null)))
             {
                 object brokerId = this.safeString(broker, "spot");
@@ -5847,6 +5847,7 @@ public partial class binance : Exchange
         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
         * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+        * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -5996,8 +5997,8 @@ public partial class binance : Exchange
         object stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice); // fallback to stopLoss
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object trailingDelta = this.safeString(parameters, "trailingDelta");
-        object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activationPrice", this.numberToString(price));
-        object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
+        object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activationPrice");
+        object trailingPercent = this.safeStringN(parameters, new List<object>() {"trailingPercent", "callbackRate", "trailingDelta"});
         object priceMatch = this.safeString(parameters, "priceMatch");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isStopLoss = isTrue(!isEqual(stopLossPrice, null)) || isTrue(!isEqual(trailingDelta, null));
@@ -6010,11 +6011,39 @@ public partial class binance : Exchange
         object stopPrice = null;
         if (isTrue(isTrailingPercentOrder))
         {
-            uppercaseType = "TRAILING_STOP_MARKET";
-            ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
-            if (isTrue(!isEqual(trailingTriggerPrice, null)))
+            if (isTrue(getValue(market, "swap")))
             {
-                ((IDictionary<string,object>)request)["activationPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+                uppercaseType = "TRAILING_STOP_MARKET";
+                ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
+                if (isTrue(!isEqual(trailingTriggerPrice, null)))
+                {
+                    ((IDictionary<string,object>)request)["activationPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+                }
+            } else
+            {
+                if (isTrue(isMarketOrder))
+                {
+                    throw new InvalidOrder ((string)add(add(add(add(add(this.id, " trailingPercent orders are not supported for "), symbol), " "), type), " orders")) ;
+                }
+                object stopLossOrTakeProfit = this.safeString(parameters, "stopLossOrTakeProfit");
+                parameters = this.omit(parameters, "stopLossOrTakeProfit");
+                if (isTrue(isTrue(!isEqual(stopLossOrTakeProfit, "stopLoss")) && isTrue(!isEqual(stopLossOrTakeProfit, "takeProfit"))))
+                {
+                    throw new InvalidOrder ((string)add(add(this.id, symbol), " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                }
+                if (isTrue(isEqual(stopLossOrTakeProfit, "stopLoss")))
+                {
+                    uppercaseType = "STOP_LOSS_LIMIT";
+                } else if (isTrue(isEqual(stopLossOrTakeProfit, "takeProfit")))
+                {
+                    uppercaseType = "TAKE_PROFIT_LIMIT";
+                }
+                if (isTrue(!isEqual(trailingTriggerPrice, null)))
+                {
+                    stopPrice = this.priceToPrecision(symbol, trailingTriggerPrice);
+                }
+                object trailingPercentConverted = Precise.stringMul(trailingPercent, "100");
+                ((IDictionary<string,object>)request)["trailingDelta"] = trailingPercentConverted;
             }
         } else if (isTrue(isStopLoss))
         {
@@ -6227,9 +6256,9 @@ public partial class binance : Exchange
             } else
             {
                 // check for delta price as well
-                if (isTrue(isTrue(isEqual(trailingDelta, null)) && isTrue(isEqual(stopPrice, null))))
+                if (isTrue(isTrue(isTrue(isEqual(trailingDelta, null)) && isTrue(isEqual(stopPrice, null))) && isTrue(isEqual(trailingPercent, null))))
                 {
-                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice or trailingDelta param for a "), type), " order")) ;
+                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a "), type), " order")) ;
                 }
             }
             if (isTrue(!isEqual(stopPrice, null)))
@@ -8005,7 +8034,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
             object raw = await this.sapiGetFiatOrders(this.extend(request, parameters));
-            response = this.safeValue(raw, "data");
+            response = this.safeList(raw, "data", new List<object>() {});
         } else
         {
             if (isTrue(!isEqual(code, null)))
@@ -8090,7 +8119,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["beginTime"] = since;
             }
             object raw = await this.sapiGetFiatOrders(this.extend(request, parameters));
-            response = this.safeValue(raw, "data");
+            response = this.safeList(raw, "data", new List<object>() {});
         } else
         {
             if (isTrue(!isEqual(code, null)))
@@ -8249,7 +8278,7 @@ public partial class binance : Exchange
             {
                 type = ((bool) isTrue((isEqual(txType, "0")))) ? "deposit" : "withdrawal";
             }
-            object legalMoneyCurrenciesById = this.safeValue(this.options, "legalMoneyCurrenciesById");
+            object legalMoneyCurrenciesById = this.safeDict(this.options, "legalMoneyCurrenciesById");
             code = this.safeString(legalMoneyCurrenciesById, code, code);
         }
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
@@ -8651,7 +8680,7 @@ public partial class binance : Exchange
                 }
             }
             impliedNetwork = this.safeString(reverseNetworks, topLevel);
-            object impliedNetworks = this.safeValue(this.options, "impliedNetworks", new Dictionary<string, object>() {
+            object impliedNetworks = this.safeDict(this.options, "impliedNetworks", new Dictionary<string, object>() {
                 { "ETH", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                 } },
@@ -10079,7 +10108,7 @@ public partial class binance : Exchange
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        object leverageBrackets = this.safeValue(this.options, "leverageBrackets");
+        object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
         if (isTrue(isTrue((isEqual(leverageBrackets, null))) || isTrue((reload))))
         {
             object defaultType = this.safeString(this.options, "defaultType", "future");

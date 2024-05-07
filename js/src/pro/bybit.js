@@ -15,11 +15,11 @@ export default class bybit extends bybitRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'createOrderWs': false,
-                'editOrderWs': false,
+                'createOrderWs': true,
+                'editOrderWs': true,
                 'fetchOpenOrdersWs': false,
                 'fetchOrderWs': false,
-                'cancelOrderWs': false,
+                'cancelOrderWs': true,
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': false,
                 'fetchTradesWs': false,
@@ -53,7 +53,7 @@ export default class bybit extends bybitRest {
                             },
                             'contract': 'wss://stream.{hostname}/v5/private',
                             'usdc': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
-                            'trade': 'wss://stream-testnet.bybit.com/v5/trade',
+                            'trade': 'wss://stream.bybit.com/v5/trade',
                         },
                     },
                 },
@@ -287,7 +287,9 @@ export default class bybit extends bybitRest {
         const url = this.urls['api']['ws']['private']['trade'];
         await this.authenticate(url);
         const requestId = this.requestId().toString();
-        delete orderRequest['orderFilter'];
+        if ('orderFilter' in orderRequest) {
+            delete orderRequest['orderFilter'];
+        }
         const request = {
             'op': 'order.cancel',
             'reqId': requestId,

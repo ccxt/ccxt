@@ -559,7 +559,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         await self.load_markets()
         await self.authenticate()
-        request = self.cancelOrderRequest(id, symbol, params)
+        request = self.cancel_order_request(id, symbol, params)
         return await self.watch_request('privateCancelOrder', request)
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):

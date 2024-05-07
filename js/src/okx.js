@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -892,7 +892,24 @@ export default class okx extends Exchange {
                     '60017': BadRequest,
                     '60018': BadRequest,
                     '60019': BadRequest,
+                    '60020': ExchangeError,
+                    '60021': AccountNotEnabled,
+                    '60022': AuthenticationError,
+                    '60023': DDoSProtection,
+                    '60024': AuthenticationError,
+                    '60025': ExchangeError,
+                    '60026': AuthenticationError,
+                    '60027': ArgumentsRequired,
+                    '60028': NotSupported,
+                    '60029': AccountNotEnabled,
+                    '60030': AccountNotEnabled,
+                    '60031': AuthenticationError,
+                    '60032': AuthenticationError,
                     '63999': ExchangeError,
+                    '64000': BadRequest,
+                    '64001': BadRequest,
+                    '64002': BadRequest,
+                    '64003': AccountNotEnabled,
                     '70010': BadRequest,
                     '70013': BadRequest,
                     '70016': BadRequest, // Please specify your instrument settings for at least one instType.

@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -472,10 +473,12 @@ class okx extends \ccxt\async\okx {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             //
@@ -508,30 +511,33 @@ class okx extends \ccxt\async\okx {
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->depth] okx order book $depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $options = $this->safe_value($this->options, 'watchOrderBook', array());
-            $depth = $this->safe_string($options, 'depth', 'books');
+            $depth = null;
+            list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'depth', 'books');
             if ($limit !== null) {
                 if ($limit === 1) {
                     $depth = 'bbo-tbt';
                 } elseif ($limit > 1 && $limit <= 5) {
                     $depth = 'books5';
-                } elseif ($limit === 400) {
-                    $depth = 'books';
                 } elseif ($limit === 50) {
                     $depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
-                } elseif ($limit === 4000) {
-                    $depth = 'books-l2-tbt'; // Make sure you have VIP5 and above
+                } elseif ($limit === 400) {
+                    $depth = 'books';
                 }
             }
             if (($depth === 'books-l2-tbt') || ($depth === 'books50-l2-tbt')) {
+                if (!$this->check_required_credentials(false)) {
+                    throw new AuthenticationError($this->id . ' watchOrderBook/watchOrderBookForSymbols requires authentication for this $depth-> Add credentials or change the $depth option to books or books5');
+                }
                 Async\await($this->authenticate(array( 'access' => 'public' )));
             }
             $topics = array();
@@ -599,6 +605,8 @@ class okx extends \ccxt\async\okx {
         $storedBids = $orderbook['bids'];
         $this->handle_deltas($storedAsks, $asks);
         $this->handle_deltas($storedBids, $bids);
+        $marketId = $this->safe_string($message, 'instId');
+        $symbol = $this->safe_symbol($marketId);
         $checksum = $this->safe_bool($this->options, 'checksum', true);
         if ($checksum) {
             $asksLength = count($storedAsks);
@@ -619,6 +627,8 @@ class okx extends \ccxt\async\okx {
             $localChecksum = $this->crc32($payload, true);
             if ($responseChecksum !== $localChecksum) {
                 $error = new InvalidNonce ($this->id . ' invalid checksum');
+                unset($client->subscriptions[$messageHash]);
+                unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);
             }
         }
@@ -714,10 +724,10 @@ class okx extends \ccxt\async\okx {
         //         ]
         //     }
         //
-        $arg = $this->safe_value($message, 'arg', array());
+        $arg = $this->safe_dict($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
         $action = $this->safe_string($message, 'action');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -1567,27 +1577,20 @@ class okx extends \ccxt\async\okx {
         //     array( event => 'error', msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
         //     array( event => 'error", msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
         //
-        $errorCode = $this->safe_integer($message, 'code');
+        $errorCode = $this->safe_string($message, 'code');
         try {
-            if ($errorCode) {
+            if ($errorCode && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $messageString = $this->safe_value($message, 'msg');
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
+                throw new ExchangeError($feedback);
             }
         } catch (Exception $e) {
-            if ($e instanceof AuthenticationError) {
-                $messageHash = 'authenticated';
-                $client->reject ($e, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                    unset($client->subscriptions[$messageHash]);
-                }
-                return false;
-            } else {
-                $client->reject ($e);
-            }
+            $client->reject ($e);
+            return false;
         }
         return $message;
     }

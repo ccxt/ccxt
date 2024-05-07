@@ -470,6 +470,8 @@ public partial class htx : ccxt.htx
             }
         } catch(Exception e)
         {
+
+
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }

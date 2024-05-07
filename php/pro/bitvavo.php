@@ -621,7 +621,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
-            $request = $this->cancelOrderRequest ($id, $symbol, $params);
+            $request = $this->cancel_order_request($id, $symbol, $params);
             return Async\await($this->watch_request('privateCancelOrder', $request));
         }) ();
     }

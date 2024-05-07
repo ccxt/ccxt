@@ -638,6 +638,12 @@ public partial class binance
     /// boolean : set to true if you would like to create an order in a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stopLossOrTakeProfit</term>
+    /// <description>
+    /// string : 'stopLoss' or 'takeProfit', required for spot trailing orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>

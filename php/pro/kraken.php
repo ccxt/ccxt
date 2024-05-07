@@ -799,6 +799,8 @@ class kraken extends \ccxt\async\kraken {
                 $localChecksum = $this->crc32($payload, false);
                 if ($localChecksum !== $c) {
                     $error = new InvalidNonce ($this->id . ' invalid checksum');
+                    unset($client->subscriptions[$messageHash]);
+                    unset($this->orderbooks[$symbol]);
                     $client->reject ($error, $messageHash);
                     return;
                 }

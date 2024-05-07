@@ -2611,7 +2611,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        fetchCurrenciesEnabled = self.safe_value(self.options, 'fetchCurrencies')
+        fetchCurrenciesEnabled = self.safe_bool(self.options, 'fetchCurrencies')
         if not fetchCurrenciesEnabled:
             return None
         # self endpoint requires authentication
@@ -4398,7 +4398,7 @@ class binance(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         side = None
-        buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
+        buyerMaker = self.safe_bool_2(trade, 'm', 'isBuyerMaker')
         takerOrMaker = None
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
@@ -4674,14 +4674,14 @@ class binance(Exchange, ImplicitAPI):
                 uppercaseType = 'STOP_LOSS'
             elif uppercaseType == 'LIMIT':
                 uppercaseType = 'STOP_LOSS_LIMIT'
-        validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+        validOrderTypes = self.safe_list(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
                 raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
             else:
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
+            broker = self.safe_dict(self.options, 'broker')
             if broker is not None:
                 brokerId = self.safe_string(broker, 'spot')
                 if brokerId is not None:
@@ -5515,6 +5515,7 @@ class binance(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param boolean [params.portfolioMargin]: set to True if you would like to create an order in a portfolio margin account
+        :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -5613,8 +5614,8 @@ class binance(Exchange, ImplicitAPI):
         stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         trailingDelta = self.safe_string(params, 'trailingDelta')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice', self.number_to_string(price))
-        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activationPrice')
+        trailingPercent = self.safe_string_n(params, ['trailingPercent', 'callbackRate', 'trailingDelta'])
         priceMatch = self.safe_string(params, 'priceMatch')
         isTrailingPercentOrder = trailingPercent is not None
         isStopLoss = stopLossPrice is not None or trailingDelta is not None
@@ -5626,10 +5627,26 @@ class binance(Exchange, ImplicitAPI):
         uppercaseType = type.upper()
         stopPrice = None
         if isTrailingPercentOrder:
-            uppercaseType = 'TRAILING_STOP_MARKET'
-            request['callbackRate'] = trailingPercent
-            if trailingTriggerPrice is not None:
-                request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+            if market['swap']:
+                uppercaseType = 'TRAILING_STOP_MARKET'
+                request['callbackRate'] = trailingPercent
+                if trailingTriggerPrice is not None:
+                    request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
+            else:
+                if isMarketOrder:
+                    raise InvalidOrder(self.id + ' trailingPercent orders are not supported for ' + symbol + ' ' + type + ' orders')
+                stopLossOrTakeProfit = self.safe_string(params, 'stopLossOrTakeProfit')
+                params = self.omit(params, 'stopLossOrTakeProfit')
+                if stopLossOrTakeProfit != 'stopLoss' and stopLossOrTakeProfit != 'takeProfit':
+                    raise InvalidOrder(self.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
+                if stopLossOrTakeProfit == 'stopLoss':
+                    uppercaseType = 'STOP_LOSS_LIMIT'
+                elif stopLossOrTakeProfit == 'takeProfit':
+                    uppercaseType = 'TAKE_PROFIT_LIMIT'
+                if trailingTriggerPrice is not None:
+                    stopPrice = self.price_to_precision(symbol, trailingTriggerPrice)
+                trailingPercentConverted = Precise.string_mul(trailingPercent, '100')
+                request['trailingDelta'] = trailingPercentConverted
         elif isStopLoss:
             stopPrice = stopLossPrice
             if isMarketOrder:
@@ -5769,8 +5786,8 @@ class binance(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 # check for delta price
-                if trailingDelta is None and stopPrice is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order')
+                if trailingDelta is None and stopPrice is None and trailingPercent is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a ' + type + ' order')
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None):
@@ -7149,7 +7166,7 @@ class binance(Exchange, ImplicitAPI):
             if until is not None:
                 request['endTime'] = until
             raw = self.sapiGetFiatOrders(self.extend(request, params))
-            response = self.safe_value(raw, 'data')
+            response = self.safe_list(raw, 'data', [])
             #     {
             #       "code": "000000",
             #       "message": "success",
@@ -7251,7 +7268,7 @@ class binance(Exchange, ImplicitAPI):
             if since is not None:
                 request['beginTime'] = since
             raw = self.sapiGetFiatOrders(self.extend(request, params))
-            response = self.safe_value(raw, 'data')
+            response = self.safe_list(raw, 'data', [])
             #     {
             #       "code": "000000",
             #       "message": "success",
@@ -7458,7 +7475,7 @@ class binance(Exchange, ImplicitAPI):
             txType = self.safe_string(transaction, 'transactionType')
             if txType is not None:
                 type = 'deposit' if (txType == '0') else 'withdrawal'
-            legalMoneyCurrenciesById = self.safe_value(self.options, 'legalMoneyCurrenciesById')
+            legalMoneyCurrenciesById = self.safe_dict(self.options, 'legalMoneyCurrenciesById')
             code = self.safe_string(legalMoneyCurrenciesById, code, code)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
@@ -7772,7 +7789,7 @@ class binance(Exchange, ImplicitAPI):
                 if subLevel is not None:
                     topLevel = topLevel + '/' + subLevel
             impliedNetwork = self.safe_string(reverseNetworks, topLevel)
-            impliedNetworks = self.safe_value(self.options, 'impliedNetworks', {
+            impliedNetworks = self.safe_dict(self.options, 'impliedNetworks', {
                 'ETH': {'ERC20': 'ETH'},
                 'TRX': {'TRC20': 'TRX'},
             })
@@ -8980,7 +8997,7 @@ class binance(Exchange, ImplicitAPI):
         self.load_markets()
         # by default cache the leverage bracket
         # it contains useful stuff like the maintenance margin and initial margin for positions
-        leverageBrackets = self.safe_value(self.options, 'leverageBrackets')
+        leverageBrackets = self.safe_dict(self.options, 'leverageBrackets', {})
         if (leverageBrackets is None) or (reload):
             defaultType = self.safe_string(self.options, 'defaultType', 'future')
             type = self.safe_string(params, 'type', defaultType)
