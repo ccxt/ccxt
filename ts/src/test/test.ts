@@ -1050,13 +1050,6 @@ export default class testMainClass extends baseMainTestClass {
         return content;
     }
 
-    loadCredentialsFromFile (id: string) {
-        const filename = this.rootDir + './ts/src/test/static/credentials/' + id + '.json';
-        if (!ioFileExists (filename)) return undefined;
-        const content = ioFileRead (filename);
-        return content;        
-    }
-
     loadStaticData (folder: string, targetExchange: Str = undefined) {
         const result = {};
         if (targetExchange) {
@@ -1327,17 +1320,8 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const credentials = this.loadCredentialsFromFile (exchangeName);
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accountId':'accountId', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
-        if (credentials !== undefined) {
-            const keys = Object.keys (credentials);
-            for (let i=0; i<keys.length; i++) {
-                const credential = keys[i];
-                const credentialValue = credentials[credential];
-                setExchangeProp (exchange, credential, credentialValue);
-            }
-        }
         return exchange;
     }
 
@@ -1345,6 +1329,16 @@ export default class testMainClass extends baseMainTestClass {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange (exchangeName);
         const globalOptions = exchange.safeDict (exchangeData, 'options', {});
+
+        // read apiKey/secret from the test file
+        const apiKey = exchange.safeString (exchangeData, 'apiKey');
+        if (apiKey) {
+            exchange.apiKey = apiKey;
+        }
+        const secret = exchange.safeString (exchangeData, 'secret');
+        if (secret) {
+            exchange.secret = secret;
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
         const methods = exchange.safeValue (exchangeData, 'methods', {});

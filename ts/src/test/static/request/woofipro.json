@@ -1,5 +1,6 @@
 {
     "exchange": "woofipro",
+    "secret": "secretsecretsecretsecretsecretsecretsecrets",
     "skipKeys": [
         "signature"
     ],
