@@ -3758,7 +3758,7 @@ export default class Exchange {
         return networkId;
     }
 
-    networkIdToCode (networkId: string, currencyCode: Str = undefined): string {
+    networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): string {
         /**
          * @ignore
          * @method
