@@ -99,6 +99,16 @@ function precisionFromString (str: string) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
+    x: string,
+    roundingMode: number,
+    numPrecisionDigits: any,
+    countingMode: number = DECIMAL_PLACES,
+    paddingMode: number = NO_PADDING
+): string => {
+    return _decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
+}
+
+const _decimalToPrecision = (
     x: any,
     roundingMode: number,
     numPrecisionDigits: any,
@@ -116,7 +126,7 @@ const decimalToPrecision = (
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * _decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();
@@ -124,12 +134,12 @@ const decimalToPrecision = (
     }
     /*  handle tick size */
     if (countingMode === TICK_SIZE) {
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+        const precisionDigitsString = _decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         let missing = x % numPrecisionDigits;
         // See: https://github.com/ccxt/ccxt/pull/6486
-        missing = Number (decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
-        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
+        missing = Number (_decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
+        const fpError = _decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
         if (precisionFromString (fpError) !== 0) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
@@ -149,7 +159,7 @@ const decimalToPrecision = (
                 x = x - missing;
             }
         }
-        return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
+        return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
     /*  Convert to a string (if needed), skip leading minus sign (if any)   */
