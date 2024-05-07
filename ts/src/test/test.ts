@@ -1333,11 +1333,13 @@ export default class testMainClass extends baseMainTestClass {
         // read apiKey/secret from the test file
         const apiKey = exchange.safeString (exchangeData, 'apiKey');
         if (apiKey) {
-            exchange.apiKey = apiKey.toString (); // c# to string requirement
+            // c# to string requirement
+            exchange.apiKey = apiKey.toString ();
         }
         const secret = exchange.safeString (exchangeData, 'secret');
         if (secret) {
-            exchange.secret = secret.toString (); // c# to string requirement
+            // c# to string requirement
+            exchange.secret = secret.toString ();
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
