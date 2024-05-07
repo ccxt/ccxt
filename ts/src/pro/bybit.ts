@@ -289,7 +289,9 @@ export default class bybit extends bybitRest {
         const url = this.urls['api']['ws']['private']['trade'];
         await this.authenticate (url);
         const requestId = this.requestId ().toString ();
-        delete orderRequest['orderFilter'];
+        if ('orderFilter' in orderRequest) {
+            delete orderRequest['orderFilter'];
+        }
         const request = {
             'op': 'order.cancel',
             'reqId': requestId,
