@@ -1652,10 +1652,9 @@ class coinlist(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
         request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
         }
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromAcc = self.safe_string(accountsByType, fromAccount, fromAccount)

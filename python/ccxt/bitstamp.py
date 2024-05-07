@@ -2020,10 +2020,8 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
-        amount = self.parse_to_numeric(amount)
         request = {
-            'amount': amount,
+            'amount': self.parse_to_numeric(self.currency_to_precision(code, amount)),
             'currency': currency['id'].upper(),
         }
         response = None

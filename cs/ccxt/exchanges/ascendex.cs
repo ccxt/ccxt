@@ -3367,7 +3367,6 @@ public partial class ascendex : Exchange
         object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3377,7 +3376,7 @@ public partial class ascendex : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "asset", getValue(currency, "id") },
             { "fromAccount", fromId },
             { "toAccount", toId },

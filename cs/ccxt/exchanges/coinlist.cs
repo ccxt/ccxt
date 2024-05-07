@@ -1829,10 +1829,9 @@ public partial class coinlist : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromAcc = this.safeString(accountsByType, fromAccount, fromAccount);

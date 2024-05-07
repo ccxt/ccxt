@@ -45,7 +45,7 @@ export default class wavesexchange extends Exchange {
     getAssetId(currencyId: any): any;
     customPriceToPrecision(symbol: any, price: any): number;
     customAmountToPrecision(symbol: any, amount: any): number;
-    currencyToPrecision(code: any, amount: any, networkCode?: any): number;
+    customCurrencyToPrecision(code: any, amount: any, networkCode?: any): number;
     fromPrecision(amount: any, scale: any): string;
     toPrecision(amount: any, scale: any): string;
     currencyFromPrecision(currency: any, amount: any): string;

@@ -9,7 +9,7 @@ export default class bitmex extends Exchange {
     fetchCurrencies(params?: {}): Promise<Currencies>;
     convertFromRealAmount(code: any, amount: any): number;
     convertToRealAmount(code: Str, amount: Str): string;
-    amountToPrecision(symbol: any, amount: any): any;
+    amountToPrecision(symbol: any, amount: any): string;
     convertFromRawQuantity(symbol: any, rawQuantity: any, currencySide?: string): number;
     convertFromRawCost(symbol: any, rawQuantity: any): number;
     fetchMarkets(params?: {}): Promise<Market[]>;

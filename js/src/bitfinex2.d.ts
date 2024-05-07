@@ -9,8 +9,8 @@ export default class bitfinex2 extends Exchange {
     isFiat(code: any): boolean;
     getCurrencyId(code: any): string;
     getCurrencyName(code: any): any;
-    amountToPrecision(symbol: any, amount: any): any;
-    priceToPrecision(symbol: any, price: any): any;
+    amountToPrecision(symbol: any, amount: any): string;
+    priceToPrecision(symbol: any, price: any): string;
     fetchStatus(params?: {}): Promise<{
         status: string;
         updated: any;

@@ -2501,7 +2501,7 @@ class bitmart extends Exchange {
         } elseif ($isMarketOrder) {
             // for $market buy it requires the $amount of quote currency to spend
             if ($side === 'buy') {
-                $notional = $this->safe_number_2($params, 'cost', 'notional');
+                $notional = $this->safe_string_2($params, 'cost', 'notional');
                 $params = $this->omit($params, 'cost');
                 $createMarketBuyOrderRequiresPrice = true;
                 list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2511,10 +2511,10 @@ class bitmart extends Exchange {
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $notional = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $notional = Precise::string_mul($amountString, $priceString);
                     }
                 } else {
-                    $notional = ($notional === null) ? $amount : $notional;
+                    $notional = ($notional === null) ? $this->number_to_string($amount) : $notional;
                 }
                 $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $market['precision']['price'], $this->precisionMode);
             } elseif ($side === 'sell') {

@@ -187,7 +187,7 @@ export default class Exchange {
     precisionFromString: typeof functions.precisionFromString;
     capitalize: (s: string) => string;
     now: () => number;
-    decimalToPrecision: (x: any, roundingMode: any, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => any;
+    decimalToPrecision: (x: string, roundingMode: number, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => string;
     safeValue: (o: any, k: IndexType, $default?: any) => any;
     safeValue2: (o: any, k1: IndexType, k2: IndexType, $default?: any) => any;
     safeString: (o: any, k: IndexType, $default?: string) => string;
@@ -989,11 +989,11 @@ export default class Exchange {
     createMarketBuyOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
     createMarketSellOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
     createMarketSellOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
-    costToPrecision(symbol: string, cost: any): any;
+    costToPrecision(symbol: string, cost: any): string;
     priceToPrecision(symbol: string, price: any): string;
-    amountToPrecision(symbol: string, amount: any): any;
-    feeToPrecision(symbol: string, fee: any): any;
-    currencyToPrecision(code: string, fee: any, networkCode?: any): any;
+    amountToPrecision(symbol: string, amount: any): string;
+    feeToPrecision(symbol: string, fee: any): string;
+    currencyToPrecision(code: string, fee: any, networkCode?: any): string;
     forceString(value: any): string;
     isTickPrecision(): boolean;
     isDecimalPrecision(): boolean;

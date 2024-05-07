@@ -27,7 +27,7 @@ export default class probit extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    costToPrecision(symbol: any, cost: any): any;
+    costToPrecision(symbol: any, cost: any): string;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {

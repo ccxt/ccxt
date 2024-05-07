@@ -12,8 +12,8 @@ export default class binance extends Exchange {
     createExpiredOptionMarket(symbol: string): MarketInterface;
     market(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    costToPrecision(symbol: any, cost: any): any;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): any;
+    costToPrecision(symbol: any, cost: any): string;
+    currencyToPrecision(code: any, fee: any, networkCode?: any): string;
     nonce(): number;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<Currencies>;

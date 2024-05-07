@@ -7,7 +7,7 @@ import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balance
  */
 export default class kraken extends Exchange {
     describe(): any;
-    feeToPrecision(symbol: any, fee: any): any;
+    feeToPrecision(symbol: any, fee: any): string;
     fetchMarkets(params?: {}): Promise<Market[]>;
     safeCurrency(currencyId: any, currency?: Currency): import("./base/types.js").CurrencyInterface;
     appendInactiveMarkets(result: any): any;

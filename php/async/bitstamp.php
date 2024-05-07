@@ -2178,10 +2178,8 @@ class bitstamp extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $amount = $this->currency_to_precision($code, $amount);
-            $amount = $this->parse_to_numeric($amount);
             $request = array(
-                'amount' => $amount,
+                'amount' => $this->parse_to_numeric($this->currency_to_precision($code, $amount)),
                 'currency' => strtoupper($currency['id']),
             );
             $response = null;

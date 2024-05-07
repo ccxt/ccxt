@@ -35,7 +35,7 @@ export default class htx extends Exchange {
             };
         };
     };
-    costToPrecision(symbol: any, cost: any): any;
+    costToPrecision(symbol: any, cost: any): string;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsByTypeAndSubType(type: any, subType: any, params?: {}): Promise<any[]>;
     tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;

@@ -7,7 +7,7 @@ import type { Balances, Currency, Int, Market, MarketInterface, Num, OHLCV, Orde
 export default class bithumb extends Exchange {
     describe(): any;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    amountToPrecision(symbol: any, amount: any): any;
+    amountToPrecision(symbol: any, amount: any): string;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

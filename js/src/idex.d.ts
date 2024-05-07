@@ -6,7 +6,7 @@ import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, Or
  */
 export default class idex extends Exchange {
     describe(): any;
-    priceToPrecision(symbol: any, price: any): any;
+    priceToPrecision(symbol: any, price: any): string;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;

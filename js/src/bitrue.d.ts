@@ -6,7 +6,7 @@ import type { Balances, Currencies, Currency, Int, MarginModification, Market, N
  */
 export default class bitrue extends Exchange {
     describe(): any;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): any;
+    currencyToPrecision(code: any, fee: any, networkCode?: any): string;
     nonce(): number;
     fetchStatus(params?: {}): Promise<{
         status: string;

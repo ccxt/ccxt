@@ -26,7 +26,7 @@ export default class huobijp extends Exchange {
             };
         };
     };
-    costToPrecision(symbol: any, cost: any): any;
+    costToPrecision(symbol: any, cost: any): string;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -56,7 +56,7 @@ export default class huobijp extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): any;
+    currencyToPrecision(code: any, fee: any, networkCode?: any): string;
     safeNetwork(networkId: any): string;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
