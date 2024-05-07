@@ -1135,16 +1135,14 @@ export default class bitget extends bitgetRest {
         //         "uTime": "1701923297267",
         //         "feeDetail": [],
         //         "enterPointSource": "WEB"
-        //
-        //         // trigger order has these additional fields:
-        //
+        //                   #### trigger order has these additional fields: ####
         //         "triggerPrice": "0.800000000",
         //         "price": "0.800000000", // this is same as trigger price
         //         "executePrice": "0.811250000", // this is limit price
         //         "triggerType": "fill_price",
         //         "planType": "amount",
         //    }
-
+        //
         // contract
         //
         //     {
@@ -1173,9 +1171,7 @@ export default class bitget extends bitgetRest {
         //         status: 'live', // live, filled, cancelled
         //         tradeSide: 'open',
         //         uTime: '1715065875539'
-        //
-        //         // when filled order is incoming, these additional fields are present too:
-        //
+        //                   #### when filled order is incoming, these additional fields are present too: ###
         //         baseVolume: '9', // amount filled for the incoming update/trade
         //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount
         //         fillFee: '-0.0062712',
@@ -1187,9 +1183,7 @@ export default class bitget extends bitgetRest {
         //         priceAvg: '0.804',
         //         tradeId: '1171636690314407937',
         //         tradeScope: 'T',
-        //
-        //         // trigger order has these additional fields:
-        //
+        //                   #### trigger order has these additional fields:
         //         "triggerPrice": "0.800000000",
         //         "price": "0.800000000",  // <-- this is same as trigger price, actual limit-price is not present in initial response
         //         "triggerType": "mark_price",
