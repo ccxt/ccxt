@@ -349,6 +349,40 @@
                     }
                 ],
                 "output": "timestamp=1708360882808&symbol=LTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-xcKtGhcu6f60e2c1e1ed4166838709&type=LIMIT&quantity=0.2&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=b73ae983cc2d4995d48e98841152c802ba0b420ee79fc501bde0b6eeee4817ab"
+            },
+            {
+                "description": "spot create a trailing limit stop loss order",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  55000,
+                  {
+                    "trailingPercent": 5,
+                    "stopLossOrTakeProfit": "stopLoss"
+                  }
+                ],
+                "output": "timestamp=1715064034670&symbol=BTCUSDT&side=SELL&trailingDelta=500&newClientOrderId=x-R4BD3S827b685798989f41d5802a06&newOrderRespType=FULL&type=STOP_LOSS_LIMIT&quantity=0.1&price=55000&timeInForce=GTC&recvWindow=10000&signature=57d9051c3a5ef532f6124922f104bfd35e73b553b8e46d54598a3fdbb9463cb5"
+            },
+            {
+                "description": "spot create a trailing limit take profit order",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  70000,
+                  {
+                    "trailingPercent": 5,
+                    "stopLossOrTakeProfit": "takeProfit"
+                  }
+                ],
+                "output": "timestamp=1715064136268&symbol=BTCUSDT&side=SELL&trailingDelta=500&newClientOrderId=x-R4BD3S829874c25a35ce4766a6c7bc&newOrderRespType=FULL&type=TAKE_PROFIT_LIMIT&quantity=0.1&price=70000&timeInForce=GTC&recvWindow=10000&signature=221d429c7db5a26495d5c0d9287f6e6a08fb59f45b3f71c3c6bfe8e319e35341"
             }
         ],
         "createOrders": [
