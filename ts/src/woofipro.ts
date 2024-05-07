@@ -2660,7 +2660,7 @@ export default class woofipro extends Exchange {
                     // TODO: set the default broker id
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
-                        for (let i=0; i<params['orders'].length; i++) {
+                        for (let i = 0; i < params['orders'].length; i++) {
                             params[i]['order_tag'] = brokerId;
                         }
                     } else {
