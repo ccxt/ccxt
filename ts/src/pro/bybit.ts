@@ -53,7 +53,7 @@ export default class bybit extends bybitRest {
                             },
                             'contract': 'wss://stream.{hostname}/v5/private',
                             'usdc': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
-                            'trade': 'wss://stream.{hostname}/v5/trade',
+                            'trade': 'wss://stream.bybit.com/v5/trade',
                         },
                     },
                 },
