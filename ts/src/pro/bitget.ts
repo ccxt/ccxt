@@ -1117,30 +1117,38 @@ export default class bitget extends bitgetRest {
         //
         // spot
         //
-        //     {
-        //         "instId": "BTCUSDT",
-        //         "orderId": "1116512721422422017",
-        //         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        //         "price": "35000.00",
-        //         "size": "7.0000",
-        //         "newSize": "500.0000",
-        //         "notional": "7.000000",
-        //         "orderType": "limit",
-        //         "force": "gtc",
-        //         "side": "buy",
-        //         "accBaseVolume": "0.0000", // in case of 'filled', this would be set
-        //         "priceAvg": "0.00", // in case of 'filled', this would be set
-        //         "status": "live", // live, filled
-        //         "cTime": "1701923297267",
-        //         "uTime": "1701923297267",
-        //         "feeDetail": [],
-        //         "enterPointSource": "WEB"
+        //   {
+        //         instId: 'EOSUSDT',
+        //         orderId: '1171779081105780739',
+        //         price: '0.81075', // limit price, field not present for market orders
+        //         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
+        //         notional: '5.675250', // this is not cost! but notional
+        //         newSize: '7.0000', // this is not cost! quanity (for limit order) or quoteAmount (for market order)
+        //         size: '5.6752', // this is not cost, neither quanity, but notional! this field for "spot" can be ignored at all
+        //         orderType: 'limit', // limit, market
+        //         force: 'gtc',
+        //         side: 'buy',
+        //         accBaseVolume: '0.0000', // in case of 'filled', this would be set (for limit orders, this is the only indicator of the amount filled)
+        //         priceAvg: '0.00000', // in case of 'filled', this would be set
+        //         status: 'live', // live, filled, partially_filled
+        //         cTime: '1715099824215',
+        //         uTime: '1715099824215',
+        //         feeDetail: [],
+        //         enterPointSource: 'API'
         //                   #### trigger order has these additional fields: ####
-        //         "triggerPrice": "0.800000000",
-        //         "price": "0.800000000", // this is same as trigger price
-        //         "executePrice": "0.811250000", // this is limit price
+        //         "triggerPrice": "35100",
+        //         "price": "35100", // this is same as trigger price
+        //         "executePrice": "35123", // this is limit price
         //         "triggerType": "fill_price",
         //         "planType": "amount",
+        //                   #### in case order had fill: ####
+        //         fillPrice: '35123',
+        //         tradeId: '1171775539946528779',
+        //         baseVolume: '7', // field present in market order
+        //         fillTime: '1715098979937',
+        //         fillFee: '-0.0069987',
+        //         fillFeeCoin: 'BTC',
+        //         tradeScope: 'T',
         //    }
         //
         // contract
@@ -1167,13 +1175,13 @@ export default class bitget extends bitgetRest {
         //         price: '0', // zero for market order
         //         reduceOnly: 'no',
         //         side: 'sell',
-        //         size: '13',
+        //         size: '13', // this is contracts amount
         //         status: 'live', // live, filled, cancelled
         //         tradeSide: 'open',
         //         uTime: '1715065875539'
         //                   #### when filled order is incoming, these additional fields are present too: ###
         //         baseVolume: '9', // amount filled for the incoming update/trade
-        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount
+        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
         //         fillFee: '-0.0062712',
         //         fillFeeCoin: 'SUSDT',
         //         fillNotionalUsd: '10.452',
@@ -1215,7 +1223,8 @@ export default class bitget extends bitgetRest {
         //         "orderId": "1116515595178356737"
         //     }
         //
-        const isSpot = ('posMode' in order);
+        const isSpot = !('posMode' in order);
+        const isMargin = ('loanType' in order);
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'cTime');
@@ -1242,24 +1251,38 @@ export default class bitget extends bitgetRest {
             price = this.safeNumber (order, 'executePrice');
         }
         const avgPrice = this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice'));
-        // notional / notionalUsd / quoteSize is not cost, but notional of order
-        // https://github.com/ccxt/ccxt/issues/22310
-        const cost = this.safeStringN (order, [ 'fillNotionalUsd' ]);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
+        const accBaseVolume = this.omitZero (this.safeString (order, 'accBaseVolume'));
+        const newSizeValue = this.safeString (order, 'newSize');
+        const isMarketOrder = (type === 'market');
         let totalAmount = undefined;
+        let filledAmount = undefined;
+        let cost = undefined;
         if (isSpot) {
-            totalAmount = this.safeString2 (order, 'newSize', 'baseSize');
+            if (isMargin) {
+                filledAmount = this.safeString (order, 'fillTotalAmount');
+                totalAmount = this.safeString (order, 'baseSize'); // for margin trading
+                cost = this.safeString (order, 'quoteSize');
+            } else {
+                filledAmount = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
+                // for market order, newSize does not reflect coin size, but cost
+                if (!isMarketOrder) {
+                    totalAmount = this.safeString (order, 'newSize');
+                } else {
+                    // for filled market order, accBaseVolume (same as baseVolume in this case) is the total amount
+                    totalAmount = accBaseVolume;
+                }
+                // for limit order (even filled) we don't have cost value in response
+                if (isMarketOrder) {
+                    cost = newSizeValue;
+                }
+            }
         } else {
-            // baseVolume should not be used for "amount"
+            // baseVolume should not be used for "amount" for contracts !
+            filledAmount = this.safeString (order, 'baseVolume');
             totalAmount = this.safeString (order, 'size');
-        }
-        const filledSumForOrder = this.safeString (order, 'accBaseVolume');
-        const filled = this.safeString2 (order, 'baseVolume', 'actualSize');
-        let remaining = undefined;
-        if (filledSumForOrder !== undefined) {
-            // if filledSum is provided, calculate 'remaining'. otherwise, it will be auto-calculated depending 'filled' value
-            remaining = Precise.stringSub (totalAmount, filledSumForOrder);
+            cost = this.safeString (order, 'fillNotionalUsd');
         }
         return this.safeOrder ({
             'info': order,
@@ -1278,8 +1301,8 @@ export default class bitget extends bitgetRest {
             'amount': totalAmount,
             'cost': cost,
             'average': avgPrice,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': filledAmount,
+            'remaining': undefined,
             'status': this.parseWsOrderStatus (rawStatus),
             'fee': feeObject,
             'trades': undefined,
