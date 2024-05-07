@@ -1007,9 +1007,6 @@ export default class bitget extends bitgetRest {
         if ((type === 'spot') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        if (isTrigger && type === 'spot') {
-            throw new NotSupported (this.id + ' watchOrders does not support stop orders for ' + type + ' markets.');
-        }
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
         if (type === 'spot') {
