@@ -2507,12 +2507,9 @@ export default class Exchange {
     }
 
     safeIntegerOmitZero (obj: object, key: IndexType, defaultValue: Int = undefined): Int {
-        const timestampString = this.omitZero (this.safeString (obj, key));
-        let timestamp = undefined;
-        if (timestampString !== undefined) {
-            timestamp = parseInt (timestampString);
-        } else if (defaultValue !== undefined) {
-            timestamp = defaultValue;
+        const timestamp = this.safeInteger (obj, key, defaultValue);
+        if (timestamp === undefined || timestamp === 0) {
+           return undefined;
         }
         return timestamp;
     }
