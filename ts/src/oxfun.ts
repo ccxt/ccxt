@@ -5,7 +5,7 @@ import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -47,8 +47,8 @@ export default class oxfun extends Exchange {
                 'createStopOrder': false,
                 'deposit': false,
                 'editOrder': false,
-                'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -99,7 +99,7 @@ export default class oxfun extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
@@ -167,10 +167,10 @@ export default class oxfun extends Exchange {
                 'private': {
                     'get': {
                         'v3/account': 1,
-                        'v3/account/names': 1, // todo returns only subaccounts
-                        'v3/wallet': 1,
+                        'v3/account/names': 1, // unified
+                        'v3/wallet': 1, // retruns only FUNDING in OX
                         'v3/transfer': 1,
-                        'v3/balances': 1,
+                        'v3/balances': 1, // unified
                         'v3/positions': 1,
                         'v3/funding': 1,
                         'v3/deposit-addresses': 1,
@@ -183,7 +183,7 @@ export default class oxfun extends Exchange {
                         'v3/trades': 1, // unified
                     },
                     'post': {
-                        'v3/transfer': 1,
+                        'v3/transfer': 1, // todo doesn't work
                         'v3/withdrawal': 1,
                         'v3/orders/ploxfun': 1,
                     },
@@ -243,6 +243,7 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"20001","message":"level exceeds the maximum"}
                     // {"success":false,"code":"20001","message":"marketCode is invalid"}
                     // {"success":false,"code":"30001","message":"Required parameter 'marketCode' is missing"}
+                    // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
                 },
                 'broad': {
                     // todo: add more error codes
@@ -800,7 +801,7 @@ export default class oxfun extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'currencyVolume24h'), // todo check
+            'baseVolume': this.safeString (ticker, 'currencyVolume24h'), // todo check
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
@@ -1257,6 +1258,54 @@ export default class oxfun extends Exchange {
             'type': undefined,
             'code': undefined,
             'info': account,
+        };
+    }
+
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        /**
+         * @method
+         * @name oxfun#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://docs.ox.fun/?json#post-v3-transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account id to transfer from
+         * @param {string} toAccount account id to transfer to
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        // transferring funds between sub-accounts is restricted to API keys linked to the parent account.
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'quantity': this.currencyToPrecision (code, amount),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        };
+        const response = await this.privatePostV3Transfer (this.extend (request, params));
+        //
+        // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null}
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTransfer (data, currency);
+    }
+
+    parseTransfer (transfer, currency: Currency = undefined) {
+        //
+        //
+        const timestamp = this.safeInteger (transfer, 'transferredAt');
+        const currencyId = this.safeString (transfer, 'asset');
+        return {
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'quantity'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': undefined, // todo or ok
+            'info': transfer,
         };
     }
 
