@@ -5889,17 +5889,12 @@ export default class Exchange {
         return result;
     }
 
-    handleTriggerAndParams (params) {
+    isTriggerOrder (params) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
         }
         return [ isTrigger, params ];
-    }
-
-    isTriggerOrder (params) {
-        // for backwards compatibility
-        return this.handleTriggerAndParams (params);
     }
 
     isPostOnly (isMarketOrder: boolean, exchangeSpecificParam, params = {}) {

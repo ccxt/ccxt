@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -993,7 +993,7 @@ export default class bitget extends bitgetRest {
         let market = undefined;
         let marketId = undefined;
         let isTrigger = undefined;
-        [ isTrigger, params ] = this.handleTriggerAndParams (params);
+        [ isTrigger, params ] = this.isTriggerOrder (params);
         let messageHash = (isTrigger) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
