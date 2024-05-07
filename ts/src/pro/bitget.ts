@@ -1228,9 +1228,9 @@ export default class bitget extends bitgetRest {
         //         "orderType": "limit",
         //         "force": "gtc",
         //         "side": "buy",
-        //         "accBaseVolume": "0.0000",
-        //         "priceAvg": "0.00",
-        //         "status": "live",
+        //         "accBaseVolume": "0.0000", // in case of 'filled', this would be set
+        //         "priceAvg": "0.00", // in case of 'filled', this would be set
+        //         "status": "live", // live, filled
         //         "cTime": "1701923297267",
         //         "uTime": "1701923297267",
         //         "feeDetail": [],
@@ -1240,31 +1240,45 @@ export default class bitget extends bitgetRest {
         // contract
         //
         //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
+        //         accBaseVolume: '0', // total amount filled during lifetime for order
+        //         cTime: '1715065875539',
+        //         clientOid: '1171636690041344003',
+        //         enterPointSource: 'API',
+        //         feeDetail: [ {
         //             "feeCoin": "USDT",
         //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
+        //         } ],
+        //         force: 'gtc',
+        //         instId: 'SEOSSUSDT',
+        //         leverage: '10',
+        //         marginCoin: 'SUSDT',
+        //         marginMode: 'crossed',
+        //         notionalUsd: '10.4468',
+        //         orderId: '1171636690028761089',
+        //         orderType: 'market',
+        //         posMode: 'hedge_mode', // one_way_mode, hedge_mode
+        //         posSide: 'short',
+        //         price: '0', // zero for market order
+        //         reduceOnly: 'no',
+        //         side: 'sell',
+        //         size: '13',
+        //         status: 'live', // live, filled
+        //         tradeSide: 'open',
+        //         uTime: '1715065875539'
+        //         //
+        //         // when filled order is incoming, these additional fields are present too:
+        //         //
+        //         baseVolume: '9', // amount filled for the incoming update/trade
+        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount
+        //         fillFee: '-0.0062712',
+        //         fillFeeCoin: 'SUSDT',
+        //         fillNotionalUsd: '10.452',
+        //         fillPrice: '0.804',
+        //         fillTime: '1715065875605',
+        //         pnl: '0',
+        //         priceAvg: '0.804',
+        //         tradeId: '1171636690314407937',
+        //         tradeScope: 'T',
         //     }
         //
         // trigger
@@ -1314,50 +1328,7 @@ export default class bitget extends bitgetRest {
         //         "orderId": "1116515595178356737"
         //     }
         //
-        // hedge-mode: when order (even market order) is submitted
-        //
-        //     {
-        //         accBaseVolume: '0', // total amount filled during lifetime for order
-        //         cTime: '1715065875539',
-        //         clientOid: '1171636690041344003',
-        //         enterPointSource: 'API',
-        //         feeDetail: [ {
-        //             "feeCoin": "USDT",
-        //             "fee": "-0.162003"
-        //         } ],
-        //         force: 'gtc',
-        //         instId: 'SEOSSUSDT',
-        //         leverage: '10',
-        //         marginCoin: 'SUSDT',
-        //         marginMode: 'crossed',
-        //         notionalUsd: '10.4468',
-        //         orderId: '1171636690028761089',
-        //         orderType: 'market',
-        //         posMode: 'hedge_mode',
-        //         posSide: 'short',
-        //         price: '0', // zero for market order
-        //         reduceOnly: 'no',
-        //         side: 'sell',
-        //         size: '13',
-        //         status: 'live', // live, filled
-        //         tradeSide: 'open',
-        //         uTime: '1715065875539'
-        //         //
-        //         // when filled order is incoming, these additional fields are present too:
-        //         //
-        //         baseVolume: '9', // amount filled for the incoming update/trade
-        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount
-        //         fillFee: '-0.0062712',
-        //         fillFeeCoin: 'SUSDT',
-        //         fillNotionalUsd: '10.452',
-        //         fillPrice: '0.804',
-        //         fillTime: '1715065875605',
-        //         pnl: '0',
-        //         priceAvg: '0.804',
-        //         tradeId: '1171636690314407937',
-        //         tradeScope: 'T',
-        //     }
-        //
+        const isContract = ('posMode' in order);
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'cTime');
@@ -1382,8 +1353,13 @@ export default class bitget extends bitgetRest {
         const cost = this.safeStringN (order, [ 'fillNotionalUsd' ]);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        // baseVolume should not be used for "amount"
-        const totalAmount = this.safeString (order, 'size');
+        let totalAmount = undefined;
+        if (!isContract) {
+            totalAmount = this.safeString (order, 'newSize');
+        } else {
+            // baseVolume should not be used for "amount"
+            totalAmount = this.safeString (order, 'size');
+        }
         const filledSumForOrder = this.safeString (order, 'accBaseVolume');
         const filled = this.safeString2 (order, 'baseVolume', 'actualSize');
         let remaining = undefined;
