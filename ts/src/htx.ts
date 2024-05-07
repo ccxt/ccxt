@@ -3267,7 +3267,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    networkIdToCode (networkId, currencyCode = undefined) {
+    networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined) {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         const keys = Object.keys (this.options['networkNamesByChainIds']);
         const keysLength = keys.length;
@@ -3278,7 +3278,7 @@ export default class htx extends Exchange {
         return super.networkIdToCode (networkTitle);
     }
 
-    networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+    networkCodeToId (networkCode: string, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if (currencyCode === undefined) {
             throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
         }
