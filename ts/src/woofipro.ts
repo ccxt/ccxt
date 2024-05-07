@@ -1426,10 +1426,20 @@ export default class woofipro extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
+            const stopPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
+            const stopLoss = this.safeValue (orderParams, 'stopLoss');
+            const takeProfit = this.safeValue (orderParams, 'takeProfit');
+            const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (orderParams, 'childOrders') !== undefined);
+            if (isStop) {
+                throw new NotSupported (this.id + 'createOrders() only support non-stop order');
+            }
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const response = await this.v1PrivatePostBatchOrder (ordersRequests);
+        const request = {
+            'orders': ordersRequests,
+        };
+        const response = await this.v1PrivatePostBatchOrder (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2644,8 +2654,10 @@ export default class woofipro extends Exchange {
                 if (!isSandboxMode) {
                     // TODO: set the default broker id
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
-                    if (Array.isArray (params)) {
-                        params['order_tag'] = brokerId;
+                    if (path === 'batch-order') {
+                        for (let i=0; i<params['orders'].length; i++) {
+                            params[i]['order_tag'] = brokerId;
+                        }
                     } else {
                         params['order_tag'] = brokerId;
                     }

@@ -112,7 +112,7 @@
                         }
                     ]
                 ],
-                "output": "[{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXT\"}]"
+                "output": "{\"orders\":[{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXT\"}]}"
             },
             {
                 "description": "Swap market sell with reduceOnly",
@@ -123,7 +123,7 @@
                         {
                             "symbol": "LTC/USDC:USDC",
                             "type": "market",
-                            "side": "buy",
+                            "side": "sell",
                             "amount": 0.1,
                             "params": {
                                 "reduceOnly": true
@@ -131,7 +131,7 @@
                         }
                     ]
                 ],
-                "output": "[{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXT\",\"reduce_only\":true}]"
+                "output": "{\"orders\":[{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXT\",\"reduce_only\":true}]}"
             },
             {
                 "description": "postOnly order",
@@ -151,7 +151,7 @@
                         }
                     ]
                 ],
-                "output": "[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"POST_ONLY\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]"
+                "output": "{\"orders\":[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"POST_ONLY\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]}"
             },
             {
                 "description": "limit order",
@@ -168,7 +168,7 @@
                         }
                     ]
                 ],
-                "output": "[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]"
+                "output": "{\"orders\":[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]}"
             }
         ],
         "fetchOrders": [
