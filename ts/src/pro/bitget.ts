@@ -1314,6 +1314,50 @@ export default class bitget extends bitgetRest {
         //         "orderId": "1116515595178356737"
         //     }
         //
+        // hedge-mode: when order (even market order) is submitted
+        //
+        //     {
+        //         accBaseVolume: '0', // total amount filled during lifetime for order
+        //         cTime: '1715065875539',
+        //         clientOid: '1171636690041344003',
+        //         enterPointSource: 'API',
+        //         feeDetail: [ {
+        //             "feeCoin": "USDT",
+        //             "fee": "-0.162003"
+        //         } ],
+        //         force: 'gtc',
+        //         instId: 'SEOSSUSDT',
+        //         leverage: '10',
+        //         marginCoin: 'SUSDT',
+        //         marginMode: 'crossed',
+        //         notionalUsd: '10.4468',
+        //         orderId: '1171636690028761089',
+        //         orderType: 'market',
+        //         posMode: 'hedge_mode',
+        //         posSide: 'short',
+        //         price: '0', // zero for market order
+        //         reduceOnly: 'no',
+        //         side: 'sell',
+        //         size: '13',
+        //         status: 'live', // live, filled
+        //         tradeSide: 'open',
+        //         uTime: '1715065875539'
+        //         //
+        //         // when filled order is incoming, these additional fields are present too:
+        //         //
+        //         baseVolume: '9', // amount filled for the incoming update/trade
+        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount
+        //         fillFee: '-0.0062712',
+        //         fillFeeCoin: 'SUSDT',
+        //         fillNotionalUsd: '10.452',
+        //         fillPrice: '0.804',
+        //         fillTime: '1715065875605',
+        //         pnl: '0',
+        //         priceAvg: '0.804',
+        //         tradeId: '1171636690314407937',
+        //         tradeScope: 'T',
+        //     }
+        //
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'cTime');
@@ -1333,22 +1377,19 @@ export default class bitget extends bitgetRest {
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
         const price = this.safeString (order, 'price');
         const avgPrice = this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice'));
-        let cost = this.safeStringN (order, [ 'notional', 'notionalUsd', 'quoteSize' ]);
+        // notional / notionalUsd / quoteSize is not cost!
+        // https://github.com/ccxt/ccxt/issues/22310
+        const cost = this.safeStringN (order, [ 'fillNotionalUsd' ]);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        if (side === 'buy' && market['spot'] && (type === 'market')) {
-            cost = this.safeString (order, 'newSize', cost);
-        }
-        const filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
-        // if (market['spot'] && (rawStatus !== 'live')) {
-        //     filled = Precise.stringDiv (cost, avgPrice);
-        // }
-        let amount = this.safeString (order, 'baseVolume');
-        if (!market['spot'] || !(side === 'buy' && type === 'market')) {
-            amount = this.safeString (order, 'newSize', amount);
-        }
-        if (market['swap'] && (amount === undefined)) {
-            amount = this.safeString (order, 'size');
+        // baseVolume should not be used for "amount"
+        const totalAmount = this.safeString (order, 'size');
+        const filledSumForOrder = this.safeString (order, 'accBaseVolume');
+        const filled = this.safeString2 (order, 'baseVolume', 'actualSize');
+        let remaining = undefined;
+        if (filledSumForOrder !== undefined) {
+            // if filledSum is provided, calculate 'remaining'. otherwise, it will be auto-calculated depending 'filled' value
+            remaining = Precise.stringSub (totalAmount, filledSumForOrder);
         }
         return this.safeOrder ({
             'info': order,
@@ -1365,11 +1406,11 @@ export default class bitget extends bitgetRest {
             'price': price,
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': amount,
+            'amount': totalAmount,
             'cost': cost,
             'average': avgPrice,
             'filled': filled,
-            'remaining': undefined,
+            'remaining': remaining,
             'status': this.parseWsOrderStatus (rawStatus),
             'fee': feeObject,
             'trades': undefined,
