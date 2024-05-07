@@ -2657,11 +2657,11 @@ export default class woofipro extends Exchange {
             if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
-                    // TODO: set the default broker id
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
-                        for (let i = 0; i < params['orders'].length; i++) {
-                            params[i]['order_tag'] = brokerId;
+                        const ordersList = this.safeList (params, 'orders', []);
+                        for (let i = 0; i < ordersList.length; i++) {
+                            params['orders'][i]['order_tag'] = brokerId;
                         }
                     } else {
                         params['order_tag'] = brokerId;
