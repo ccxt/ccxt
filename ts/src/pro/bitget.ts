@@ -992,9 +992,9 @@ export default class bitget extends bitgetRest {
         await this.loadMarkets ();
         let market = undefined;
         let marketId = undefined;
-        const isStop = this.safeBool (params, 'stop', false);
-        params = this.omit (params, 'stop');
-        let messageHash = (isStop) ? 'triggerOrder' : 'order';
+        let isTrigger = undefined;
+        [ isTrigger, params ] = this.handleTriggerAndParams (params);
+        let messageHash = (isTrigger) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1007,7 +1007,7 @@ export default class bitget extends bitgetRest {
         if ((type === 'spot') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        if (isStop && type === 'spot') {
+        if (isTrigger && type === 'spot') {
             throw new NotSupported (this.id + ' watchOrders does not support stop orders for ' + type + ' markets.');
         }
         let instType = undefined;
@@ -1015,11 +1015,11 @@ export default class bitget extends bitgetRest {
         if (type === 'spot') {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
-        if (isStop) {
+        if (isTrigger) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        let channel = isStop ? 'orders-algo' : 'orders';
+        let channel = isTrigger ? 'orders-algo' : 'orders';
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
         if (marginMode !== undefined) {
