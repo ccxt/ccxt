@@ -244,6 +244,7 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"20001","message":"marketCode is invalid"}
                     // {"success":false,"code":"30001","message":"Required parameter 'marketCode' is missing"}
                     // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
+                    // {"success":false,"code":"20001","message":"subAcc is invalid"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -801,8 +802,8 @@ export default class oxfun extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'currencyVolume24h'), // todo check
-            'quoteVolume': undefined,
+            'baseVolume': this.safeString (ticker, 'currencyVolume24h'),
+            'quoteVolume': undefined, // todo check - exchange returns volume in OX
             'info': ticker,
         }, market);
     }
@@ -1113,7 +1114,7 @@ export default class oxfun extends Exchange {
             'takerOrMaker': this.safeStringLower2 (trade, 'matchType', 'orderMatchType'),
             'price': this.safeString (trade, 'matchPrice'),
             'amount': this.safeString2 (trade, 'matchQuantity', 'matchedQuantity'),
-            'cost': undefined,
+            'cost': undefined, // todo check - the exchange returns total cost in OX
             'fee': fee,
             'info': trade,
         }, market);
@@ -1383,6 +1384,124 @@ export default class oxfun extends Exchange {
             'COMPLETED': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#fetchPositions
+         * @description fetch all open positions
+         * @see https://docs.ox.fun/?json#get-v3-positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.subAcc] todo
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        // Calling this endpoint using an API key pair linked to the parent account with the parameter "subAcc"
+        // allows the caller to include positions of additional sub-accounts in the response.
+        // This feature does not work when using API key pairs linked to a sub-account
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.privateGetV3Positions (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "accountId": "106490",
+        //                 "name": "main",
+        //                 "positions": [
+        //                     {
+        //                         "marketCode": "BTC-USD-SWAP-LIN",
+        //                         "baseAsset": "BTC",
+        //                         "counterAsset": "USD",
+        //                         "position": "0.00010",
+        //                         "entryPrice": "64300.0",
+        //                         "markPrice": "63278",
+        //                         "positionPnl": "-10.1900",
+        //                         "estLiquidationPrice": "0",
+        //                         "lastUpdatedAt": "1714915841448"
+        //                     },
+        //                     ...
+        //                 ]
+        //             },
+        //             {
+        //                 "accountId": "106526",
+        //                 "name": "testSubAccount",
+        //                 "positions": [
+        //                     {
+        //                         "marketCode": "ETH-USD-SWAP-LIN",
+        //                         "baseAsset": "ETH",
+        //                         "counterAsset": "USD",
+        //                         "position": "0.001",
+        //                         "entryPrice": "3080.5",
+        //                         "markPrice": "3062.0",
+        //                         "positionPnl": "-1.8500",
+        //                         "estLiquidationPrice": "0",
+        //                         "lastUpdatedAt": "1715089678013"
+        //                     },
+        //                     ...
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        let allPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const positions = this.safeList (account, 'positions', []);
+            allPositions = this.arrayConcat (allPositions, positions);
+        }
+        return this.parsePositions (allPositions, symbols);
+    }
+
+    parsePosition (position, market: Market = undefined) {
+        //
+        //     {
+        //         "marketCode": "ETH-USD-SWAP-LIN",
+        //         "baseAsset": "ETH",
+        //         "counterAsset": "USD",
+        //         "position": "0.001",
+        //         "entryPrice": "3080.5",
+        //         "markPrice": "3062.0",
+        //         "positionPnl": "-1.8500",
+        //         "estLiquidationPrice": "0",
+        //         "lastUpdatedAt": "1715089678013"
+        //     }
+        //
+        const marketId = this.safeString (position, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'positionId'),
+            'symbol': market['symbol'],
+            'notional': undefined,
+            'marginMode': 'cross', // todo check
+            'liquidationPrice': this.safeNumber (position, 'estLiquidationPrice'),
+            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'positionPnl'),
+            'realizedPnl': undefined, // todo check
+            'percentage': undefined,
+            'contracts': this.safeNumber (position, 'position'),
+            'contractSize': undefined,
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
+            'side': undefined,
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdatedAt'),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
