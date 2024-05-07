@@ -816,7 +816,7 @@ export default class Exchange {
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     networkCodeToId(networkCode: string, currencyCode?: Str): string;
-    networkIdToCode(networkId: string, currencyCode?: Str): string;
+    networkIdToCode(networkId?: Str, currencyCode?: Str): string;
     handleNetworkCodeAndParams(params: any): any[];
     defaultNetworkCode(currencyCode: string): any;
     selectNetworkCodeFromUnifiedNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): any;

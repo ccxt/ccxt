@@ -68,8 +68,8 @@ export default class htx extends Exchange {
     };
     fetchAccountIdByType(type: any, marginMode?: any, symbol?: any, params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    networkIdToCode(networkId: any, currencyCode?: any): string;
-    networkCodeToId(networkCode: any, currencyCode?: any): any;
+    networkIdToCode(networkId?: Str, currencyCode?: Str): string;
+    networkCodeToId(networkCode: string, currencyCode?: Str): any;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseMarginBalanceHelper(balance: any, code: any, result: any): any;

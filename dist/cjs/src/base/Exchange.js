@@ -3383,7 +3383,7 @@ class Exchange {
         }
         return networkId;
     }
-    networkIdToCode(networkId, currencyCode = undefined) {
+    networkIdToCode(networkId = undefined, currencyCode = undefined) {
         /**
          * @ignore
          * @method

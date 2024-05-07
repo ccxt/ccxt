@@ -3362,7 +3362,7 @@ class Exchange(object):
                 networkId = networkCode
         return networkId
 
-    def network_id_to_code(self, networkId: str, currencyCode: Str = None):
+    def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
         """
          * @ignore
         tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have "options['networksById']" defined.

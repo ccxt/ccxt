@@ -3124,7 +3124,7 @@ class htx(Exchange, ImplicitAPI):
             }
         return result
 
-    def network_id_to_code(self, networkId, currencyCode=None):
+    def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
         # here network-id is provided pair of currency & chain(i.e. trc20usdt)
         keys = list(self.options['networkNamesByChainIds'].keys())
         keysLength = len(keys)
@@ -3133,7 +3133,7 @@ class htx(Exchange, ImplicitAPI):
         networkTitle = self.safe_value(self.options['networkNamesByChainIds'], networkId, networkId)
         return super(htx, self).network_id_to_code(networkTitle)
 
-    def network_code_to_id(self, networkCode, currencyCode=None):
+    def network_code_to_id(self, networkCode: str, currencyCode: Str = None):
         if currencyCode is None:
             raise ArgumentsRequired(self.id + ' networkCodeToId() requires a currencyCode argument')
         keys = list(self.options['networkChainIdsByNames'].keys())
