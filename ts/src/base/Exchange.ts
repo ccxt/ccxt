@@ -5783,7 +5783,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
+    parseTickers (tickers, symbols: Strings = undefined, params = {}): Dictionary<Ticker> {
         //
         // the value of tickers is either a dict or a list
         //
