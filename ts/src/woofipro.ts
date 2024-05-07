@@ -1095,6 +1095,7 @@ export default class woofipro extends Exchange {
         //
         // Possible input functions:
         // * createOrder
+        // * createOrders
         // * cancelOrder
         // * fetchOrder
         // * fetchOrders
@@ -1146,7 +1147,11 @@ export default class woofipro extends Exchange {
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2 (order, 'order_type', 'type');
-        const status = this.safeValue2 (order, 'status', 'algoStatus');
+        let status = this.safeValue2 (order, 'status', 'algoStatus');
+        const success = this.safeBool (order, 'success');
+        if (success !== undefined) {
+            status = (success) ? 'NEW' : 'REJECTED';
+        }
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
         const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
