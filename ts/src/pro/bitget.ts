@@ -1091,8 +1091,9 @@ export default class bitget extends bitgetRest {
             this.orders = new ArrayCacheBySymbolById (limit);
             this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
-        const stored = (channel === 'ordersAlgo') ? this.triggerOrders : this.orders;
-        const messageHash = (channel === 'ordersAlgo') ? 'triggerOrder' : 'order';
+        const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
+        const stored = isTrigger ? this.triggerOrders : this.orders;
+        const messageHash = isTrigger ? 'triggerOrder' : 'order';
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -1134,8 +1135,16 @@ export default class bitget extends bitgetRest {
         //         "uTime": "1701923297267",
         //         "feeDetail": [],
         //         "enterPointSource": "WEB"
-        //     }
         //
+        //         // trigger order has these additional fields:
+        //
+        //         "triggerPrice": "0.800000000",
+        //         "price": "0.800000000", // this is same as trigger price
+        //         "executePrice": "0.811250000", // this is limit price
+        //         "triggerType": "fill_price",
+        //         "planType": "amount",
+        //    }
+
         // contract
         //
         //     {
@@ -1164,9 +1173,9 @@ export default class bitget extends bitgetRest {
         //         status: 'live', // live, filled, cancelled
         //         tradeSide: 'open',
         //         uTime: '1715065875539'
-        //         //
+        //
         //         // when filled order is incoming, these additional fields are present too:
-        //         //
+        //
         //         baseVolume: '9', // amount filled for the incoming update/trade
         //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount
         //         fillFee: '-0.0062712',
@@ -1178,15 +1187,15 @@ export default class bitget extends bitgetRest {
         //         priceAvg: '0.804',
         //         tradeId: '1171636690314407937',
         //         tradeScope: 'T',
-        //         //
+        //
         //         // trigger order has these additional fields:
-        //         //
+        //
         //         "triggerPrice": "0.800000000",
+        //         "price": "0.800000000",  // <-- this is same as trigger price, actual limit-price is not present in initial response
         //         "triggerType": "mark_price",
         //         "triggerTime": "1715082796679",
         //         "planType": "pl",
         //         "actualSize": "0.000000000",
-        //         "price": "0.800000000",  // <-- this is trigger price, actual limit-price is not present in initial response
         //         "stopSurplusTriggerType": "fill_price",
         //         "stopLossTriggerType": "fill_price",
         //     }
@@ -1211,7 +1220,7 @@ export default class bitget extends bitgetRest {
         //         "orderId": "1116515595178356737"
         //     }
         //
-        const isContract = ('posMode' in order);
+        const isSpot = ('posMode' in order);
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'cTime');
@@ -1233,6 +1242,9 @@ export default class bitget extends bitgetRest {
         let price = undefined;
         if (!isTriggerOrder) {
             price = this.safeNumber (order, 'price');
+        } else if (isSpot && isTriggerOrder) {
+            // for spot trigger order, limit price is this
+            price = this.safeNumber (order, 'executePrice');
         }
         const avgPrice = this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice'));
         // notional / notionalUsd / quoteSize is not cost!
@@ -1241,7 +1253,7 @@ export default class bitget extends bitgetRest {
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
         let totalAmount = undefined;
-        if (!isContract) {
+        if (isSpot) {
             totalAmount = this.safeString (order, 'newSize');
         } else {
             // baseVolume should not be used for "amount"
@@ -1267,7 +1279,6 @@ export default class bitget extends bitgetRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': totalAmount,
             'cost': cost,
