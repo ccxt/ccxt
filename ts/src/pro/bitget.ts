@@ -1199,6 +1199,7 @@ export default class bitget extends bitgetRest {
         //     {
         //         "enterPointSource": "web",
         //         "force": "gtc",
+        //         "feeDetail": [],
         //         "orderType": "limit",
         //         "price": "35000.000000000",
         //         "quoteSize": "10.500000000",
@@ -1241,14 +1242,14 @@ export default class bitget extends bitgetRest {
             price = this.safeNumber (order, 'executePrice');
         }
         const avgPrice = this.omitZero (this.safeString2 (order, 'priceAvg', 'fillPrice'));
-        // notional / notionalUsd / quoteSize is not cost!
+        // notional / notionalUsd / quoteSize is not cost, but notional of order
         // https://github.com/ccxt/ccxt/issues/22310
         const cost = this.safeStringN (order, [ 'fillNotionalUsd' ]);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
         let totalAmount = undefined;
         if (isSpot) {
-            totalAmount = this.safeString (order, 'newSize');
+            totalAmount = this.safeString2 (order, 'newSize', 'baseSize');
         } else {
             // baseVolume should not be used for "amount"
             totalAmount = this.safeString (order, 'size');
@@ -1710,6 +1711,8 @@ export default class bitget extends bitgetRest {
             'orders': this.handleOrder,
             'ordersAlgo': this.handleOrder,
             'orders-algo': this.handleOrder,
+            'orders-crossed': this.handleOrder,
+            'orders-isolated': this.handleOrder,
             'account': this.handleBalance,
             'positions': this.handlePositions,
             'account-isolated': this.handleBalance,
