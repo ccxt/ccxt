@@ -99,11 +99,11 @@ function precisionFromString (str: string) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x,
-    roundingMode,
-    numPrecisionDigits,
-    countingMode = DECIMAL_PLACES,
-    paddingMode = NO_PADDING
+    x: any,
+    roundingMode: number,
+    numPrecisionDigits: any,
+    countingMode: number = DECIMAL_PLACES,
+    paddingMode: number = NO_PADDING
 ) => {
     if (countingMode === TICK_SIZE) {
         if (typeof numPrecisionDigits === 'string') {
