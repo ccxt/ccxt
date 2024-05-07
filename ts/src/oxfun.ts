@@ -5,7 +5,7 @@ import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1215,6 +1215,49 @@ export default class oxfun extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        /**
+         * @method
+         * @name oxfun#fetchAccounts
+         * @description fetch sub accounts associated with a profile
+         * @see https://docs.ox.fun/?json#get-v3-account-names
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        await this.loadMarkets ();
+        // this endpoint can only be called using API keys paired with the parent account! Returns all active subaccounts.
+        const response = await this.privateGetV3AccountNames (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "accountId": "106526",
+        //                 "name": "testSubAccount"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseAccounts (data, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "accountId": "106526",
+        //         "name": "testSubAccount"
+        //     },
+        //
+        return {
+            'id': this.safeString (account, 'accountId'),
+            'type': undefined,
+            'code': undefined,
+            'info': account,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
