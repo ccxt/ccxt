@@ -109,7 +109,7 @@ export default class oxfun extends Exchange {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
@@ -121,7 +121,7 @@ export default class oxfun extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true, // todo check
                 'withdraw': false,
                 'ws': true,
             },
@@ -1296,7 +1296,7 @@ export default class oxfun extends Exchange {
          * @method
          * @name oxfun#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://developer-pro.oxfun.com/en/futures/#get-transfer-list-signed
+         * @see https://docs.ox.fun/?json#get-v3-transfer
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
          * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
