@@ -1756,10 +1756,9 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        amount = this.currencyToPrecision (code, amount);
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
         };
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromAcc = this.safeString (accountsByType, fromAccount, fromAccount);
