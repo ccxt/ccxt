@@ -9,7 +9,7 @@ import { ecdsa, eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1239,33 +1239,22 @@ export default class woofipro extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
-         * @name woofipro#createOrder
-         * @description create a trade order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+         * @ignore
+         * @name woofipro#createOrderRequest
+         * @description helper function to build the request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-         * @param {string} [params.clientOrderId] a unique id for the order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} request to be sent to the exchange
          */
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
         const orderType = type.toUpperCase ();
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
         const request = {
@@ -1344,10 +1333,43 @@ export default class woofipro extends Exchange {
             }
             request['child_orders'] = [ outterOrder ];
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
+        return this.extend (request, params);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#createOrder
+         * @description create a trade order
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
         let response = undefined;
         if (isStop) {
-            response = await this.v1PrivatePostAlgoOrder (this.extend (request, params));
+            response = await this.v1PrivatePostAlgoOrder (request);
             //
             // {
             //     "success": true,
@@ -1361,7 +1383,7 @@ export default class woofipro extends Exchange {
             // }
             //
         } else {
-            response = await this.v1PrivatePostOrder (this.extend (request, params));
+            response = await this.v1PrivatePostOrder (request);
             //
             // {
             //     "success": true,
@@ -1383,6 +1405,51 @@ export default class woofipro extends Exchange {
         const order = this.parseOrder (data, market);
         order['type'] = type;
         return order;
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name woofipro#createOrders
+         * @description *contract only* create a list of trade orders
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const response = await this.v1PrivatePostBatchOrder (ordersRequests);
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "rows": [{
+        //                 "order_id": 13,
+        //                 "client_order_id": "testclientid",
+        //                 "order_type": "LIMIT",
+        //                 "order_price": 100.12,
+        //                 "order_quantity": 0.987654,
+        //                 "order_amount": 0.8,
+        //                 "error_message": "none"
+        //             }]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseOrders (rows);
     }
 
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -2572,12 +2639,16 @@ export default class woofipro extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order')) {
+            if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
                     // TODO: set the default broker id
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
-                    params['order_tag'] = brokerId;
+                    if (Array.isArray (params)) {
+                        params['order_tag'] = brokerId;
+                    } else {
+                        params['order_tag'] = brokerId;
+                    }
                 }
                 params = this.keysort (params);
             }

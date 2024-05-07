@@ -97,6 +97,80 @@
                 "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             }
         ],
+        "createOrders": [
+            {
+                "description": "swap market buy",
+                "method": "createOrders",
+                "url": "https://api-evm.orderly.org/v1/batch-order",
+                "input": [
+                    [
+                        {
+                            "symbol": "LTC/USDC:USDC",
+                            "type": "market",
+                            "side": "buy",
+                            "amount": 0.1
+                        }
+                    ]
+                ],
+                "output": "[{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXT\"}]"
+            },
+            {
+                "description": "Swap market sell with reduceOnly",
+                "method": "createOrders",
+                "url": "https://api-evm.orderly.org/v1/batch-order",
+                "input": [
+                    [
+                        {
+                            "symbol": "LTC/USDC:USDC",
+                            "type": "market",
+                            "side": "buy",
+                            "amount": 0.1,
+                            "params": {
+                                "reduceOnly": true
+                            }
+                        }
+                    ]
+                ],
+                "output": "[{\"order_quantity\":\"0.1\",\"order_type\":\"MARKET\",\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDC\",\"order_tag\":\"CCXT\",\"reduce_only\":true}]"
+            },
+            {
+                "description": "postOnly order",
+                "method": "createOrders",
+                "url": "https://api-evm.orderly.org/v1/batch-order",
+                "input": [
+                    [
+                        {
+                            "symbol": "XRP/USDC:USDC",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 20,
+                            "price": 0.5,
+                            "params": {
+                                "postOnly": true
+                            }
+                        }
+                    ]
+                ],
+                "output": "[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"POST_ONLY\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]"
+            },
+            {
+                "description": "limit order",
+                "method": "createOrders",
+                "url": "https://api-evm.orderly.org/v1/batch-order",
+                "input": [
+                    [
+                        {
+                            "symbol": "XRP/USDC:USDC",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 20,
+                            "price": 0.5
+                        }
+                    ]
+                ],
+                "output": "[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]"
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Swap orders",
