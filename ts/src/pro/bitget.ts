@@ -1123,8 +1123,9 @@ export default class bitget extends bitgetRest {
         //         price: '0.81075', // limit price, field not present for market orders
         //         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
         //         notional: '5.675250', // this is not cost! but notional
-        //         newSize: '7.0000', // this is not cost! quanity (for limit order) or quoteAmount (for market order)
+        //         newSize: '7.0000', // this is not cost! quanity (for limit order or market sell) or cost (for market buy order)
         //         size: '5.6752', // this is not cost, neither quanity, but notional! this field for "spot" can be ignored at all
+        //         // Note: for limit order (even filled) we don't have cost value in response, only in market order
         //         orderType: 'limit', // limit, market
         //         force: 'gtc',
         //         side: 'buy',
@@ -1254,28 +1255,30 @@ export default class bitget extends bitgetRest {
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
         const accBaseVolume = this.omitZero (this.safeString (order, 'accBaseVolume'));
-        const newSizeValue = this.safeString (order, 'newSize');
+        const newSizeValue = this.omitZero (this.safeString (order, 'newSize'));
         const isMarketOrder = (type === 'market');
+        const isBuy = (side === 'buy');
         let totalAmount = undefined;
         let filledAmount = undefined;
         let cost = undefined;
         if (isSpot) {
             if (isMargin) {
-                filledAmount = this.safeString (order, 'fillTotalAmount');
-                totalAmount = this.safeString (order, 'baseSize'); // for margin trading
+                filledAmount = this.omitZero (this.safeString (order, 'fillTotalAmount'));
+                totalAmount = this.omitZero (this.safeString (order, 'baseSize')); // for margin trading
                 cost = this.safeString (order, 'quoteSize');
             } else {
-                filledAmount = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
-                // for market order, newSize does not reflect coin size, but cost
-                if (!isMarketOrder) {
-                    totalAmount = this.safeString (order, 'newSize');
-                } else {
-                    // for filled market order, accBaseVolume (same as baseVolume in this case) is the total amount
-                    totalAmount = accBaseVolume;
-                }
-                // for limit order (even filled) we don't have cost value in response
+                filledAmount = this.omitZero (this.safeString2 (order, 'accBaseVolume', 'baseVolume'));
                 if (isMarketOrder) {
-                    cost = newSizeValue;
+                    if (isBuy) {
+                        totalAmount = accBaseVolume;
+                        cost = newSizeValue;
+                    } else {
+                        totalAmount = newSizeValue;
+                        // we don't have cost for market-sell order
+                    }
+                } else {
+                    totalAmount = this.safeString (order, 'newSize');
+                    // we don't have cost for limit order
                 }
             }
         } else {
