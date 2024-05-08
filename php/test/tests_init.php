@@ -21,13 +21,13 @@ $isAllTest = !$reqResTests && !$isBaseTests && !$isExchangeTests; // if neither 
 
 // ####### base tests #######
 if ($isBaseTests || $isAllTest) {
-    (new BaseFunctionalitiesTestClass ()).init ();
+    (new BaseFunctionalitiesTestClass ())->init();
     print('base tests passed!');
 }
 
 // ####### exchange tests #######
-if ($isExchangeTests || $isAllTest) {
+if ($isExchangeTests || $reqResTests || $isAllTest) {
     // if (is_synchronous)
-    (new testMainClass ()).init ($argvExchange, $argvSymbol, $argvMethod);
+    (new testMainClass ())->init($argvExchange, $argvSymbol, $argvMethod);
     print('exchange tests passed!');
 }

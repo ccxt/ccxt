@@ -24,7 +24,7 @@ if (isBaseTests or isAllTest):
 
 
 ####### exchange tests #######
-if (isExchangeTests or isBaseTests):
+if (isExchangeTests or reqResTests or isBaseTests):
     if (is_synchronous):
         testMainClassSync().init(argv.exchange, argvSymbol, argvMethod)
     else:

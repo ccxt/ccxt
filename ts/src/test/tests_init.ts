@@ -66,7 +66,7 @@ if (isBaseTests || isAllTest) {
 }
 
 // ####### exchange tests #######
-if (isExchangeTests || isAllTest) {
+if (isExchangeTests || reqResTests || isAllTest) {
     (new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
     console.log ('exchange tests passed!');
 }
