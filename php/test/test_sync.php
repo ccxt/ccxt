@@ -2,6 +2,8 @@
 
 namespace ccxt;
 
+use \React\Async;
+use \React\Promise;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use ccxt\ProxyError;
