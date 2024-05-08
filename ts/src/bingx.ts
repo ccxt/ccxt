@@ -3687,7 +3687,7 @@ export default class bingx extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //    {
         //        "code": 0,

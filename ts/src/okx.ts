@@ -6661,7 +6661,7 @@ export default class okx extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // addMargin/reduceMargin
         //

@@ -6882,7 +6882,7 @@ export default class bitget extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // addMargin/reduceMargin
         //

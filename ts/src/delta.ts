@@ -2672,7 +2672,7 @@ export default class delta extends Exchange {
         return this.parseMarginModification (result, market);
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //     {
         //         "auto_topup": false,

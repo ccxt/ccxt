@@ -4032,7 +4032,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //     {
         //         "code": 0,

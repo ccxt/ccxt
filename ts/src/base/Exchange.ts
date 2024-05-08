@@ -6859,7 +6859,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
     }
 
