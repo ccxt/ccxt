@@ -12879,7 +12879,7 @@ export default class binance extends Exchange {
         return this.parseConversions (rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //

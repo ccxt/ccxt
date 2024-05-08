@@ -3235,7 +3235,7 @@ export default class woo extends Exchange {
         return this.parseConversions (rows, code, 'sellAsset', 'buyAsset', since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //

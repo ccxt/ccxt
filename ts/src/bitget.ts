@@ -8605,7 +8605,7 @@ export default class bitget extends Exchange {
         return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //

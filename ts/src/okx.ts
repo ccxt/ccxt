@@ -8020,7 +8020,7 @@ export default class okx extends Exchange {
         return this.parseConversions (rows, code, 'baseCcy', 'quoteCcy', since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //

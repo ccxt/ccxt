@@ -6750,7 +6750,7 @@ export default class Exchange {
         return this.filterBySinceLimit (both, since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         throw new NotSupported (this.id + ' parseConversion () is not supported yet');
     }
 
