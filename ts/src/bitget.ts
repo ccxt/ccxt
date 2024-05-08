@@ -7354,7 +7354,7 @@ export default class bitget extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //

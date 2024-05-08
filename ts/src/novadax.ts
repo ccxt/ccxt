@@ -1193,7 +1193,7 @@ export default class novadax extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //    {
         //        "code":"A10000",
@@ -1208,7 +1208,6 @@ export default class novadax extends Exchange {
             'info': transfer,
             'id': id,
             'amount': undefined,
-            'code': currencyCode, // kept here for backward-compatibility, but will be removed soon
             'currency': currencyCode,
             'fromAccount': undefined,
             'toAccount': undefined,

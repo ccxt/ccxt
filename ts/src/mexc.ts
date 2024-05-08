@@ -5150,7 +5150,7 @@ export default class mexc extends Exchange {
         });
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // spot: fetchTransfer
         //

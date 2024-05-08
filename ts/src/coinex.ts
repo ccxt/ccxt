@@ -4959,7 +4959,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // fetchTransfers Swap
         //
@@ -5007,7 +5007,7 @@ export default class coinex extends Exchange {
         const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transfer,
-            'id': this.safeInteger (transfer, 'id'),
+            'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': currencyCode,

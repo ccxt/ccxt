@@ -2384,7 +2384,7 @@ export default class woo extends Exchange {
         return this.parseTransfers (data, undefined, since, limit, params);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //    fetchTransfers
         //     {
