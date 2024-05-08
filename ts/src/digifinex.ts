@@ -2866,7 +2866,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             '0': 'ok',
         };

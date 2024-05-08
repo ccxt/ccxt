@@ -1002,7 +1002,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'SUCCESS': 'ok',
             'ERROR': 'failed',

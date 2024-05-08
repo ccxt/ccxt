@@ -5217,7 +5217,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'SUCCESS': 'ok',
             'FAILED': 'failed',

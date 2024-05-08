@@ -559,7 +559,7 @@ export default class paymium extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'executed': 'ok',
             // what are the other statuses?

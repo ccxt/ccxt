@@ -1217,7 +1217,7 @@ export default class novadax extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'SUCCESS': 'pending',
         };

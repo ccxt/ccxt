@@ -2216,7 +2216,7 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'ok': 'ok',
             'error': 'failed',

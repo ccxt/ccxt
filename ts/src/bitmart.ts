@@ -3790,7 +3790,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             '1000': 'ok',
             'OK': 'ok',

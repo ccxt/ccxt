@@ -1711,7 +1711,7 @@ export default class zonda extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'Ok': 'ok',
             'Fail': 'failed',

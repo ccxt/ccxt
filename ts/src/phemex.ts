@@ -4541,7 +4541,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             '3': 'rejected', // 'Rejected',
             '6': 'canceled', // 'Got error and wait for recovery',

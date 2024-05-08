@@ -1707,7 +1707,7 @@ export default class latoken extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'TRANSFER_STATUS_COMPLETED': 'ok',
             'TRANSFER_STATUS_PENDING': 'pending',

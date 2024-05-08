@@ -2293,7 +2293,7 @@ export default class kucoinfutures extends kucoin {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'PROCESSING': 'pending',
         };

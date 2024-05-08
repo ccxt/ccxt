@@ -3921,7 +3921,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: string): string {
         const statuses = {
             'PROCESSING': 'pending',
         };
