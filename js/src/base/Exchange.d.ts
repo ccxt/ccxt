@@ -1028,6 +1028,7 @@ export default class Exchange {
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
     parseFundingRate(contract: string, market?: Market): object;
     parseFundingRates(response: any, market?: Market): {};
+    handleTriggerAndParams(params: any): any[];
     isTriggerOrder(params: any): any[];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: any): any[];

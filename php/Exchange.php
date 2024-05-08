@@ -6255,12 +6255,17 @@ class Exchange {
         return $result;
     }
 
-    public function is_trigger_order($params) {
+    public function handle_trigger_and_params($params) {
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         if ($isTrigger) {
             $params = $this->omit ($params, array( 'trigger', 'stop' ));
         }
         return array( $isTrigger, $params );
+    }
+
+    public function is_trigger_order($params) {
+        // for backwards compatibility
+        return $this->handleTriggerAndParams ($params);
     }
 
     public function is_post_only(bool $isMarketOrder, $exchangeSpecificParam, $params = array ()) {

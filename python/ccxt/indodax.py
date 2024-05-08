@@ -505,7 +505,7 @@ class indodax(Exchange, ImplicitAPI):
         # }
         #
         response = self.publicGetApiTickerAll(params)
-        tickers = self.safe_list(response, 'tickers')
+        tickers = self.safe_dict(response, 'tickers', {})
         return self.parse_tickers(tickers, symbols)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:

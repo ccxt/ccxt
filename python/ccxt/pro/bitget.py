@@ -13,7 +13,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
@@ -924,9 +923,9 @@ class bitget(ccxt.async_support.bitget):
         await self.load_markets()
         market = None
         marketId = None
-        isStop = self.safe_bool(params, 'stop', False)
-        params = self.omit(params, 'stop')
-        messageHash = 'triggerOrder' if (isStop) else 'order'
+        isTrigger = None
+        isTrigger, params = self.is_trigger_order(params)
+        messageHash = 'triggerOrder' if (isTrigger) else 'order'
         subscriptionHash = 'order:trades'
         if symbol is not None:
             market = self.market(symbol)
@@ -937,16 +936,14 @@ class bitget(ccxt.async_support.bitget):
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         if (type == 'spot') and (symbol is None):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
-        if isStop and type == 'spot':
-            raise NotSupported(self.id + ' watchOrders does not support stop orders for ' + type + ' markets.')
         instType = None
         instType, params = self.get_inst_type(market, params)
         if type == 'spot':
             subscriptionHash = subscriptionHash + ':' + symbol
-        if isStop:
+        if isTrigger:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
         instId = marketId if (type == 'spot') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        channel = 'orders-algo' if isStop else 'orders'
+        channel = 'orders-algo' if isTrigger else 'orders'
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
         if marginMode is not None:
@@ -973,25 +970,7 @@ class bitget(ccxt.async_support.bitget):
         #         "action": "snapshot",
         #         "arg": {"instType": "SPOT", "channel": "orders", "instId": "BTCUSDT"},
         #         "data": [
-        #             {
-        #                 "instId": "BTCUSDT",
-        #                 "orderId": "1116512721422422017",
-        #                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        #                 "price": "35000.00",
-        #                 "size": "7.0000",
-        #                 "newSize": "500.0000",
-        #                 "notional": "7.000000",
-        #                 "orderType": "limit",
-        #                 "force": "gtc",
-        #                 "side": "buy",
-        #                 "accBaseVolume": "0.0000",
-        #                 "priceAvg": "0.00",
-        #                 "status": "live",
-        #                 "cTime": "1701923297267",
-        #                 "uTime": "1701923297267",
-        #                 "feeDetail": [],
-        #                 "enterPointSource": "WEB"
-        #             }
+        #             # see all examples in parseWsOrder
         #         ],
         #         "ts": 1701923297285
         #     }
@@ -1002,73 +981,9 @@ class bitget(ccxt.async_support.bitget):
         #         "action": "snapshot",
         #         "arg": {"instType": "USDT-FUTURES", "channel": "orders", "instId": "default"},
         #         "data": [
-        #             {
-        #                 "accBaseVolume": "0",
-        #                 "cTime": "1701920553759",
-        #                 "clientOid": "1116501214318198793",
-        #                 "enterPointSource": "WEB",
-        #                 "feeDetail": [{
-        #                     "feeCoin": "USDT",
-        #                     "fee": "-0.162003"
-        #                 }],
-        #                 "force": "gtc",
-        #                 "instId": "BTCUSDT",
-        #                 "leverage": "20",
-        #                 "marginCoin": "USDT",
-        #                 "marginMode": "isolated",
-        #                 "notionalUsd": "105",
-        #                 "orderId": "1116501214293032964",
-        #                 "orderType": "limit",
-        #                 "posMode": "hedge_mode",
-        #                 "posSide": "long",
-        #                 "price": "35000",
-        #                 "reduceOnly": "no",
-        #                 "side": "buy",
-        #                 "size": "0.003",
-        #                 "status": "canceled",
-        #                 "tradeSide": "open",
-        #                 "uTime": "1701920595866"
-        #             }
+        #             # see all examples in parseWsOrder
         #         ],
         #         "ts": 1701920595879
-        #     }
-        #
-        # trigger
-        #
-        #     {
-        #         "action": "snapshot",
-        #         "arg": {
-        #             "instType": "USDT-FUTURES",
-        #             "channel": "orders-algo",
-        #             "instId": "default"
-        #         },
-        #         "data": [
-        #             {
-        #                 "instId": "BTCUSDT",
-        #                 "orderId": "1116508960750899201",
-        #                 "clientOid": "1116508960750899200",
-        #                 "triggerPrice": "35000.000000000",
-        #                 "triggerType": "mark_price",
-        #                 "triggerTime": "1701922464373",
-        #                 "planType": "pl",
-        #                 "price": "35000.000000000",
-        #                 "size": "0.001000000",
-        #                 "actualSize": "0.000000000",
-        #                 "orderType": "limit",
-        #                 "side": "buy",
-        #                 "tradeSide": "open",
-        #                 "posSide": "long",
-        #                 "marginCoin": "USDT",
-        #                 "status": "cancelled",
-        #                 "posMode": "hedge_mode",
-        #                 "enterPointSource": "api",
-        #                 "stopSurplusTriggerType": "fill_price",
-        #                 "stopLossTriggerType": "fill_price",
-        #                 "cTime": "1701922400653",
-        #                 "uTime": "1701922464373"
-        #             }
-        #         ],
-        #         "ts": 1701922464417
         #     }
         #
         # isolated and cross margin
@@ -1077,23 +992,7 @@ class bitget(ccxt.async_support.bitget):
         #         "action": "snapshot",
         #         "arg": {"instType": "MARGIN", "channel": "orders-crossed", "instId": "BTCUSDT"},
         #         "data": [
-        #             {
-        #                 "enterPointSource": "web",
-        #                 "force": "gtc",
-        #                 "orderType": "limit",
-        #                 "price": "35000.000000000",
-        #                 "quoteSize": "10.500000000",
-        #                 "side": "buy",
-        #                 "status": "live",
-        #                 "baseSize": "0.000300000",
-        #                 "cTime": "1701923982427",
-        #                 "clientOid": "4902047879864dc980c4840e9906db4e",
-        #                 "fillPrice": "0.000000000",
-        #                 "baseVolume": "0.000000000",
-        #                 "fillTotalAmount": "0.000000000",
-        #                 "loanType": "auto-loan-and-repay",
-        #                 "orderId": "1116515595178356737"
-        #             }
+        #             # see examples in parseWsOrder
         #         ],
         #         "ts": 1701923982497
         #     }
@@ -1113,8 +1012,9 @@ class bitget(ccxt.async_support.bitget):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
             self.triggerOrders = ArrayCacheBySymbolById(limit)
-        stored = self.triggerOrders if (channel == 'ordersAlgo') else self.orders
-        messageHash = 'triggerOrder' if (channel == 'ordersAlgo') else 'order'
+        isTrigger = (channel == 'orders-algo') or (channel == 'ordersAlgo')
+        stored = self.triggerOrders if isTrigger else self.orders
+        messageHash = 'triggerOrder' if isTrigger else 'order'
         marketSymbols = {}
         for i in range(0, len(data)):
             order = data[i]
@@ -1135,81 +1035,90 @@ class bitget(ccxt.async_support.bitget):
         #
         # spot
         #
-        #     {
-        #         "instId": "BTCUSDT",
-        #         "orderId": "1116512721422422017",
-        #         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        #         "price": "35000.00",
-        #         "size": "7.0000",
-        #         "newSize": "500.0000",
-        #         "notional": "7.000000",
-        #         "orderType": "limit",
-        #         "force": "gtc",
-        #         "side": "buy",
-        #         "accBaseVolume": "0.0000",
-        #         "priceAvg": "0.00",
-        #         "status": "live",
-        #         "cTime": "1701923297267",
-        #         "uTime": "1701923297267",
-        #         "feeDetail": [],
-        #         "enterPointSource": "WEB"
-        #     }
+        #   {
+        #         instId: 'EOSUSDT',
+        #         orderId: '1171779081105780739',
+        #         price: '0.81075',  # limit price, field not present for market orders
+        #         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
+        #         notional: '5.675250',  # self is not cost! but notional
+        #         newSize: '7.0000',  # self is not cost! quanity(for limit order or market sell) or cost(for market buy order)
+        #         size: '5.6752',  # self is not cost, neither quanity, but notional! self field for "spot" can be ignored at all
+        #         # Note: for limit order(even filled) we don't have cost value in response, only in market order
+        #         orderType: 'limit',  # limit, market
+        #         force: 'gtc',
+        #         side: 'buy',
+        #         accBaseVolume: '0.0000',  # in case of 'filled', self would be set(for limit orders, self is the only indicator of the amount filled)
+        #         priceAvg: '0.00000',  # in case of 'filled', self would be set
+        #         status: 'live',  # live, filled, partially_filled
+        #         cTime: '1715099824215',
+        #         uTime: '1715099824215',
+        #         feeDetail: [],
+        #         enterPointSource: 'API'
+        #                   #### trigger order has these additional fields:  ####
+        #         "triggerPrice": "35100",
+        #         "price": "35100",  # self is same price
+        #         "executePrice": "35123",  # self is limit price
+        #         "triggerType": "fill_price",
+        #         "planType": "amount",
+        #                   #### in case order had fill:  ####
+        #         fillPrice: '35123',
+        #         tradeId: '1171775539946528779',
+        #         baseVolume: '7',  # field present in market order
+        #         fillTime: '1715098979937',
+        #         fillFee: '-0.0069987',
+        #         fillFeeCoin: 'BTC',
+        #         tradeScope: 'T',
+        #    }
         #
         # contract
         #
         #     {
-        #         "accBaseVolume": "0",
-        #         "cTime": "1701920553759",
-        #         "clientOid": "1116501214318198793",
-        #         "enterPointSource": "WEB",
-        #         "feeDetail": [{
+        #         accBaseVolume: '0',  # total amount filled during lifetime for order
+        #         cTime: '1715065875539',
+        #         clientOid: '1171636690041344003',
+        #         enterPointSource: 'API',
+        #         feeDetail: [{
         #             "feeCoin": "USDT",
         #             "fee": "-0.162003"
         #         }],
-        #         "force": "gtc",
-        #         "instId": "BTCUSDT",
-        #         "leverage": "20",
-        #         "marginCoin": "USDT",
-        #         "marginMode": "isolated",
-        #         "notionalUsd": "105",
-        #         "orderId": "1116501214293032964",
-        #         "orderType": "limit",
-        #         "posMode": "hedge_mode",
-        #         "posSide": "long",
-        #         "price": "35000",
-        #         "reduceOnly": "no",
-        #         "side": "buy",
-        #         "size": "0.003",
-        #         "status": "canceled",
-        #         "tradeSide": "open",
-        #         "uTime": "1701920595866"
-        #     }
-        #
-        # trigger
-        #
-        #     {
-        #         "instId": "BTCUSDT",
-        #         "orderId": "1116508960750899201",
-        #         "clientOid": "1116508960750899200",
-        #         "triggerPrice": "35000.000000000",
+        #         force: 'gtc',
+        #         instId: 'SEOSSUSDT',
+        #         leverage: '10',
+        #         marginCoin: 'USDT',
+        #         marginMode: 'crossed',
+        #         notionalUsd: '10.4468',
+        #         orderId: '1171636690028761089',
+        #         orderType: 'market',
+        #         posMode: 'hedge_mode',  # one_way_mode, hedge_mode
+        #         posSide: 'short',  # short, long, net
+        #         price: '0',  # zero for market order
+        #         reduceOnly: 'no',
+        #         side: 'sell',
+        #         size: '13',  # self is contracts amount
+        #         status: 'live',  # live, filled, cancelled
+        #         tradeSide: 'open',
+        #         uTime: '1715065875539'
+        #                   #### when filled order is incoming, these additional fields are present too:  ###
+        #         baseVolume: '9',  # amount filled for the incoming update/trade
+        #         accBaseVolume: '13',  # i.e. 9 has been filled from 13 amount(self value is same as 'size')
+        #         fillFee: '-0.0062712',
+        #         fillFeeCoin: 'SUSDT',
+        #         fillNotionalUsd: '10.452',
+        #         fillPrice: '0.804',
+        #         fillTime: '1715065875605',
+        #         pnl: '0',
+        #         priceAvg: '0.804',
+        #         tradeId: '1171636690314407937',
+        #         tradeScope: 'T',
+        #                   #### trigger order has these additional fields:
+        #         "triggerPrice": "0.800000000",
+        #         "price": "0.800000000",  # <-- self is same price, actual limit-price is not present in initial response
         #         "triggerType": "mark_price",
-        #         "triggerTime": "1701922464373",
+        #         "triggerTime": "1715082796679",
         #         "planType": "pl",
-        #         "price": "35000.000000000",
-        #         "size": "0.001000000",
         #         "actualSize": "0.000000000",
-        #         "orderType": "limit",
-        #         "side": "buy",
-        #         "tradeSide": "open",
-        #         "posSide": "long",
-        #         "marginCoin": "USDT",
-        #         "status": "cancelled",
-        #         "posMode": "hedge_mode",
-        #         "enterPointSource": "api",
         #         "stopSurplusTriggerType": "fill_price",
         #         "stopLossTriggerType": "fill_price",
-        #         "cTime": "1701922400653",
-        #         "uTime": "1701922464373"
         #     }
         #
         # isolated and cross margin
@@ -1217,6 +1126,7 @@ class bitget(ccxt.async_support.bitget):
         #     {
         #         "enterPointSource": "web",
         #         "force": "gtc",
+        #         "feeDetail": [],
         #         "orderType": "limit",
         #         "price": "35000.000000000",
         #         "quoteSize": "10.500000000",
@@ -1232,6 +1142,8 @@ class bitget(ccxt.async_support.bitget):
         #         "orderId": "1116515595178356737"
         #     }
         #
+        isSpot = not ('posMode' in order)
+        isMargin = ('loanType' in order)
         marketId = self.safe_string(order, 'instId')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'cTime')
@@ -1248,22 +1160,45 @@ class bitget(ccxt.async_support.bitget):
                 'currency': self.safe_currency_code(feeCurrency),
             }
         triggerPrice = self.safe_number(order, 'triggerPrice')
-        price = self.safe_string(order, 'price')
+        isTriggerOrder = (triggerPrice is not None)
+        price = None
+        if not isTriggerOrder:
+            price = self.safe_number(order, 'price')
+        elif isSpot and isTriggerOrder:
+            # for spot trigger order, limit price is self
+            price = self.safe_number(order, 'executePrice')
         avgPrice = self.omit_zero(self.safe_string_2(order, 'priceAvg', 'fillPrice'))
-        cost = self.safe_string_n(order, ['notional', 'notionalUsd', 'quoteSize'])
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
-        if side == 'buy' and market['spot'] and (type == 'market'):
-            cost = self.safe_string(order, 'newSize', cost)
-        filled = self.safe_string_2(order, 'accBaseVolume', 'baseVolume')
-        # if market['spot'] and (rawStatus != 'live'):
-        #     filled = Precise.string_div(cost, avgPrice)
-        # }
-        amount = self.safe_string(order, 'baseVolume')
-        if not market['spot'] or not (side == 'buy' and type == 'market'):
-            amount = self.safe_string(order, 'newSize', amount)
-        if market['swap'] and (amount is None):
-            amount = self.safe_string(order, 'size')
+        accBaseVolume = self.omit_zero(self.safe_string(order, 'accBaseVolume'))
+        newSizeValue = self.omit_zero(self.safe_string(order, 'newSize'))
+        isMarketOrder = (type == 'market')
+        isBuy = (side == 'buy')
+        totalAmount = None
+        filledAmount = None
+        cost = None
+        if isSpot:
+            if isMargin:
+                filledAmount = self.omit_zero(self.safe_string(order, 'fillTotalAmount'))
+                totalAmount = self.omit_zero(self.safe_string(order, 'baseSize'))  # for margin trading
+                cost = self.safe_string(order, 'quoteSize')
+            else:
+                filledAmount = self.omit_zero(self.safe_string_2(order, 'accBaseVolume', 'baseVolume'))
+                if isMarketOrder:
+                    if isBuy:
+                        totalAmount = accBaseVolume
+                        cost = newSizeValue
+                    else:
+                        totalAmount = newSizeValue
+                        # we don't have cost for market-sell order
+                else:
+                    totalAmount = self.safe_string(order, 'newSize')
+                    # we don't have cost for limit order
+        else:
+            # baseVolume should not be used for "amount" for contracts !
+            filledAmount = self.safe_string(order, 'baseVolume')
+            totalAmount = self.safe_string(order, 'size')
+            cost = self.safe_string(order, 'fillNotionalUsd')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -1277,12 +1212,11 @@ class bitget(ccxt.async_support.bitget):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': amount,
+            'amount': totalAmount,
             'cost': cost,
             'average': avgPrice,
-            'filled': filled,
+            'filled': filledAmount,
             'remaining': None,
             'status': self.parse_ws_order_status(rawStatus),
             'fee': feeObject,
@@ -1680,6 +1614,9 @@ class bitget(ccxt.async_support.bitget):
             'fill': self.handle_my_trades,
             'orders': self.handle_order,
             'ordersAlgo': self.handle_order,
+            'orders-algo': self.handle_order,
+            'orders-crossed': self.handle_order,
+            'orders-isolated': self.handle_order,
             'account': self.handle_balance,
             'positions': self.handle_positions,
             'account-isolated': self.handle_balance,

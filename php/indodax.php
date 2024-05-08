@@ -505,7 +505,7 @@ class indodax extends Exchange {
         // }
         //
         $response = $this->publicGetApiTickerAll ($params);
-        $tickers = $this->safe_list($response, 'tickers');
+        $tickers = $this->safe_dict($response, 'tickers', array());
         return $this->parse_tickers($tickers, $symbols);
     }
 

@@ -405,6 +405,7 @@ class woo extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for woo
+             * @see https://docs.woo.org/#exchange-information
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
@@ -522,6 +523,7 @@ class woo extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://docs.woo.org/#$market-trades-public
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -708,6 +710,7 @@ class woo extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             * @see https://docs.woo.org/#available-token-public
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -865,6 +868,7 @@ class woo extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
+             * @see https://docs.woo.org/#send-algo-order
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -891,6 +895,7 @@ class woo extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
+             * @see https://docs.woo.org/#send-algo-order
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1670,6 +1675,7 @@ class woo extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.woo.org/#orderbook-snapshot-public
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1806,6 +1812,7 @@ class woo extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
+             * @see https://docs.woo.org/#get-$trades
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1848,8 +1855,8 @@ class woo extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.woo.org/#get-$trades
              * fetch all $trades made by the user
+             * @see https://docs.woo.org/#get-$trades
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1910,6 +1917,7 @@ class woo extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
+             * @see https://docs.woo.org/#get-assets-of-subaccounts
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
              */
@@ -2011,6 +2019,7 @@ class woo extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             * @see https://docs.woo.org/#get-token-deposit-$address
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -2044,7 +2053,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array( );
@@ -2099,7 +2108,7 @@ class woo extends Exchange {
             //     "meta" => array( total => '1', records_per_page => "25", current_page => "1" ),
             //     "success" => true
             // }
-            return array( $currency, $this->safe_value($response, 'rows', array()) );
+            return array( $currency, $this->safe_list($response, 'rows', array()) );
         }) ();
     }
 
@@ -2107,6 +2116,7 @@ class woo extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * @see https://docs.woo.org/#get-asset-history
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
@@ -2174,6 +2184,7 @@ class woo extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://docs.woo.org/#get-asset-history
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -2191,6 +2202,7 @@ class woo extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             * @see https://docs.woo.org/#get-asset-history
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2208,6 +2220,7 @@ class woo extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             * @see https://docs.woo.org/#get-asset-history
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -2284,8 +2297,8 @@ class woo extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * @see https://docs.woo.org/#get-$transfer-history
              * $transfer $currency internally between wallets on the same account
+             * @see https://docs.woo.org/#get-$transfer-history
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to $transfer
              * @param {string} $fromAccount account to $transfer from
@@ -2433,6 +2446,7 @@ class woo extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://docs.woo.org/#token-withdraw
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to

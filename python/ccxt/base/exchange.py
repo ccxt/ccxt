@@ -5042,11 +5042,15 @@ class Exchange(object):
             result[parsed['symbol']] = parsed
         return result
 
-    def is_trigger_order(self, params):
+    def handle_trigger_and_params(self, params):
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         if isTrigger:
             params = self.omit(params, ['trigger', 'stop'])
         return [isTrigger, params]
+
+    def is_trigger_order(self, params):
+        # for backwards compatibility
+        return self.handleTriggerAndParams(params)
 
     def is_post_only(self, isMarketOrder: bool, exchangeSpecificParam, params={}):
         """
