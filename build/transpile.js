@@ -648,7 +648,6 @@ class Transpiler {
 
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
-            [ /this\.extend\s/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
