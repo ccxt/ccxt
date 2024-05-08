@@ -2509,7 +2509,7 @@ export default class Exchange {
     safeIntegerOmitZero (obj: object, key: IndexType, defaultValue: Int = undefined): Int {
         const timestamp = this.safeInteger (obj, key, defaultValue);
         if (timestamp === undefined || timestamp === 0) {
-           return undefined;
+            return undefined;
         }
         return timestamp;
     }
