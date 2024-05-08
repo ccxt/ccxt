@@ -48,7 +48,7 @@ import {
 
 // *********************************
 import base from './base/test.base.js';
-import BaseFunctionalitiesTestClass from './base/test.base_auto.js';
+import BaseFunctionalitiesTestClass from './base_auto.js';
 import testMainClass from './test.js';
 // *********************************
 var _ = base; // eslint-disable-line
