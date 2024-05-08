@@ -17,7 +17,7 @@ import base.test_crypto
 
 isBaseTests = get_cli_arg_value ('--baseTests')
 isExchangeTests = get_cli_arg_value ('--exchangeTests')
-reqResTests = get_cli_arg_value ('--responseTests') or get_cli_arg_value ('--requestTests');
+reqResTests = get_cli_arg_value ('--responseTests') or get_cli_arg_value ('--requestTests')
 isAllTest = not isBaseTests and not isExchangeTests  # if neither was chosen
 
 ####### base tests #######
