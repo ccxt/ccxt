@@ -51,8 +51,7 @@ import base from './base/test.base.js';
 import BaseFunctionalitiesTestClass from './base/test.base_auto.js';
 import testMainClass from './test.js';
 // *********************************
-// @ts-expect-error
-_ = base; // eslint-disable-line
+var _ = base; // eslint-disable-line
 
 const isBaseTests = getCliArgValue ('--baseTests');
 const isExchangeTests = getCliArgValue ('--exchangeTests');

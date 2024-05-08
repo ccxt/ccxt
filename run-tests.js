@@ -119,9 +119,8 @@ const exec = (bin, ...args) => {
 
     const generateResultFromOutput = (output, stderr, code) => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
-            // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
-            // stderr = removeDebuger(stderr);
-            // output = removeDebuger(output);
+            const removeDebuger = (str) => str.replace ('Debugger attached.','').replace('Waiting for the debugger to disconnect...', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            stderr = removeDebuger(stderr), output = removeDebuger(output);
 
             output = ansi.strip (output.trim ())
 
