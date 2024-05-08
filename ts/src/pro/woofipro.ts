@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 
 import woofiproRest from '../woofipro.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -137,10 +137,10 @@ export default class woofipro extends woofiproRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const topic = this.safeString (message, 'topic');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         const timestamp = this.safeInteger (message, 'ts');
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
         orderbook.reset (snapshot);
@@ -309,7 +309,7 @@ export default class woofipro extends woofiproRest {
          */
         await this.loadMarkets ();
         if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
-            throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+            throw new NotSupported (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -355,11 +355,11 @@ export default class woofipro extends woofiproRest {
         const timeframe = this.findTimeframe (interval);
         const parsed = [
             this.safeInteger (data, 'startTime'),
-            this.safeFloat (data, 'open'),
-            this.safeFloat (data, 'high'),
-            this.safeFloat (data, 'low'),
-            this.safeFloat (data, 'close'),
-            this.safeFloat (data, 'volume'),
+            this.safeNumber (data, 'open'),
+            this.safeNumber (data, 'high'),
+            this.safeNumber (data, 'low'),
+            this.safeNumber (data, 'close'),
+            this.safeNumber (data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -368,8 +368,9 @@ export default class woofipro extends woofiproRest {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        stored.append (parsed);
-        client.resolve (stored, topic);
+        const ohlcvCache = this.ohlcvs[symbol][timeframe];
+        ohlcvCache.append (parsed);
+        client.resolve (ohlcvCache, topic);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -420,14 +421,15 @@ export default class woofipro extends woofiproRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
-        let tradesArray = this.safeValue (this.trades, symbol);
-        if (tradesArray === undefined) {
+        if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (limit);
+            const stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
         }
-        tradesArray.append (trade);
-        this.trades[symbol] = tradesArray;
-        client.resolve (tradesArray, topic);
+        const trades = this.trades[symbol];
+        trades.append (trade);
+        this.trades[symbol] = trades;
+        client.resolve (trades, topic);
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -542,12 +544,12 @@ export default class woofipro extends woofiproRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] true if stop order
+         * @param {bool} [params.trigger] true if trogger order
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const stop = this.safeBool (params, 'stop', false);
-        const topic = (stop) ? 'algoexecutionreport' : 'executionreport';
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
+        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
         params = this.omit (params, 'stop');
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -647,14 +649,14 @@ export default class woofipro extends woofiproRest {
         if ((price === 0) && (avgPrice !== undefined)) {
             price = avgPrice;
         }
-        const amount = this.safeFloat (order, 'quantity');
+        const amount = this.safeString (order, 'quantity');
         const side = this.safeStringLower (order, 'side');
         const type = this.safeStringLower (order, 'type');
         const filled = this.safeNumber (order, 'totalExecutedQuantity');
-        const totalExecQuantity = this.safeFloat (order, 'totalExecutedQuantity');
+        const totalExecQuantity = this.safeString (order, 'totalExecutedQuantity');
         let remaining = amount;
-        if (amount >= totalExecQuantity) {
-            remaining -= totalExecQuantity;
+        if (Precise.stringGe (amount, totalExecQuantity)) {
+            remaining = Precise.stringSub (remaining, totalExecQuantity);
         }
         const rawStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (rawStatus);
@@ -740,18 +742,18 @@ export default class woofipro extends woofiproRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const order = this.safeValue (orders, orderId);
+            const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
+            const order = this.safeDict (orders, orderId);
             if (order !== undefined) {
                 const fee = this.safeValue (order, 'fee');
                 if (fee !== undefined) {
                     parsed['fee'] = fee;
                 }
-                const fees = this.safeValue (order, 'fees');
+                const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
                     parsed['fees'] = fees;
                 }
-                parsed['trades'] = this.safeValue (order, 'trades');
+                parsed['trades'] = this.safeList (order, 'trades');
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
                 parsed['datetime'] = this.safeString (order, 'datetime');
             }
@@ -818,8 +820,8 @@ export default class woofipro extends woofiproRest {
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            const contracts = this.safeNumber (position, 'contracts', 0);
-            if (contracts > 0) {
+            const contracts = this.safeString (position, 'contracts', '0');
+            if (Precise.stringGt (contracts, '0')) {
                 cache.append (position);
             }
         }
