@@ -7326,7 +7326,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             '0': 'ok',
             'OK': 'ok',

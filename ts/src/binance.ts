@@ -7925,7 +7925,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'CONFIRMED': 'ok',
         };

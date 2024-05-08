@@ -816,7 +816,7 @@ export default class bitfinex extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'SUCCESS': 'ok',
         };

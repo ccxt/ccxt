@@ -3237,7 +3237,7 @@ export default class ascendex extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         if (status === '0') {
             return 'ok';
         }

@@ -5820,7 +5820,7 @@ export default class okx extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'success': 'ok',
         };

@@ -2428,7 +2428,7 @@ export default class woo extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',

@@ -7400,7 +7400,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'successful': 'ok',
         };

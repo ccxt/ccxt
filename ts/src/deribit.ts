@@ -2915,7 +2915,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'prepared': 'pending',
             'confirmed': 'ok',

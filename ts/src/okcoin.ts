@@ -2446,7 +2446,7 @@ export default class okcoin extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'success': 'ok',
         };

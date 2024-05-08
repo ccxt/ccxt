@@ -1906,7 +1906,7 @@ export default class coinlist extends Exchange {
         };
     }
 
-    parseTransferStatus (status: string): string {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'confirmed': 'ok',
         };
