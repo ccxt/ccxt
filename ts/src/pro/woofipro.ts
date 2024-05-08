@@ -808,7 +808,7 @@ export default class woofipro extends woofiproRest {
                 const order = data[i];
                 const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
                 if (tradeId !== undefined) {
-                    this.handleMyTrade (client, message);
+                    this.handleMyTrade (client, order);
                 }
                 this.handleOrder (client, order, topic);
             }
@@ -816,7 +816,7 @@ export default class woofipro extends woofiproRest {
             // executionreport
             const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
             if (tradeId !== undefined) {
-                this.handleMyTrade (client, message);
+                this.handleMyTrade (client, data);
             }
             this.handleOrder (client, data, topic);
         }
