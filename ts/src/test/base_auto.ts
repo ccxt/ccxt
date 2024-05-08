@@ -47,7 +47,11 @@ import {
 } from './../test-helper-methods.js';
 
 import testBaseFunctionsExtend from './functions_auto/test.extend.js';
- 
+//
+import base from './base/test.base.js';
+var _ = base; // eslint-disable-line
+
+
 class BaseFunctionalitiesTestClass {
 
     init() {

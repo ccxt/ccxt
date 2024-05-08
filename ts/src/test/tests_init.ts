@@ -47,11 +47,9 @@ import {
 } from './test-helper-methods.js';
 
 // *********************************
-import base from './base/test.base.js';
 import BaseFunctionalitiesTestClass from './base_auto.js';
 import testMainClass from './test.js';
 // *********************************
-var _ = base; // eslint-disable-line
 
 const isBaseTests = getCliArgValue ('--baseTests');
 const isExchangeTests = getCliArgValue ('--exchangeTests');

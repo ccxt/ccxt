@@ -10,8 +10,6 @@ if (is_synchronous) {
     require_once __DIR__ . '/test_async.php';
 }
 
-// test base things
-require_once __DIR__ . '/base_auto.php';
 
 $isBaseTests = get_cli_arg_value ('--baseTests');
 $isExchangeTests = get_cli_arg_value ('--exchangeTests');
@@ -21,6 +19,8 @@ $isAllTest = !$reqResTests && !$isBaseTests && !$isExchangeTests; // if neither 
 
 // ####### base tests #######
 if ($isBaseTests || $isAllTest) {
+    // test base things
+    require_once __DIR__ . '/base_auto.php';
     (new BaseFunctionalitiesTestClass ())->init();
     print('base tests passed!');
 }
