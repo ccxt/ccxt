@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1082,71 +1082,77 @@ export default class bitfinex2 extends Exchange {
         return result as OrderBook;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         BID,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //        ]
+        //    }
+        //
         //
         // on funding currencies (ex. fUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         FRR,
-        //         BID,
-        //         BID_PERIOD,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_PERIOD,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW,
-        //         _PLACEHOLDER,
-        //         _PLACEHOLDER,
-        //         FRR_AMOUNT_AVAILABLE
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //        ]
+        //    }
         //
+        const result = this.safeList (ticker, 'result');
         const symbol = this.safeSymbol (undefined, market);
-        const length = ticker.length;
-        const last = this.safeString (ticker, length - 4);
-        const percentage = this.safeString (ticker, length - 5);
+        const length = result.length;
+        const last = this.safeString (result, length - 4);
+        const percentage = this.safeString (result, length - 5);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString (ticker, length - 2),
-            'low': this.safeString (ticker, length - 1),
-            'bid': this.safeString (ticker, length - 10),
-            'bidVolume': this.safeString (ticker, length - 9),
-            'ask': this.safeString (ticker, length - 8),
-            'askVolume': this.safeString (ticker, length - 7),
+            'high': this.safeString (result, length - 2),
+            'low': this.safeString (result, length - 1),
+            'bid': this.safeString (result, length - 10),
+            'bidVolume': this.safeString (result, length - 9),
+            'ask': this.safeString (result, length - 8),
+            'askVolume': this.safeString (result, length - 7),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, length - 6),
+            'change': this.safeString (result, length - 6),
             'percentage': Precise.stringMul (percentage, '100'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, length - 3),
+            'baseVolume': this.safeString (result, length - 3),
             'quoteVolume': undefined,
-            'info': ticker,
+            'info': result,
         }, market);
     }
 
@@ -1215,7 +1221,7 @@ export default class bitfinex2 extends Exchange {
             const marketId = this.safeString (ticker, 0);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker ({ 'result': ticker }, market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -1236,7 +1242,8 @@ export default class bitfinex2 extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol (this.extend (request, params));
-        return this.parseTicker (ticker, market);
+        const result = { 'result': ticker };
+        return this.parseTicker (result, market);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
