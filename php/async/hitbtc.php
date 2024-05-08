@@ -1753,7 +1753,7 @@ class hitbtc extends Exchange {
             if ($since !== null) {
                 $request['from'] = $this->iso8601($since);
             }
-            list($request, $params) = $this->handle_until_option('till', $request, $params);
+            list($request, $params) = $this->handle_until_option('until', $request, $params);
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1000);
             }
@@ -2809,11 +2809,11 @@ class hitbtc extends Exchange {
                 // 'symbols' => Comma separated list of $symbol codes,
                 // 'sort' => 'DESC' or 'ASC'
                 // 'from' => 'Datetime or Number',
-                // 'till' => 'Datetime or Number',
+                // 'until' => 'Datetime or Number',
                 // 'limit' => 100,
                 // 'offset' => 0,
             );
-            list($request, $params) = $this->handle_until_option('till', $request, $params);
+            list($request, $params) = $this->handle_until_option('until', $request, $params);
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];

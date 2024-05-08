@@ -3364,11 +3364,11 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'granularity': this.safeString(timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger2(params, 'until', 'till');
+        const until = this.safeInteger(params, 'until');
         const limitDefined = limit !== undefined;
         const sinceDefined = since !== undefined;
         const untilDefined = until !== undefined;
-        params = this.omit(params, ['until', 'till']);
+        params = this.omit(params, ['until']);
         let response = undefined;
         const now = this.milliseconds();
         // retrievable periods listed here:
@@ -4614,6 +4614,9 @@ export default class bitget extends Exchange {
         params = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent']);
         let response = undefined;
         if (market['spot']) {
+            if (triggerPrice === undefined) {
+                throw new NotSupported(this.id + 'editOrder() only supports plan/trigger spot orders');
+            }
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {
@@ -5646,8 +5649,8 @@ export default class bitget extends Exchange {
                     if (symbol === undefined) {
                         throw new ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                     }
-                    const endTime = this.safeIntegerN(params, ['endTime', 'until', 'till']);
-                    params = this.omit(params, ['until', 'till']);
+                    const endTime = this.safeIntegerN(params, ['endTime', 'until']);
+                    params = this.omit(params, ['until']);
                     if (since === undefined) {
                         since = now - 7776000000;
                         request['startTime'] = since;
@@ -8458,7 +8461,7 @@ export default class bitget extends Exchange {
          * @name bitget#fetchPositionsHistory
          * @description fetches historical positions
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-         * @param {string} [symbol] unified contract symbols
+         * @param {string[]} [symbols] unified contract symbols
          * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
          * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
          * @param {object} params extra parameters specific to the exchange api endpoint

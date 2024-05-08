@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -303,14 +303,7 @@ export default class binance extends Exchange {
     parseMarginModification(data: any, market?: Market): MarginModification;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
-        currency: string;
-        rate: number;
-        period: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: Currency): {

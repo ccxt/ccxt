@@ -4197,11 +4197,11 @@ public partial class okx : Exchange
             {
                 ((IDictionary<string,object>)request)["begin"] = since;
             }
-            object until = this.safeInteger2(query, "till", "until");
+            object until = this.safeInteger(query, "until");
             if (isTrue(!isEqual(until, null)))
             {
                 ((IDictionary<string,object>)request)["end"] = until;
-                query = this.omit(query, new List<object>() {"until", "till"});
+                query = this.omit(query, new List<object>() {"until"});
             }
         }
         object send = this.omit(query, new List<object>() {"method", "stop", "trigger", "trailing"});
@@ -4392,11 +4392,11 @@ public partial class okx : Exchange
             {
                 ((IDictionary<string,object>)request)["begin"] = since;
             }
-            object until = this.safeInteger2(query, "till", "until");
+            object until = this.safeInteger(query, "until");
             if (isTrue(!isEqual(until, null)))
             {
                 ((IDictionary<string,object>)request)["end"] = until;
-                query = this.omit(query, new List<object>() {"until", "till"});
+                query = this.omit(query, new List<object>() {"until"});
             }
             ((IDictionary<string,object>)request)["state"] = "filled";
         }
@@ -7480,11 +7480,11 @@ public partial class okx : Exchange
             {
                 ((IDictionary<string,object>)request)["begin"] = since;
             }
-            object until = this.safeInteger2(parameters, "till", "until");
+            object until = this.safeInteger(parameters, "until");
             if (isTrue(!isEqual(until, null)))
             {
                 ((IDictionary<string,object>)request)["end"] = until;
-                parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                parameters = this.omit(parameters, new List<object>() {"until"});
             }
             response = await this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, parameters));
         }

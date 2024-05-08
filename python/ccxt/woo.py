@@ -2156,8 +2156,8 @@ class woo(Exchange, ImplicitAPI):
             request['size'] = limit
         if since is not None:
             request['start_t'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_t'] = until
         response = self.v1PrivateGetAssetMainSubTransferHistory(self.extend(request, params))

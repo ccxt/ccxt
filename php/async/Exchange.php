@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.9';
+$version = '4.3.13';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.9';
+    const VERSION = '4.3.13';
 
     public $browser;
     public $marketsLoading = null;
@@ -884,6 +884,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_borrow_interest($info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseIsolatedBorrowRate() is not supported yet');
     }
 
     public function parse_ws_trade($trade, ?array $market = null) {
@@ -4446,6 +4450,17 @@ class Exchange extends \ccxt\Exchange {
         return $interests;
     }
 
+    public function parse_isolated_borrow_rates(mixed $info) {
+        $result = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $item = $info[$i];
+            $borrowRate = $this->parseIsolatedBorrowRate ($item);
+            $symbol = $this->safe_string($borrowRate, 'symbol');
+            $result[$symbol] = $borrowRate;
+        }
+        return $result;
+    }
+
     public function parse_funding_rate_histories($response, $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -5302,10 +5317,10 @@ class Exchange extends \ccxt\Exchange {
             $fromId = $this->safe_string($entry, $fromCurrencyKey);
             $toId = $this->safe_string($entry, $toCurrencyKey);
             if ($fromId !== null) {
-                $fromCurrency = $this->currency ($fromId);
+                $fromCurrency = $this->safe_currency($fromId);
             }
             if ($toId !== null) {
-                $toCurrency = $this->currency ($toId);
+                $toCurrency = $this->safe_currency($toId);
             }
             $conversion = array_merge($this->parseConversion ($entry, $fromCurrency, $toCurrency), $params);
             $result[] = $conversion;
@@ -5313,7 +5328,7 @@ class Exchange extends \ccxt\Exchange {
         $sorted = $this->sort_by($result, 'timestamp');
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->safe_currency($code);
             $code = $currency['code'];
         }
         if ($code === null) {

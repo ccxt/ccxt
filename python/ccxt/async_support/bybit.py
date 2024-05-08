@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -337,6 +337,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
                         'v5/account/transaction-log': 1,
+                        'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         # asset
@@ -2418,9 +2419,9 @@ class bybit(Exchange, ImplicitAPI):
         request['category'] = type
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         else:
@@ -3811,40 +3812,8 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
-        """
-        edit a trade order
-        :see: https://bybit-exchange.github.io/docs/v5/order/amend-order
-        :see: https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
-        :see: https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
-        :param str id: cancel order id
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.triggerPrice]: The price that a trigger order is triggered at
-        :param float [params.stopLossPrice]: The price that a stop loss order is triggered at
-        :param float [params.takeProfitPrice]: The price that a take profit order is triggered at
-        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
-        :param float [params.takeProfit.triggerPrice]: take profit trigger price
-        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
-        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :param str [params.triggerBy]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
-        :param str [params.slTriggerBy]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
-        :param str [params.tpTriggerby]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
-        await self.load_markets()
+    def edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
-        enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        isUsdcSettled = market['settle'] == 'USDC'
-        if isUsdcSettled and not isUnifiedAccount:
-            return await self.edit_usdc_order(id, symbol, type, side, amount, price, params)
         request = {
             'symbol': market['id'],
             'orderId': id,
@@ -3905,6 +3874,43 @@ class bybit(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
         params = self.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit'])
+        return request
+
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+        :see: https://bybit-exchange.github.io/docs/v5/order/amend-order
+        :see: https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+        :see: https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: The price that a trigger order is triggered at
+        :param float [params.stopLossPrice]: The price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price that a take profit order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param str [params.triggerBy]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+        :param str [params.slTriggerBy]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+        :param str [params.tpTriggerby]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        market = self.market(symbol)
+        enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
+        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
+        isUsdcSettled = market['settle'] == 'USDC'
+        if isUsdcSettled and not isUnifiedAccount:
+            return await self.edit_usdc_order(id, symbol, type, side, amount, price, params)
+        request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response = await self.privatePostV5OrderAmend(self.extend(request, params))
         #
         #     {
@@ -3960,6 +3966,32 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
+    def cancel_order_request(self, id: str, symbol: Str = None, params={}):
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            # 'orderLinkId': 'string',
+            # 'orderId': id,
+            # conditional orders
+            # 'orderFilter': '',  # Valid for spot only. Order,tpslOrder. If not passed, Order by default
+        }
+        if market['spot']:
+            # only works for spot market
+            isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
+            params = self.omit(params, ['stop', 'trigger'])
+            request['orderFilter'] = 'StopOrder' if isStop else 'Order'
+        if id is not None:  # The user can also use argument params["orderLinkId"]
+            request['orderId'] = id
+        if market['spot']:
+            request['category'] = 'spot'
+        elif market['linear']:
+            request['category'] = 'linear'
+        elif market['inverse']:
+            request['category'] = 'inverse'
+        elif market['option']:
+            request['category'] = 'option'
+        return self.extend(request, params)
+
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
@@ -3980,29 +4012,8 @@ class bybit(Exchange, ImplicitAPI):
         isUsdcSettled = market['settle'] == 'USDC'
         if isUsdcSettled and not isUnifiedAccount:
             return await self.cancel_usdc_order(id, symbol, params)
-        request = {
-            'symbol': market['id'],
-            # 'orderLinkId': 'string',
-            # 'orderId': id,
-            # conditional orders
-            # 'orderFilter': '',  # Valid for spot only. Order,tpslOrder. If not passed, Order by default
-        }
-        if market['spot']:
-            # only works for spot market
-            isStop = self.safe_value_2(params, 'stop', 'trigger', False)
-            params = self.omit(params, ['stop', 'trigger'])
-            request['orderFilter'] = 'StopOrder' if isStop else 'Order'
-        if id is not None:  # The user can also use argument params["orderLinkId"]
-            request['orderId'] = id
-        if market['spot']:
-            request['category'] = 'spot'
-        elif market['linear']:
-            request['category'] = 'linear'
-        elif market['inverse']:
-            request['category'] = 'inverse'
-        elif market['option']:
-            request['category'] = 'option'
-        response = await self.privatePostV5OrderCancel(self.extend(request, params))
+        requestExtended = self.cancel_order_request(id, symbol, params)
+        response = await self.privatePostV5OrderCancel(requestExtended)
         #
         #     {
         #         "retCode": 0,
@@ -4475,9 +4486,9 @@ class bybit(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = await self.privateGetV5OrderHistory(self.extend(request, params))
@@ -4633,9 +4644,9 @@ class bybit(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = await self.privateGetV5OrderHistory(self.extend(request, params))
@@ -5380,7 +5391,7 @@ class bybit(Exchange, ImplicitAPI):
             # 'coin': currency['id'],
             # 'currency': currency['id'],  # alias
             # 'start_date': self.iso8601(since),
-            # 'end_date': self.iso8601(till),
+            # 'end_date': self.iso8601(until),
             # 'wallet_fund_type': 'Deposit',  # Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
             # 'page': 1,
             # 'limit': 20,  # max 50
@@ -6339,8 +6350,8 @@ class bybit(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        params = self.omit(params, ['till', 'until'])
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
+        params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = until
         if limit is not None:
@@ -6478,7 +6489,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_cross_borrow_rate(self, code: str, params={}):
+    async def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota

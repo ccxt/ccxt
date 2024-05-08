@@ -994,13 +994,16 @@ class Transpiler {
             'Balances': /-> Balances:/,
             'Bool': /: Bool =/,
             'Conversion': /-> Conversion:/,
+            'CrossBorrowRate': /-> CrossBorrowRate:/,
+            'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'Int': /: Int =/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
+            'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
+            'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
@@ -1519,7 +1522,8 @@ class Transpiler {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
                         overwriteFile (qualifiedPath, code)
-                        fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // this line makes it impossible to detect if the files were properly transpiled or not (to avoid stale files)
                     }
                 })
 
@@ -1683,7 +1687,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -2937,15 +2941,21 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges, processes = undefined) {
+function parallelizeTranspiling (exchanges, processes = undefined, force = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
+    const args = [];
+    if (force) {
+        args.push ('--force')
+    }
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
-        const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
-        isFirst = false
         fork (process.argv[1], toProcess.concat (args))
+        if (isFirst) {
+            args.push ('--child');
+            isFirst = false
+        }
     }
 }
 
@@ -2980,7 +2990,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        parallelizeTranspiling (exchangeIds, undefined, force)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

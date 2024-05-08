@@ -443,6 +443,8 @@ class Exchange {
                 'fetchClosedOrdersWs': undefined,
                 'fetchConvertCurrencies': undefined,
                 'fetchConvertQuote': undefined,
+                'fetchConvertTrade': undefined,
+                'fetchConvertTradeHistory': undefined,
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
@@ -2027,6 +2029,9 @@ class Exchange {
     }
     parseBorrowInterest(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseBorrowInterest() is not supported yet');
+    }
+    parseIsolatedBorrowRate(info, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseIsolatedBorrowRate() is not supported yet');
     }
     parseWsTrade(trade, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseWsTrade() is not supported yet');
@@ -5291,6 +5296,16 @@ class Exchange {
         }
         return interests;
     }
+    parseIsolatedBorrowRates(info) {
+        const result = {};
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const borrowRate = this.parseIsolatedBorrowRate(item);
+            const symbol = this.safeString(borrowRate, 'symbol');
+            result[symbol] = borrowRate;
+        }
+        return result;
+    }
     parseFundingRateHistories(response, market = undefined, since = undefined, limit = undefined) {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
@@ -6114,10 +6129,10 @@ class Exchange {
             const fromId = this.safeString(entry, fromCurrencyKey);
             const toId = this.safeString(entry, toCurrencyKey);
             if (fromId !== undefined) {
-                fromCurrency = this.currency(fromId);
+                fromCurrency = this.safeCurrency(fromId);
             }
             if (toId !== undefined) {
-                toCurrency = this.currency(toId);
+                toCurrency = this.safeCurrency(toId);
             }
             const conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), params);
             result.push(conversion);
@@ -6125,7 +6140,7 @@ class Exchange {
         const sorted = this.sortBy(result, 'timestamp');
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.safeCurrency(code);
             code = currency['code'];
         }
         if (code === undefined) {

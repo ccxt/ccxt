@@ -148,10 +148,12 @@ class OrderRequest(TypedDict):
     price: Union[None, float]
     params: Dict[str, Any]
 
+
 class CancellationRequest(TypedDict):
     id: Str
     symbol: Str
     clientOrderId: Str
+
 
 class Order(TypedDict):
     info: Dict[str, Any]
@@ -176,6 +178,8 @@ class Order(TypedDict):
     stopLossPrice: Num
     cost: Num
     trades: List[Trade]
+    reduceOnly: Bool
+    postOnly: Bool
     fee: Fee
 
 
@@ -435,9 +439,32 @@ class MarginModification(TypedDict):
     datetime: Str
 
 
+class CrossBorrowRate(TypedDict):
+    info: Dict[str, any]
+    currency: Str
+    rate: float
+    period: Optional[float]
+    timestamp: Int
+    datetime: Str
+
+
+class IsolatedBorrowRate(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    base: str
+    baseRate: float
+    quote: str
+    quoteRate: float
+    period: Int
+    timestamp: Int
+    datetime: Str
+
+
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
+IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
+CrossBorrowRates = Dict[Str, CrossBorrowRate]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
