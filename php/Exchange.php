@@ -879,6 +879,10 @@ class Exchange {
         return $string;
     }
 
+    public static function extend(...$args) {
+        return array_merge (...$args);
+    }
+
     public static function deep_extend() {
         //
         //     extend associative dictionaries only, replace everything else
