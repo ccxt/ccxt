@@ -234,24 +234,24 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api.coinex.com/perpetual/v1/position/pending?access_id=53DD577FFFD741D4B53A5424ECD33196&market=LTCUSDT&timestamp=1699458297454",
+                "url": "https://api.coinex.com/v2/futures/pending-position?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                    [
-                        "LTC/USDT:USDT"
-                    ]
+                  [
+                    "BTC/USDT:USDT"
+                  ]
                 ]
             },
             {
-                "description": "Fetch positions using history endpoiunt",
+                "description": "Fetch positions using the history endpoint",
                 "method": "fetchPositions",
-                "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&market=LTCUSDT&side=0&timestamp=1706265378027",
+                "url": "https://api.coinex.com/v2/futures/finished-position?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                    [
-                        "LTC/USDT:USDT"
-                    ],
-                    {
-                        "method": "v1PerpetualPrivateGetPositionFinished"
-                    }
+                  [
+                    "BTC/USDT:USDT"
+                  ],
+                  {
+                    "method": "v2PrivateGetFuturesFinishedPosition"
+                  }
                 ]
             }
         ],
@@ -1024,13 +1024,23 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Fetch a swap position",
+                "method": "fetchPosition",
+                "url": "https://api.coinex.com/v2/futures/pending-position?market=BTCUSDT&market_type=FUTURES",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchPositionHistory": [
             {
-                "description": "Fetch Position History",
+                "description": "Fetch position history",
                 "method": "fetchPositionHistory",
-                "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=3040ECDCE1944E28B9E262446CF3360E&limit=1000&market=XRPUSDT&side=0&timestamp=1711516582191",
+                "url": "https://api.coinex.com/v2/futures/finished-position?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                  "XRP/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
