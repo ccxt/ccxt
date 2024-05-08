@@ -374,10 +374,10 @@ public partial class Exchange
         var res = await this.fetchPositionsRisk(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {

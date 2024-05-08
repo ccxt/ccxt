@@ -750,8 +750,8 @@ public partial class coinex
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http013_user_deals"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade014_user_deals"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -762,13 +762,25 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of trades structures to retrieve
+    /// int : the maximum number of trade structures to retrieve
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest trades
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : the side of the trades, either 'buy' or 'sell', required for swap
     /// </description>
     /// </item>
     /// </list>
@@ -785,8 +797,8 @@ public partial class coinex
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-pending-position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-finished-position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -797,13 +809,7 @@ public partial class coinex
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.side</term>
-    /// <description>
-    /// int : *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
+    /// string : the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
     /// </description>
     /// </item>
     /// </list>
@@ -818,7 +824,7 @@ public partial class coinex
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-pending-position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1261,24 +1267,30 @@ public partial class coinex
     /// fetches historical positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-finished-position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : not used by coinex fetchPositionHistory
+    /// int : the earliest time in ms to fetch positions for
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of records to fetch, default=1000
+    /// int : the maximum amount of records to fetch, default is 10
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.side</term>
+    /// <term>params</term>
     /// <description>
-    /// int : 0: all 1: sell, 2: buy
+    /// object : extra parameters specific to the exchange api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch positions for
     /// </description>
     /// </item>
     /// </list>

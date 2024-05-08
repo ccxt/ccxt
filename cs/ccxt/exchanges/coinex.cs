@@ -1112,121 +1112,51 @@ public partial class coinex : Exchange
         //
         // Spot and Margin fetchMyTrades (private)
         //
-        //      {
-        //          "id": 2611520950,
-        //          "order_id": 63286573298,
-        //          "account_id": 0,
-        //          "create_time": 1638990636,
-        //          "type": "sell",
-        //          "role": "taker",
-        //          "price": "192.29",
-        //          "amount": "0.098",
-        //          "fee": "0.03768884",
-        //          "fee_asset": "USDT",
-        //          "market": "AAVEUSDT",
-        //          "deal_money": "18.84442"
-        //      }
+        //     {
+        //         "amount": "0.00010087",
+        //         "created_at": 1714618087585,
+        //         "deal_id": 4161200602,
+        //         "margin_market": "",
+        //         "market": "BTCUSDT",
+        //         "order_id": 117654919342,
+        //         "price": "57464.04",
+        //         "side": "sell"
+        //     }
         //
         // Swap fetchMyTrades (private)
         //
         //     {
-        //         "amount": "0.0012",
-        //         "deal_fee": "0.0237528",
-        //         "deal_insurance": "0",
-        //         "deal_margin": "15.8352",
-        //         "deal_order_id": 17797031903,
-        //         "deal_profit": "0",
-        //         "deal_stock": "47.5056",
-        //         "deal_type": 1,
-        //         "deal_user_id": 2969195,
-        //         "fee_asset": "",
-        //         "fee_discount": "0",
-        //         "fee_price": "0",
-        //         "fee_rate": "0.0005",
-        //         "fee_real_rate": "0.0005",
-        //         "id": 379044296,
-        //         "leverage": "3",
-        //         "margin_amount": "15.8352",
+        //         "deal_id": 1180222387,
+        //         "created_at": 1714119054558,
         //         "market": "BTCUSDT",
-        //         "open_price": "39588",
-        //         "order_id": 17797092987,
-        //         "position_amount": "0.0012",
-        //         "position_id": 62052321,
-        //         "position_type": 1,
-        //         "price": "39588",
-        //         "role": 2,
-        //         "side": 2,
-        //         "time": 1650675936.016103,
-        //         "user_id": 3620173
+        //         "side": "buy",
+        //         "order_id": 136915589622,
+        //         "price": "64376",
+        //         "amount": "0.0001"
         //     }
         //
-        object timestamp = this.safeTimestamp2(trade, "create_time", "time");
-        if (isTrue(isEqual(timestamp, null)))
+        object timestamp = this.safeInteger(trade, "created_at");
+        object defaultType = this.safeString(this.options, "defaultType");
+        if (isTrue(!isEqual(market, null)))
         {
-            timestamp = this.safeInteger(trade, "created_at");
+            defaultType = getValue(market, "type");
         }
-        object tradeId = this.safeString2(trade, "id", "deal_id");
-        object orderId = this.safeString(trade, "order_id");
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "amount");
         object marketId = this.safeString(trade, "market");
-        object marketType = this.safeString(trade, "market_type");
-        object defaultType = ((bool) isTrue((isEqual(marketType, null)))) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
-        object symbol = getValue(market, "symbol");
-        object costString = this.safeString(trade, "deal_money");
-        object fee = null;
-        object feeCostString = this.safeString2(trade, "fee", "deal_fee");
-        if (isTrue(!isEqual(feeCostString, null)))
-        {
-            object feeCurrencyId = this.safeString(trade, "fee_asset");
-            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            fee = new Dictionary<string, object>() {
-                { "cost", feeCostString },
-                { "currency", feeCurrencyCode },
-            };
-        }
-        object takerOrMaker = this.safeString(trade, "role");
-        if (isTrue(isEqual(takerOrMaker, "1")))
-        {
-            takerOrMaker = "maker";
-        } else if (isTrue(isEqual(takerOrMaker, "2")))
-        {
-            takerOrMaker = "taker";
-        }
-        object side = null;
-        if (isTrue(isEqual(getValue(market, "type"), "swap")))
-        {
-            object rawSide = this.safeInteger(trade, "side");
-            if (isTrue(isEqual(rawSide, 1)))
-            {
-                side = "sell";
-            } else if (isTrue(isEqual(rawSide, 2)))
-            {
-                side = "buy";
-            }
-            if (isTrue(isEqual(side, null)))
-            {
-                side = this.safeString2(trade, "type", "side");
-            }
-        } else
-        {
-            side = this.safeString2(trade, "type", "side");
-        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", symbol },
-            { "id", tradeId },
-            { "order", orderId },
+            { "symbol", getValue(market, "symbol") },
+            { "id", this.safeString(trade, "deal_id") },
+            { "order", this.safeString(trade, "order_id") },
             { "type", null },
-            { "side", side },
-            { "takerOrMaker", takerOrMaker },
-            { "price", priceString },
-            { "amount", amountString },
-            { "cost", costString },
-            { "fee", fee },
+            { "side", this.safeString(trade, "side") },
+            { "takerOrMaker", null },
+            { "price", this.safeString(trade, "price") },
+            { "amount", this.safeString(trade, "amount") },
+            { "cost", this.safeString(trade, "deal_money") },
+            { "fee", null },
         }, market);
     }
 
@@ -2935,143 +2865,59 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchMyTrades
         * @description fetch all trades made by the user
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http013_user_deals
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade014_user_deals
+        * @see https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals
+        * @see https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
+        * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest trades
+        * @param {string} [params.side] the side of the trades, either 'buy' or 'sell', required for swap
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+        }
         await this.loadMarkets();
-        object market = null;
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 100;
-        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "limit", limit },
-            { "offset", 0 },
+            { "market", getValue(market, "id") },
         };
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(limit, null)))
         {
-            market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isTrue(!isEqual(type, "spot")) && isTrue(isEqual(symbol, null))))
+        if (isTrue(!isEqual(since, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument for non-spot markets")) ;
+            ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        object swap = (isEqual(type, "swap"));
-        object accountId = this.safeInteger(parameters, "account_id");
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isTrue(!isEqual(marginMode, null)))
-        {
-            if (isTrue(isEqual(accountId, null)))
-            {
-                throw new BadRequest ((string)add(this.id, " fetchMyTrades() requires an account_id parameter for margin trades")) ;
-            }
-            ((IDictionary<string,object>)request)["account_id"] = accountId;
-            parameters = this.omit(parameters, "account_id");
-        }
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isTrue(swap))
+        if (isTrue(getValue(market, "swap")))
         {
-            if (isTrue(!isEqual(since, null)))
-            {
-                ((IDictionary<string,object>)request)["start_time"] = since;
-            }
-            ((IDictionary<string,object>)request)["side"] = 0;
-            response = await this.v1PerpetualPrivateGetMarketUserDeals(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
+            response = await this.v2PrivateGetFuturesUserDeals(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["page"] = 1;
-            response = await this.v1PrivateGetOrderUserDeals(this.extend(request, parameters));
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            if (isTrue(!isEqual(marginMode, null)))
+            {
+                ((IDictionary<string,object>)request)["market_type"] = "MARGIN";
+            } else
+            {
+                ((IDictionary<string,object>)request)["market_type"] = "SPOT";
+            }
+            response = await this.v2PrivateGetSpotUserDeals(this.extend(request, parameters));
         }
-        //
-        // Spot and Margin
-        //
-        //      {
-        //          "code": 0,
-        //          "data": {
-        //              "data": [
-        //                  {
-        //                      "id": 2611520950,
-        //                      "order_id": 63286573298,
-        //                      "account_id": 0,
-        //                      "create_time": 1638990636,
-        //                      "type": "sell",
-        //                      "role": "taker",
-        //                      "price": "192.29",
-        //                      "amount": "0.098",
-        //                      "fee": "0.03768884",
-        //                      "fee_asset": "USDT",
-        //                      "market": "AAVEUSDT",
-        //                      "deal_money": "18.84442"
-        //                          },
-        //                      ],
-        //              "curr_page": 1,
-        //              "has_next": false,
-        //              "count": 3
-        //              },
-        //          "message": "Success"
-        //      }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "limit": 100,
-        //             "offset": 0,
-        //             "records": [
-        //                 {
-        //                     "amount": "0.0012",
-        //                     "deal_fee": "0.0237528",
-        //                     "deal_insurance": "0",
-        //                     "deal_margin": "15.8352",
-        //                     "deal_order_id": 17797031903,
-        //                     "deal_profit": "0",
-        //                     "deal_stock": "47.5056",
-        //                     "deal_type": 1,
-        //                     "deal_user_id": 2969195,
-        //                     "fee_asset": "",
-        //                     "fee_discount": "0",
-        //                     "fee_price": "0",
-        //                     "fee_rate": "0.0005",
-        //                     "fee_real_rate": "0.0005",
-        //                     "id": 379044296,
-        //                     "leverage": "3",
-        //                     "margin_amount": "15.8352",
-        //                     "market": "BTCUSDT",
-        //                     "open_price": "39588",
-        //                     "order_id": 17797092987,
-        //                     "position_amount": "0.0012",
-        //                     "position_id": 62052321,
-        //                     "position_type": 1,
-        //                     "price": "39588",
-        //                     "role": 2,
-        //                     "side": 2,
-        //                     "time": 1650675936.016103,
-        //                     "user_id": 3620173
-        //                 }
-        //             ]
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        object tradeRequest = ((bool) isTrue(swap)) ? "records" : "data";
-        object data = this.safeValue(response, "data");
-        object trades = this.safeList(data, tradeRequest, new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTrades(data, market, since, limit);
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -3080,23 +2926,23 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchPositions
         * @description fetch all open positions
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+        * @see https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+        * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
-        * @param {int} [params.side] *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
+        * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object defaultMethod = null;
-        var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "v1PerpetualPrivateGetPositionPending");
+        var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
         defaultMethod = ((IList<object>)defaultMethodparametersVariable)[0];
         parameters = ((IList<object>)defaultMethodparametersVariable)[1];
-        object isHistory = (isEqual(defaultMethod, "v1PerpetualPrivateGetPositionFinished"));
         symbols = this.marketSymbols(symbols);
-        object request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {
+            { "market_type", "FUTURES" },
+        };
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -3115,86 +2961,59 @@ public partial class coinex : Exchange
             }
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
-        } else
-        {
-            if (isTrue(isHistory))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchPositions() requires a symbol argument for closed positions")) ;
-            }
-        }
-        if (isTrue(isHistory))
-        {
-            ((IDictionary<string,object>)request)["limit"] = 100;
-            ((IDictionary<string,object>)request)["side"] = this.safeInteger(parameters, "side", 0); // 0: All, 1: Sell, 2: Buy
         }
         object response = null;
-        if (isTrue(isEqual(defaultMethod, "v1PerpetualPrivateGetPositionPending")))
+        if (isTrue(isEqual(defaultMethod, "v2PrivateGetFuturesPendingPosition")))
         {
-            response = await this.v1PerpetualPrivateGetPositionPending(this.extend(request, parameters));
+            response = await this.v2PrivateGetFuturesPendingPosition(this.extend(request, parameters));
         } else
         {
-            response = await this.v1PerpetualPrivateGetPositionFinished(this.extend(request, parameters));
+            response = await this.v2PrivateGetFuturesFinishedPosition(this.extend(request, parameters));
         }
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "adl_sort": 3396,
-        //                 "adl_sort_val": "0.00007786",
-        //                 "amount": "0.0005",
-        //                 "amount_max": "0.0005",
-        //                 "amount_max_margin": "6.42101333333333333333",
-        //                 "bkr_price": "25684.05333333333333346175",
-        //                 "bkr_price_imply": "0.00000000000000000000",
-        //                 "close_left": "0.0005",
-        //                 "create_time": 1651294226.110899,
-        //                 "deal_all": "19.26000000000000000000",
-        //                 "deal_asset_fee": "0.00000000000000000000",
-        //                 "fee_asset": "",
-        //                 "finish_type": 1,
-        //                 "first_price": "38526.08",
-        //                 "insurance": "0.00000000000000000000",
-        //                 "latest_price": "38526.08",
-        //                 "leverage": "3",
-        //                 "liq_amount": "0.00000000000000000000",
-        //                 "liq_order_price": "0",
-        //                 "liq_order_time": 0,
-        //                 "liq_price": "25876.68373333333333346175",
-        //                 "liq_price_imply": "0.00000000000000000000",
-        //                 "liq_profit": "0.00000000000000000000",
-        //                 "liq_time": 0,
-        //                 "mainten_margin": "0.005",
-        //                 "mainten_margin_amount": "0.09631520000000000000",
-        //                 "maker_fee": "0.00000000000000000000",
-        //                 "margin_amount": "6.42101333333333333333",
+        //                 "position_id": 305891033,
         //                 "market": "BTCUSDT",
-        //                 "open_margin": "0.33333333333333333333",
-        //                 "open_margin_imply": "0.00000000000000000000",
-        //                 "open_price": "38526.08000000000000000000",
-        //                 "open_val": "19.26304000000000000000",
-        //                 "open_val_max": "19.26304000000000000000",
-        //                 "position_id": 65847227,
-        //                 "profit_clearing": "-0.00963152000000000000",
-        //                 "profit_real": "-0.00963152000000000000",
-        //                 "profit_unreal": "0.00",
-        //                 "side": 2,
-        //                 "stop_loss_price": "0.00000000000000000000",
-        //                 "stop_loss_type": 0,
-        //                 "sy s": 0,
-        //                 "take_profit_price": "0.00000000000000000000",
-        //                 "take_profit_type": 0,
-        //                 "taker_fee": "0.00000000000000000000",
-        //                 "total": 4661,
-        //                 "type": 1,
-        //                 "update_time": 1651294226.111196,
-        //                 "user_id": 3620173
-        //             },
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
+        //             }
         //         ],
-        //         "message": "OK"
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
+        //         }
         //     }
         //
-        object position = this.safeValue(response, "data", new List<object>() {});
+        object position = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))
         {
@@ -3209,8 +3028,8 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchPosition
         * @description fetch data on a single open contract trade position
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-        * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+        * @see https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+        * @param {string} symbol unified market symbol of the market the position is held in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
@@ -3218,66 +3037,51 @@ public partial class coinex : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
+            { "market_type", "FUTURES" },
             { "market", getValue(market, "id") },
         };
-        object response = await this.v1PerpetualPrivateGetPositionPending(this.extend(request, parameters));
+        object response = await this.v2PrivateGetFuturesPendingPosition(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "adl_sort": 3396,
-        //                 "adl_sort_val": "0.00007786",
-        //                 "amount": "0.0005",
-        //                 "amount_max": "0.0005",
-        //                 "amount_max_margin": "6.42101333333333333333",
-        //                 "bkr_price": "25684.05333333333333346175",
-        //                 "bkr_price_imply": "0.00000000000000000000",
-        //                 "close_left": "0.0005",
-        //                 "create_time": 1651294226.110899,
-        //                 "deal_all": "19.26000000000000000000",
-        //                 "deal_asset_fee": "0.00000000000000000000",
-        //                 "fee_asset": "",
-        //                 "finish_type": 1,
-        //                 "first_price": "38526.08",
-        //                 "insurance": "0.00000000000000000000",
-        //                 "latest_price": "38526.08",
-        //                 "leverage": "3",
-        //                 "liq_amount": "0.00000000000000000000",
-        //                 "liq_order_price": "0",
-        //                 "liq_order_time": 0,
-        //                 "liq_price": "25876.68373333333333346175",
-        //                 "liq_price_imply": "0.00000000000000000000",
-        //                 "liq_profit": "0.00000000000000000000",
-        //                 "liq_time": 0,
-        //                 "mainten_margin": "0.005",
-        //                 "mainten_margin_amount": "0.09631520000000000000",
-        //                 "maker_fee": "0.00000000000000000000",
-        //                 "margin_amount": "6.42101333333333333333",
+        //                 "position_id": 305891033,
         //                 "market": "BTCUSDT",
-        //                 "open_margin": "0.33333333333333333333",
-        //                 "open_margin_imply": "0.00000000000000000000",
-        //                 "open_price": "38526.08000000000000000000",
-        //                 "open_val": "19.26304000000000000000",
-        //                 "open_val_max": "19.26304000000000000000",
-        //                 "position_id": 65847227,
-        //                 "profit_clearing": "-0.00963152000000000000",
-        //                 "profit_real": "-0.00963152000000000000",
-        //                 "profit_unreal": "0.00",
-        //                 "side": 2,
-        //                 "stop_loss_price": "0.00000000000000000000",
-        //                 "stop_loss_type": 0,
-        //                 "s ys": 0,
-        //                 "take_profit_price": "0.00000000000000000000",
-        //                 "take_profit_type": 0,
-        //                 "taker_fee": "0.00000000000000000000",
-        //                 "total": 4661,
-        //                 "type": 1,
-        //                 "update_time": 1651294226.111196,
-        //                 "user_id": 3620173
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
         //             }
         //         ],
-        //         "message": "OK"
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
+        //         }
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
@@ -3287,140 +3091,69 @@ public partial class coinex : Exchange
     public override object parsePosition(object position, object market = null)
     {
         //
-        // fetchPosition
-        //
         //     {
-        //         "adl_sort": 3396,
-        //         "adl_sort_val": "0.00007786",
-        //         "amount": "0.0005",
-        //         "amount_max": "0.0005",
-        //         "amount_max_margin": "6.42101333333333333333",
-        //         "bkr_price": "25684.05333333333333346175",
-        //         "bkr_price_imply": "0.00000000000000000000",
-        //         "close_left": "0.0005",
-        //         "create_time": 1651294226.110899,
-        //         "deal_all": "19.26000000000000000000",
-        //         "deal_asset_fee": "0.00000000000000000000",
-        //         "fee_asset": "",
-        //         "finish_type": 1,
-        //         "first_price": "38526.08",
-        //         "insurance": "0.00000000000000000000",
-        //         "latest_price": "38526.08",
-        //         "leverage": "3",
-        //         "liq_amount": "0.00000000000000000000",
-        //         "liq_order_price": "0",
-        //         "liq_order_time": 0,
-        //         "liq_price": "25876.68373333333333346175",
-        //         "liq_price_imply": "0.00000000000000000000",
-        //         "liq_profit": "0.00000000000000000000",
-        //         "liq_time": 0,
-        //         "mainten_margin": "0.005",
-        //         "mainten_margin_amount": "0.09631520000000000000",
-        //         "maker_fee": "0.00000000000000000000",
-        //         "margin_amount": "6.42101333333333333333",
+        //         "position_id": 305891033,
         //         "market": "BTCUSDT",
-        //         "open_margin": "0.33333333333333333333",
-        //         "open_margin_imply": "0.00000000000000000000",
-        //         "open_price": "38526.08000000000000000000",
-        //         "open_val": "19.26304000000000000000",
-        //         "open_val_max": "19.26304000000000000000",
-        //         "position_id": 65847227,
-        //         "profit_clearing": "-0.00963152000000000000",
-        //         "profit_real": "-0.00963152000000000000",
-        //         "profit_unreal": "0.00",
-        //         "side": 2,
-        //         "stop_loss_price": "0.00000000000000000000",
-        //         "stop_loss_type": 0,
-        //         "s ys": 0,
-        //         "take_profit_price": "0.00000000000000000000",
-        //         "take_profit_type": 0,
-        //         "taker_fee": "0.00000000000000000000",
-        //         "total": 4661,
-        //         "type": 1,
-        //         "update_time": 1651294226.111196,
-        //         "user_id": 3620173
+        //         "market_type": "FUTURES",
+        //         "side": "long",
+        //         "margin_mode": "cross",
+        //         "open_interest": "0.0001",
+        //         "close_avbl": "0.0001",
+        //         "ath_position_amount": "0.0001",
+        //         "unrealized_pnl": "0",
+        //         "realized_pnl": "-0.00311684",
+        //         "avg_entry_price": "62336.8",
+        //         "cml_position_value": "6.23368",
+        //         "max_position_value": "6.23368",
+        //         "created_at": 1715152208041,
+        //         "updated_at": 1715152208041,
+        //         "take_profit_price": "0",
+        //         "stop_loss_price": "0",
+        //         "take_profit_type": "",
+        //         "stop_loss_type": "",
+        //         "settle_price": "62336.8",
+        //         "settle_value": "6.23368",
+        //         "leverage": "3",
+        //         "margin_avbl": "2.07789333",
+        //         "ath_margin_size": "2.07789333",
+        //         "position_margin_rate": "2.40545879023305655728",
+        //         "maintenance_margin_rate": "0.005",
+        //         "maintenance_margin_value": "0.03118094",
+        //         "liq_price": "0",
+        //         "bkr_price": "0",
+        //         "adl_level": 1
         //     }
-        //
-        //
-        // fetchPositionHistory
-        //
-        //    {
-        //        amount_max: '10',
-        //        amount_max_margin: '2.03466666666666666666',
-        //        bkr_price: '0',
-        //        create_time: '1711150526.2581',
-        //        deal_all: '12.591',
-        //        deal_asset_fee: '0',
-        //        fee_asset: '',
-        //        finish_type: '5',
-        //        first_price: '0.6104',
-        //        latest_price: '0.6487',
-        //        leverage: '3',
-        //        liq_amount: '0',
-        //        liq_price: '0',
-        //        liq_profit: '0',
-        //        mainten_margin: '0.01',
-        //        market: 'XRPUSDT',
-        //        market_type: '1',
-        //        open_price: '0.6104',
-        //        open_val_max: '6.104',
-        //        position_id: '297371462',
-        //        profit_real: '0.35702107169',
-        //        settle_price: '0.6104',
-        //        settle_val: '0',
-        //        side: '2',
-        //        s ys: "0",
-        //        type: '2',
-        //        update_time: '1711391446.133233',
-        //        user_id: '3685860'
-        //    }
         //
         object marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market, null, "swap");
-        object symbol = getValue(market, "symbol");
-        object positionId = this.safeInteger(position, "position_id");
-        object marginModeInteger = this.safeInteger(position, "type");
-        object marginMode = ((bool) isTrue((isEqual(marginModeInteger, 1)))) ? "isolated" : "cross";
-        object liquidationPrice = this.safeString(position, "liq_price");
-        object entryPrice = this.safeString(position, "open_price");
-        object unrealizedPnl = this.safeString(position, "profit_unreal");
-        object contracts = this.safeNumber(position, "amount");
-        object sideInteger = this.safeInteger(position, "side");
-        object side = ((bool) isTrue((isEqual(sideInteger, 1)))) ? "short" : "long";
-        object timestamp = this.safeTimestamp(position, "update_time");
-        object maintenanceMargin = this.safeString(position, "mainten_margin_amount");
-        object maintenanceMarginPercentage = this.safeString(position, "mainten_margin");
-        object collateral = this.safeString2(position, "margin_amount", "amount_max_margin");
-        object leverage = this.safeString(position, "leverage");
-        object notional = this.safeString(position, "open_val");
-        object initialMargin = Precise.stringDiv(notional, leverage);
-        object initialMarginPercentage = Precise.stringDiv("1", leverage);
+        object timestamp = this.safeInteger(position, "created_at");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "id", positionId },
-            { "symbol", symbol },
-            { "notional", this.parseNumber(notional) },
-            { "marginMode", marginMode },
-            { "liquidationPrice", liquidationPrice },
-            { "entryPrice", this.parseNumber(entryPrice) },
-            { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
+            { "id", this.safeInteger(position, "position_id") },
+            { "symbol", getValue(market, "symbol") },
+            { "notional", this.safeNumber(position, "settle_value") },
+            { "marginMode", this.safeString(position, "margin_mode") },
+            { "liquidationPrice", this.safeNumber(position, "liq_price") },
+            { "entryPrice", this.safeNumber(position, "avg_entry_price") },
+            { "unrealizedPnl", this.safeNumber(position, "unrealized_pnl") },
+            { "realizedPnl", this.safeNumber(position, "realized_pnl") },
             { "percentage", null },
-            { "contracts", contracts },
+            { "contracts", this.safeNumber(position, "close_avbl") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "markPrice", null },
             { "lastPrice", null },
-            { "side", side },
+            { "side", this.safeString(position, "side") },
             { "hedged", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", null },
-            { "maintenanceMargin", this.parseNumber(maintenanceMargin) },
-            { "maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentage) },
-            { "collateral", this.parseNumber(collateral) },
-            { "initialMargin", this.parseNumber(initialMargin) },
-            { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
-            { "leverage", this.parseNumber(leverage) },
-            { "marginRatio", null },
+            { "lastUpdateTimestamp", this.safeInteger(position, "updated_at") },
+            { "maintenanceMargin", this.safeNumber(position, "maintenance_margin_value") },
+            { "maintenanceMarginPercentage", this.safeNumber(position, "maintenance_margin_rate") },
+            { "collateral", this.safeNumber(position, "margin_avbl") },
+            { "initialMargin", null },
+            { "initialMarginPercentage", null },
+            { "leverage", this.safeNumber(position, "leverage") },
+            { "marginRatio", this.safeNumber(position, "position_margin_rate") },
             { "stopLossPrice", this.omitZero(this.safeString(position, "stop_loss_price")) },
             { "takeProfitPrice", this.omitZero(this.safeString(position, "take_profit_price")) },
         });
@@ -5221,74 +4954,77 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchPositionHistory
         * @description fetches historical positions
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+        * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
         * @param {string} symbol unified contract symbol
-        * @param {int} [since] not used by coinex fetchPositionHistory
-        * @param {int} [limit] the maximum amount of records to fetch, default=1000
-        * @param {object} params extra parameters specific to the exchange api endpoint
-        *
-        * EXCHANGE SPECIFIC PARAMETERS
-        * @param {int} [params.side] 0: all 1: sell, 2: buy
+        * @param {int} [since] the earliest time in ms to fetch positions for
+        * @param {int} [limit] the maximum amount of records to fetch, default is 10
+        * @param {object} [params] extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] the latest time in ms to fetch positions for
         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 1000;
-        }
         object request = new Dictionary<string, object>() {
+            { "market_type", "FUTURES" },
             { "market", getValue(market, "id") },
-            { "side", 0 },
-            { "limit", limit },
         };
-        object response = await this.v1PerpetualPrivateGetPositionFinished(this.extend(request, parameters));
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v2PrivateGetFuturesFinishedPosition(this.extend(request, parameters));
         //
-        //    {
-        //        code: '0',
-        //        data: {
-        //            limit: '1000',
-        //            offset: '0',
-        //            records: [
-        //                {
-        //                    amount_max: '10',
-        //                    amount_max_margin: '2.03466666666666666666',
-        //                    bkr_price: '0',
-        //                    create_time: '1711150526.2581',
-        //                    deal_all: '12.591',
-        //                    deal_asset_fee: '0',
-        //                    fee_asset: '',
-        //                    finish_type: '5',
-        //                    first_price: '0.6104',
-        //                    latest_price: '0.6487',
-        //                    leverage: '3',
-        //                    liq_amount: '0',
-        //                    liq_price: '0',
-        //                    liq_profit: '0',
-        //                    mainten_margin: '0.01',
-        //                    market: 'XRPUSDT',
-        //                    market_type: '1',
-        //                    open_price: '0.6104',
-        //                    open_val_max: '6.104',
-        //                    position_id: '297371462',
-        //                    profit_real: '0.35702107169',
-        //                    settle_price: '0.6104',
-        //                    settle_val: '0',
-        //                    side: '2',
-        //                    sy s: '0',
-        //                    type: '2',
-        //                    update_time: '1711391446.133233',
-        //                    user_id: '3685860'
-        //                },
-        //                ...
-        //            ]
-        //        },
-        //        message: 'OK'
-        //    }
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "position_id": 305891033,
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
+        //             }
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
+        //         }
+        //     }
         //
-        object data = this.safeDict(response, "data");
-        object records = this.safeList(data, "records");
+        object records = this.safeList(response, "data", new List<object>() {});
         object positions = this.parsePositions(records);
         return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
     }

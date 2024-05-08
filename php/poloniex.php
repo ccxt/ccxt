@@ -573,7 +573,7 @@ class poloniex extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" : "BTC_USDT",
@@ -1822,12 +1822,11 @@ class poloniex extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $amount = $this->currency_to_precision($code, $amount);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $fromAccount);
         $request = array(
-            'amount' => $amount,
+            'amount' => $this->currency_to_precision($code, $amount),
             'currency' => $currency['id'],
             'fromAccount' => $fromId,
             'toAccount' => $toId,

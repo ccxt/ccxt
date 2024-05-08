@@ -2401,7 +2401,7 @@ public partial class Exchange
         return networkId;
     }
 
-    public virtual object networkIdToCode(object networkId, object currencyCode = null)
+    public virtual object networkIdToCode(object networkId = null, object currencyCode = null)
     {
         /**
          * @ignore
@@ -5018,6 +5018,7 @@ public partial class Exchange
         //
         // the value of tickers is either a dict or a list
         //
+        //
         // dict
         //
         //     {
@@ -5140,7 +5141,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object isTriggerOrder(object parameters)
+    public virtual object handleTriggerAndParams(object parameters)
     {
         object isTrigger = this.safeBool2(parameters, "trigger", "stop");
         if (isTrue(isTrigger))
@@ -5148,6 +5149,12 @@ public partial class Exchange
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         }
         return new List<object>() {isTrigger, parameters};
+    }
+
+    public virtual object isTriggerOrder(object parameters)
+    {
+        // for backwards compatibility
+        return this.handleTriggerAndParams(parameters);
     }
 
     public virtual object isPostOnly(object isMarketOrder, object exchangeSpecificParam, object parameters = null)

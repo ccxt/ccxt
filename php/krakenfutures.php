@@ -532,7 +532,7 @@ class krakenfutures extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "tag" => 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",

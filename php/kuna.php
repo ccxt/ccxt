@@ -651,7 +651,7 @@ class kuna extends Exchange {
         return $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 0, 1);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "pair" => "BTC_USDT",                                   // Traded pair

@@ -3303,7 +3303,7 @@ class htx extends htx$1 {
         }
         return result;
     }
-    networkIdToCode(networkId, currencyCode = undefined) {
+    networkIdToCode(networkId = undefined, currencyCode = undefined) {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         const keys = Object.keys(this.options['networkNamesByChainIds']);
         const keysLength = keys.length;

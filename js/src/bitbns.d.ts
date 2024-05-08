@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitbns.js';
-import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bitbns
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class bitbns extends Exchange {
     }>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

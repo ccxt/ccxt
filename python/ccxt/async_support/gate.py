@@ -2383,7 +2383,7 @@ class gate(Exchange, ImplicitAPI):
             ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # SPOT
         #

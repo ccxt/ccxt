@@ -541,7 +541,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'tickers')
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "tag": 'semiannual',  # 'month', 'quarter', "perpetual", "semiannual",

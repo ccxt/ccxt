@@ -817,7 +817,7 @@ class kraken extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "a":["2432.77000","1","1.000"],

@@ -947,7 +947,7 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol":"QTUM/BTC",
@@ -3120,7 +3120,6 @@ class ascendex extends Exchange {
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
         $currency = $this->currency($code);
-        $amount = $this->currency_to_precision($code, $amount);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
@@ -3129,7 +3128,7 @@ class ascendex extends Exchange {
         }
         $request = array(
             'account-group' => $accountGroup,
-            'amount' => $amount,
+            'amount' => $this->currency_to_precision($code, $amount),
             'asset' => $currency['id'],
             'fromAccount' => $fromId,
             'toAccount' => $toId,

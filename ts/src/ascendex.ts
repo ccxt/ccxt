@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -964,7 +964,7 @@ export default class ascendex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol":"QTUM/BTC",
@@ -3189,7 +3189,6 @@ export default class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const currency = this.currency (code);
-        amount = this.currencyToPrecision (code, amount);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
@@ -3198,7 +3197,7 @@ export default class ascendex extends Exchange {
         }
         const request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,

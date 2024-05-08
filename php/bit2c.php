@@ -274,7 +274,7 @@ class bit2c extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $averagePrice = $this->safe_string($ticker, 'av');
         $baseVolume = $this->safe_string($ticker, 'a');

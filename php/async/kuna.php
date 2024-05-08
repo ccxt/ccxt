@@ -666,7 +666,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "pair" => "BTC_USDT",                                   // Traded pair

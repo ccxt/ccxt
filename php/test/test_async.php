@@ -53,7 +53,11 @@ function select_argv ($argsArray, $needle) {
     return count($foundArray) > 0 ? $foundArray : null;
 }
 
-$argvExchange = filter_argvs ($argv, '--', false)[0];
+$argvs = filter_argvs ($argv, '--', false);
+$argvExchange = null;
+if (count($argvs) > 0) {
+    $argvExchange = $argvs[0];
+}
 $argvSymbol   = select_argv ($argv, '/');
 $argvMethod   = select_argv ($argv, '()');
 // #################################################### //

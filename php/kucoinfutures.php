@@ -826,7 +826,7 @@ class kucoinfutures extends kucoin {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "code" => "200000",

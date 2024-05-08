@@ -599,7 +599,7 @@ class upbit(Exchange, ImplicitAPI):
         orderbooks = await self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #       {               market: "BTC-ETH",
         #                    "trade_date": "20181122",

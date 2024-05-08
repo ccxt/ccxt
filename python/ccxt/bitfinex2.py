@@ -1051,71 +1051,77 @@ class bitfinex2(Exchange, ImplicitAPI):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # on trading pairs(ex. tBTCUSD)
         #
-        #     [
-        #         SYMBOL,
-        #         BID,
-        #         BID_SIZE,
-        #         ASK,
-        #         ASK_SIZE,
-        #         DAILY_CHANGE,
-        #         DAILY_CHANGE_RELATIVE,
-        #         LAST_PRICE,
-        #         VOLUME,
-        #         HIGH,
-        #         LOW
-        #     ]
+        #    {
+        #        'result': [
+        #            SYMBOL,
+        #            BID,
+        #            BID_SIZE,
+        #            ASK,
+        #            ASK_SIZE,
+        #            DAILY_CHANGE,
+        #            DAILY_CHANGE_RELATIVE,
+        #            LAST_PRICE,
+        #            VOLUME,
+        #            HIGH,
+        #            LOW
+        #        ]
+        #    }
+        #
         #
         # on funding currencies(ex. fUSD)
         #
-        #     [
-        #         SYMBOL,
-        #         FRR,
-        #         BID,
-        #         BID_PERIOD,
-        #         BID_SIZE,
-        #         ASK,
-        #         ASK_PERIOD,
-        #         ASK_SIZE,
-        #         DAILY_CHANGE,
-        #         DAILY_CHANGE_RELATIVE,
-        #         LAST_PRICE,
-        #         VOLUME,
-        #         HIGH,
-        #         LOW,
-        #         _PLACEHOLDER,
-        #         _PLACEHOLDER,
-        #         FRR_AMOUNT_AVAILABLE
-        #     ]
+        #    {
+        #        'result': [
+        #            SYMBOL,
+        #            FRR,
+        #            BID,
+        #            BID_PERIOD,
+        #            BID_SIZE,
+        #            ASK,
+        #            ASK_PERIOD,
+        #            ASK_SIZE,
+        #            DAILY_CHANGE,
+        #            DAILY_CHANGE_RELATIVE,
+        #            LAST_PRICE,
+        #            VOLUME,
+        #            HIGH,
+        #            LOW,
+        #            _PLACEHOLDER,
+        #            _PLACEHOLDER,
+        #            FRR_AMOUNT_AVAILABLE
+        #        ]
+        #    }
         #
+        result = self.safe_list(ticker, 'result')
         symbol = self.safe_symbol(None, market)
-        length = len(ticker)
-        last = self.safe_string(ticker, length - 4)
-        percentage = self.safe_string(ticker, length - 5)
+        length = len(result)
+        last = self.safe_string(result, length - 4)
+        percentage = self.safe_string(result, length - 5)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_string(ticker, length - 2),
-            'low': self.safe_string(ticker, length - 1),
-            'bid': self.safe_string(ticker, length - 10),
-            'bidVolume': self.safe_string(ticker, length - 9),
-            'ask': self.safe_string(ticker, length - 8),
-            'askVolume': self.safe_string(ticker, length - 7),
+            'high': self.safe_string(result, length - 2),
+            'low': self.safe_string(result, length - 1),
+            'bid': self.safe_string(result, length - 10),
+            'bidVolume': self.safe_string(result, length - 9),
+            'ask': self.safe_string(result, length - 8),
+            'askVolume': self.safe_string(result, length - 7),
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, length - 6),
+            'change': self.safe_string(result, length - 6),
             'percentage': Precise.string_mul(percentage, '100'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, length - 3),
+            'baseVolume': self.safe_string(result, length - 3),
             'quoteVolume': None,
-            'info': ticker,
+            'info': result,
         }, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1180,7 +1186,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             marketId = self.safe_string(ticker, 0)
             market = self.safe_market(marketId)
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            result[symbol] = self.parse_ticker({'result': ticker}, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -1197,7 +1203,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         ticker = self.publicGetTickerSymbol(self.extend(request, params))
-        return self.parse_ticker(ticker, market)
+        result = {'result': ticker}
+        return self.parse_ticker(result, market)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
         #

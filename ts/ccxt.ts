@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.17';
+const version = '4.3.18';
 
 (Exchange as any).ccxtVersion = version
 

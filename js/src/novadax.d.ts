@@ -1,5 +1,5 @@
 import Exchange from './abstract/novadax.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Dict } from './base/types.js';
 /**
  * @class novadax
  * @augments Exchange
@@ -9,7 +9,7 @@ export default class novadax extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

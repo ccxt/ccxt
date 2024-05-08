@@ -1270,7 +1270,7 @@ class phemex(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, userLimit)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot
         #

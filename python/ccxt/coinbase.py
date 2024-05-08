@@ -1877,7 +1877,7 @@ class coinbase(Exchange, ImplicitAPI):
         ticker['ask'] = self.safe_number(response, 'best_ask')
         return ticker
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickerV2
         #

@@ -50,6 +50,7 @@ public partial class woo
     /// retrieves data on all markets for woo
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#exchange-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -69,6 +70,7 @@ public partial class woo
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#market-trades-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -142,6 +144,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -168,6 +171,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -635,6 +639,7 @@ public partial class woo
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#orderbook-snapshot-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -696,6 +701,7 @@ public partial class woo
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -769,6 +775,7 @@ public partial class woo
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-assets-of-subaccounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -808,6 +815,7 @@ public partial class woo
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-token-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -827,6 +835,7 @@ public partial class woo
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -860,6 +869,7 @@ public partial class woo
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -893,6 +903,7 @@ public partial class woo
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -926,6 +937,7 @@ public partial class woo
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1025,6 +1037,7 @@ public partial class woo
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#token-withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

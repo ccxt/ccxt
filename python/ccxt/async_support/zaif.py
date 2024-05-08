@@ -282,7 +282,7 @@ class zaif(Exchange, ImplicitAPI):
         response = await self.publicGetDepthPair(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "last": 9e-08,

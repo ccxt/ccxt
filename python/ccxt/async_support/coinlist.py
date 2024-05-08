@@ -567,7 +567,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "type":"spot",
@@ -1652,10 +1652,9 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
         request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
         }
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromAcc = self.safe_string(accountsByType, fromAccount, fromAccount)

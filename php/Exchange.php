@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.17';
+$version = '4.3.18';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.17';
+    const VERSION = '4.3.18';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4169,7 +4169,7 @@ class Exchange {
         return $networkId;
     }
 
-    public function network_id_to_code(string $networkId, ?string $currencyCode = null) {
+    public function network_id_to_code(?string $networkId = null, ?string $currencyCode = null) {
         /**
          * @ignore
          * tries to convert the provided exchange-specific $networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksById']" defined.
@@ -6153,6 +6153,7 @@ class Exchange {
         //
         // the value of $tickers is either a dict or a list
         //
+        //
         // dict
         //
         //     {
@@ -6254,12 +6255,17 @@ class Exchange {
         return $result;
     }
 
-    public function is_trigger_order($params) {
+    public function handle_trigger_and_params($params) {
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         if ($isTrigger) {
             $params = $this->omit ($params, array( 'trigger', 'stop' ));
         }
         return array( $isTrigger, $params );
+    }
+
+    public function is_trigger_order($params) {
+        // for backwards compatibility
+        return $this->handleTriggerAndParams ($params);
     }
 
     public function is_post_only(bool $isMarketOrder, $exchangeSpecificParam, $params = array ()) {

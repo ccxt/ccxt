@@ -576,7 +576,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "type":"spot",
@@ -1761,10 +1761,9 @@ class coinlist extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $amount = $this->currency_to_precision($code, $amount);
             $request = array(
                 'asset' => $currency['id'],
-                'amount' => $amount,
+                'amount' => $this->currency_to_precision($code, $amount),
             );
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
             $fromAcc = $this->safe_string($accountsByType, $fromAccount, $fromAccount);

@@ -1121,7 +1121,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = response['data']
         return self.parse_deposit_withdraw_fee(data)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot(REST)
         #
@@ -2424,7 +2424,7 @@ class bitmart(Exchange, ImplicitAPI):
         elif isMarketOrder:
             # for market buy it requires the amount of quote currency to spend
             if side == 'buy':
-                notional = self.safe_number_2(params, 'cost', 'notional')
+                notional = self.safe_string_2(params, 'cost', 'notional')
                 params = self.omit(params, 'cost')
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
@@ -2434,9 +2434,9 @@ class bitmart(Exchange, ImplicitAPI):
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
-                        notional = self.parse_number(Precise.string_mul(amountString, priceString))
+                        notional = Precise.string_mul(amountString, priceString)
                 else:
-                    notional = amount if (notional is None) else notional
+                    notional = self.number_to_string(amount) if (notional is None) else notional
                 request['notional'] = self.decimal_to_precision(notional, TRUNCATE, market['precision']['price'], self.precisionMode)
             elif side == 'sell':
                 request['size'] = self.amount_to_precision(symbol, amount)

@@ -394,7 +394,7 @@ class blockchaincom extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //     "symbol" => "BTC-USD",

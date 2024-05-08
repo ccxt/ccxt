@@ -938,7 +938,7 @@ class ascendex(Exchange, ImplicitAPI):
         result['nonce'] = self.safe_integer(orderbook, 'seqnum')
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol":"QTUM/BTC",
@@ -2995,7 +2995,6 @@ class ascendex(Exchange, ImplicitAPI):
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
@@ -3003,7 +3002,7 @@ class ascendex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' transfer() only supports direct balance transfer between spot and swap, spot and margin')
         request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,

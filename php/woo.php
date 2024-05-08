@@ -393,6 +393,7 @@ class woo extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for woo
+         * @see https://docs.woo.org/#exchange-information
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
@@ -508,6 +509,7 @@ class woo extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://docs.woo.org/#$market-trades-public
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -690,6 +692,7 @@ class woo extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         * @see https://docs.woo.org/#available-token-public
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -843,6 +846,7 @@ class woo extends Exchange {
     public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
+         * @see https://docs.woo.org/#send-algo-order
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -867,6 +871,7 @@ class woo extends Exchange {
     public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
+         * @see https://docs.woo.org/#send-algo-order
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1626,6 +1631,7 @@ class woo extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.woo.org/#orderbook-snapshot-public
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1758,6 +1764,7 @@ class woo extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
+         * @see https://docs.woo.org/#get-$trades
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1798,8 +1805,8 @@ class woo extends Exchange {
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @see https://docs.woo.org/#get-$trades
          * fetch all $trades made by the user
+         * @see https://docs.woo.org/#get-$trades
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1858,6 +1865,7 @@ class woo extends Exchange {
     public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
+         * @see https://docs.woo.org/#get-assets-of-subaccounts
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
@@ -1955,6 +1963,7 @@ class woo extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         * @see https://docs.woo.org/#get-token-deposit-$address
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1987,7 +1996,7 @@ class woo extends Exchange {
         );
     }
 
-    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): mixed {
         $this->load_markets();
         $request = array( );
         $currency = null;
@@ -2041,12 +2050,13 @@ class woo extends Exchange {
         //     "meta" => array( total => '1', records_per_page => "25", current_page => "1" ),
         //     "success" => true
         // }
-        return array( $currency, $this->safe_value($response, 'rows', array()) );
+        return array( $currency, $this->safe_list($response, 'rows', array()) );
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
@@ -2112,6 +2122,7 @@ class woo extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -2127,6 +2138,7 @@ class woo extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2142,6 +2154,7 @@ class woo extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -2216,8 +2229,8 @@ class woo extends Exchange {
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
-         * @see https://docs.woo.org/#get-$transfer-history
          * $transfer $currency internally between wallets on the same account
+         * @see https://docs.woo.org/#get-$transfer-history
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -2361,6 +2374,7 @@ class woo extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
+         * @see https://docs.woo.org/#token-withdraw
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to

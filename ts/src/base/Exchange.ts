@@ -51,6 +51,7 @@ import type {
     CurrencyInterface,
     DepositAddressResponse,
     DepositWithdrawFeeNetwork,
+    Dict,
     Dictionary,
     Fee,
     FundingHistory,
@@ -2402,7 +2403,7 @@ export default class Exchange {
         return result;
     }
 
-    parseTicker (ticker: object, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
@@ -4367,7 +4368,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
 
@@ -5870,9 +5871,10 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
+    parseTickers (tickers, symbols: Strings = undefined, params = {}): Tickers {
         //
         // the value of tickers is either a dict or a list
+        //
         //
         // dict
         //
@@ -5975,12 +5977,17 @@ export default class Exchange {
         return result;
     }
 
-    isTriggerOrder (params) {
+    handleTriggerAndParams (params) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
         }
         return [ isTrigger, params ];
+    }
+
+    isTriggerOrder (params) {
+        // for backwards compatibility
+        return this.handleTriggerAndParams (params);
     }
 
     isPostOnly (isMarketOrder: boolean, exchangeSpecificParam, params = {}) {

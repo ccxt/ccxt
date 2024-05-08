@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRates, IsolatedBorrowRate, Dict } from './base/types.js';
 /**
  * @class coinex
  * @augments Exchange
@@ -10,7 +10,7 @@ export default class coinex extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchContractMarkets(params: any): Promise<any[]>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTime(params?: {}): Promise<number>;

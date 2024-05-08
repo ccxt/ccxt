@@ -580,7 +580,7 @@ class poloniex(Exchange, ImplicitAPI):
         response = await self.publicGetTimestamp(params)
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol" : "BTC_USDT",
@@ -1752,12 +1752,11 @@ class poloniex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, fromAccount)
         request = {
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,

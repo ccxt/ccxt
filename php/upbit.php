@@ -604,7 +604,7 @@ class upbit extends Exchange {
         return $this->safe_value($orderbooks, $symbol);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //       {                $market => "BTC-ETH",
         //                    "trade_date" => "20181122",
