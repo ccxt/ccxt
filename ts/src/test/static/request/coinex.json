@@ -1004,6 +1004,16 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Fetch a swap position",
+                "method": "fetchPosition",
+                "url": "https://api.coinex.com/v2/futures/pending-position?market=BTCUSDT&market_type=FUTURES",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchPositionHistory": [
             {
                 "description": "Fetch Position History",
