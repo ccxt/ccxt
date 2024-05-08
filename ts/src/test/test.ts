@@ -1871,13 +1871,14 @@ export default class testMainClass extends baseMainTestClass {
 
     async testWoofiPro () {
         const exchange = this.initOfflineExchange ('woofipro');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXT';
         await exchange.loadMarkets ();
         let request = undefined;
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            request = exchange.last_request_body;
+            request = jsonParse (exchange.last_request_body);
         }
         const brokerId = request['order_tag'];
         assert (brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
