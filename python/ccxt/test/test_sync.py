@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 from helpers_for_tests import *
 
 class testMainClass(baseMainTestClass):

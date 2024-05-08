@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import asyncio
+
+
+
 from helpers_for_tests import *
 
 class testMainClass(baseMainTestClass):

@@ -2400,8 +2400,8 @@ class Transpiler {
             // add one more newline before function
             replace (/^(async def|def) (\w)/gs, '\n$1 $2')
         
-        const helperHeader = `# -*- coding: utf-8 -*-\n\nfrom helpers_for_tests import *\n\n`
-        let newPython = helperHeader + python3;
+        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n\nfrom helpers_for_tests import *\n\n`
+        let newPython = impHelper + python3;
         
         newPython = snakeCaseFunctions (newPython);
         overwriteFile (files.pyFileAsync, newPython);
