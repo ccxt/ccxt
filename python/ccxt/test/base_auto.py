@@ -9,7 +9,7 @@ import base.test_crypto
  
 class BaseFunctionalitiesTestClass:
 
-    def init():
+    def init(self):
         exchange = ccxt.Exchange ({
             'id': 'xyzexchange',
         })
