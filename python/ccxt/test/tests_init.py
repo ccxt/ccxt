@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from helpers_for_tests import *
+from helpers_for_tests import get_cli_arg_value, is_synchronous, argv, argvSymbol, argvMethod
 
 try:
     import asyncio
@@ -8,12 +8,12 @@ except ImportError:
     asyncio = None
 
 
-isBaseTests = get_cli_arg_value ('--baseTests')
-isExchangeTests = get_cli_arg_value ('--exchangeTests')
-reqResTests = get_cli_arg_value ('--responseTests') or get_cli_arg_value ('--requestTests')
+isBaseTests = get_cli_arg_value('--baseTests')
+isExchangeTests = get_cli_arg_value('--exchangeTests')
+reqResTests = get_cli_arg_value('--responseTests') or get_cli_arg_value('--requestTests')
 isAllTest = not reqResTests and not isBaseTests and not isExchangeTests  # if neither was chosen
 
-####### base tests #######
+# ###### base tests #######
 if (isBaseTests or isAllTest):
     # test base things
     from base_auto import BaseFunctionalitiesTestClass
@@ -21,7 +21,7 @@ if (isBaseTests or isAllTest):
     print('base tests passed!')
 
 
-####### exchange tests #######
+# ###### exchange tests #######
 if (isExchangeTests or reqResTests or isAllTest):
     if (is_synchronous):
         from test_sync import testMainClass as testMainClassSync

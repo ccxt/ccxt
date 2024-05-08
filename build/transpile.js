@@ -2400,7 +2400,7 @@ class Transpiler {
             // add one more newline before function
             replace (/^(async def|def) (\w)/gs, '\n$1 $2')
         
-        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n\nfrom helpers_for_tests import *\n\n`
+        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n\n` + 'from helpers_for_tests import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, ProxyError, get_exchange_prop, close  # noqa: F401' + '\n\n';
         let newPython = impHelper + python3;
         
         newPython = snakeCaseFunctions (newPython);

@@ -23,13 +23,13 @@ import ccxt.pro as ccxtpro  # noqa: E402
 # ------------------------------------------------------------------------------
 # from typing import Optional
 # from typing import List
-from ccxt.base.errors import NotSupported
-from ccxt.base.errors import ProxyError
-from ccxt.base.errors import OperationFailed
+from ccxt.base.errors import NotSupported  # noqa: F401
+from ccxt.base.errors import ProxyError  # noqa: F401
+from ccxt.base.errors import OperationFailed  # noqa: F401
 # from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ExchangeNotAvailable  # noqa: F401
+from ccxt.base.errors import OnMaintenance  # noqa: F401
+from ccxt.base.errors import AuthenticationError  # noqa: F401
 
 # ------------------------------------------------------------------------------
 
@@ -105,7 +105,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # non-transpiled part, but shared names among langs
 
-is_synchronous = argv.sync # 'async' not in os.path.basename(__file__)
+is_synchronous = argv.sync  # 'async' not in os.path.basename(__file__)
 
 rootDir = DIR_NAME + '/../../../'
 rootDirForSkips = DIR_NAME + '/../../../'
