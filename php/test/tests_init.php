@@ -42,10 +42,10 @@ use React\Promise;
 // } );
 
 // ############## detect cli arguments ############## //
-array_shift($argv); // remove first argument (which is script path "ccxt/php/test/test_async.php")
+array_shift($argv); // remove first argument (which is script path)
 
 function filter_argvs($argsArray, $needle, $include = true) {
-    return array_filter($argsArray, function ($x) use ($needle, $include) { return ($include && str_contains($x, $needle) || (!$include && !str_contains($x, $needle))); });
+    return array_values(array_filter($argsArray, function ($x) use ($needle, $include) { return ($include && str_contains($x, $needle) || (!$include && !str_contains($x, $needle))); }));
 };
 
 function select_argv ($argsArray, $needle) {
