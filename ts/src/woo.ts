@@ -2043,7 +2043,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         const request = { };
         let currency: Currency = undefined;
@@ -2097,7 +2097,7 @@ export default class woo extends Exchange {
         //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
         //     "success": true
         // }
-        return [ currency, this.safeValue (response, 'rows', {}) ];
+        return [ currency, this.safeList (response, 'rows', []) ];
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
