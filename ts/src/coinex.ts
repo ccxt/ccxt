@@ -4133,6 +4133,7 @@ export default class coinex extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'entryPrice': this.safeNumber (position, 'avg_entry_price'),
             'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'realizedPnl': this.safeNumber (position, 'realized_pnl'),
             'percentage': undefined,
             'contracts': this.safeNumber (position, 'close_avbl'),
             'contractSize': this.safeNumber (market, 'contractSize'),
