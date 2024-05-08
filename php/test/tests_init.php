@@ -4,7 +4,7 @@ namespace ccxt;
 
 use Exception; // a common import
 require_once __DIR__ . '/helpers_for_tests.php';
-require_once __DIR__ . '/base/functions_auto/test_extend.php';
+require_once __DIR__ . '/base_auto.php';
 
 
 $isBaseTests = getCliArgValue ('--baseTests');
