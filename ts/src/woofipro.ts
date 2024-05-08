@@ -1793,17 +1793,19 @@ export default class woofipro extends Exchange {
          * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
          * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+         * @param {int} params.until timestamp in ms of the latest order to fetch
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
+        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
+        const maxLimit = (isTrigger) ? 100 : 500;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
         }
-        const request = {};
+        let request = {};
         let market: Market = undefined;
-        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1815,13 +1817,14 @@ export default class woofipro extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         } else {
-            request['size'] = 500;
+            request['size'] = maxLimit;
         }
-        if (stop) {
+        if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
+        [ request, params ] = this.handleUntilOption ('end_t', params, request);
         let response = undefined;
-        if (stop) {
+        if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
         } else {
             response = await this.v1PrivateGetOrders (this.extend (request, params));
@@ -1879,6 +1882,7 @@ export default class woofipro extends Exchange {
          * @param {boolean} [params.trigger] whether the order is a stop/algo order
          * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
+         * @param {int} params.until timestamp in ms of the latest order to fetch
          * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1901,6 +1905,7 @@ export default class woofipro extends Exchange {
          * @param {boolean} [params.trigger] whether the order is a stop/algo order
          * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
+         * @param {int} params.until timestamp in ms of the latest order to fetch
          * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1968,6 +1973,7 @@ export default class woofipro extends Exchange {
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
+         * @param {int} params.until timestamp in ms of the latest trade to fetch
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -1976,7 +1982,7 @@ export default class woofipro extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        const request = {};
+        let request = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1990,6 +1996,7 @@ export default class woofipro extends Exchange {
         } else {
             request['size'] = 500;
         }
+        [ request, params ] = this.handleUntilOption ('end_t', params, request);
         const response = await this.v1PrivateGetTrades (this.extend (request, params));
         //
         // {

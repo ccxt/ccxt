@@ -96,6 +96,22 @@
                   0.5
                 ],
                 "output": "{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
+            },
+            {
+                "description": "order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api-evm.orderly.org/v1/order",
+                "input": [
+                  "XRP/USDC:USDC",
+                  "limit",
+                  "buy",
+                  20,
+                  0.5,
+                  {
+                    "clientOrderId": "myOrder"
+                  }
+                ],
+                "output": "{\"client_order_id\":\"myOrder\",\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}"
             }
         ],
         "createOrders": [
@@ -172,6 +188,28 @@
                 "output": "{\"orders\":[{\"order_price\":\"0.5\",\"order_quantity\":\"20\",\"order_tag\":\"CCXT\",\"order_type\":\"LIMIT\",\"side\":\"BUY\",\"symbol\":\"PERP_XRP_USDC\"}]}"
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder with id",
+                "method": "fetchOrder",
+                "url": "https://api-evm.orderly.org/v1/order/1167852149",
+                "input": [
+                  1167852149
+                ]
+            },
+            {
+                "description": "fetchOrder using clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api-evm.orderly.org/v1/client/order/myOrder",
+                "input": [
+                  "random",
+                  null,
+                  {
+                    "clientOrderId": "myOrder"
+                  }
+                ]
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Swap orders",
@@ -179,6 +217,19 @@
                 "url": "https://api-evm.orderly.org/v1/orders?symbol=PERP_LTC_USDC&size=500",
                 "input": [
                     "LTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "triggerOrders",
+                "method": "fetchOrders",
+                "url": "https://api-evm.orderly.org/v1/algo/orders?algo_type=STOP&size=100&symbol=PERP_XRP_USDC",
+                "input": [
+                  "XRP/USDC:USDC",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
                 ]
             }
         ],
@@ -344,6 +395,19 @@
                         "stop": true
                     }
                 ]
+            },
+            {
+                "description": "cancelOrder by orderid",
+                "method": "cancelOrder",
+                "url": "https://api-evm.orderly.org/v1/client/order?client_order_id=myOrder&symbol=PERP_XRP_USDC",
+                "input": [
+                  "random",
+                  "XRP/USDC:USDC",
+                  {
+                    "clientOrderId": "myOrder"
+                  }
+                ],
+                "output": ""
             }
         ],
         "fetchTime": [
