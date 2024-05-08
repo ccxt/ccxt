@@ -526,7 +526,7 @@ class luno extends Exchange {
         return $this->fetch_orders_by_state('COMPLETE', $symbol, $since, $limit, $params);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,

@@ -1466,7 +1466,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type == 'futures') deprecated, use(type == 'future')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "BTC-USDT",   # symbol

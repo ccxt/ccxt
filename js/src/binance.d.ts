@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -23,7 +23,7 @@ export default class binance extends Exchange {
     parseBalanceCustom(response: any, type?: any, marginMode?: any, isPortfolioMargin?: boolean): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchStatus(params?: {}): Promise<{
         status: string;
         updated: any;
@@ -32,7 +32,7 @@ export default class binance extends Exchange {
         info: any;
     }>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchLastPrices(symbols?: Strings, params?: {}): Promise<import("./base/types.js").LastPrices>;
     parseLastPrice(entry: any, market?: Market): {
         symbol: string;

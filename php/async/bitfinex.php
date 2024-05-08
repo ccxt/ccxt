@@ -872,7 +872,7 @@ class bitfinex extends Exchange {
             $response = Async\await($this->publicGetTickers ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $ticker = $this->parse_ticker($response[$i]);
+                $ticker = $this->parse_ticker(array( 'result' => $response[$i] ));
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -895,11 +895,35 @@ class bitfinex extends Exchange {
                 'symbol' => $market['id'],
             );
             $ticker = Async\await($this->publicGetPubtickerSymbol (array_merge($request, $params)));
+            //
+            //    {
+            //        mid => '63560.5',
+            //        bid => '63560.0',
+            //        ask => '63561.0',
+            //        last_price => '63547.0',
+            //        low => '62812.0',
+            //        high => '64480.0',
+            //        volume => '517.25634977',
+            //        timestamp => '1715102384.9849467'
+            //    }
+            //
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //    {
+        //        mid => '63560.5',
+        //        bid => '63560.0',
+        //        ask => '63561.0',
+        //        last_price => '63547.0',
+        //        low => '62812.0',
+        //        high => '64480.0',
+        //        volume => '517.25634977',
+        //        $timestamp => '1715102384.9849467'
+        //    }
+        //
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market);

@@ -818,7 +818,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         tickers = self.parse_tickers(data, symbols)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "code": "200000",

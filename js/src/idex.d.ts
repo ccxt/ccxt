@@ -1,5 +1,5 @@
 import Exchange from './abstract/idex.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 /**
  * @class idex
  * @augments Exchange
@@ -10,7 +10,7 @@ export default class idex extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

@@ -491,7 +491,7 @@ class blofin(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(first, 'ts')
         return self.parse_order_book(first, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         market = self.safe_market(marketId, market, '-')

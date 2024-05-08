@@ -417,7 +417,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"0.01951",

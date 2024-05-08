@@ -402,7 +402,7 @@ class idex(Exchange, ImplicitAPI):
         response = await self.publicGetTickers(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # {
         #   "market": "DIL-ETH",
         #   "time": 1598367493008,

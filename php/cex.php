@@ -566,7 +566,7 @@ class cex extends Exchange {
         return null;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $volume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'high');

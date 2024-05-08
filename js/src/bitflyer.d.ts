@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitflyer.js';
-import type { Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 /**
  * @class bitflyer
  * @augments Exchange
@@ -12,7 +12,7 @@ export default class bitflyer extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

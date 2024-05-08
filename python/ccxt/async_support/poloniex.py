@@ -580,7 +580,7 @@ class poloniex(Exchange, ImplicitAPI):
         response = await self.publicGetTimestamp(params)
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol" : "BTC_USDT",

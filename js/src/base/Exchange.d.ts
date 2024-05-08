@@ -3,7 +3,7 @@ import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { OrderBook as Ob } from './ws/OrderBook.js';
@@ -700,7 +700,7 @@ export default class Exchange {
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<{}>;
     parseMarket(market: any): Market;
     parseMarkets(markets: any): Market[];
-    parseTicker(ticker: object, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     parseDepositAddress(depositAddress: any, currency?: Currency): object;
     parseTrade(trade: object, market?: Market): Trade;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
@@ -865,7 +865,7 @@ export default class Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsWs(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
-    fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     fetchLedgerEntry(id: string, code?: Str, params?: {}): Promise<LedgerEntry>;
@@ -1020,7 +1020,7 @@ export default class Exchange {
     filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;
     filterBySymbolsSinceLimit(array: any, symbols?: string[], since?: Int, limit?: Int, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): LastPrices;
-    parseTickers(tickers: any, symbols?: string[], params?: {}): Dictionary<Ticker>;
+    parseTickers(tickers: any, symbols?: Strings, params?: {}): Tickers;
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): Dictionary<any>;
     parseBorrowInterests(response: any, market?: Market): any[];
     parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;

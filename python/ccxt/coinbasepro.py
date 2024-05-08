@@ -542,7 +542,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #

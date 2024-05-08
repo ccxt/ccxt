@@ -840,7 +840,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "a":["2432.77000","1","1.000"],

@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -27,8 +27,8 @@ export default class mexc extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): any;

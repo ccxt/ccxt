@@ -1428,7 +1428,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);

@@ -4389,6 +4389,7 @@ class Exchange extends \ccxt\Exchange {
         //
         // the value of $tickers is either a dict or a list
         //
+        //
         // dict
         //
         //     {

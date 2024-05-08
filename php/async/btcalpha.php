@@ -311,7 +311,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "timestamp" => "1674658.445272",

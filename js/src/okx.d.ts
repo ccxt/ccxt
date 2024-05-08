@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Position, CrossBorrowRate, CrossBorrowRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -25,7 +25,7 @@ export default class okx extends Exchange {
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTrade(trade: any, market?: Market): Trade;

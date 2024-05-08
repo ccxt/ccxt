@@ -938,7 +938,7 @@ class ascendex(Exchange, ImplicitAPI):
         result['nonce'] = self.safe_integer(orderbook, 'seqnum')
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol":"QTUM/BTC",

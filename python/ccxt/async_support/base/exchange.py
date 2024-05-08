@@ -888,7 +888,7 @@ class Exchange(BaseExchange):
     async def fetch_positions_risk(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
 
-    async def fetch_bids_asks(self, symbols: List[str] = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
     async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

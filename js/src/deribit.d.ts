@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict } from './base/types.js';
 /**
  * @class deribit
  * @augments Exchange
@@ -41,7 +41,7 @@ export default class deribit extends Exchange {
         network: any;
         info: any;
     }>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

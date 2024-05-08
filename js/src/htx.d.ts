@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
 /**
  * @class huobi
  * @augments Exchange
@@ -39,7 +39,7 @@ export default class htx extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsByTypeAndSubType(type: any, subType: any, params?: {}): Promise<any[]>;
     tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchLastPrices(symbols?: Strings, params?: {}): Promise<import("./base/types.js").LastPrices>;

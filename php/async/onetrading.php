@@ -579,7 +579,7 @@ class onetrading extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //

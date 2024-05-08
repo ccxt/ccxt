@@ -870,7 +870,7 @@ class gemini extends Exchange {
         return $this->fetch_ticker_v1_and_v2($symbol, $params);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //

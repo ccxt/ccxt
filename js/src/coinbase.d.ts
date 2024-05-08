@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -44,7 +44,7 @@ export default class coinbase extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickerV2(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickerV3(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     parseCustomBalance(response: any, params?: {}): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -92,7 +92,7 @@ export default class coinbase extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {

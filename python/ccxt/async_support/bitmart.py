@@ -1121,7 +1121,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = response['data']
         return self.parse_deposit_withdraw_fee(data)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot(REST)
         #

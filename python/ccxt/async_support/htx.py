@@ -1931,7 +1931,7 @@ class htx(Exchange, ImplicitAPI):
         self.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId
         return symbolOrMarketId
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #

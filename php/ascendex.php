@@ -947,7 +947,7 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol":"QTUM/BTC",

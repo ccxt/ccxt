@@ -158,7 +158,7 @@ class paymium(Exchange, ImplicitAPI):
         response = await self.publicGetDataCurrencyDepth(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "high":"33740.82",

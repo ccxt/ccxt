@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinlist.js';
-import type { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class coinlist
  * @augments Exchange
@@ -13,7 +13,7 @@ export default class coinlist extends Exchange {
     parseMarket(market: any): Market;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;

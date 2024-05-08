@@ -2492,7 +2492,7 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'ts')
         return self.parse_order_book(data, market['symbol'], timestamp)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #

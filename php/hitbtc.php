@@ -1114,7 +1114,7 @@ class hitbtc extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //       "ask" => "62756.01",

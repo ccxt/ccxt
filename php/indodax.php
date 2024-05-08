@@ -405,7 +405,7 @@ class indodax extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'buy', 'sell');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"0.01951",

@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class digifinex extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTime(params?: {}): Promise<number>;
     fetchStatus(params?: {}): Promise<{

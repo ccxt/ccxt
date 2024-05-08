@@ -1467,7 +1467,7 @@ class kucoin extends Exchange {
         return ($type === 'contract') || ($type === 'future') || ($type === 'futures'); // * ($type === 'futures') deprecated, use ($type === 'future')
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-USDT",   // $symbol

@@ -549,7 +549,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,

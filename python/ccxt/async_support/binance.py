@@ -3647,7 +3647,7 @@ class binance(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer_2(response, 'lastUpdateId', 'u')
         return orderbook
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "ETHBTC",

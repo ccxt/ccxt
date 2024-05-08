@@ -218,7 +218,7 @@ class coinspot extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "btc":{

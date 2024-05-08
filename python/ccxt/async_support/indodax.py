@@ -407,7 +407,7 @@ class indodax(Exchange, ImplicitAPI):
         orderbook = await self.publicGetApiDepthPair(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'buy', 'sell')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "high":"0.01951",

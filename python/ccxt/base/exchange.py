@@ -2171,7 +2171,7 @@ class Exchange(object):
             result.append(self.parse_market(markets[i]))
         return result
 
-    def parse_ticker(self, ticker: object, market: Market = None):
+    def parse_ticker(self, ticker: dict, market: Market = None):
         raise NotSupported(self.id + ' parseTicker() is not supported yet')
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
@@ -3781,7 +3781,7 @@ class Exchange(object):
     def fetch_positions_risk(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
 
-    def fetch_bids_asks(self, symbols: List[str] = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4954,9 +4954,10 @@ class Exchange(object):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_tickers(self, tickers, symbols: List[str] = None, params={}):
+    def parse_tickers(self, tickers, symbols: Strings = None, params={}):
         #
         # the value of tickers is either a dict or a list
+        #
         #
         # dict
         #

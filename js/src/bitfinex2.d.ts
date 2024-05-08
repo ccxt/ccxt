@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
 /**
  * @class bitfinex2
  * @augments Exchange
@@ -37,7 +37,7 @@ export default class bitfinex2 extends Exchange {
     parseTransferStatus(status: any): string;
     convertDerivativesId(currency: any, type: any): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: Market): Trade;

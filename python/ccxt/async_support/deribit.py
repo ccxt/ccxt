@@ -1061,7 +1061,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker /public/ticker
         #

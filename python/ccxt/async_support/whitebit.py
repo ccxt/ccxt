@@ -754,7 +754,7 @@ class whitebit(Exchange, ImplicitAPI):
         ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #  FetchTicker(v1)
         #

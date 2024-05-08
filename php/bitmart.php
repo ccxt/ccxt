@@ -1116,7 +1116,7 @@ class bitmart extends Exchange {
         return $this->parse_deposit_withdraw_fee($data);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot (REST)
         //

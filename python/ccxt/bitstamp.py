@@ -721,7 +721,7 @@ class bitstamp(Exchange, ImplicitAPI):
         orderbook['nonce'] = microtimestamp
         return orderbook
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "timestamp": "1686068944",

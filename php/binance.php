@@ -3694,7 +3694,7 @@ class binance extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHBTC",

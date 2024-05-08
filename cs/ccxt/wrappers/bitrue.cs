@@ -206,10 +206,10 @@ public partial class bitrue
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
