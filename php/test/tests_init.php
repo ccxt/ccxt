@@ -4,8 +4,14 @@ namespace ccxt;
 
 use Exception; // a common import
 require_once __DIR__ . '/helpers_for_tests.php';
-require_once __DIR__ . '/base_auto.php';
+if (is_synchronous) {
+    require_once __DIR__ . '/test_sync.php';
+} else {
+    require_once __DIR__ . '/test_async.php';
+}
 
+// test base things
+require_once __DIR__ . '/base_auto.php';
 
 $isBaseTests = get_cli_arg_value ('--baseTests');
 $isExchangeTests = get_cli_arg_value ('--exchangeTests');
@@ -21,6 +27,7 @@ if ($isBaseTests || $isAllTest) {
 
 // ####### exchange tests #######
 if ($isExchangeTests || $isAllTest) {
+    // if (is_synchronous)
     (new testMainClass ()).init ($argvExchange, $argvSymbol, $argvMethod);
     print('exchange tests passed!');
 }

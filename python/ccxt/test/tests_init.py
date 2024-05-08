@@ -10,10 +10,8 @@ try:
 except ImportError:
     asyncio = None
 
-from base_auto import BaseFunctionalitiesTestClass
 # test base things
-import base.test_number
-import base.test_crypto
+from base_auto import BaseFunctionalitiesTestClass
 
 isBaseTests = get_cli_arg_value ('--baseTests')
 isExchangeTests = get_cli_arg_value ('--exchangeTests')

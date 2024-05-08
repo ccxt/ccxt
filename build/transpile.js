@@ -2301,7 +2301,7 @@ class Transpiler {
     }
 
     baseFunctionalitiesTests () {
-        
+
         const baseFolders = {
             ts: './ts/src/test/base/functions_auto/',
             py: './python/ccxt/test/base/functions_auto/',
@@ -2311,14 +2311,22 @@ class Transpiler {
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
         const tests = [];
+
+        // tests.push({
+        //     base: false,
+        //     tsFile: './ts/src/test/base_auto.ts',
+        //     pyFileSync: './python/ccxt/test/base_auto.py',
+        //     phpFileSync: './php/test/base_auto.php',
+        // });
+        
         for (const testName of baseFunctionTests) {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const test = {
                 base: true,
                 name: testName,
                 tsFile: baseFolders.ts + testName + '.ts',
-                pyFileSync: baseFolders.py + unCamelCasedFileName + '.py',
-                phpFileSync: baseFolders.php + unCamelCasedFileName + '.php',
+                pyFileAsync: baseFolders.py + unCamelCasedFileName + '.py',
+                phpFileAsync: baseFolders.php + unCamelCasedFileName + '.php',
             };
             tests.push(test);
         }
@@ -2660,14 +2668,14 @@ class Transpiler {
             test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
             if (!test.base) {
-                fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
-                fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
+                if (test.phpFileAsync) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+                if (test.pyFileAsync) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
             if (test.phpFileSync) {
-                fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
+                if (test.phpFileSync) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
             }
             if (test.pyFileSync) {
-                fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
+                if (test.pyFileSync) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
             }
         }
     }
