@@ -3936,20 +3936,20 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchPositions
          * @description fetch all open positions
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
-         * @param {int} [params.side] *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
+         * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         let defaultMethod = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'v1PerpetualPrivateGetPositionPending');
-        const isHistory = (defaultMethod === 'v1PerpetualPrivateGetPositionFinished');
+        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition');
         symbols = this.marketSymbols (symbols);
-        const request = {};
+        const request = {
+            'market_type': 'FUTURES',
+        };
         let market = undefined;
         if (symbols !== undefined) {
             let symbol = undefined;
@@ -3964,81 +3964,57 @@ export default class coinex extends Exchange {
             }
             market = this.market (symbol);
             request['market'] = market['id'];
-        } else {
-            if (isHistory) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a symbol argument for closed positions');
-            }
-        }
-        if (isHistory) {
-            request['limit'] = 100;
-            request['side'] = this.safeInteger (params, 'side', 0); // 0: All, 1: Sell, 2: Buy
         }
         let response = undefined;
-        if (defaultMethod === 'v1PerpetualPrivateGetPositionPending') {
-            response = await this.v1PerpetualPrivateGetPositionPending (this.extend (request, params));
+        if (defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
+            response = await this.v2PrivateGetFuturesPendingPosition (this.extend (request, params));
         } else {
-            response = await this.v1PerpetualPrivateGetPositionFinished (this.extend (request, params));
+            response = await this.v2PrivateGetFuturesFinishedPosition (this.extend (request, params));
         }
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "adl_sort": 3396,
-        //                 "adl_sort_val": "0.00007786",
-        //                 "amount": "0.0005",
-        //                 "amount_max": "0.0005",
-        //                 "amount_max_margin": "6.42101333333333333333",
-        //                 "bkr_price": "25684.05333333333333346175",
-        //                 "bkr_price_imply": "0.00000000000000000000",
-        //                 "close_left": "0.0005",
-        //                 "create_time": 1651294226.110899,
-        //                 "deal_all": "19.26000000000000000000",
-        //                 "deal_asset_fee": "0.00000000000000000000",
-        //                 "fee_asset": "",
-        //                 "finish_type": 1,
-        //                 "first_price": "38526.08",
-        //                 "insurance": "0.00000000000000000000",
-        //                 "latest_price": "38526.08",
-        //                 "leverage": "3",
-        //                 "liq_amount": "0.00000000000000000000",
-        //                 "liq_order_price": "0",
-        //                 "liq_order_time": 0,
-        //                 "liq_price": "25876.68373333333333346175",
-        //                 "liq_price_imply": "0.00000000000000000000",
-        //                 "liq_profit": "0.00000000000000000000",
-        //                 "liq_time": 0,
-        //                 "mainten_margin": "0.005",
-        //                 "mainten_margin_amount": "0.09631520000000000000",
-        //                 "maker_fee": "0.00000000000000000000",
-        //                 "margin_amount": "6.42101333333333333333",
+        //                 "position_id": 305891033,
         //                 "market": "BTCUSDT",
-        //                 "open_margin": "0.33333333333333333333",
-        //                 "open_margin_imply": "0.00000000000000000000",
-        //                 "open_price": "38526.08000000000000000000",
-        //                 "open_val": "19.26304000000000000000",
-        //                 "open_val_max": "19.26304000000000000000",
-        //                 "position_id": 65847227,
-        //                 "profit_clearing": "-0.00963152000000000000",
-        //                 "profit_real": "-0.00963152000000000000",
-        //                 "profit_unreal": "0.00",
-        //                 "side": 2,
-        //                 "stop_loss_price": "0.00000000000000000000",
-        //                 "stop_loss_type": 0,
-        //                 "sy s": 0,
-        //                 "take_profit_price": "0.00000000000000000000",
-        //                 "take_profit_type": 0,
-        //                 "taker_fee": "0.00000000000000000000",
-        //                 "total": 4661,
-        //                 "type": 1,
-        //                 "update_time": 1651294226.111196,
-        //                 "user_id": 3620173
-        //             },
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
+        //             }
         //         ],
-        //         "message": "OK"
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
+        //         }
         //     }
         //
-        const position = this.safeValue (response, 'data', []);
+        const position = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i], market));
@@ -4127,140 +4103,68 @@ export default class coinex extends Exchange {
 
     parsePosition (position, market: Market = undefined) {
         //
-        // fetchPosition
-        //
         //     {
-        //         "adl_sort": 3396,
-        //         "adl_sort_val": "0.00007786",
-        //         "amount": "0.0005",
-        //         "amount_max": "0.0005",
-        //         "amount_max_margin": "6.42101333333333333333",
-        //         "bkr_price": "25684.05333333333333346175",
-        //         "bkr_price_imply": "0.00000000000000000000",
-        //         "close_left": "0.0005",
-        //         "create_time": 1651294226.110899,
-        //         "deal_all": "19.26000000000000000000",
-        //         "deal_asset_fee": "0.00000000000000000000",
-        //         "fee_asset": "",
-        //         "finish_type": 1,
-        //         "first_price": "38526.08",
-        //         "insurance": "0.00000000000000000000",
-        //         "latest_price": "38526.08",
-        //         "leverage": "3",
-        //         "liq_amount": "0.00000000000000000000",
-        //         "liq_order_price": "0",
-        //         "liq_order_time": 0,
-        //         "liq_price": "25876.68373333333333346175",
-        //         "liq_price_imply": "0.00000000000000000000",
-        //         "liq_profit": "0.00000000000000000000",
-        //         "liq_time": 0,
-        //         "mainten_margin": "0.005",
-        //         "mainten_margin_amount": "0.09631520000000000000",
-        //         "maker_fee": "0.00000000000000000000",
-        //         "margin_amount": "6.42101333333333333333",
+        //         "position_id": 305891033,
         //         "market": "BTCUSDT",
-        //         "open_margin": "0.33333333333333333333",
-        //         "open_margin_imply": "0.00000000000000000000",
-        //         "open_price": "38526.08000000000000000000",
-        //         "open_val": "19.26304000000000000000",
-        //         "open_val_max": "19.26304000000000000000",
-        //         "position_id": 65847227,
-        //         "profit_clearing": "-0.00963152000000000000",
-        //         "profit_real": "-0.00963152000000000000",
-        //         "profit_unreal": "0.00",
-        //         "side": 2,
-        //         "stop_loss_price": "0.00000000000000000000",
-        //         "stop_loss_type": 0,
-        //         "s ys": 0,
-        //         "take_profit_price": "0.00000000000000000000",
-        //         "take_profit_type": 0,
-        //         "taker_fee": "0.00000000000000000000",
-        //         "total": 4661,
-        //         "type": 1,
-        //         "update_time": 1651294226.111196,
-        //         "user_id": 3620173
+        //         "market_type": "FUTURES",
+        //         "side": "long",
+        //         "margin_mode": "cross",
+        //         "open_interest": "0.0001",
+        //         "close_avbl": "0.0001",
+        //         "ath_position_amount": "0.0001",
+        //         "unrealized_pnl": "0",
+        //         "realized_pnl": "-0.00311684",
+        //         "avg_entry_price": "62336.8",
+        //         "cml_position_value": "6.23368",
+        //         "max_position_value": "6.23368",
+        //         "created_at": 1715152208041,
+        //         "updated_at": 1715152208041,
+        //         "take_profit_price": "0",
+        //         "stop_loss_price": "0",
+        //         "take_profit_type": "",
+        //         "stop_loss_type": "",
+        //         "settle_price": "62336.8",
+        //         "settle_value": "6.23368",
+        //         "leverage": "3",
+        //         "margin_avbl": "2.07789333",
+        //         "ath_margin_size": "2.07789333",
+        //         "position_margin_rate": "2.40545879023305655728",
+        //         "maintenance_margin_rate": "0.005",
+        //         "maintenance_margin_value": "0.03118094",
+        //         "liq_price": "0",
+        //         "bkr_price": "0",
+        //         "adl_level": 1
         //     }
-        //
-        //
-        // fetchPositionHistory
-        //
-        //    {
-        //        amount_max: '10',
-        //        amount_max_margin: '2.03466666666666666666',
-        //        bkr_price: '0',
-        //        create_time: '1711150526.2581',
-        //        deal_all: '12.591',
-        //        deal_asset_fee: '0',
-        //        fee_asset: '',
-        //        finish_type: '5',
-        //        first_price: '0.6104',
-        //        latest_price: '0.6487',
-        //        leverage: '3',
-        //        liq_amount: '0',
-        //        liq_price: '0',
-        //        liq_profit: '0',
-        //        mainten_margin: '0.01',
-        //        market: 'XRPUSDT',
-        //        market_type: '1',
-        //        open_price: '0.6104',
-        //        open_val_max: '6.104',
-        //        position_id: '297371462',
-        //        profit_real: '0.35702107169',
-        //        settle_price: '0.6104',
-        //        settle_val: '0',
-        //        side: '2',
-        //        s ys: "0",
-        //        type: '2',
-        //        update_time: '1711391446.133233',
-        //        user_id: '3685860'
-        //    }
         //
         const marketId = this.safeString (position, 'market');
         market = this.safeMarket (marketId, market, undefined, 'swap');
-        const symbol = market['symbol'];
-        const positionId = this.safeInteger (position, 'position_id');
-        const marginModeInteger = this.safeInteger (position, 'type');
-        const marginMode = (marginModeInteger === 1) ? 'isolated' : 'cross';
-        const liquidationPrice = this.safeString (position, 'liq_price');
-        const entryPrice = this.safeString (position, 'open_price');
-        const unrealizedPnl = this.safeString (position, 'profit_unreal');
-        const contracts = this.safeNumber (position, 'amount');
-        const sideInteger = this.safeInteger (position, 'side');
-        const side = (sideInteger === 1) ? 'short' : 'long';
-        const timestamp = this.safeTimestamp (position, 'update_time');
-        const maintenanceMargin = this.safeString (position, 'mainten_margin_amount');
-        const maintenanceMarginPercentage = this.safeString (position, 'mainten_margin');
-        const collateral = this.safeString2 (position, 'margin_amount', 'amount_max_margin');
-        const leverage = this.safeString (position, 'leverage');
-        const notional = this.safeString (position, 'open_val');
-        const initialMargin = Precise.stringDiv (notional, leverage);
-        const initialMarginPercentage = Precise.stringDiv ('1', leverage);
+        const timestamp = this.safeInteger (position, 'created_at');
         return this.safePosition ({
             'info': position,
-            'id': positionId,
-            'symbol': symbol,
-            'notional': this.parseNumber (notional),
-            'marginMode': marginMode,
-            'liquidationPrice': liquidationPrice,
-            'entryPrice': this.parseNumber (entryPrice),
-            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'id': this.safeInteger (position, 'position_id'),
+            'symbol': market['symbol'],
+            'notional': this.safeNumber (position, 'settle_value'),
+            'marginMode': this.safeString (position, 'margin_mode'),
+            'liquidationPrice': this.safeNumber (position, 'liq_price'),
+            'entryPrice': this.safeNumber (position, 'avg_entry_price'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
             'percentage': undefined,
-            'contracts': contracts,
+            'contracts': this.safeNumber (position, 'close_avbl'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'markPrice': undefined,
             'lastPrice': undefined,
-            'side': side,
+            'side': this.safeString (position, 'side'),
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': undefined,
-            'maintenanceMargin': this.parseNumber (maintenanceMargin),
-            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
-            'collateral': this.parseNumber (collateral),
-            'initialMargin': this.parseNumber (initialMargin),
-            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
-            'leverage': this.parseNumber (leverage),
-            'marginRatio': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'updated_at'),
+            'maintenanceMargin': this.safeNumber (position, 'maintenance_margin_value'),
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintenance_margin_rate'),
+            'collateral': this.safeNumber (position, 'margin_avbl'),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'marginRatio': this.safeNumber (position, 'position_margin_rate'),
             'stopLossPrice': this.omitZero (this.safeString (position, 'stop_loss_price')),
             'takeProfitPrice': this.omitZero (this.safeString (position, 'take_profit_price')),
         });
