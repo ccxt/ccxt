@@ -3766,10 +3766,6 @@ export default class coinex extends Exchange {
         let response = undefined;
         if (market['swap']) {
             request['market_type'] = 'FUTURES';
-            const side = this.safeString (params, 'side');
-            if (side === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a side parameter');
-            }
             response = await this.v2PrivateGetFuturesUserDeals (this.extend (request, params));
             //
             //     {

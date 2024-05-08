@@ -33,6 +33,14 @@
                 ]
             },
             {
+              "description": "swap trades",
+              "method": "fetchMyTrades",
+              "url": "https://api.coinex.com/v2/futures/user-deals?market=LTCUSDT&market_type=FUTURES",
+              "input": [
+                "LTC/USDT:USDT"
+              ]
+            },
+            {
                 "description": "Swap fetch my trades",
                 "method": "fetchMyTrades",
                 "url": "https://api.coinex.com/v2/futures/user-deals?limit=1&market=BTCUSDT&market_type=FUTURES&side=buy",
