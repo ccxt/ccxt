@@ -17,7 +17,7 @@ export default class woofipro extends woofiproRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -77,7 +77,14 @@ export default class woofipro extends woofiproRest {
     }
 
     async watchPublic (messageHash, message) {
-        const url = this.urls['api']['ws']['public'] + '/' + this.accountId;
+        // let id = 'bf6eb263984c964a0cda3e9a35aa486268eea085d9b90fe792c8f9ad7e129a2c';
+        let id = undefined;
+        if (this.accountId !== undefined) {
+            id = this.accountId;
+        } else {
+            throw new AuthenticationError (this.id + ' watchPublic requires this.accountId to be set'); // tmp until we find a valid public ID
+        }
+        const url = this.urls['api']['ws']['public'] + '/' + id;
         const requestId = this.requestId (url);
         const subscribe = {
             'id': requestId,
@@ -441,17 +448,57 @@ export default class woofipro extends woofiproRest {
         //         "size":300,
         //         "side":"BUY",
         //     }
+        // private stream
+        //     {
+        //         symbol: 'PERP_XRP_USDC',
+        //         clientOrderId: '',
+        //         orderId: 1167632251,
+        //         type: 'MARKET',
+        //         side: 'BUY',
+        //         quantity: 20,
+        //         price: 0,
+        //         tradeId: '1715179456664012',
+        //         executedPrice: 0.5276,
+        //         executedQuantity: 20,
+        //         fee: 0.006332,
+        //         feeAsset: 'USDC',
+        //         totalExecutedQuantity: 20,
+        //         avgPrice: 0.5276,
+        //         averageExecutedPrice: 0.5276,
+        //         status: 'FILLED',
+        //         reason: '',
+        //         totalFee: 0.006332,
+        //         visible: 0,
+        //         visibleQuantity: 0,
+        //         timestamp: 1715179456660,
+        //         orderTag: 'CCXT',
+        //         createdTime: 1715179456656,
+        //         maker: false
+        //     }
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'size');
+        const price = this.safeString2 (trade, 'executedPrice', 'price');
+        const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
+        let takerOrMaker = undefined;
+        const maker = this.safeBool (trade, 'maker');
+        if (maker !== undefined) {
+            takerOrMaker = maker ? 'maker' : 'taker';
+        }
+        let fee = undefined;
+        const feeValue = this.safeString (trade, 'fee');
+        if (feeValue !== undefined) {
+            fee = {
+                'cost': feeValue,
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeAsset')),
+            };
+        }
         return this.safeTrade ({
-            'id': undefined,
+            'id': this.safeString (trade, 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -459,10 +506,10 @@ export default class woofipro extends woofiproRest {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'order': undefined,
-            'takerOrMaker': undefined,
-            'type': undefined,
-            'fee': undefined,
+            'order': this.safeString (trade, 'orderId'),
+            'takerOrMaker': takerOrMaker,
+            'type': this.safeStringLower (trade, 'type'),
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -544,7 +591,7 @@ export default class woofipro extends woofiproRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.trigger] true if trogger order
+         * @param {bool} [params.trigger] true if trigger order
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -552,6 +599,41 @@ export default class woofipro extends woofiproRest {
         const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
         params = this.omit (params, 'stop');
         let messageHash = topic;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        const orders = await this.watchPrivate (messageHash, message);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name woofipro#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
+        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
+        params = this.omit (params, 'stop');
+        let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
@@ -724,10 +806,18 @@ export default class woofipro extends woofiproRest {
             // algoexecutionreport
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
+                const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+                if (tradeId !== undefined) {
+                    this.handleMyTrade (client, message);
+                }
                 this.handleOrder (client, order, topic);
             }
         } else {
             // executionreport
+            const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+            if (tradeId !== undefined) {
+                this.handleMyTrade (client, message);
+            }
             this.handleOrder (client, data, topic);
         }
     }
@@ -762,6 +852,52 @@ export default class woofipro extends woofiproRest {
             const messageHashSymbol = topic + ':' + symbol;
             client.resolve (this.orders, messageHashSymbol);
         }
+    }
+
+    handleMyTrade (client: Client, message) {
+        //
+        // {
+        //     symbol: 'PERP_XRP_USDC',
+        //     clientOrderId: '',
+        //     orderId: 1167632251,
+        //     type: 'MARKET',
+        //     side: 'BUY',
+        //     quantity: 20,
+        //     price: 0,
+        //     tradeId: '1715179456664012',
+        //     executedPrice: 0.5276,
+        //     executedQuantity: 20,
+        //     fee: 0.006332,
+        //     feeAsset: 'USDC',
+        //     totalExecutedQuantity: 20,
+        //     avgPrice: 0.5276,
+        //     averageExecutedPrice: 0.5276,
+        //     status: 'FILLED',
+        //     reason: '',
+        //     totalFee: 0.006332,
+        //     visible: 0,
+        //     visibleQuantity: 0,
+        //     timestamp: 1715179456660,
+        //     orderTag: 'CCXT',
+        //     createdTime: 1715179456656,
+        //     maker: false
+        // }
+        //
+        const messageHash = 'myTrades';
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const trade = this.parseWsTrade (message, market);
+        let trades = this.myTrades;
+        if (trades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            trades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = trades;
+        }
+        trades.append (trade);
+        client.resolve (trades, messageHash);
+        const symbolSpecificMessageHash = messageHash + ':' + symbol;
+        client.resolve (trades, symbolSpecificMessageHash);
     }
 
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
