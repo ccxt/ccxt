@@ -1,7 +1,7 @@
 
 const RUNSTEP = process.env.RUNSTEP; 
 const build_ID = process.env.TRAVIS_BUILD_ID;
-const remote_server = 'http://5.75.153.75:8090/travis-status/index.php?';
+const remote_server = 'http://5.75.153.75:8091/index.php?';
 
 function url (action, build_id, lang, status='') {
     if (!['read', 'write'].includes(action)) {
