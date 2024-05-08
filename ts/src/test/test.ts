@@ -1376,6 +1376,17 @@ export default class testMainClass extends baseMainTestClass {
 
     async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: Str = undefined) {
         const exchange = this.initOfflineExchange (exchangeName);
+        // read apiKey/secret from the test file
+        const apiKey = exchange.safeString (exchangeData, 'apiKey');
+        if (apiKey) {
+            // c# to string requirement
+            exchange.apiKey = apiKey.toString ();
+        }
+        const secret = exchange.safeString (exchangeData, 'secret');
+        if (secret) {
+            // c# to string requirement
+            exchange.secret = secret.toString ();
+        }
         const methods = exchange.safeValue (exchangeData, 'methods', {});
         const options = exchange.safeValue (exchangeData, 'options', {});
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
