@@ -1513,7 +1513,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testBlofin (),
             this.testHyperliquid (),
             this.testCoinbaseinternational (),
-            this.testCoinbaseAdvanced ()
+            this.testCoinbaseAdvanced (),
+            this.testWoofiPro ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1864,6 +1865,22 @@ export default class testMainClass extends baseMainTestClass {
         }
         const clientOrderId = request['client_order_id'];
         assert (clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
+        await close (exchange);
+        return true;
+    }
+
+    async testWoofiPro () {
+        const exchange = this.initOfflineExchange ('woofipro');
+        const id = 'CCXT';
+        await exchange.loadMarkets ();
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = exchange.last_request_body;
+        }
+        const brokerId = request['order_tag'];
+        assert (brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
         await close (exchange);
         return true;
     }
