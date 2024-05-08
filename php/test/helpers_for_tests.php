@@ -65,7 +65,7 @@ function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
 
-define('is_synchronous', stripos(__FILE__, '_async') === false);
+define('is_synchronous', get_cli_arg_value('--sync'));
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('LOG_CHARS_LENGTH', 1000000); // no need to trim

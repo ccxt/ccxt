@@ -49,7 +49,7 @@ class Argv(object):
     exchange = None
     symbol = None
     info = False
-    is_sync = False
+    sync = False
     baseTests = False
     exchangeTests = False
     pass
@@ -69,7 +69,7 @@ parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
 parser.add_argument('--requestTests', action='store_true', help='run response tests')
-parser.add_argument('--is_sync', action='store_true', help='is sync')
+parser.add_argument('--sync', action='store_true', help='is sync')
 parser.add_argument('--baseTests', action='store_true', help='is base tests')
 parser.add_argument('--exchangeTests', action='store_true', help='is exchange tests')
 parser.add_argument('--nonce', type=int, help='integer')
@@ -105,7 +105,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # non-transpiled part, but shared names among langs
 
-is_synchronous = argv.is_sync # 'async' not in os.path.basename(__file__)
+is_synchronous = argv.sync # 'async' not in os.path.basename(__file__)
 
 rootDir = DIR_NAME + '/../../../'
 rootDirForSkips = DIR_NAME + '/../../../'
