@@ -1,5 +1,7 @@
 <?php
 
+namespace ccxt;
+
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use ccxt\ProxyError;

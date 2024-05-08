@@ -2421,7 +2421,7 @@ class Transpiler {
                     exceptions += `use ccxt\\${eType};\n`;
                 }
             }
-            let newContent = '<?php\n\n' + exceptions + '\nrequire_once __DIR__ . \'/helpers_for_tests.php\';\n\n';
+            let newContent = '<?php\n\nnamespace ccxt;\n\n' + exceptions + '\nrequire_once __DIR__ . \'/helpers_for_tests.php\';\n\n';
             newContent += cont;
             newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
             newContent = snakeCaseFunctions (newContent);
