@@ -271,13 +271,13 @@ const testExchange = async (exchange) => {
         args.push ('--info')
     }
     let allTests = [
-        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/test.js',                     ...args] },
-        { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/test_async.py',          ...args] },
-        { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/test_async.php',                 ...args] },
+        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests_init.js',                     ...args] },
+        { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
+        { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/tests_init.php',                 ...args] },
         { key: '--csharp',       language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
-        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/test.ts',      ...args] },
-        { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/test_sync.py',           ...args] },
-        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/test_sync.php',                  ...args] },
+        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests_init.ts',      ...args] },
+        { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',           ...args] },
+        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php',                  ...args] },
     ];
 
     // select tests based on cli arguments

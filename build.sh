@@ -209,7 +209,7 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
   npm run request-py -- $exchange
-  php php/test/test_async.php $exchange --requestTests
+  npm run request-php -- $exchange
   npm run request-cs -- $exchange
 done
 
@@ -217,7 +217,7 @@ done
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
   npm run response-py -- $exchange
-  php php/test/test_async.php $exchange --responseTests
+  npm run response-php -- $exchange
   npm run response-cs -- $exchange
 done
 
