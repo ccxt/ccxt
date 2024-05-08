@@ -7007,7 +7007,7 @@ export default class bitget extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         return {
             'info': leverage,
             'symbol': market['symbol'],
