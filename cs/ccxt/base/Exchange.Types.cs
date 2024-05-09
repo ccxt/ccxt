@@ -1783,3 +1783,42 @@ public struct OptionChain
         }
     }
 }
+
+public struct TransferEntries
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, TransferEntry> transferEntries;
+
+    public TransferEntries(object transferEntries2)
+    {
+        var transferEntries = (Dictionary<string, object>)transferEntries2;
+
+        info = transferEntries.ContainsKey("info") ? (Dictionary<string, object>)transferEntries["info"] : null;
+        this.transferEntries = new Dictionary<string, TransferEntry>();
+        foreach (var transferEntry in transferEntries)
+        {
+            if (transferEntry.Key != "info")
+                this.transferEntries.Add(transferEntry.Key, new TransferEntry(transferEntry.Value));
+        }
+    }
+
+    // Indexer
+    public TransferEntry this[string key]
+    {
+        get
+        {
+            if (transferEntries.ContainsKey(key))
+            {
+                return transferEntries[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the transferEntries.");
+            }
+        }
+        set
+        {
+            transferEntries[key] = value;
+        }
+    }
+}
