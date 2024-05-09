@@ -44,7 +44,7 @@ import {
     setFetchResponse,
     isNullValue,
     close,
-} from './../test-helper-methods.js';
+} from './helpers_for_tests.js';
 
 import testBaseFunctionsExtend from './base/functions_auto/test.extend.js';
 //

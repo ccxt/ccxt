@@ -40,7 +40,7 @@ import {
     setFetchResponse,
     isNullValue,
     close,
-} from './test-helper-methods.js';
+} from './helpers_for_tests.js';
 
 
 class testMainClass extends baseMainTestClass {

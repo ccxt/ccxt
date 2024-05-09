@@ -3,8 +3,7 @@
 import asyncio
 
 
-
-from helpers_for_tests import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, ProxyError, get_exchange_prop, close  # noqa: F401
+from helpers_for_tests import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, ProxyError, get_exchange_prop, close, json_parse, json_stringify, is_null_value, io_dir_read, convert_ascii, call_exchange_method_dynamically, set_fetch_response  # noqa: F401
 
 class testMainClass(baseMainTestClass):
     def parse_cli_args(self):

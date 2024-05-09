@@ -44,7 +44,7 @@ import {
     argvExchange,
     argvSymbol,
     argvMethod,
-} from './test-helper-methods.js';
+} from './helpers_for_tests.js';
 
 // *********************************
 import BaseFunctionalitiesTestClass from './base_auto.js';
