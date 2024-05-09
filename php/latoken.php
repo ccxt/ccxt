@@ -53,7 +53,13 @@ class latoken extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -394,7 +400,7 @@ class latoken extends Exchange {
         return $this->safe_value($this->options['fetchCurrencies'], 'response');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -581,7 +587,7 @@ class latoken extends Exchange {
         return $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'price', 'quantity');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
@@ -1519,7 +1525,7 @@ class latoken extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers made on an account
          * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
@@ -1620,7 +1626,7 @@ class latoken extends Exchange {
         return $this->parse_transfer($response);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -1659,7 +1665,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'TRANSFER_STATUS_COMPLETED' => 'ok',
             'TRANSFER_STATUS_PENDING' => 'pending',

@@ -86,6 +86,7 @@ class phemex extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
                 'setMarginMode' => true,
@@ -1312,7 +1313,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot
         //
@@ -2390,7 +2391,7 @@ class phemex extends Exchange {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->omit_zero($this->safe_number_2($order, 'stopPx', 'stopPxRp'));
+        $stopPrice = $this->omit_zero($this->safe_string_2($order, 'stopPx', 'stopPxRp'));
         $postOnly = ($timeInForce === 'PO');
         $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $execInst = $this->safe_string($order, 'execInst');
@@ -2854,11 +2855,16 @@ class phemex extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, 'stop', 'trigger');
             $request = array(
                 'symbol' => $market['id'],
                 // 'untriggerred' => false, // false to cancel non-conditional orders, true to cancel conditional orders
                 // 'text' => 'up to 40 characters max',
             );
+            if ($stop) {
+                $request['untriggerred'] = $stop;
+            }
             $response = null;
             if ($market['settle'] === 'USDT') {
                 $response = Async\await($this->privateDeleteGOrdersAll (array_merge($request, $params)));
@@ -4042,6 +4048,7 @@ class phemex extends Exchange {
             'info' => $data,
             'symbol' => $this->safe_symbol(null, $market),
             'type' => 'set',
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => $market[$codeCurrency],
@@ -4428,7 +4435,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
@@ -4479,7 +4486,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -4535,7 +4542,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '3' => 'rejected', // 'Rejected',
             '6' => 'canceled', // 'Got error and wait for recovery',
@@ -4629,7 +4636,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

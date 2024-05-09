@@ -194,6 +194,7 @@ public partial class okx
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -205,6 +206,12 @@ public partial class okx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.depth</term>
+    /// <description>
+    /// string : okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
     /// </description>
     /// </item>
     /// </list>
@@ -220,6 +227,7 @@ public partial class okx
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -231,6 +239,12 @@ public partial class okx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.depth</term>
+    /// <description>
+    /// string : okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
     /// </description>
     /// </item>
     /// </list>

@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Transaction, Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees } from './base/types.js';
+import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -67,8 +67,11 @@ export default class yobit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -512,7 +515,7 @@ export default class yobit extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "high": 0.03497582,
@@ -1222,7 +1225,7 @@ export default class yobit extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name yobit#withdraw

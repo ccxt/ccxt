@@ -85,7 +85,11 @@ class bitteam extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -408,7 +412,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
@@ -1503,7 +1507,7 @@ class bitteam extends Exchange {
         return $this->parse_ticker($pair, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //     {

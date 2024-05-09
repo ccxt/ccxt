@@ -8,13 +8,13 @@ from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NetworkError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -96,6 +96,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -526,19 +527,19 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, response, symbols: Strings = None, params={}):
+    def parse_tickers(self, tickers, symbols: Strings = None, params={}) -> Tickers:
         result = {}
-        keys = list(response.keys())
+        keys = list(tickers.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            ticker = response[key]
+            ticker = tickers[key]
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
             result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -1609,7 +1610,7 @@ class hollaex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://apidocs.hollaex.com/#withdrawal

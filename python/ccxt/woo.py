@@ -6,16 +6,17 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -41,10 +42,12 @@ class woo(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createConvertTrade': True,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': False,
@@ -66,6 +69,10 @@ class woo(Exchange, ImplicitAPI):
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': True,
+                'fetchConvertCurrencies': True,
+                'fetchConvertQuote': True,
+                'fetchConvertTrade': True,
+                'fetchConvertTradeHistory': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -77,6 +84,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLeverage': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -90,8 +98,10 @@ class woo(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': False,
@@ -104,6 +114,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setPositionMode': True,
@@ -202,6 +213,7 @@ class woo(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
+                            'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/ltv': 30,
                             'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -390,6 +402,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for woo
+        :see: https://docs.woo.org/#exchange-information
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -502,6 +515,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://docs.woo.org/#market-trades-public
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -676,6 +690,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
+        :see: https://docs.woo.org/#available-token-public
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -823,6 +838,7 @@ class woo(Exchange, ImplicitAPI):
     def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+        :see: https://docs.woo.org/#send-algo-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -844,6 +860,7 @@ class woo(Exchange, ImplicitAPI):
     def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+        :see: https://docs.woo.org/#send-algo-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1197,6 +1214,31 @@ class woo(Exchange, ImplicitAPI):
         #
         return response
 
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://docs.woo.org/#cancel-all-after
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param boolean activated: countdown
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        self.load_markets()
+        request: dict = {
+            'trigger_after': timeout if (timeout > 0) else 0,
+        }
+        response = self.v1PrivatePostOrderCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "expected_trigger_time": 1711534302938
+        #         },
+        #         "timestamp": 1711534302943
+        #     }
+        #
+        return response
+
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.woo.org/#get-algo-order
@@ -1519,6 +1561,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.woo.org/#orderbook-snapshot-public
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1644,6 +1687,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
+        :see: https://docs.woo.org/#get-trades
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1682,8 +1726,8 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.woo.org/#get-trades
         fetch all trades made by the user
+        :see: https://docs.woo.org/#get-trades
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1737,6 +1781,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
+        :see: https://docs.woo.org/#get-assets-of-subaccounts
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -1829,6 +1874,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://docs.woo.org/#get-token-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1860,7 +1906,7 @@ class woo(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> Any:
         self.load_markets()
         request = {}
         currency: Currency = None
@@ -1910,11 +1956,12 @@ class woo(Exchange, ImplicitAPI):
         #     "meta": {total: '1', records_per_page: "25", current_page: "1"},
         #     "success": True
         # }
-        return [currency, self.safe_value(response, 'rows', {})]
+        return [currency, self.safe_list(response, 'rows', [])]
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :see: https://docs.woo.org/#get-asset-history
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
@@ -1974,6 +2021,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+        :see: https://docs.woo.org/#get-asset-history
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1988,6 +2036,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+        :see: https://docs.woo.org/#get-asset-history
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -2002,6 +2051,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
+        :see: https://docs.woo.org/#get-asset-history
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -2072,8 +2122,8 @@ class woo(Exchange, ImplicitAPI):
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
-        :see: https://docs.woo.org/#get-transfer-history
         transfer currency internally between wallets on the same account
+        :see: https://docs.woo.org/#get-transfer-history
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2105,7 +2155,7 @@ class woo(Exchange, ImplicitAPI):
             transfer['toAccount'] = toAccount
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.woo.org/#get-transfer-history
@@ -2121,8 +2171,8 @@ class woo(Exchange, ImplicitAPI):
             request['size'] = limit
         if since is not None:
             request['start_t'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
+        params = self.omit(params, ['until'])
         if until is not None:
             request['end_t'] = until
         response = self.v1PrivateGetAssetMainSubTransferHistory(self.extend(request, params))
@@ -2153,7 +2203,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'rows', [])
         return self.parse_transfers(data, None, since, limit, params)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    fetchTransfers
         #     {
@@ -2195,7 +2245,7 @@ class woo(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2205,9 +2255,10 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://docs.woo.org/#token-withdraw
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2779,6 +2830,269 @@ class woo(Exchange, ImplicitAPI):
             'stopLossPrice': None,
             'takeProfitPrice': None,
         })
+
+    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        fetch a quote for converting from one currency to another
+        :see: https://docs.woo.org/#get-quote-rfq
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {
+            'sellToken': fromCode.upper(),
+            'buyToken': toCode.upper(),
+            'sellQuantity': self.number_to_string(amount),
+        }
+        response = self.v3PrivateGetConvertRfq(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "quoteId": 123123123,
+        #             "counterPartyId": "",
+        #             "sellToken": "ETH",
+        #             "sellQuantity": "0.0445",
+        #             "buyToken": "USDT",
+        #             "buyQuantity": "33.45",
+        #             "buyPrice": "6.77",
+        #             "expireTimestamp": 1659084466000,
+        #             "message": 1659084466000
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        fromCurrencyId = self.safe_string(data, 'sellToken', fromCode)
+        fromCurrency = self.currency(fromCurrencyId)
+        toCurrencyId = self.safe_string(data, 'buyToken', toCode)
+        toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(data, fromCurrency, toCurrency)
+
+    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://docs.woo.org/#send-quote-rft
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {
+            'quoteId': id,
+        }
+        response = self.v3PrivatePostConvertRft(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "quoteId": 123123123,
+        #             "counterPartyId": "",
+        #             "rftAccepted": 1  # 1 -> success; 2 -> processing; 3 -> fail
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_conversion(data)
+
+    def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
+        """
+        fetch the data for a conversion trade
+        :see: https://docs.woo.org/#get-quote-trade
+        :param str id: the id of the trade that you want to fetch
+        :param str [code]: the unified currency code of the conversion trade
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {
+            'quoteId': id,
+        }
+        response = self.v3PrivateGetConvertTrade(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "quoteId": 12,
+        #             "buyAsset": "",
+        #             "sellAsset": "",
+        #             "buyAmount": 12.11,
+        #             "sellAmount": 12.11,
+        #             "tradeStatus": 12,
+        #             "createdTime": ""
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        fromCurrencyId = self.safe_string(data, 'sellAsset')
+        toCurrencyId = self.safe_string(data, 'buyAsset')
+        fromCurrency = None
+        toCurrency = None
+        if fromCurrencyId is not None:
+            fromCurrency = self.currency(fromCurrencyId)
+        if toCurrencyId is not None:
+            toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(data, fromCurrency, toCurrency)
+
+    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+        """
+        fetch the users history of conversion trades
+        :see: https://docs.woo.org/#get-quote-trades
+        :param str [code]: the unified currency code
+        :param int [since]: the earliest time in ms to fetch conversions for
+        :param int [limit]: the maximum number of conversion structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest conversion to fetch
+        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        self.load_markets()
+        request = {}
+        request, params = self.handle_until_option('endTime', request, params)
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = self.v3PrivateGetConvertTrades(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "count": 12,
+        #             "tradeVos":[
+        #                 {
+        #                     "quoteId": 12,
+        #                     "buyAsset": "",
+        #                     "sellAsset": "",
+        #                     "buyAmount": 12.11,
+        #                     "sellAmount": 12.11,
+        #                     "tradeStatus": 12,
+        #                     "createdTime": ""
+        #                 }
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'tradeVos', [])
+        return self.parse_conversions(rows, code, 'sellAsset', 'buyAsset', since, limit)
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # fetchConvertQuote
+        #
+        #     {
+        #         "quoteId": 123123123,
+        #         "counterPartyId": "",
+        #         "sellToken": "ETH",
+        #         "sellQuantity": "0.0445",
+        #         "buyToken": "USDT",
+        #         "buyQuantity": "33.45",
+        #         "buyPrice": "6.77",
+        #         "expireTimestamp": 1659084466000,
+        #         "message": 1659084466000
+        #     }
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "quoteId": 123123123,
+        #         "counterPartyId": "",
+        #         "rftAccepted": 1  # 1 -> success; 2 -> processing; 3 -> fail
+        #     }
+        #
+        # fetchConvertTrade, fetchConvertTradeHistory
+        #
+        #     {
+        #         "quoteId": 12,
+        #         "buyAsset": "",
+        #         "sellAsset": "",
+        #         "buyAmount": 12.11,
+        #         "sellAmount": 12.11,
+        #         "tradeStatus": 12,
+        #         "createdTime": ""
+        #     }
+        #
+        timestamp = self.safe_integer_2(conversion, 'expireTimestamp', 'createdTime')
+        fromCurr = self.safe_string_2(conversion, 'sellToken', 'buyAsset')
+        fromCode = self.safe_currency_code(fromCurr, fromCurrency)
+        to = self.safe_string_2(conversion, 'buyToken', 'sellAsset')
+        toCode = self.safe_currency_code(to, toCurrency)
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(conversion, 'quoteId'),
+            'fromCurrency': fromCode,
+            'fromAmount': self.safe_number_2(conversion, 'sellQuantity', 'sellAmount'),
+            'toCurrency': toCode,
+            'toAmount': self.safe_number_2(conversion, 'buyQuantity', 'buyAmount'),
+            'price': self.safe_number(conversion, 'buyPrice'),
+            'fee': None,
+        }
+
+    def fetch_convert_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies that can be converted
+        :see: https://docs.woo.org/#get-quote-asset-info
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        self.load_markets()
+        response = self.v3PrivateGetConvertAssetInfo(params)
+        #
+        #     {
+        #         "success": True,
+        #         "rows": [
+        #             {
+        #                 "token": "BTC",
+        #                 "tick": 0.0001,
+        #                 "createdTime": "1575014248.99",  # Unix epoch time in seconds
+        #                 "updatedTime": "1575014248.99"  # Unix epoch time in seconds
+        #             },
+        #         ]
+        #     }
+        #
+        result = {}
+        data = self.safe_list(response, 'rows', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            id = self.safe_string(entry, 'token')
+            code = self.safe_currency_code(id)
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': None,
+                'type': None,
+                'name': None,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': self.safe_number(entry, 'tick'),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'created': self.safe_timestamp(entry, 'createdTime'),
+            }
+        return result
 
     def default_network_code_for_currency(self, code):
         currencyItem = self.currency(code)

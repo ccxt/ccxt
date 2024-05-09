@@ -5,7 +5,7 @@ import { Hex } from '../../static_dependencies/noble-curves/abstract/utils.js';
 declare type Digest = 'binary' | 'hex' | 'base64';
 declare const hash: (request: Input, hash: CHash, digest?: Digest) => any;
 declare const hmac: (request: Input, secret: Input, hash: CHash, digest?: Digest) => any;
-declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHash): {
+declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHash, fixedLength?: boolean): {
     r: string;
     s: string;
     v: number;

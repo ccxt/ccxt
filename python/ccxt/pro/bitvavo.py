@@ -10,8 +10,8 @@ from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, Ord
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class bitvavo(ccxt.async_support.bitvavo):
@@ -559,7 +559,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         await self.load_markets()
         await self.authenticate()
-        request = self.cancelOrderRequest(id, symbol, params)
+        request = self.cancel_order_request(id, symbol, params)
         return await self.watch_request('privateCancelOrder', request)
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):

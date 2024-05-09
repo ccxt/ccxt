@@ -2974,7 +2974,7 @@ public partial class bitrue : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -3119,7 +3119,7 @@ public partial class bitrue : Exchange
         return response;
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // setMargin
@@ -3134,6 +3134,7 @@ public partial class bitrue : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", null },

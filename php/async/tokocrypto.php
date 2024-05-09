@@ -8,12 +8,12 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\tokocrypto as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\MarginModeAlreadySet;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -1105,7 +1105,7 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -2361,7 +2361,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://www.tokocrypto.com/apidocs/#withdraw-signed

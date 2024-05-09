@@ -81,6 +81,7 @@ public partial class ascendex : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", true },
                 { "setPositionMode", false },
@@ -344,7 +345,7 @@ public partial class ascendex : Exchange
                     { "300013", typeof(InvalidOrder) },
                     { "300014", typeof(InvalidOrder) },
                     { "300020", typeof(InvalidOrder) },
-                    { "300021", typeof(InvalidOrder) },
+                    { "300021", typeof(AccountSuspended) },
                     { "300031", typeof(InvalidOrder) },
                     { "310001", typeof(InsufficientFunds) },
                     { "310002", typeof(InvalidOrder) },
@@ -3037,7 +3038,7 @@ public partial class ascendex : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // addMargin/reduceMargin
@@ -3052,6 +3053,7 @@ public partial class ascendex : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, "quote") },
@@ -3365,7 +3367,6 @@ public partial class ascendex : Exchange
         object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3375,7 +3376,7 @@ public partial class ascendex : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "asset", getValue(currency, "id") },
             { "fromAccount", fromId },
             { "toAccount", toId },
@@ -3402,7 +3403,7 @@ public partial class ascendex : Exchange
         //
         //    { "code": "0" }
         //
-        object status = this.safeInteger(transfer, "code");
+        object status = this.safeString(transfer, "code");
         object currencyCode = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -3419,7 +3420,7 @@ public partial class ascendex : Exchange
 
     public virtual object parseTransferStatus(object status)
     {
-        if (isTrue(isEqual(status, 0)))
+        if (isTrue(isEqual(status, "0")))
         {
             return "ok";
         }

@@ -82,6 +82,7 @@ export default class phemex extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
@@ -2383,7 +2384,7 @@ export default class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
-        const stopPrice = this.omitZero(this.safeNumber2(order, 'stopPx', 'stopPxRp'));
+        const stopPrice = this.omitZero(this.safeString2(order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue(order, 'reduceOnly');
         const execInst = this.safeString(order, 'execInst');
@@ -2868,11 +2869,16 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
+        const stop = this.safeValue2(params, 'stop', 'trigger', false);
+        params = this.omit(params, 'stop', 'trigger');
         const request = {
             'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
+        if (stop) {
+            request['untriggerred'] = stop;
+        }
         let response = undefined;
         if (market['settle'] === 'USDT') {
             response = await this.privateDeleteGOrdersAll(this.extend(request, params));
@@ -4065,6 +4071,7 @@ export default class phemex extends Exchange {
             'info': data,
             'symbol': this.safeSymbol(undefined, market),
             'type': 'set',
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market[codeCurrency],

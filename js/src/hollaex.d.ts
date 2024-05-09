@@ -1,5 +1,5 @@
 import Exchange from './abstract/hollaex.js';
-import type { Balances, Currencies, Currency, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 /**
  * @class hollaex
  * @augments Exchange
@@ -12,8 +12,8 @@ export default class hollaex extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseTickers(response: any, symbols?: Strings, params?: {}): Dictionary<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTickers(tickers: any, symbols?: Strings, params?: {}): Tickers;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
@@ -39,12 +39,12 @@ export default class hollaex extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<Dictionary<any>>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {

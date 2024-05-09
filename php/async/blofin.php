@@ -195,6 +195,8 @@ class blofin extends Exchange {
                         'trade/orders-tpsl-pending' => 1,
                         'trade/orders-history' => 1,
                         'trade/orders-tpsl-history' => 1,
+                        'user/query-apikey' => 1,
+                        'affiliate/basic' => 1,
                     ),
                     'post' => array(
                         'trade/order' => 1,
@@ -493,7 +495,7 @@ class blofin extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
@@ -1780,7 +1782,7 @@ class blofin extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         $id = $this->safe_string($transfer, 'transferId');
         return array(
             'info' => $transfer,

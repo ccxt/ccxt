@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1133,7 +1133,7 @@ export default class bitmart extends Exchange {
         return this.parseDepositWithdrawFee (data) as any;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // spot (REST)
         //
@@ -2544,7 +2544,7 @@ export default class bitmart extends Exchange {
         } else if (isMarketOrder) {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
-                let notional = this.safeNumber2 (params, 'cost', 'notional');
+                let notional = this.safeString2 (params, 'cost', 'notional');
                 params = this.omit (params, 'cost');
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2554,10 +2554,10 @@ export default class bitmart extends Exchange {
                     } else {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
-                        notional = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        notional = Precise.stringMul (amountString, priceString);
                     }
                 } else {
-                    notional = (notional === undefined) ? amount : notional;
+                    notional = (notional === undefined) ? this.numberToString (amount) : notional;
                 }
                 request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
             } else if (side === 'sell') {
@@ -3154,7 +3154,7 @@ export default class bitmart extends Exchange {
         return this.networkIdToCode (networkId);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#withdraw
@@ -3569,7 +3569,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchIsolatedBorrowRate (symbol: string, params = {}) {
+    async fetchIsolatedBorrowRate (symbol: string, params = {}): Promise<IsolatedBorrowRate> {
         /**
          * @method
          * @name bitmart#fetchIsolatedBorrowRate
@@ -3623,7 +3623,7 @@ export default class bitmart extends Exchange {
         return this.parseIsolatedBorrowRate (borrowRate, market);
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined) {
+    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -3666,7 +3666,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchIsolatedBorrowRates (params = {}) {
+    async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
         /**
          * @method
          * @name bitmart#fetchIsolatedBorrowRates
@@ -3711,12 +3711,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = this.safeValue (symbols, i);
-            result.push (this.parseIsolatedBorrowRate (symbol));
-        }
-        return result;
+        return this.parseIsolatedBorrowRates (symbols);
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
@@ -3795,7 +3790,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             '1000': 'ok',
             'OK': 'ok',
@@ -3820,7 +3815,7 @@ export default class bitmart extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // margin
         //
@@ -3860,7 +3855,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         /**
          * @method
          * @name bitmart#fetchTransfers
@@ -3893,9 +3888,9 @@ export default class bitmart extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger (params, 'time_end', until); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'till', 'until' ]);
+        params = this.omit (params, [ 'until' ]);
         if (endTime !== undefined) {
             request['time_end'] = endTime;
         }

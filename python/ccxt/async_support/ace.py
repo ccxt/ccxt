@@ -7,11 +7,11 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
 from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -67,8 +67,13 @@ class ace(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -254,7 +259,7 @@ class ace(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "base_volume":229196.34035399999,

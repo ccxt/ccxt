@@ -1569,6 +1569,169 @@
                         23.66547
                     ]
                 ]
+            },
+            {
+                "description": "inverse index price",
+                "method": "fetchOHLCV",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1d",
+                  null,
+                  3,
+                  {
+                    "price": "index"
+                  }
+                ],
+                "httpResponse": [
+                  [
+                    1712534400000,
+                    "69362.49174406",
+                    "72740.01330078",
+                    "69076.81471239",
+                    "71625.41841177",
+                    "0",
+                    1712620799999,
+                    "0",
+                    86400,
+                    "0",
+                    "0",
+                    "0"
+                  ],
+                  [
+                    1712620800000,
+                    "71628.33407436",
+                    "71739.77815692",
+                    "68230.05238367",
+                    "69135.87773144",
+                    "0",
+                    1712707199999,
+                    "0",
+                    86400,
+                    "0",
+                    "0",
+                    "0"
+                  ],
+                  [
+                    1712707200000,
+                    "69136.23648785",
+                    "69565.97257021",
+                    "68482.85614772",
+                    "68921.79749600",
+                    "0",
+                    1712793599999,
+                    "0",
+                    31378,
+                    "0",
+                    "0",
+                    "0"
+                  ]
+                ],
+                "parsedResponse": [
+                  [
+                    1712534400000,
+                    69362.49174406,
+                    72740.01330078,
+                    69076.81471239,
+                    71625.41841177,
+                    0
+                  ],
+                  [
+                    1712620800000,
+                    71628.33407436,
+                    71739.77815692,
+                    68230.05238367,
+                    69135.87773144,
+                    0
+                  ],
+                  [
+                    1712707200000,
+                    69136.23648785,
+                    69565.97257021,
+                    68482.85614772,
+                    68921.797496,
+                    0
+                  ]
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  3
+                ],
+                "httpResponse": [
+                  [
+                    1712738460000,
+                    "71481.90",
+                    "71481.90",
+                    "71481.90",
+                    "71481.90",
+                    "0.002",
+                    1712738519999,
+                    "142.96380",
+                    1,
+                    "0.002",
+                    "142.96380",
+                    "0"
+                  ],
+                  [
+                    1712738520000,
+                    "71471.00",
+                    "71471.00",
+                    "70459.40",
+                    "70459.40",
+                    "0.120",
+                    1712738579999,
+                    "8518.17600",
+                    9,
+                    "0.061",
+                    "4359.72600",
+                    "0"
+                  ],
+                  [
+                    1712738580000,
+                    "71470.70",
+                    "71470.90",
+                    "70459.40",
+                    "70459.40",
+                    "1.542",
+                    1712738639999,
+                    "108661.55840",
+                    8,
+                    "0.013",
+                    "929.12130",
+                    "0"
+                  ]
+                ],
+                "parsedResponse": [
+                  [
+                    1712738460000,
+                    71481.9,
+                    71481.9,
+                    71481.9,
+                    71481.9,
+                    0.002
+                  ],
+                  [
+                    1712738520000,
+                    71471,
+                    71471,
+                    70459.4,
+                    70459.4,
+                    0.12
+                  ],
+                  [
+                    1712738580000,
+                    71470.7,
+                    71470.9,
+                    70459.4,
+                    70459.4,
+                    1.542
+                  ]
+                ]
             }
         ],
         "fetchOrderBook": [
@@ -2133,6 +2296,219 @@
                         "count": "3187938"
                     }
                 }
+            }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "fetch margin adjustment history",
+                "method": "fetchMarginAdjustmentHistory",
+                "input": [
+                  "XRP/USDT:USDT",
+                  null,
+                  null,
+                  2
+                ],
+                "httpResponse": [
+                  {
+                    "symbol": "XRPUSDT",
+                    "type": "1",
+                    "deltaType": "TRADE",
+                    "amount": "2.57148240",
+                    "asset": "USDT",
+                    "time": "1711046271555",
+                    "positionSide": "BOTH",
+                    "clientTranId": ""
+                  },
+                  {
+                    "symbol": "XRPUSDT",
+                    "type": "1",
+                    "deltaType": "USER_ADJUST",
+                    "amount": "10.00000000",
+                    "asset": "USDT",
+                    "time": "1711046323584",
+                    "positionSide": "BOTH",
+                    "clientTranId": ""
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "XRPUSDT",
+                      "type": "1",
+                      "deltaType": "TRADE",
+                      "amount": "2.57148240",
+                      "asset": "USDT",
+                      "time": "1711046271555",
+                      "positionSide": "BOTH",
+                      "clientTranId": ""
+                    },
+                    "symbol": "XRP/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 2.5714824,
+                    "code": "USDT",
+                    "total": null,
+                    "status": "ok",
+                    "timestamp": 1711046271555,
+                    "datetime": "2024-03-21T18:37:51.555Z"
+                  },
+                  {
+                    "info": {
+                      "symbol": "XRPUSDT",
+                      "type": "1",
+                      "deltaType": "USER_ADJUST",
+                      "amount": "10.00000000",
+                      "asset": "USDT",
+                      "time": "1711046323584",
+                      "positionSide": "BOTH",
+                      "clientTranId": ""
+                    },
+                    "symbol": "XRP/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 10,
+                    "code": "USDT",
+                    "total": null,
+                    "status": "ok",
+                    "timestamp": 1711046323584,
+                    "datetime": "2024-03-21T18:38:43.584Z"
+                  }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "httpResponse": [
+                  {
+                    "id": "54c1b7543534543fsdfsdf6",
+                    "amount": "9",
+                    "transactionFee": "1",
+                    "coin": "USDT",
+                    "status": "6",
+                    "address": "TKRxCKea88FDKDSJFSDKJ43243K",
+                    "txId": "FDSJHFKDSHFJ4KR5H4KJH3454JHK",
+                    "applyTime": "2024-05-05 15:38:56",
+                    "network": "TRX",
+                    "transferType": "0",
+                    "info": "TJDENs5435LK4J3",
+                    "confirmNo": "20",
+                    "walletType": "0",
+                    "txKey": "",
+                    "completeTime": "2024-05-05 15:40:44",
+                    "type": "withdrawal"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "54c1b7543534543fsdfsdf6",
+                      "amount": "9",
+                      "transactionFee": "1",
+                      "coin": "USDT",
+                      "status": "6",
+                      "address": "TKRxCKea88FDKDSJFSDKJ43243K",
+                      "txId": "FDSJHFKDSHFJ4KR5H4KJH3454JHK",
+                      "applyTime": "2024-05-05 15:38:56",
+                      "network": "TRX",
+                      "transferType": "0",
+                      "info": "TJDENs5435LK4J3",
+                      "confirmNo": "20",
+                      "walletType": "0",
+                      "txKey": "",
+                      "completeTime": "2024-05-05 15:40:44",
+                      "type": "withdrawal"
+                    },
+                    "id": "54c1b7543534543fsdfsdf6",
+                    "txid": "FDSJHFKDSHFJ4KR5H4KJH3454JHK",
+                    "timestamp": 1714923536000,
+                    "datetime": "2024-05-05T15:38:56.000Z",
+                    "network": "TRX",
+                    "address": "TKRxCKea88FDKDSJFSDKJ43243K",
+                    "addressTo": "TKRxCKea88FDKDSJFSDKJ43243K",
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": 9,
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "internal": false,
+                    "comment": null,
+                    "fee": {
+                      "currency": "USDT",
+                      "cost": 1
+                    }
+                  }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": [
+                  {
+                    "id": "4534543435",
+                    "amount": "10",
+                    "coin": "USDT",
+                    "network": "TRX",
+                    "status": "1",
+                    "address": "534j5h435j34hk",
+                    "addressTag": "",
+                    "txId": "435kl435jh4354j3k5",
+                    "insertTime": "1714923704000",
+                    "transferType": "0",
+                    "confirmTimes": "1/1",
+                    "unlockConfirm": "0",
+                    "walletType": "1",
+                    "type": "deposit"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "4534543435",
+                      "amount": "10",
+                      "coin": "USDT",
+                      "network": "TRX",
+                      "status": "1",
+                      "address": "534j5h435j34hk",
+                      "addressTag": "",
+                      "txId": "435kl435jh4354j3k5",
+                      "insertTime": "1714923704000",
+                      "transferType": "0",
+                      "confirmTimes": "1/1",
+                      "unlockConfirm": "0",
+                      "walletType": "1",
+                      "type": "deposit"
+                    },
+                    "id": "4534543435",
+                    "txid": "435kl435jh4354j3k5",
+                    "timestamp": 1714923704000,
+                    "datetime": "2024-05-05T15:41:44.000Z",
+                    "network": "TRX",
+                    "address": "534j5h435j34hk",
+                    "addressTo": "534j5h435j34hk",
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": 10,
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "internal": false,
+                    "comment": null,
+                    "fee": null
+                  }
+                ]
             }
         ]
     }

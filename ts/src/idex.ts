@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -79,8 +79,11 @@ export default class idex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -94,6 +97,7 @@ export default class idex extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -402,7 +406,7 @@ export default class idex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         // {
         //   "market": "DIL-ETH",
         //   "time": 1598367493008,
@@ -1373,7 +1377,7 @@ export default class idex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name idex#withdraw

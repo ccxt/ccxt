@@ -91,6 +91,7 @@ class ascendex extends ascendex$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -358,7 +359,7 @@ class ascendex extends ascendex$1 {
                     '300013': errors.InvalidOrder,
                     '300014': errors.InvalidOrder,
                     '300020': errors.InvalidOrder,
-                    '300021': errors.InvalidOrder,
+                    '300021': errors.AccountSuspended,
                     '300031': errors.InvalidOrder,
                     '310001': errors.InsufficientFunds,
                     '310002': errors.InvalidOrder,
@@ -2888,6 +2889,7 @@ class ascendex extends ascendex$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market['quote'],
@@ -3160,7 +3162,6 @@ class ascendex extends ascendex$1 {
         const account = this.safeValue(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3169,7 +3170,7 @@ class ascendex extends ascendex$1 {
         }
         const request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -3193,7 +3194,7 @@ class ascendex extends ascendex$1 {
         //
         //    { "code": "0" }
         //
-        const status = this.safeInteger(transfer, 'code');
+        const status = this.safeString(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
         return {
             'info': transfer,
@@ -3208,7 +3209,7 @@ class ascendex extends ascendex$1 {
         };
     }
     parseTransferStatus(status) {
-        if (status === 0) {
+        if (status === '0') {
             return 'ok';
         }
         return 'failed';

@@ -86,7 +86,11 @@ class coinlist extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -323,7 +327,7 @@ class coinlist extends Exchange {
         return $this->parse8601($string);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
@@ -556,7 +560,7 @@ class coinlist extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "type":"spot",
@@ -676,9 +680,9 @@ class coinlist extends Exchange {
                 $request['end_time'] = $this->iso8601($this->milliseconds());
             }
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->publicGetV1SymbolsSymbolCandles (array_merge($request, $params));
@@ -754,9 +758,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = min ($limit, 500);
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->publicGetV1SymbolsSymbolAuctions (array_merge($request, $params));
@@ -1154,9 +1158,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->privateGetV1Fills (array_merge($request, $params));
@@ -1240,9 +1244,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->privateGetV1Orders (array_merge($request, $params));
@@ -1704,10 +1708,9 @@ class coinlist extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $amount = $this->currency_to_precision($code, $amount);
         $request = array(
             'asset' => $currency['id'],
-            'amount' => $amount,
+            'amount' => $this->currency_to_precision($code, $amount),
         );
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromAcc = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
@@ -1740,7 +1743,7 @@ class coinlist extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$transfers
@@ -1763,9 +1766,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $response = $this->privateGetV1Transfers (array_merge($request, $params));
@@ -1795,7 +1798,7 @@ class coinlist extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // fetchTransfers
         //     {
@@ -1853,7 +1856,7 @@ class coinlist extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'confirmed' => 'ok',
         );
@@ -1936,7 +1939,7 @@ class coinlist extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$request-withdrawal-from-wallet
@@ -2064,9 +2067,9 @@ class coinlist extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'till', 'until');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_time'] = $this->iso8601($until);
         }
         $params = $this->omit($params, array( 'trader_id', 'traderId' ));

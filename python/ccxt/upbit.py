@@ -8,14 +8,14 @@ from ccxt.abstract.upbit import ImplicitAPI
 from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import AddressPending
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -599,7 +599,7 @@ class upbit(Exchange, ImplicitAPI):
         orderbooks = self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #       {               market: "BTC-ETH",
         #                    "trade_date": "20181122",
@@ -1717,7 +1717,7 @@ class upbit(Exchange, ImplicitAPI):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://docs.upbit.com/reference/디지털자산-출금하기
         :see: https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0

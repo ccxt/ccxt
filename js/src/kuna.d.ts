@@ -1,5 +1,5 @@
 import Exchange from './abstract/kuna.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class kuna
  * @augments Exchange
@@ -21,7 +21,7 @@ export default class kuna extends Exchange {
         deposit: any;
         withdraw: any;
         fee: any;
-        precision: any;
+        precision: string;
         limits: {
             amount: {
                 min: any;
@@ -36,7 +36,7 @@ export default class kuna extends Exchange {
     };
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -54,7 +54,7 @@ export default class kuna extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     createDepositAddress(code: string, params?: {}): Promise<{

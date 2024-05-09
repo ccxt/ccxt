@@ -9,14 +9,15 @@ import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -101,6 +102,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
@@ -368,7 +370,7 @@ class ascendex(Exchange, ImplicitAPI):
                     '300013': InvalidOrder,  # INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
                     '300014': InvalidOrder,  # {"code":300014,"message":"Order price doesn't conform to the required tick size: 0.1","reason":"TICK_SIZE_VIOLATION"}
                     '300020': InvalidOrder,  # TRADING_RESTRICTED There is some trading restriction on account or asset
-                    '300021': InvalidOrder,  # TRADING_DISABLED Trading is disabled on account or asset
+                    '300021': AccountSuspended,  # {"code":300021,"message":"Trading disabled for self account.","reason":"TRADING_DISABLED"}
                     '300031': InvalidOrder,  # NO_MARKET_PRICE No market price for market type order trading
                     '310001': InsufficientFunds,  # INVALID_MARGIN_BALANCE No enough margin balance
                     '310002': InvalidOrder,  # INVALID_MARGIN_ACCOUNT Not a valid account for margin trading
@@ -936,7 +938,7 @@ class ascendex(Exchange, ImplicitAPI):
         result['nonce'] = self.safe_integer(orderbook, 'seqnum')
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol":"QTUM/BTC",
@@ -2744,6 +2746,7 @@ class ascendex(Exchange, ImplicitAPI):
             'info': data,
             'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': market['quote'],
@@ -2752,7 +2755,7 @@ class ascendex(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -2762,7 +2765,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, -amount, 'reduce', params)
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol
@@ -2992,7 +2995,6 @@ class ascendex(Exchange, ImplicitAPI):
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
@@ -3000,7 +3002,7 @@ class ascendex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' transfer() only supports direct balance transfer between spot and swap, spot and margin')
         request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -3019,11 +3021,11 @@ class ascendex(Exchange, ImplicitAPI):
             transfer['currency'] = code
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    {"code": "0"}
         #
-        status = self.safe_integer(transfer, 'code')
+        status = self.safe_string(transfer, 'code')
         currencyCode = self.safe_currency_code(None, currency)
         return {
             'info': transfer,
@@ -3037,8 +3039,8 @@ class ascendex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
-        if status == 0:
+    def parse_transfer_status(self, status: Str) -> Str:
+        if status == '0':
             return 'ok'
         return 'failed'
 

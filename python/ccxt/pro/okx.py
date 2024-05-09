@@ -9,10 +9,11 @@ import hashlib
 from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 
 
 class okx(ccxt.async_support.okx):
@@ -424,10 +425,12 @@ class okx(ccxt.async_support.okx):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         #
@@ -457,28 +460,30 @@ class okx(ccxt.async_support.okx):
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
         :param int [limit]: 1,5, 400, 50(l2-tbt, vip4+) or 40000(vip5+) the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        options = self.safe_value(self.options, 'watchOrderBook', {})
-        depth = self.safe_string(options, 'depth', 'books')
+        depth = None
+        depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'depth', 'books')
         if limit is not None:
             if limit == 1:
                 depth = 'bbo-tbt'
             elif limit > 1 and limit <= 5:
                 depth = 'books5'
-            elif limit == 400:
-                depth = 'books'
             elif limit == 50:
                 depth = 'books50-l2-tbt'  # Make sure you have VIP4 and above
-            elif limit == 4000:
-                depth = 'books-l2-tbt'  # Make sure you have VIP5 and above
+            elif limit == 400:
+                depth = 'books'
         if (depth == 'books-l2-tbt') or (depth == 'books50-l2-tbt'):
+            if not self.check_required_credentials(False):
+                raise AuthenticationError(self.id + ' watchOrderBook/watchOrderBookForSymbols requires authentication for self depth. Add credentials or change the depth option to books or books5')
             await self.authenticate({'access': 'public'})
         topics = []
         messageHashes = []
@@ -539,6 +544,8 @@ class okx(ccxt.async_support.okx):
         storedBids = orderbook['bids']
         self.handle_deltas(storedAsks, asks)
         self.handle_deltas(storedBids, bids)
+        marketId = self.safe_string(message, 'instId')
+        symbol = self.safe_symbol(marketId)
         checksum = self.safe_bool(self.options, 'checksum', True)
         if checksum:
             asksLength = len(storedAsks)
@@ -556,6 +563,8 @@ class okx(ccxt.async_support.okx):
             localChecksum = self.crc32(payload, True)
             if responseChecksum != localChecksum:
                 error = InvalidNonce(self.id + ' invalid checksum')
+                del client.subscriptions[messageHash]
+                del self.orderbooks[symbol]
                 client.reject(error, messageHash)
         timestamp = self.safe_integer(message, 'ts')
         orderbook['timestamp'] = timestamp
@@ -648,10 +657,10 @@ class okx(ccxt.async_support.okx):
         #         ]
         #     }
         #
-        arg = self.safe_value(message, 'arg', {})
+        arg = self.safe_dict(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
         action = self.safe_string(message, 'action')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
         symbol = market['symbol']
@@ -1416,23 +1425,18 @@ class okx(ccxt.async_support.okx):
         #     {event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012"}
         #     {event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018"}
         #
-        errorCode = self.safe_integer(message, 'code')
+        errorCode = self.safe_string(message, 'code')
         try:
-            if errorCode:
+            if errorCode and errorCode != '0':
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'msg')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+                raise ExchangeError(feedback)
         except Exception as e:
-            if isinstance(e, AuthenticationError):
-                messageHash = 'authenticated'
-                client.reject(e, messageHash)
-                if messageHash in client.subscriptions:
-                    del client.subscriptions[messageHash]
-                return False
-            else:
-                client.reject(e)
+            client.reject(e)
+            return False
         return message
 
     def handle_message(self, client: Client, message):

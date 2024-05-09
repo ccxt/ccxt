@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,8 +67,11 @@ export default class btcmarkets extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -606,7 +609,7 @@ export default class btcmarkets extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -1186,7 +1189,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#withdraw

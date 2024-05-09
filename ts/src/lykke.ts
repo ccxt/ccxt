@@ -5,7 +5,7 @@ import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -65,8 +65,13 @@ export default class lykke extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -356,7 +361,7 @@ export default class lykke extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTickers
         //
@@ -1264,7 +1269,7 @@ export default class lykke extends Exchange {
         return this.parseTransactions (payload, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name lykke#withdraw

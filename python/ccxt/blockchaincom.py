@@ -8,10 +8,10 @@ from ccxt.abstract.blockchaincom import ImplicitAPI
 from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -392,7 +392,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = self.publicGetL2Symbol(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #     "symbol": "BTC-USD",
@@ -873,7 +873,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://api.blockchain.com/v3/#/payments/createWithdrawal

@@ -69,6 +69,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchLedger", false },
                 { "fetchLeverage", false },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -82,8 +83,10 @@ public partial class coinbaseinternational : Exchange
                 { "fetchOrderBook", false },
                 { "fetchOrders", false },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -94,6 +97,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchTradingFees", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMargin", true },
                 { "setMarginMode", false },
@@ -1980,10 +1984,10 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
+        object until = this.safeStringN(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["ref_datetime"] = this.iso8601(until);
         }
         object response = await this.v1PrivateGetPortfoliosFills(this.extend(request, parameters));

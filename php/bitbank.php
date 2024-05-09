@@ -54,8 +54,11 @@ class bitbank extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -256,7 +259,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
@@ -785,7 +788,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-$request

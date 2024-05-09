@@ -8,6 +8,7 @@ from ccxt.abstract.timex import ImplicitAPI
 from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -17,7 +18,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -78,8 +78,11 @@ class timex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -1301,7 +1304,7 @@ class timex(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "ask": 0.017,

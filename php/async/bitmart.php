@@ -1141,7 +1141,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot (REST)
         //
@@ -2548,7 +2548,7 @@ class bitmart extends Exchange {
         } elseif ($isMarketOrder) {
             // for $market buy it requires the $amount of quote currency to spend
             if ($side === 'buy') {
-                $notional = $this->safe_number_2($params, 'cost', 'notional');
+                $notional = $this->safe_string_2($params, 'cost', 'notional');
                 $params = $this->omit($params, 'cost');
                 $createMarketBuyOrderRequiresPrice = true;
                 list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2558,10 +2558,10 @@ class bitmart extends Exchange {
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $notional = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $notional = Precise::string_mul($amountString, $priceString);
                     }
                 } else {
-                    $notional = ($notional === null) ? $amount : $notional;
+                    $notional = ($notional === null) ? $this->number_to_string($amount) : $notional;
                 }
                 $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $market['precision']['price'], $this->precisionMode);
             } elseif ($side === 'sell') {
@@ -3160,7 +3160,7 @@ class bitmart extends Exchange {
         return $this->network_id_to_code($networkId);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3577,7 +3577,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
@@ -3631,7 +3631,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -3674,7 +3674,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest rates of all currencies, currently only works for isolated margin
@@ -3718,12 +3718,7 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->safe_value($data, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $this->safe_value($symbols, $i);
-                $result[] = $this->parse_isolated_borrow_rate($symbol);
-            }
-            return $result;
+            return $this->parse_isolated_borrow_rates($symbols);
         }) ();
     }
 
@@ -3803,7 +3798,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '1000' => 'ok',
             'OK' => 'ok',
@@ -3828,7 +3823,7 @@ class bitmart extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // margin
         //
@@ -3868,7 +3863,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
@@ -3900,9 +3895,9 @@ class bitmart extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'time_end', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             if ($endTime !== null) {
                 $request['time_end'] = $endTime;
             }

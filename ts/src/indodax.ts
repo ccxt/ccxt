@@ -5,7 +5,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -71,8 +71,11 @@ export default class indodax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -414,7 +417,7 @@ export default class indodax extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buy', 'sell');
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "high":"0.01951",
@@ -518,7 +521,7 @@ export default class indodax extends Exchange {
         // }
         //
         const response = await this.publicGetApiTickerAll (params);
-        const tickers = this.safeList (response, 'tickers');
+        const tickers = this.safeDict (response, 'tickers', {});
         return this.parseTickers (tickers, symbols);
     }
 
@@ -601,8 +604,8 @@ export default class indodax extends Exchange {
         const timeframes = this.options['timeframes'];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
         const now = this.seconds ();
-        const until = this.safeInteger2 (params, 'until', 'till', now);
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until', now);
+        params = this.omit (params, [ 'until' ]);
         const request = {
             'to': until,
             'tf': selectedTimeframe,
@@ -811,7 +814,7 @@ export default class indodax extends Exchange {
         };
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market);
-        orders = this.filterBy (orders, 'status', 'closed');
+        orders = this.filterBy (orders, 'status', 'closed') as Order[];
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
 
@@ -1020,7 +1023,7 @@ export default class indodax extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name indodax#withdraw

@@ -55,7 +55,12 @@ public partial class exmo : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", true },
                 { "fetchOrderTrades", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
+                { "fetchPositions", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -199,7 +204,7 @@ public partial class exmo : Exchange
         return margin;
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //      {}
@@ -208,6 +213,7 @@ public partial class exmo : Exchange
             { "info", data },
             { "symbol", this.safeSymbol(null, market) },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", this.safeValue(market, "quote") },

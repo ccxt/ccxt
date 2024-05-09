@@ -7,9 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -327,7 +327,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        )]
         //    }
         //
-        $messageHash = $this->safe_integer($message, 'id');
+        $messageHash = $this->safe_string($message, 'id');
         $data = $this->safe_value($message, 'data', array());
         $orders = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -677,8 +677,8 @@ class poloniex extends \ccxt\async\poloniex {
             'type' => $this->safe_string_lower($trade, 'type'),
             'side' => $this->safe_string_lower_2($trade, 'takerSide', 'side'),
             'takerOrMaker' => $takerMaker,
-            'price' => $this->omit_zero($this->safe_number_2($trade, 'tradePrice', 'price')),
-            'amount' => $this->omit_zero($this->safe_number_2($trade, 'filledQuantity', 'quantity')),
+            'price' => $this->omit_zero($this->safe_string_2($trade, 'tradePrice', 'price')),
+            'amount' => $this->omit_zero($this->safe_string_2($trade, 'filledQuantity', 'quantity')),
             'cost' => $this->safe_string_2($trade, 'amount', 'filledAmount'),
             'fee' => array(
                 'rate' => null,

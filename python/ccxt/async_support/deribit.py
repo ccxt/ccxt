@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -107,6 +107,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchVolatilityHistory': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
+                'sandbox': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -692,117 +693,127 @@ class deribit(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for deribit
         :see: https://docs.deribit.com/#public-get_currencies
+        :see: https://docs.deribit.com/#public-get_instruments
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        currenciesResponse = await self.publicGetGetCurrencies(params)
-        #
-        #     {
-        #         "jsonrpc": "2.0",
-        #         "result": [
-        #             {
-        #                 "withdrawal_priorities": [
-        #                     {value: 0.15, name: "very_low"},
-        #                     {value: 1.5, name: "very_high"},
-        #                 ],
-        #                 "withdrawal_fee": 0.0005,
-        #                 "min_withdrawal_fee": 0.0005,
-        #                 "min_confirmations": 1,
-        #                 "fee_precision": 4,
-        #                 "currency_long": "Bitcoin",
-        #                 "currency": "BTC",
-        #                 "coin_type": "BITCOIN"
-        #             }
-        #         ],
-        #         "usIn": 1583761588590479,
-        #         "usOut": 1583761588590544,
-        #         "usDiff": 65,
-        #         "testnet": False
-        #     }
-        #
-        parsedMarkets = {}
-        currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+        instrumentsResponses = []
         result = []
-        for i in range(0, len(currenciesResult)):
-            currencyId = self.safe_string(currenciesResult[i], 'currency')
-            request = {
-                'currency': currencyId,
-            }
-            instrumentsResponse = await self.publicGetGetInstruments(self.extend(request, params))
+        parsedMarkets = {}
+        fetchAllMarkets = None
+        fetchAllMarkets, params = self.handle_option_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
+        if fetchAllMarkets:
+            instrumentsResponse = await self.publicGetGetInstruments(params)
+            instrumentsResponses.append(instrumentsResponse)
+        else:
+            currenciesResponse = await self.publicGetGetCurrencies(params)
             #
             #     {
-            #         "jsonrpc":"2.0",
-            #         "result":[
+            #         "jsonrpc": "2.0",
+            #         "result": [
             #             {
-            #                 "tick_size":0.0005,
-            #                 "taker_commission":0.0003,
-            #                 "strike":52000.0,
-            #                 "settlement_period":"month",
-            #                 "settlement_currency":"BTC",
-            #                 "quote_currency":"BTC",
-            #                 "option_type":"put",  # put, call
-            #                 "min_trade_amount":0.1,
-            #                 "maker_commission":0.0003,
-            #                 "kind":"option",
-            #                 "is_active":true,
-            #                 "instrument_name":"BTC-24JUN22-52000-P",
-            #                 "expiration_timestamp":1656057600000,
-            #                 "creation_timestamp":1648199543000,
-            #                 "counter_currency":"USD",
-            #                 "contract_size":1.0,
-            #                 "block_trade_commission":0.0003,
-            #                 "base_currency":"BTC"
-            #             },
-            #             {
-            #                 "tick_size":0.5,
-            #                 "taker_commission":0.0005,
-            #                 "settlement_period":"month",  # month, week
-            #                 "settlement_currency":"BTC",
-            #                 "quote_currency":"USD",
-            #                 "min_trade_amount":10.0,
-            #                 "max_liquidation_commission":0.0075,
-            #                 "max_leverage":50,
-            #                 "maker_commission":0.0,
-            #                 "kind":"future",
-            #                 "is_active":true,
-            #                 "instrument_name":"BTC-27MAY22",
-            #                 "future_type":"reversed",
-            #                 "expiration_timestamp":1653638400000,
-            #                 "creation_timestamp":1648195209000,
-            #                 "counter_currency":"USD",
-            #                 "contract_size":10.0,
-            #                 "block_trade_commission":0.0001,
-            #                 "base_currency":"BTC"
-            #             },
-            #             {
-            #                 "tick_size":0.5,
-            #                 "taker_commission":0.0005,
-            #                 "settlement_period":"perpetual",
-            #                 "settlement_currency":"BTC",
-            #                 "quote_currency":"USD",
-            #                 "min_trade_amount":10.0,
-            #                 "max_liquidation_commission":0.0075,
-            #                 "max_leverage":50,
-            #                 "maker_commission":0.0,
-            #                 "kind":"future",
-            #                 "is_active":true,
-            #                 "instrument_name":"BTC-PERPETUAL",
-            #                 "future_type":"reversed",
-            #                 "expiration_timestamp":32503708800000,
-            #                 "creation_timestamp":1534242287000,
-            #                 "counter_currency":"USD",
-            #                 "contract_size":10.0,
-            #                 "block_trade_commission":0.0001,
-            #                 "base_currency":"BTC"
-            #             },
+            #                 "withdrawal_priorities": [
+            #                     {value: 0.15, name: "very_low"},
+            #                     {value: 1.5, name: "very_high"},
+            #                 ],
+            #                 "withdrawal_fee": 0.0005,
+            #                 "min_withdrawal_fee": 0.0005,
+            #                 "min_confirmations": 1,
+            #                 "fee_precision": 4,
+            #                 "currency_long": "Bitcoin",
+            #                 "currency": "BTC",
+            #                 "coin_type": "BITCOIN"
+            #             }
             #         ],
-            #         "usIn":1648691472831791,
-            #         "usOut":1648691472831896,
-            #         "usDiff":105,
-            #         "testnet":false
+            #         "usIn": 1583761588590479,
+            #         "usOut": 1583761588590544,
+            #         "usDiff": 65,
+            #         "testnet": False
             #     }
             #
-            instrumentsResult = self.safe_value(instrumentsResponse, 'result', [])
+            currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+            for i in range(0, len(currenciesResult)):
+                currencyId = self.safe_string(currenciesResult[i], 'currency')
+                request = {
+                    'currency': currencyId,
+                }
+                instrumentsResponse = await self.publicGetGetInstruments(self.extend(request, params))
+                #
+                #     {
+                #         "jsonrpc":"2.0",
+                #         "result":[
+                #             {
+                #                 "tick_size":0.0005,
+                #                 "taker_commission":0.0003,
+                #                 "strike":52000.0,
+                #                 "settlement_period":"month",
+                #                 "settlement_currency":"BTC",
+                #                 "quote_currency":"BTC",
+                #                 "option_type":"put",  # put, call
+                #                 "min_trade_amount":0.1,
+                #                 "maker_commission":0.0003,
+                #                 "kind":"option",
+                #                 "is_active":true,
+                #                 "instrument_name":"BTC-24JUN22-52000-P",
+                #                 "expiration_timestamp":1656057600000,
+                #                 "creation_timestamp":1648199543000,
+                #                 "counter_currency":"USD",
+                #                 "contract_size":1.0,
+                #                 "block_trade_commission":0.0003,
+                #                 "base_currency":"BTC"
+                #             },
+                #             {
+                #                 "tick_size":0.5,
+                #                 "taker_commission":0.0005,
+                #                 "settlement_period":"month",  # month, week
+                #                 "settlement_currency":"BTC",
+                #                 "quote_currency":"USD",
+                #                 "min_trade_amount":10.0,
+                #                 "max_liquidation_commission":0.0075,
+                #                 "max_leverage":50,
+                #                 "maker_commission":0.0,
+                #                 "kind":"future",
+                #                 "is_active":true,
+                #                 "instrument_name":"BTC-27MAY22",
+                #                 "future_type":"reversed",
+                #                 "expiration_timestamp":1653638400000,
+                #                 "creation_timestamp":1648195209000,
+                #                 "counter_currency":"USD",
+                #                 "contract_size":10.0,
+                #                 "block_trade_commission":0.0001,
+                #                 "base_currency":"BTC"
+                #             },
+                #             {
+                #                 "tick_size":0.5,
+                #                 "taker_commission":0.0005,
+                #                 "settlement_period":"perpetual",
+                #                 "settlement_currency":"BTC",
+                #                 "quote_currency":"USD",
+                #                 "min_trade_amount":10.0,
+                #                 "max_liquidation_commission":0.0075,
+                #                 "max_leverage":50,
+                #                 "maker_commission":0.0,
+                #                 "kind":"future",
+                #                 "is_active":true,
+                #                 "instrument_name":"BTC-PERPETUAL",
+                #                 "future_type":"reversed",
+                #                 "expiration_timestamp":32503708800000,
+                #                 "creation_timestamp":1534242287000,
+                #                 "counter_currency":"USD",
+                #                 "contract_size":10.0,
+                #                 "block_trade_commission":0.0001,
+                #                 "base_currency":"BTC"
+                #             },
+                #         ],
+                #         "usIn":1648691472831791,
+                #         "usOut":1648691472831896,
+                #         "usDiff":105,
+                #         "testnet":false
+                #     }
+                #
+                instrumentsResponses.append(instrumentsResponse)
+        for i in range(0, len(instrumentsResponses)):
+            instrumentsResult = self.safe_value(instrumentsResponses[i], 'result', [])
             for k in range(0, len(instrumentsResult)):
                 market = instrumentsResult[k]
                 kind = self.safe_string(market, 'kind')
@@ -1050,7 +1061,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker /public/ticker
         #
@@ -1174,13 +1185,17 @@ class deribit(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://docs.deribit.com/#public-get_book_summary_by_currency
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        code = self.code_from_options('fetchTickers', params)
+        code = self.safe_string_2(params, 'code', 'currency')
+        params = self.omit(params, ['code'])
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code(eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -1216,7 +1231,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": False
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         tickers = {}
         for i in range(0, len(result)):
             ticker = self.parse_ticker(result[i])
@@ -2589,7 +2604,7 @@ class deribit(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.deribit.com/#private-get_transfers
@@ -2695,7 +2710,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_transfer(result, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "updated_timestamp": 1550232862350,
@@ -2719,14 +2734,14 @@ class deribit(Exchange, ImplicitAPI):
             'id': self.safe_string(transfer, 'id'),
             'status': self.parse_transfer_status(status),
             'amount': self.safe_number(transfer, 'amount'),
-            'code': self.safe_currency_code(currencyId, currency),
+            'currency': self.safe_currency_code(currencyId, currency),
             'fromAccount': direction != account if 'payment' else None,
             'toAccount': direction == account if 'payment' else None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'prepared': 'pending',
             'confirmed': 'ok',
@@ -2735,7 +2750,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.deribit.com/#private-withdraw

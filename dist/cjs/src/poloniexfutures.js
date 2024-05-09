@@ -372,7 +372,20 @@ class poloniexfutures extends poloniexfutures$1 {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
+        const timestampString = this.safeString(ticker, 'ts');
+        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        let multiplier = undefined;
+        if (timestampString.length === 17) {
+            multiplier = 0.0001;
+        }
+        else if (timestampString.length === 18) {
+            multiplier = 0.00001;
+        }
+        else {
+            // 19 length default
+            multiplier = 0.000001;
+        }
+        const timestamp = this.safeIntegerProduct(ticker, 'ts', multiplier);
         const last = this.safeString2(ticker, 'price', 'lastPrice');
         const percentage = Precise["default"].stringMul(this.safeString(ticker, 'priceChgPct'), '100');
         return this.safeTicker({
@@ -1264,8 +1277,8 @@ class poloniexfutures extends poloniexfutures$1 {
          */
         await this.loadMarkets();
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['triger', 'stop', 'until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['trigger', 'stop', 'until']);
         if (status === 'closed') {
             status = 'done';
         }
@@ -1365,7 +1378,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1383,7 +1396,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

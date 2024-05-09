@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitflyer.js';
-import type { Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 /**
  * @class bitflyer
  * @augments Exchange
@@ -12,7 +12,7 @@ export default class bitflyer extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -27,7 +27,7 @@ export default class bitflyer extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<any>;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseDepositStatus(status: any): string;

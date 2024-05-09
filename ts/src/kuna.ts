@@ -5,7 +5,7 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import { Precise } from './base/Precise.js';
 
@@ -666,7 +666,7 @@ export default class kuna extends Exchange {
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "pair": "BTC_USDT",                                   // Traded pair
@@ -1417,7 +1417,7 @@ export default class kuna extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name kuna#withdraw

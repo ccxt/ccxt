@@ -961,11 +961,11 @@ class bitfinex2 extends Exchange {
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
                 throw new ExchangeError($this->id . ' ' . $message);
             }
-            return $this->parse_transfer($response, $currency);
+            return $this->parse_transfer(array( 'result' => $response ), $currency);
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -989,12 +989,13 @@ class bitfinex2 extends Exchange {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     )
         //
-        $timestamp = $this->safe_integer($transfer, 0);
-        $info = $this->safe_value($transfer, 4);
+        $result = $this->safe_list($transfer, 'result');
+        $timestamp = $this->safe_integer($result, 0);
+        $info = $this->safe_value($result, 4);
         $fromAccount = $this->safe_string($info, 1);
         $toAccount = $this->safe_string($info, 2);
         $currencyId = $this->safe_string($info, 5);
-        $status = $this->safe_string($transfer, 6);
+        $status = $this->safe_string($result, 6);
         return array(
             'id' => null,
             'timestamp' => $timestamp,
@@ -1004,11 +1005,11 @@ class bitfinex2 extends Exchange {
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'info' => $transfer,
+            'info' => $result,
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'ERROR' => 'failed',
@@ -1088,71 +1089,77 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //     array(
-        //         SYMBOL,
-        //         BID,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW
-        //     )
+        //    {
+        //        'result' => array(
+        //            SYMBOL,
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //        )
+        //    }
+        //
         //
         // on funding currencies (ex. fUSD)
         //
-        //     array(
-        //         SYMBOL,
-        //         FRR,
-        //         BID,
-        //         BID_PERIOD,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_PERIOD,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW,
-        //         _PLACEHOLDER,
-        //         _PLACEHOLDER,
-        //         FRR_AMOUNT_AVAILABLE
-        //     )
+        //    {
+        //        'result' => array(
+        //            SYMBOL,
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //        )
+        //    }
         //
+        $result = $this->safe_list($ticker, 'result');
         $symbol = $this->safe_symbol(null, $market);
-        $length = count($ticker);
-        $last = $this->safe_string($ticker, $length - 4);
-        $percentage = $this->safe_string($ticker, $length - 5);
+        $length = count($result);
+        $last = $this->safe_string($result, $length - 4);
+        $percentage = $this->safe_string($result, $length - 5);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->safe_string($ticker, $length - 2),
-            'low' => $this->safe_string($ticker, $length - 1),
-            'bid' => $this->safe_string($ticker, $length - 10),
-            'bidVolume' => $this->safe_string($ticker, $length - 9),
-            'ask' => $this->safe_string($ticker, $length - 8),
-            'askVolume' => $this->safe_string($ticker, $length - 7),
+            'high' => $this->safe_string($result, $length - 2),
+            'low' => $this->safe_string($result, $length - 1),
+            'bid' => $this->safe_string($result, $length - 10),
+            'bidVolume' => $this->safe_string($result, $length - 9),
+            'ask' => $this->safe_string($result, $length - 8),
+            'askVolume' => $this->safe_string($result, $length - 7),
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, $length - 6),
+            'change' => $this->safe_string($result, $length - 6),
             'percentage' => Precise::string_mul($percentage, '100'),
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, $length - 3),
+            'baseVolume' => $this->safe_string($result, $length - 3),
             'quoteVolume' => null,
-            'info' => $ticker,
+            'info' => $result,
         ), $market);
     }
 
@@ -1220,7 +1227,7 @@ class bitfinex2 extends Exchange {
                 $marketId = $this->safe_string($ticker, 0);
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
+                $result[$symbol] = $this->parse_ticker(array( 'result' => $ticker ), $market);
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
@@ -1241,7 +1248,8 @@ class bitfinex2 extends Exchange {
                 'symbol' => $market['id'],
             );
             $ticker = Async\await($this->publicGetTickerSymbol (array_merge($request, $params)));
-            return $this->parse_ticker($ticker, $market);
+            $result = array( 'result' => $ticker );
+            return $this->parse_ticker($result, $market);
         }) ();
     }
 
@@ -2587,7 +2595,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3560,6 +3568,7 @@ class bitfinex2 extends Exchange {
             'info' => $data,
             'symbol' => $market['symbol'],
             'type' => null,
+            'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
             'code' => null,

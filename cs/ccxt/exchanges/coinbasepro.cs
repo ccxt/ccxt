@@ -9,7 +9,7 @@ public partial class coinbasepro : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbasepro" },
-            { "name", "Coinbase Pro" },
+            { "name", "Coinbase Pro(Deprecated)" },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 100 },
             { "userAgent", getValue(this.userAgents, "chrome") },
@@ -46,7 +46,13 @@ public partial class coinbasepro : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
+                { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },

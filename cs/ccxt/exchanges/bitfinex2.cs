@@ -930,7 +930,9 @@ public partial class bitfinex2 : Exchange
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
             throw new ExchangeError ((string)add(add(this.id, " "), message)) ;
         }
-        return this.parseTransfer(response, currency);
+        return this.parseTransfer(new Dictionary<string, object>() {
+            { "result", response },
+        }, currency);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -958,12 +960,13 @@ public partial class bitfinex2 : Exchange
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        object timestamp = this.safeInteger(transfer, 0);
-        object info = this.safeValue(transfer, 4);
+        object result = this.safeList(transfer, "result");
+        object timestamp = this.safeInteger(result, 0);
+        object info = this.safeValue(result, 4);
         object fromAccount = this.safeString(info, 1);
         object toAccount = this.safeString(info, 2);
         object currencyId = this.safeString(info, 5);
-        object status = this.safeString(transfer, 6);
+        object status = this.safeString(result, 6);
         return new Dictionary<string, object>() {
             { "id", null },
             { "timestamp", timestamp },
@@ -973,7 +976,7 @@ public partial class bitfinex2 : Exchange
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
-            { "info", transfer },
+            { "info", result },
         };
     }
 
@@ -1072,67 +1075,73 @@ public partial class bitfinex2 : Exchange
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         BID,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //        ]
+        //    }
+        //
         //
         // on funding currencies (ex. fUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         FRR,
-        //         BID,
-        //         BID_PERIOD,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_PERIOD,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW,
-        //         _PLACEHOLDER,
-        //         _PLACEHOLDER,
-        //         FRR_AMOUNT_AVAILABLE
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //        ]
+        //    }
         //
+        object result = this.safeList(ticker, "result");
         object symbol = this.safeSymbol(null, market);
-        object length = getArrayLength(ticker);
-        object last = this.safeString(ticker, subtract(length, 4));
-        object percentage = this.safeString(ticker, subtract(length, 5));
+        object length = getArrayLength(result);
+        object last = this.safeString(result, subtract(length, 4));
+        object percentage = this.safeString(result, subtract(length, 5));
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
-            { "high", this.safeString(ticker, subtract(length, 2)) },
-            { "low", this.safeString(ticker, subtract(length, 1)) },
-            { "bid", this.safeString(ticker, subtract(length, 10)) },
-            { "bidVolume", this.safeString(ticker, subtract(length, 9)) },
-            { "ask", this.safeString(ticker, subtract(length, 8)) },
-            { "askVolume", this.safeString(ticker, subtract(length, 7)) },
+            { "high", this.safeString(result, subtract(length, 2)) },
+            { "low", this.safeString(result, subtract(length, 1)) },
+            { "bid", this.safeString(result, subtract(length, 10)) },
+            { "bidVolume", this.safeString(result, subtract(length, 9)) },
+            { "ask", this.safeString(result, subtract(length, 8)) },
+            { "askVolume", this.safeString(result, subtract(length, 7)) },
             { "vwap", null },
             { "open", null },
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", this.safeString(ticker, subtract(length, 6)) },
+            { "change", this.safeString(result, subtract(length, 6)) },
             { "percentage", Precise.stringMul(percentage, "100") },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, subtract(length, 3)) },
+            { "baseVolume", this.safeString(result, subtract(length, 3)) },
             { "quoteVolume", null },
-            { "info", ticker },
+            { "info", result },
         }, market);
     }
 
@@ -1206,7 +1215,9 @@ public partial class bitfinex2 : Exchange
             object marketId = this.safeString(ticker, 0);
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {
+                { "result", ticker },
+            }, market);
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -1229,7 +1240,10 @@ public partial class bitfinex2 : Exchange
             { "symbol", getValue(market, "id") },
         };
         object ticker = await this.publicGetTickerSymbol(this.extend(request, parameters));
-        return this.parseTicker(ticker, market);
+        object result = new Dictionary<string, object>() {
+            { "result", ticker },
+        };
+        return this.parseTicker(result, market);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -3750,7 +3764,7 @@ public partial class bitfinex2 : Exchange
         return this.parseMarginModification(data, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         // setMargin
@@ -3767,6 +3781,7 @@ public partial class bitfinex2 : Exchange
             { "info", data },
             { "symbol", getValue(market, "symbol") },
             { "type", null },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", null },

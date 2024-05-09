@@ -9,12 +9,12 @@ import hashlib
 from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -279,7 +279,7 @@ class bit2c(Exchange, ImplicitAPI):
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         averagePrice = self.safe_string(ticker, 'av')
         baseVolume = self.safe_string(ticker, 'a')

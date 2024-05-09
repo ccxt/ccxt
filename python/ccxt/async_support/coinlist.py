@@ -7,9 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -103,7 +103,11 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': False,
@@ -563,7 +567,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "type":"spot",
@@ -679,9 +683,9 @@ class coinlist(Exchange, ImplicitAPI):
                 request['end_time'] = self.iso8601(self.sum(since, duration * (limit)))
             else:
                 request['end_time'] = self.iso8601(self.milliseconds())
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = await self.publicGetV1SymbolsSymbolCandles(self.extend(request, params))
         #
@@ -752,9 +756,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = min(limit, 500)
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = await self.publicGetV1SymbolsSymbolAuctions(self.extend(request, params))
         #
@@ -1130,9 +1134,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = await self.privateGetV1Fills(self.extend(request, params))
         #
@@ -1209,9 +1213,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = await self.privateGetV1Orders(self.extend(request, params))
         #
@@ -1648,10 +1652,9 @@ class coinlist(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
         request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
         }
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromAcc = self.safe_string(accountsByType, fromAccount, fromAccount)
@@ -1682,7 +1685,7 @@ class coinlist(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         return transfer
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-transfers
@@ -1702,9 +1705,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         response = await self.privateGetV1Transfers(self.extend(request, params))
         #
@@ -1732,7 +1735,7 @@ class coinlist(Exchange, ImplicitAPI):
         transfers = self.safe_list(response, 'transfers', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # fetchTransfers
         #     {
@@ -1787,7 +1790,7 @@ class coinlist(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'confirmed': 'ok',
         }
@@ -1865,7 +1868,7 @@ class coinlist(Exchange, ImplicitAPI):
         # coinlist returns both internal transfers and blockchain transactions
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         request a withdrawal from CoinList wallet.(Disabled by default. Contact CoinList to apply for an exception.)
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet
@@ -1984,9 +1987,9 @@ class coinlist(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
-            params = self.omit(params, ['till', 'until'])
+            params = self.omit(params, ['until'])
             request['end_time'] = self.iso8601(until)
         params = self.omit(params, ['trader_id', 'traderId'])
         response = await self.privateGetV1AccountsTraderIdLedger(self.extend(request, params))

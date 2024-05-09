@@ -484,10 +484,12 @@ public partial class okx : ccxt.okx
         /**
         * @method
         * @name okx#watchOrderBook
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         //
@@ -522,17 +524,21 @@ public partial class okx : ccxt.okx
         /**
         * @method
         * @name okx#watchOrderBookForSymbols
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        object depth = this.safeString(options, "depth", "books");
+        object depth = null;
+        var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+        depth = ((IList<object>)depthparametersVariable)[0];
+        parameters = ((IList<object>)depthparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             if (isTrue(isEqual(limit, 1)))
@@ -541,19 +547,20 @@ public partial class okx : ccxt.okx
             } else if (isTrue(isTrue(isGreaterThan(limit, 1)) && isTrue(isLessThanOrEqual(limit, 5))))
             {
                 depth = "books5";
-            } else if (isTrue(isEqual(limit, 400)))
-            {
-                depth = "books";
             } else if (isTrue(isEqual(limit, 50)))
             {
                 depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
-            } else if (isTrue(isEqual(limit, 4000)))
+            } else if (isTrue(isEqual(limit, 400)))
             {
-                depth = "books-l2-tbt"; // Make sure you have VIP5 and above
+                depth = "books";
             }
         }
         if (isTrue(isTrue((isEqual(depth, "books-l2-tbt"))) || isTrue((isEqual(depth, "books50-l2-tbt")))))
         {
+            if (!isTrue(this.checkRequiredCredentials(false)))
+            {
+                throw new AuthenticationError ((string)add(this.id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
+            }
             await this.authenticate(new Dictionary<string, object>() {
                 { "access", "public" },
             });
@@ -627,6 +634,8 @@ public partial class okx : ccxt.okx
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
+        object marketId = this.safeString(message, "instId");
+        object symbol = this.safeSymbol(marketId);
         object checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(checksum))
         {
@@ -652,6 +661,8 @@ public partial class okx : ccxt.okx
             if (isTrue(!isEqual(responseChecksum, localChecksum)))
             {
                 var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }
@@ -748,10 +759,10 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         object action = this.safeString(message, "action");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object data = this.safeList(message, "data", new List<object>() {});
         object marketId = this.safeString(arg, "instId");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -1692,10 +1703,10 @@ public partial class okx : ccxt.okx
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        object errorCode = this.safeInteger(message, "code");
+        object errorCode = this.safeString(message, "code");
         try
         {
-            if (isTrue(errorCode))
+            if (isTrue(isTrue(errorCode) && isTrue(!isEqual(errorCode, "0"))))
             {
                 object feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
@@ -1704,22 +1715,12 @@ public partial class okx : ccxt.okx
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
                 }
+                throw new ExchangeError ((string)feedback) ;
             }
         } catch(Exception e)
         {
-            if (isTrue(e is AuthenticationError))
-            {
-                object messageHash = "authenticated";
-                ((WebSocketClient)client).reject(e, messageHash);
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-                {
-
-                }
-                return false;
-            } else
-            {
-                ((WebSocketClient)client).reject(e);
-            }
+            ((WebSocketClient)client).reject(e);
+            return false;
         }
         return message;
     }

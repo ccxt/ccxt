@@ -49,7 +49,13 @@ public partial class latoken : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
+                { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -1633,7 +1639,7 @@ public partial class latoken : Exchange
         return this.safeString(types, type, type);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

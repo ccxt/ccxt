@@ -67,8 +67,11 @@ class yobit extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -512,7 +515,7 @@ class yobit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high" => 0.03497582,
@@ -1222,7 +1225,7 @@ class yobit extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://yobit.net/en/api

@@ -92,7 +92,11 @@ class bitteam extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -1538,7 +1542,7 @@ class bitteam extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //     {

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/ascendex.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -94,6 +94,7 @@ export default class ascendex extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -361,7 +362,7 @@ export default class ascendex extends Exchange {
                     '300013': InvalidOrder,
                     '300014': InvalidOrder,
                     '300020': InvalidOrder,
-                    '300021': InvalidOrder,
+                    '300021': AccountSuspended,
                     '300031': InvalidOrder,
                     '310001': InsufficientFunds,
                     '310002': InvalidOrder,
@@ -2891,6 +2892,7 @@ export default class ascendex extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': market['quote'],
@@ -3163,7 +3165,6 @@ export default class ascendex extends Exchange {
         const account = this.safeValue(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3172,7 +3173,7 @@ export default class ascendex extends Exchange {
         }
         const request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -3196,7 +3197,7 @@ export default class ascendex extends Exchange {
         //
         //    { "code": "0" }
         //
-        const status = this.safeInteger(transfer, 'code');
+        const status = this.safeString(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
         return {
             'info': transfer,
@@ -3211,7 +3212,7 @@ export default class ascendex extends Exchange {
         };
     }
     parseTransferStatus(status) {
-        if (status === 0) {
+        if (status === '0') {
             return 'ok';
         }
         return 'failed';

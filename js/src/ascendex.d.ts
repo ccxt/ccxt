@@ -1,5 +1,5 @@
 import Exchange from './abstract/ascendex.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
 /**
  * @class ascendex
  * @augments Exchange
@@ -16,7 +16,7 @@ export default class ascendex extends Exchange {
     parseSwapBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -72,8 +72,8 @@ export default class ascendex extends Exchange {
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: any, market?: Market): MarginModification;
-    reduceMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
-    addMargin(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
@@ -92,18 +92,8 @@ export default class ascendex extends Exchange {
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    };
-    parseTransferStatus(status: any): "ok" | "failed";
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    parseTransferStatus(status: Str): Str;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseIncome(income: any, market?: Market): {
         info: any;

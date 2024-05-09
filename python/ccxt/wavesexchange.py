@@ -10,6 +10,7 @@ from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBo
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,7 +20,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
@@ -79,8 +79,11 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -89,6 +92,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -748,7 +752,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             return self.options['accessToken']
         return None
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #       {
         #           "symbol": "WAVES/BTC",
@@ -1180,7 +1184,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         amountPrecision = self.number_to_string(self.to_precision(amount, self.number_to_string(self.markets[symbol]['precision']['amount'])))
         return self.parse_to_int(float(amountPrecision))
 
-    def currency_to_precision(self, code, amount, networkCode=None):
+    def custom_currency_to_precision(self, code, amount, networkCode=None):
         amountPrecision = self.number_to_string(self.to_precision(amount, self.currencies[code]['precision']))
         return self.parse_to_int(float(amountPrecision))
 
@@ -2289,7 +2293,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2369,7 +2373,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         feeAssetId = 'WAVES'
         type = 4  # transfer
         version = 2
-        amountInteger = self.currency_to_precision(code, amount)
+        amountInteger = self.custom_currency_to_precision(code, amount)
         currency = self.currency(code)
         timestamp = self.milliseconds()
         byteArray = [

@@ -665,6 +665,21 @@ class mexc(ccxt.async_support.mexc):
         #        "v": "5"
         #    }
         #
+        #
+        #   d: {
+        #       p: '1.0005',
+        #       v: '5.71',
+        #       a: '5.712855',
+        #       S: 1,
+        #       T: 1714325698237,
+        #       t: 'edafcd9fdc2f426e82443d114691f724',
+        #       c: '',
+        #       i: 'C02__413321238354677760043',
+        #       m: 0,
+        #       st: 0,
+        #       n: '0.005712855',
+        #       N: 'USDT'
+        #   }
         timestamp = self.safe_integer(trade, 'T')
         tradeId = self.safe_string(trade, 't')
         if timestamp is None:
@@ -675,6 +690,8 @@ class mexc(ccxt.async_support.mexc):
         rawSide = self.safe_string(trade, 'S')
         side = 'buy' if (rawSide == '1') else 'sell'
         isMaker = self.safe_integer(trade, 'm')
+        feeAmount = self.safe_number(trade, 'n')
+        feeCurrencyId = self.safe_string(trade, 'N')
         return self.safe_trade({
             'info': trade,
             'id': tradeId,
@@ -688,7 +705,10 @@ class mexc(ccxt.async_support.mexc):
             'price': priceString,
             'amount': amountString,
             'cost': None,
-            'fee': None,
+            'fee': {
+                'cost': feeAmount,
+                'currency': self.safe_currency_code(feeCurrencyId),
+            },
         }, market)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

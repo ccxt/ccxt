@@ -82,7 +82,11 @@ public partial class coinlist : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", false },
@@ -686,10 +690,10 @@ public partial class coinlist : Exchange
                 ((IDictionary<string,object>)request)["end_time"] = this.iso8601(this.milliseconds());
             }
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.publicGetV1SymbolsSymbolCandles(this.extend(request, parameters));
@@ -765,10 +769,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 500);
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.publicGetV1SymbolsSymbolAuctions(this.extend(request, parameters));
@@ -1202,10 +1206,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Fills(this.extend(request, parameters));
@@ -1301,10 +1305,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Orders(this.extend(request, parameters));
@@ -1825,10 +1829,9 @@ public partial class coinlist : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromAcc = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -1864,7 +1867,7 @@ public partial class coinlist : Exchange
         return transfer;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1894,10 +1897,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Transfers(this.extend(request, parameters));
@@ -2225,10 +2228,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         parameters = this.omit(parameters, new List<object>() {"trader_id", "traderId"});

@@ -585,7 +585,7 @@ class zonda extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // version 1
         //
@@ -1628,7 +1628,7 @@ class zonda extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "status" => "Ok",
@@ -1676,7 +1676,7 @@ class zonda extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'Ok' => 'ok',
             'Fail' => 'failed',
@@ -1684,7 +1684,7 @@ class zonda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
          * make a withdrawal

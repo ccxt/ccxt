@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
@@ -20,7 +21,6 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -588,7 +588,7 @@ class zonda(Exchange, ImplicitAPI):
             'nonce': self.safe_integer(response, 'seqNo'),
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # version 1
         #
@@ -1595,7 +1595,7 @@ class zonda(Exchange, ImplicitAPI):
             transfer['amount'] = amount
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "status": "Ok",
@@ -1642,14 +1642,14 @@ class zonda(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'Ok': 'ok',
             'Fail': 'failed',
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
         make a withdrawal

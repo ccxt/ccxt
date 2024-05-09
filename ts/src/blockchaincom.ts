@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -402,7 +402,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //     "symbol": "BTC-USD",
@@ -941,7 +941,7 @@ export default class blockchaincom extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#withdraw

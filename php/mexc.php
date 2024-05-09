@@ -72,6 +72,7 @@ class mexc extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverages' => false,
                 'fetchLeverageTiers' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => null,
                 'fetchMarkets' => true,
@@ -86,8 +87,10 @@ class mexc extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => 'emulated',
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -986,7 +989,7 @@ class mexc extends Exchange {
         return null;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-$currency-information
@@ -1471,7 +1474,7 @@ class mexc extends Exchange {
         }
         $trades = null;
         if ($market['spot']) {
-            $until = $this->safe_integer_n($params, array( 'endTime', 'until', 'till' ));
+            $until = $this->safe_integer_n($params, array( 'endTime', 'until' ));
             if ($since !== null) {
                 $request['startTime'] = $since;
                 if ($until === null) {
@@ -1751,7 +1754,7 @@ class mexc extends Exchange {
         );
         $candles = null;
         if ($market['spot']) {
-            $until = $this->safe_integer_n($params, array( 'until', 'endTime', 'till' ));
+            $until = $this->safe_integer_n($params, array( 'until', 'endTime' ));
             if ($since !== null) {
                 $request['startTime'] = $since;
                 if ($until === null) {
@@ -1765,7 +1768,7 @@ class mexc extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($until !== null) {
-                $params = $this->omit($params, array( 'until', 'till' ));
+                $params = $this->omit($params, array( 'until' ));
                 $request['endTime'] = $until;
             }
             $response = $this->spotPublicGetKlines (array_merge($request, $params));
@@ -1785,12 +1788,12 @@ class mexc extends Exchange {
             //
             $candles = $response;
         } elseif ($market['swap']) {
-            $until = $this->safe_integer_product_n($params, array( 'until', 'endTime', 'till' ), 0.001);
+            $until = $this->safe_integer_product_n($params, array( 'until', 'endTime' ), 0.001);
             if ($since !== null) {
                 $request['start'] = $this->parse_to_int($since / 1000);
             }
             if ($until !== null) {
-                $params = $this->omit($params, array( 'until', 'till' ));
+                $params = $this->omit($params, array( 'until' ));
                 $request['end'] = $until;
             }
             $priceType = $this->safe_string($params, 'price', 'default');
@@ -1994,7 +1997,7 @@ class mexc extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = null;
@@ -3956,7 +3959,7 @@ class mexc extends Exchange {
         return $response;
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
@@ -3967,7 +3970,7 @@ class mexc extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
          * @param {string} $symbol unified market $symbol
@@ -4784,6 +4787,8 @@ class mexc extends Exchange {
 
     public function parse_position($position, ?array $market = null) {
         //
+        // fetchPositions
+        //
         //     {
         //         "positionId" => 1394650,
         //         "symbol" => "ETH_USDT",
@@ -4806,6 +4811,40 @@ class mexc extends Exchange {
         //         "updateTime" => 1609991676000,
         //         "autoAddIm" => false
         //     }
+        //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        positionId => '390281084',
+        //        $symbol => 'RVN_USDT',
+        //        positionType => '1',
+        //        $openType => '2',
+        //        state => '3',
+        //        holdVol => '0',
+        //        frozenVol => '0',
+        //        closeVol => '1141',
+        //        holdAvgPrice => '0.03491',
+        //        holdAvgPriceFullyScale => '0.03491',
+        //        openAvgPrice => '0.03491',
+        //        openAvgPriceFullyScale => '0.03491',
+        //        closeAvgPrice => '0.03494',
+        //        liquidatePrice => '0.03433',
+        //        oim => '0',
+        //        im => '0',
+        //        holdFee => '0',
+        //        realised => '0.1829',
+        //        $leverage => '50',
+        //        createTime => '1711512408000',
+        //        updateTime => '1711512553000',
+        //        autoAddIm => false,
+        //        version => '4',
+        //        profitRatio => '0.0227',
+        //        newOpenAvgPrice => '0.03491',
+        //        newCloseAvgPrice => '0.03494',
+        //        closeProfitLoss => '0.3423',
+        //        fee => '0.1593977',
+        //        positionShowStatus => 'CLOSED'
+        //    }
         //
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
         $symbol = $market['symbol'];
@@ -4850,7 +4889,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_transfer(string $id, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()): array {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
         $this->load_markets();
         if ($marketType === 'spot') {
@@ -4879,7 +4918,7 @@ class mexc extends Exchange {
         return null;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @param {string} $code unified $currency $code of the $currency transferred
@@ -5022,7 +5061,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // spot => fetchTransfer
         //
@@ -5089,7 +5128,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'FAILED' => 'failed',
@@ -5098,7 +5137,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
@@ -5443,6 +5482,78 @@ class mexc extends Exchange {
             $marginMode = 'isolated';
         }
         return array( $marginMode, $params );
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches historical $positions
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+         * @param {string[]} [$symbols] unified contract $symbols
+         * @param {int} [$since] not used by mexc fetchPositionsHistory
+         * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} type position type，1 => long, 2 => short
+         * @param {int} page_num current page number, default is 1
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        $this->load_markets();
+        $request = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = $this->contractPrivateGetPositionListHistoryPositions (array_merge($request, $params));
+        //
+        //    {
+        //        success => true,
+        //        code => '0',
+        //        $data => array(
+        //            array(
+        //                positionId => '390281084',
+        //                symbol => 'RVN_USDT',
+        //                positionType => '1',
+        //                openType => '2',
+        //                state => '3',
+        //                holdVol => '0',
+        //                frozenVol => '0',
+        //                closeVol => '1141',
+        //                holdAvgPrice => '0.03491',
+        //                holdAvgPriceFullyScale => '0.03491',
+        //                openAvgPrice => '0.03491',
+        //                openAvgPriceFullyScale => '0.03491',
+        //                closeAvgPrice => '0.03494',
+        //                liquidatePrice => '0.03433',
+        //                oim => '0',
+        //                im => '0',
+        //                holdFee => '0',
+        //                realised => '0.1829',
+        //                leverage => '50',
+        //                createTime => '1711512408000',
+        //                updateTime => '1711512553000',
+        //                autoAddIm => false,
+        //                version => '4',
+        //                profitRatio => '0.0227',
+        //                newOpenAvgPrice => '0.03491',
+        //                newCloseAvgPrice => '0.03494',
+        //                closeProfitLoss => '0.3423',
+        //                fee => '0.1593977',
+        //                positionShowStatus => 'CLOSED'
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_list($response, 'data');
+        $positions = $this->parse_positions($data, $symbols, $params);
+        return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

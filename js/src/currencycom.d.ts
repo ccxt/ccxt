@@ -1,5 +1,5 @@
 import Exchange from './abstract/currencycom.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Num, Account, Currencies, TradingFees } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Num, Account, Currencies, TradingFees, Dict } from './base/types.js';
 /**
  * @class currencycom
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class currencycom extends Exchange {
     parseBalance(response: any, type?: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;

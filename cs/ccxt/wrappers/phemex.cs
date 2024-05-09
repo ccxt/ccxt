@@ -823,12 +823,12 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -897,7 +897,7 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

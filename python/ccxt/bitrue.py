@@ -7,9 +7,10 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -25,7 +26,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -1146,7 +1146,7 @@ class bitrue(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchBidsAsks
         #
@@ -2591,7 +2591,7 @@ class bitrue(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
@@ -2727,7 +2727,7 @@ class bitrue(Exchange, ImplicitAPI):
             'status': 'ok',
         }
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
@@ -2852,6 +2852,7 @@ class bitrue(Exchange, ImplicitAPI):
             'info': data,
             'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': None,

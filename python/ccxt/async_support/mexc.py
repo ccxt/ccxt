@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +21,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -89,6 +89,7 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverages': False,
                 'fetchLeverageTiers': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
@@ -103,8 +104,10 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositionMode': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -1461,7 +1464,7 @@ class mexc(Exchange, ImplicitAPI):
             request['limit'] = limit
         trades = None
         if market['spot']:
-            until = self.safe_integer_n(params, ['endTime', 'until', 'till'])
+            until = self.safe_integer_n(params, ['endTime', 'until'])
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1718,7 +1721,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         candles = None
         if market['spot']:
-            until = self.safe_integer_n(params, ['until', 'endTime', 'till'])
+            until = self.safe_integer_n(params, ['until', 'endTime'])
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1729,7 +1732,7 @@ class mexc(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             if until is not None:
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
                 request['endTime'] = until
             response = await self.spotPublicGetKlines(self.extend(request, params))
             #
@@ -1748,11 +1751,11 @@ class mexc(Exchange, ImplicitAPI):
             #
             candles = response
         elif market['swap']:
-            until = self.safe_integer_product_n(params, ['until', 'endTime', 'till'], 0.001)
+            until = self.safe_integer_product_n(params, ['until', 'endTime'], 0.001)
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
             if until is not None:
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
                 request['end'] = until
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
@@ -1944,7 +1947,7 @@ class mexc(Exchange, ImplicitAPI):
         # when it's single symbol request, the returned structure is different(singular object) for both spot & swap, thus we need to wrap inside array
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = None
@@ -3778,7 +3781,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         return response
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -3788,7 +3791,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol
@@ -4557,6 +4560,8 @@ class mexc(Exchange, ImplicitAPI):
 
     def parse_position(self, position, market: Market = None):
         #
+        # fetchPositions
+        #
         #     {
         #         "positionId": 1394650,
         #         "symbol": "ETH_USDT",
@@ -4579,6 +4584,40 @@ class mexc(Exchange, ImplicitAPI):
         #         "updateTime": 1609991676000,
         #         "autoAddIm": False
         #     }
+        #
+        # fetchPositionsHistory
+        #
+        #    {
+        #        positionId: '390281084',
+        #        symbol: 'RVN_USDT',
+        #        positionType: '1',
+        #        openType: '2',
+        #        state: '3',
+        #        holdVol: '0',
+        #        frozenVol: '0',
+        #        closeVol: '1141',
+        #        holdAvgPrice: '0.03491',
+        #        holdAvgPriceFullyScale: '0.03491',
+        #        openAvgPrice: '0.03491',
+        #        openAvgPriceFullyScale: '0.03491',
+        #        closeAvgPrice: '0.03494',
+        #        liquidatePrice: '0.03433',
+        #        oim: '0',
+        #        im: '0',
+        #        holdFee: '0',
+        #        realised: '0.1829',
+        #        leverage: '50',
+        #        createTime: '1711512408000',
+        #        updateTime: '1711512553000',
+        #        autoAddIm: False,
+        #        version: '4',
+        #        profitRatio: '0.0227',
+        #        newOpenAvgPrice: '0.03491',
+        #        newCloseAvgPrice: '0.03494',
+        #        closeProfitLoss: '0.3423',
+        #        fee: '0.1593977',
+        #        positionShowStatus: 'CLOSED'
+        #    }
         #
         market = self.safe_market(self.safe_string(position, 'symbol'), market)
         symbol = market['symbol']
@@ -4622,7 +4661,7 @@ class mexc(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': None,
         })
 
-    async def fetch_transfer(self, id: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
         await self.load_markets()
         if marketType == 'spot':
@@ -4649,7 +4688,7 @@ class mexc(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
         return None
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -4780,7 +4819,7 @@ class mexc(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # spot: fetchTransfer
         #
@@ -4844,7 +4883,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'ok',
             'FAILED': 'failed',
@@ -4852,7 +4891,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
@@ -5178,6 +5217,74 @@ class mexc(Exchange, ImplicitAPI):
         if (defaultType == 'margin') or (isMargin is True):
             marginMode = 'isolated'
         return [marginMode, params]
+
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+        :param str[] [symbols]: unified contract symbols
+        :param int [since]: not used by mexc fetchPositionsHistory
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int type: position type，1: long, 2: short
+        :param int page_num: current page number, default is 1
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        if limit is not None:
+            request['page_size'] = limit
+        response = await self.contractPrivateGetPositionListHistoryPositions(self.extend(request, params))
+        #
+        #    {
+        #        success: True,
+        #        code: '0',
+        #        data: [
+        #            {
+        #                positionId: '390281084',
+        #                symbol: 'RVN_USDT',
+        #                positionType: '1',
+        #                openType: '2',
+        #                state: '3',
+        #                holdVol: '0',
+        #                frozenVol: '0',
+        #                closeVol: '1141',
+        #                holdAvgPrice: '0.03491',
+        #                holdAvgPriceFullyScale: '0.03491',
+        #                openAvgPrice: '0.03491',
+        #                openAvgPriceFullyScale: '0.03491',
+        #                closeAvgPrice: '0.03494',
+        #                liquidatePrice: '0.03433',
+        #                oim: '0',
+        #                im: '0',
+        #                holdFee: '0',
+        #                realised: '0.1829',
+        #                leverage: '50',
+        #                createTime: '1711512408000',
+        #                updateTime: '1711512553000',
+        #                autoAddIm: False,
+        #                version: '4',
+        #                profitRatio: '0.0227',
+        #                newOpenAvgPrice: '0.03491',
+        #                newCloseAvgPrice: '0.03494',
+        #                closeProfitLoss: '0.3423',
+        #                fee: '0.1593977',
+        #                positionShowStatus: 'CLOSED'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_list(response, 'data')
+        positions = self.parse_positions(data, symbols, params)
+        return self.filter_by_since_limit(positions, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section = self.safe_string(api, 0)

@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -16,7 +17,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -88,8 +88,11 @@ class idex(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -103,6 +106,7 @@ class idex(Exchange, ImplicitAPI):
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -398,7 +402,7 @@ class idex(Exchange, ImplicitAPI):
         response = await self.publicGetTickers(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # {
         #   "market": "DIL-ETH",
         #   "time": 1598367493008,
@@ -1287,7 +1291,7 @@ class idex(Exchange, ImplicitAPI):
             response = await self.privatePostOrders(request)
         return self.parse_order(response, market)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://api-docs-v3.idex.io/#withdraw-funds

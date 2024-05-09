@@ -10,6 +10,7 @@ import json
 from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
@@ -19,7 +20,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -75,7 +75,13 @@ class cex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -556,7 +562,7 @@ class cex(Exchange, ImplicitAPI):
                 return []
         return None
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         volume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'high')

@@ -8,11 +8,11 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\probit as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -74,8 +74,11 @@ class probit extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -90,6 +93,7 @@ class probit extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -679,7 +683,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "last":"0.022902",
@@ -1430,7 +1434,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://docs-en.probit.com/reference/withdrawal
@@ -1514,11 +1518,10 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @deprecated
-             * use fetchDepositsWithdrawals instead
+             * fetch history of deposits and withdrawals
              * @see https://docs-en.probit.com/reference/transferpayment
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch transactions for
@@ -1539,10 +1542,10 @@ class probit extends Exchange {
             } else {
                 $request['start_time'] = $this->iso8601(1);
             }
-            $until = $this->safe_integer_2($params, 'till', 'until');
+            $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
                 $request['end_time'] = $this->iso8601($until);
-                $params = $this->omit($params, array( 'until', 'till' ));
+                $params = $this->omit($params, array( 'until' ));
             } else {
                 $request['end_time'] = $this->iso8601($this->milliseconds());
             }

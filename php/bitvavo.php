@@ -67,8 +67,11 @@ class bitvavo extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -401,7 +404,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * fetches all available currencies on an exchange
@@ -580,7 +583,7 @@ class bitvavo extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -1692,7 +1695,7 @@ class bitvavo extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

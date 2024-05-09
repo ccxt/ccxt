@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -441,16 +441,16 @@ export default class bigone extends Exchange {
         //     ],
         // }
         //
-        const currenciesData = this.safeValue (data, 'data', []);
+        const currenciesData = this.safeList (data, 'data', []);
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const currency = currenciesData[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
-            const type = this.safeValue (currency, 'is_fiat') ? 'fiat' : 'crypto';
+            const type = this.safeBool (currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks = {};
-            const chains = this.safeValue (currency, 'binding_gateways', []);
+            const chains = this.safeList (currency, 'binding_gateways', []);
             let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
             let currencyDepositEnabled: Bool = undefined;
             let currencyWithdrawEnabled: Bool = undefined;
@@ -458,8 +458,8 @@ export default class bigone extends Exchange {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'gateway_name');
                 const networkCode = this.networkIdToCode (networkId);
-                const deposit = this.safeValue (chain, 'is_deposit_enabled');
-                const withdraw = this.safeValue (chain, 'is_withdrawal_enabled');
+                const deposit = this.safeBool (chain, 'is_deposit_enabled');
+                const withdraw = this.safeBool (chain, 'is_withdrawal_enabled');
                 const isActive = (deposit && withdraw);
                 const minDepositAmount = this.safeString (chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
@@ -583,12 +583,12 @@ export default class bigone extends Exchange {
         //        ...
         //    ]
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseAsset = this.safeValue (market, 'base_asset', {});
-            const quoteAsset = this.safeValue (market, 'quote_asset', {});
+            const baseAsset = this.safeDict (market, 'base_asset', {});
+            const quoteAsset = this.safeDict (market, 'quote_asset', {});
             const baseId = this.safeString (baseAsset, 'symbol');
             const quoteId = this.safeString (quoteAsset, 'symbol');
             const base = this.safeCurrencyCode (baseId);
@@ -653,7 +653,7 @@ export default class bigone extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            const inverse = this.safeValue (market, 'isInverse');
+            const inverse = this.safeBool (market, 'isInverse');
             result.push (this.safeMarketStructure ({
                 'id': marketId,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -669,7 +669,7 @@ export default class bigone extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': this.safeValue (market, 'enable'),
+                'active': this.safeBool (market, 'enable'),
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
@@ -706,7 +706,7 @@ export default class bigone extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // spot
         //
@@ -757,8 +757,8 @@ export default class bigone extends Exchange {
         const marketId = this.safeString2 (ticker, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-', marketType);
         const close = this.safeString2 (ticker, 'close', 'latestPrice');
-        const bid = this.safeValue (ticker, 'bid', {});
-        const ask = this.safeValue (ticker, 'ask', {});
+        const bid = this.safeDict (ticker, 'bid', {});
+        const ask = this.safeDict (ticker, 'ask', {});
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -881,7 +881,7 @@ export default class bigone extends Exchange {
             //        ]
             //    }
             //
-            data = this.safeValue (response, 'data', []);
+            data = this.safeList (response, 'data', []);
         } else {
             data = await this.contractPublicGetInstruments (params);
             //
@@ -931,7 +931,7 @@ export default class bigone extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'Timestamp');
         return this.parseToInt (timestamp / 1000000);
     }
@@ -1304,7 +1304,7 @@ export default class bigone extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeValue (response, 'data', []);
+        const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString (balance, 'asset_symbol');
@@ -1393,7 +1393,7 @@ export default class bigone extends Exchange {
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
         }
-        const immediateOrCancel = this.safeValue (order, 'immediate_or_cancel');
+        const immediateOrCancel = this.safeBool (order, 'immediate_or_cancel');
         let timeInForce = undefined;
         if (immediateOrCancel) {
             timeInForce = 'IOC';
@@ -1419,7 +1419,7 @@ export default class bigone extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': this.safeValue (order, 'post_only'),
+            'postOnly': this.safeBool (order, 'post_only'),
             'side': side,
             'price': price,
             'stopPrice': triggerPrice,
@@ -1875,14 +1875,14 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const dataLength = data.length;
         if (dataLength < 1) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
         }
         const chainsIndexedById = this.indexBy (data, 'chain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString (addressObject, 'value');
         const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
@@ -1970,7 +1970,7 @@ export default class bigone extends Exchange {
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
         const type = ('customer_id' in transaction) ? 'withdrawal' : 'deposit';
-        const internal = this.safeValue (transaction, 'is_internal');
+        const internal = this.safeBool (transaction, 'is_internal');
         return {
             'info': transaction,
             'id': id,
@@ -2116,7 +2116,7 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const guid = this.safeString (params, 'guid', this.uuid ());
@@ -2137,7 +2137,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
@@ -2148,14 +2148,14 @@ export default class bigone extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //     {
         //         "code": 0,
         //         "data": null
         //     }
         //
-        const code = this.safeNumber (transfer, 'code');
+        const code = this.safeString (transfer, 'code');
         return {
             'info': transfer,
             'id': undefined,
@@ -2169,14 +2169,14 @@ export default class bigone extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             '0': 'ok',
         };
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bigone#withdraw

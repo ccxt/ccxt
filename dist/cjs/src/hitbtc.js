@@ -91,6 +91,7 @@ class hitbtc extends hitbtc$1 {
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -615,6 +616,7 @@ class hitbtc extends hitbtc$1 {
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {
@@ -1734,7 +1736,7 @@ class hitbtc extends hitbtc$1 {
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
         }
-        [request, params] = this.handleUntilOption('till', request, params);
+        [request, params] = this.handleUntilOption('until', request, params);
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
@@ -2806,11 +2808,11 @@ class hitbtc extends hitbtc$1 {
         // 'symbols': Comma separated list of symbol codes,
         // 'sort': 'DESC' or 'ASC'
         // 'from': 'Datetime or Number',
-        // 'till': 'Datetime or Number',
+        // 'until': 'Datetime or Number',
         // 'limit': 100,
         // 'offset': 0,
         };
-        [request, params] = this.handleUntilOption('till', request, params);
+        [request, params] = this.handleUntilOption('until', request, params);
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];
@@ -3241,8 +3243,9 @@ class hitbtc extends hitbtc$1 {
                 throw new errors.ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
-        if (amount !== 0) {
-            amount = this.amountToPrecision(symbol, amount);
+        const stringAmount = this.numberToString(amount);
+        if (stringAmount !== '0') {
+            amount = this.amountToPrecision(symbol, stringAmount);
         }
         else {
             amount = '0';
@@ -3321,6 +3324,7 @@ class hitbtc extends hitbtc$1 {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': this.safeString(currencyInfo, 'code'),
@@ -3343,7 +3347,7 @@ class hitbtc extends hitbtc$1 {
          * @param {bool} [params.margin] true for reducing spot-margin
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
-        if (amount !== 0) {
+        if (this.numberToString(amount) !== '0') {
             throw new errors.BadRequest(this.id + ' reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount');
         }
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);

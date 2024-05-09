@@ -31,7 +31,6 @@ const log          = require ('ololog')
 let files = [
 
     'dist/ccxt.browser.js',
-    'dist/ccxt.bundle.cjs',
 
     'python/ccxt/test/test_decimal_to_precision.py',
     'php/test/decimal_to_precision.php',

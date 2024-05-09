@@ -13,7 +13,7 @@ class coinbasepro extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbasepro',
-            'name' => 'Coinbase Pro',
+            'name' => 'Coinbase Pro(Deprecated)',
             'countries' => array( 'US' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome'],
@@ -50,7 +50,13 @@ class coinbasepro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -226,7 +232,7 @@ class coinbasepro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
@@ -533,7 +539,7 @@ class coinbasepro extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -1330,7 +1336,7 @@ class coinbasepro extends Exchange {
         return $this->privateGetPaymentMethods ($params);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod

@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -1222,7 +1222,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        "id" => 1700233093414
         //    }
         //
-        $messageHash = $this->safe_integer($message, 'id');
+        $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
         if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
             $parsedOrders = array();

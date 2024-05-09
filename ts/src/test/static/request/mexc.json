@@ -594,6 +594,24 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "with no arguments",
+                "method": "fetchPositionsHistory",
+                "url": "https://contract.mexc.com/api/v1/private/position/list/history_positions",
+                "input": []
+            },
+            {
+                "description": "with symbol and limit argument",
+                "method": "fetchPositionsHistory",
+                "url": "https://contract.mexc.com/api/v1/private/position/list/history_positions?page_size=5&symbol=SOL_USDT",
+                "input": [
+                  [ "SOL/USDT:USDT" ],
+                  null,
+                  5
+                ]
+              }
         ]
     }
 }

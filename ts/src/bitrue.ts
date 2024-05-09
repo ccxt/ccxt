@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntries, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1176,7 +1176,7 @@ export default class bitrue extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchBidsAsks
         //
@@ -2746,7 +2746,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#withdraw
@@ -2896,7 +2896,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         /**
          * @method
          * @name bitrue#fetchTransfers
@@ -3039,6 +3039,7 @@ export default class bitrue extends Exchange {
             'info': data,
             'symbol': market['symbol'],
             'type': undefined,
+            'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
             'code': undefined,

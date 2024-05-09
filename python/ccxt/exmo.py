@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -18,7 +19,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -74,7 +74,12 @@ class exmo(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -273,6 +278,7 @@ class exmo(Exchange, ImplicitAPI):
             'info': data,
             'symbol': self.safe_symbol(None, market),
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': None,
             'code': self.safe_value(market, 'quote'),
@@ -281,7 +287,7 @@ class exmo(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449
@@ -292,7 +298,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3
@@ -1004,7 +1010,7 @@ class exmo(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "buy_price":"0.00002996",
@@ -1979,7 +1985,7 @@ class exmo(Exchange, ImplicitAPI):
             return self.markets[symbols[0]]
         return None
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325

@@ -10,12 +10,12 @@ from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Order, 
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DuplicateOrderId
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -85,6 +85,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchLedger': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -98,8 +99,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchOrderBook': False,
                 'fetchOrders': False,
                 'fetchPosition': True,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -110,6 +113,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMargin': True,
                 'setMarginMode': False,
@@ -1722,9 +1726,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             request['result_limit'] = limit
         if since is not None:
             request['time_from'] = self.iso8601(since)
-        until = self.safe_string_n(params, ['until', 'till'])
+        until = self.safe_string_n(params, ['until'])
         if until is not None:
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
             request['ref_datetime'] = self.iso8601(until)
         response = await self.v1PrivateGetPortfoliosFills(self.extend(request, params))
         #
@@ -1770,7 +1774,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'results', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.cloud.coinbase.com/intx/reference/withdraw

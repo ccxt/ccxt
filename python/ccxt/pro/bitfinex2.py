@@ -10,8 +10,8 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
 
@@ -642,6 +642,8 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         responseChecksum = self.safe_integer(message, 2)
         if responseChecksum != localChecksum:
             error = InvalidNonce(self.id + ' invalid checksum')
+            del client.subscriptions[messageHash]
+            del self.orderbooks[symbol]
             client.reject(error, messageHash)
 
     async def watch_balance(self, params={}) -> Balances:

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, P
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -57,7 +57,11 @@ export default class bithumb extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -362,7 +366,7 @@ export default class bithumb extends Exchange {
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker, fetchTickers
         //
@@ -990,7 +994,7 @@ export default class bithumb extends Exchange {
         return await this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#withdraw

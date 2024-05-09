@@ -8,13 +8,13 @@ from ccxt.abstract.bitteam import ImplicitAPI
 from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
@@ -96,7 +96,11 @@ class bitteam(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': False,
@@ -1478,7 +1482,7 @@ class bitteam(Exchange, ImplicitAPI):
         pair = self.safe_dict(result, 'pair', {})
         return self.parse_ticker(pair, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #     {

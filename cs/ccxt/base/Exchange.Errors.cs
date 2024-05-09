@@ -75,6 +75,12 @@ namespace ccxt;
         public MarginModeAlreadySet(string message) : base(message) { }
         public MarginModeAlreadySet(string message, NoChange inner) : base(message, inner) { }
     }
+   public class MarketClosed : OperationRejected
+    {
+        public MarketClosed() : base() { }
+        public MarketClosed(string message) : base(message) { }
+        public MarketClosed(string message, OperationRejected inner) : base(message, inner) { }
+    }
    public class BadResponse : ExchangeError
     {
         public BadResponse() : base() { }
@@ -165,6 +171,12 @@ namespace ccxt;
         public ProxyError(string message) : base(message) { }
         public ProxyError(string message, ExchangeError inner) : base(message, inner) { }
     }
+   public class ExchangeClosedByUser : ExchangeError
+    {
+        public ExchangeClosedByUser() : base() { }
+        public ExchangeClosedByUser(string message) : base(message) { }
+        public ExchangeClosedByUser(string message, ExchangeError inner) : base(message, inner) { }
+    }
    public class OperationFailed : BaseError
     {
         public OperationFailed() : base() { }
@@ -212,10 +224,4 @@ namespace ccxt;
         public RequestTimeout() : base() { }
         public RequestTimeout(string message) : base(message) { }
         public RequestTimeout(string message, NetworkError inner) : base(message, inner) { }
-    }
-   public class ExchangeClosedByUser : BaseError
-    {
-        public ExchangeClosedByUser() : base() { }
-        public ExchangeClosedByUser(string message) : base(message) { }
-        public ExchangeClosedByUser(string message, BaseError inner) : base(message, inner) { }
     }
