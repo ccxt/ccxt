@@ -54,6 +54,7 @@ class kraken(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': True,
@@ -547,6 +548,8 @@ class kraken(Exchange, ImplicitAPI):
             leverageBuy = self.safe_value(market, 'leverage_buy', [])
             leverageBuyLength = len(leverageBuy)
             precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))
+            status = self.safe_string(market, 'status')
+            isActive = status == 'online'
             result.append({
                 'id': id,
                 'wsId': self.safe_string(market, 'wsname'),
@@ -565,7 +568,7 @@ class kraken(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': isActive,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -815,7 +818,7 @@ class kraken(Exchange, ImplicitAPI):
             orderbook = self.safe_value(result, wsName, orderbook)
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "a":["2432.77000","1","1.000"],
@@ -1333,7 +1336,7 @@ class kraken(Exchange, ImplicitAPI):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
-        orderRequest = self.order_request('createOrder()', symbol, type, request, price, params)
+        orderRequest = self.order_request('createOrder', symbol, type, request, price, params)
         response = self.privatePostAddOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -1659,7 +1662,10 @@ class kraken(Exchange, ImplicitAPI):
                 request['price'] = trailingAmountString
                 request['ordertype'] = 'trailing-stop'
         if reduceOnly:
-            request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
+            if method == 'createOrderWs':
+                request['reduce_only'] = True  # ws request can't have stringified bool
+            else:
+                request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         close = self.safe_value(params, 'close')
         if close is not None:
             close = self.extend({}, close)
@@ -1710,7 +1716,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         if amount is not None:
             request['volume'] = self.amount_to_precision(symbol, amount)
-        orderRequest = self.order_request('editOrder()', symbol, type, request, price, params)
+        orderRequest = self.order_request('editOrder', symbol, type, request, price, params)
         response = self.privatePostEditOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -2002,6 +2008,32 @@ class kraken(Exchange, ImplicitAPI):
         """
         self.load_markets()
         return self.privatePostCancelAll(params)
+
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        if timeout > 86400000:
+            raise BadRequest(self.id + 'cancelAllOrdersAfter timeout should be less than 86400000 milliseconds')
+        self.load_markets()
+        request: dict = {
+            'timeout': (self.parse_to_int(timeout / 1000)) if (timeout > 0) else 0,
+        }
+        response = self.privatePostCancelAllOrdersAfter(self.extend(request, params))
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "currentTime": "2023-03-24T17:41:56Z",
+        #             "triggerTime": "2023-03-24T17:42:56Z"
+        #         }
+        #     }
+        #
+        return response
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -2492,7 +2524,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
@@ -2698,7 +2730,7 @@ class kraken(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #

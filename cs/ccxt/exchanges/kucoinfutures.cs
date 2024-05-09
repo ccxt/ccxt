@@ -72,14 +72,17 @@ public partial class kucoinfutures : kucoin
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
+                { "fetchTradingFee", true },
                 { "fetchTransactionFee", false },
                 { "fetchWithdrawals", true },
                 { "setLeverage", false },
@@ -153,6 +156,8 @@ public partial class kucoinfutures : kucoin
                         { "funding-history", 4.44 },
                         { "sub/api-key", 1 },
                         { "trade-statistics", 1 },
+                        { "trade-fees", 1 },
+                        { "history-positions", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "withdrawals", 1 },
@@ -1144,6 +1149,82 @@ public partial class kucoinfutures : kucoin
         return this.parsePositions(data, symbols);
     }
 
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
+        * @param {string[]} [symbols] list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] closing end time
+        * @param {int} [params.pageId] page id
+        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 200;
+        }
+        object request = new Dictionary<string, object>() {
+            { "limit", limit },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = since;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["to"] = until;
+        }
+        object response = await this.futuresPrivateGetHistoryPositions(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "code": "200",
+        //     "msg": "success",
+        //     "retry": false,
+        //     "data": {
+        //         "currentPage": 1,
+        //         "pageSize": 10,
+        //         "totalNum": 25,
+        //         "totalPage": 3,
+        //         "items": [
+        //             {
+        //                 "closeId": "300000000000000030",
+        //                 "positionId": "300000000000000009",
+        //                 "uid": 99996908309485,
+        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        //                 "symbol": "XBTUSDM",
+        //                 "settleCurrency": "XBT",
+        //                 "leverage": "0.0",
+        //                 "type": "LIQUID_LONG",
+        //                 "side": null,
+        //                 "closeSize": null,
+        //                 "pnl": "-1.0000003793999999",
+        //                 "realisedGrossCost": "0.9993849748999999",
+        //                 "withdrawPnl": "0.0",
+        //                 "roe": null,
+        //                 "tradeFee": "0.0006154045",
+        //                 "fundingFee": "0.0",
+        //                 "openTime": 1713785751181,
+        //                 "closeTime": 1713785752784,
+        //                 "openPrice": null,
+        //                 "closePrice": null
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data");
+        object items = this.safeList(data, "items", new List<object>() {});
+        return this.parsePositions(items, symbols);
+    }
+
     public override object parsePosition(object position, object market = null)
     {
         //
@@ -1191,18 +1272,54 @@ public partial class kucoinfutures : kucoin
         //            }
         //        ]
         //    }
+        // position history
+        //             {
+        //                 "closeId": "300000000000000030",
+        //                 "positionId": "300000000000000009",
+        //                 "uid": 99996908309485,
+        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        //                 "symbol": "XBTUSDM",
+        //                 "settleCurrency": "XBT",
+        //                 "leverage": "0.0",
+        //                 "type": "LIQUID_LONG",
+        //                 "side": null,
+        //                 "closeSize": null,
+        //                 "pnl": "-1.0000003793999999",
+        //                 "realisedGrossCost": "0.9993849748999999",
+        //                 "withdrawPnl": "0.0",
+        //                 "roe": null,
+        //                 "tradeFee": "0.0006154045",
+        //                 "fundingFee": "0.0",
+        //                 "openTime": 1713785751181,
+        //                 "closeTime": 1713785752784,
+        //                 "openPrice": null,
+        //                 "closePrice": null
+        //             }
         //
         object symbol = this.safeString(position, "symbol");
         market = this.safeMarket(symbol, market);
         object timestamp = this.safeInteger(position, "currentTimestamp");
         object size = this.safeString(position, "currentQty");
         object side = null;
-        if (isTrue(Precise.stringGt(size, "0")))
+        object type = this.safeStringLower(position, "type");
+        if (isTrue(!isEqual(size, null)))
         {
-            side = "long";
-        } else if (isTrue(Precise.stringLt(size, "0")))
+            if (isTrue(Precise.stringGt(size, "0")))
+            {
+                side = "long";
+            } else if (isTrue(Precise.stringLt(size, "0")))
+            {
+                side = "short";
+            }
+        } else if (isTrue(!isEqual(type, null)))
         {
-            side = "short";
+            if (isTrue(isGreaterThan(getIndexOf(type, "long"), -1)))
+            {
+                side = "long";
+            } else
+            {
+                side = "short";
+            }
         }
         object notional = Precise.stringAbs(this.safeString(position, "posCost"));
         object initialMargin = this.safeString(position, "posInit");
@@ -1211,25 +1328,29 @@ public partial class kucoinfutures : kucoin
         object unrealisedPnl = this.safeString(position, "unrealisedPnl");
         object crossMode = this.safeValue(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
-        object marginMode = ((bool) isTrue(crossMode)) ? "cross" : "isolated";
+        object marginMode = null;
+        if (isTrue(!isEqual(crossMode, null)))
+        {
+            marginMode = ((bool) isTrue(crossMode)) ? "cross" : "isolated";
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "id", this.safeString(position, "id") },
+            { "id", this.safeString2(position, "id", "positionId") },
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", this.safeInteger(position, "closeTime") },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
             { "maintenanceMargin", this.safeNumber(position, "posMaint") },
             { "maintenanceMarginPercentage", this.safeNumber(position, "maintMarginReq") },
-            { "entryPrice", this.safeNumber(position, "avgEntryPrice") },
+            { "entryPrice", this.safeNumber2(position, "avgEntryPrice", "openPrice") },
             { "notional", this.parseNumber(notional) },
-            { "leverage", this.safeNumber(position, "realLeverage") },
+            { "leverage", this.safeNumber2(position, "realLeverage", "leverage") },
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
             { "contracts", this.parseNumber(Precise.stringAbs(size)) },
             { "contractSize", this.safeValue(market, "contractSize") },
-            { "realizedPnl", this.safeNumber(position, "realisedPnl") },
+            { "realizedPnl", this.safeNumber2(position, "realisedPnl", "pnl") },
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
             { "markPrice", this.safeNumber(position, "markPrice") },
@@ -1712,8 +1833,8 @@ public partial class kucoinfutures : kucoin
             return await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters);
         }
         object stop = this.safeValue2(parameters, "stop", "trigger");
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"stop", "until", "till", "trigger"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"stop", "until", "trigger"});
         if (isTrue(isEqual(status, "closed")))
         {
             status = "done";
@@ -1818,7 +1939,7 @@ public partial class kucoinfutures : kucoin
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1849,7 +1970,7 @@ public partial class kucoinfutures : kucoin
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
@@ -2767,8 +2888,8 @@ public partial class kucoinfutures : kucoin
             { "from", 0 },
             { "to", this.milliseconds() },
         };
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = since;
@@ -2853,5 +2974,46 @@ public partial class kucoinfutures : kucoin
             response = await this.futuresPrivatePostOrders(this.extend(request, parameters));
         }
         return this.parseOrder(response, market);
+    }
+
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchTradingFee
+        * @description fetch the trading fees for a market
+        * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbols", getValue(market, "id") },
+        };
+        object response = await this.privateGetTradeFees(this.extend(request, parameters));
+        //
+        //  {
+        //      "code": "200000",
+        //      "data": {
+        //        "symbol": "XBTUSDTM",
+        //        "takerFeeRate": "0.0006",
+        //        "makerFeeRate": "0.0002"
+        //      }
+        //  }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0);
+        object marketId = this.safeString(first, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "maker", this.safeNumber(first, "makerFeeRate") },
+            { "taker", this.safeNumber(first, "takerFeeRate") },
+            { "percentage", true },
+            { "tierBased", true },
+        };
     }
 }

@@ -99,6 +99,7 @@ class hitbtc extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -623,6 +624,7 @@ class hitbtc extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'funding' => 'wallet',
+                    'swap' => 'derivatives',
                     'future' => 'derivatives',
                 ),
                 'withdraw' => array(
@@ -1135,7 +1137,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //       "ask" => "62756.01",
@@ -1753,7 +1755,7 @@ class hitbtc extends Exchange {
             if ($since !== null) {
                 $request['from'] = $this->iso8601($since);
             }
-            list($request, $params) = $this->handle_until_option('till', $request, $params);
+            list($request, $params) = $this->handle_until_option('until', $request, $params);
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1000);
             }
@@ -2629,7 +2631,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -2681,7 +2683,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2809,11 +2811,11 @@ class hitbtc extends Exchange {
                 // 'symbols' => Comma separated list of $symbol codes,
                 // 'sort' => 'DESC' or 'ASC'
                 // 'from' => 'Datetime or Number',
-                // 'till' => 'Datetime or Number',
+                // 'until' => 'Datetime or Number',
                 // 'limit' => 100,
                 // 'offset' => 0,
             );
-            list($request, $params) = $this->handle_until_option('till', $request, $params);
+            list($request, $params) = $this->handle_until_option('until', $request, $params);
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
@@ -3248,8 +3250,9 @@ class hitbtc extends Exchange {
                     throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
                 }
             }
-            if ($amount !== 0) {
-                $amount = $this->amount_to_precision($symbol, $amount);
+            $stringAmount = $this->number_to_string($amount);
+            if ($stringAmount !== '0') {
+                $amount = $this->amount_to_precision($symbol, $stringAmount);
             } else {
                 $amount = '0';
             }
@@ -3337,7 +3340,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -3350,14 +3353,14 @@ class hitbtc extends Exchange {
              * @param {bool} [$params->margin] true for reducing spot-margin
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
              */
-            if ($amount !== 0) {
+            if ($this->number_to_string($amount) !== '0') {
                 throw new BadRequest($this->id . ' reduceMargin() on hitbtc requires the $amount to be 0 and that will remove the entire margin amount');
             }
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
         }) ();
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin

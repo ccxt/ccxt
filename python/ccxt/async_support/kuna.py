@@ -653,7 +653,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 0, 1)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "pair": "BTC_USDT",                                   # Traded pair
@@ -1340,7 +1340,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kuna.io/docs/create-a-withdraw

@@ -446,6 +446,8 @@ class htx extends \ccxt\async\htx {
                 $client->resolve ($orderbook, $messageHash);
             }
         } catch (Exception $e) {
+            unset($client->subscriptions[$messageHash]);
+            unset($this->orderbooks[$symbol]);
             $client->reject ($e, $messageHash);
         }
     }

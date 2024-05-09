@@ -135,6 +135,8 @@ export interface Order {
     cost: number;
     trades: Trade[];
     fee: Fee;
+    reduceOnly: Bool;
+    postOnly: Bool;
     info: any;
 }
 
@@ -387,13 +389,25 @@ export interface TransferEntry {
     status?: Str;
 }
 
-export interface BorrowRate {
+export interface CrossBorrowRate {
+    info: any;
     currency?: Str;
-    rate?: number;
+    rate: number;
     period?: number;
     timestamp?: number;
     datetime?: Str;
-    info: any;
+}
+
+export interface IsolatedBorrowRate {
+    info: any,
+    symbol: string,
+    base: string,
+    baseRate: number,
+    quote: string,
+    quoteRate: number,
+    period?: Int,
+    timestamp?: Int,
+    datetime?: Str,
 }
 
 export interface FundingRateHistory {
@@ -432,6 +446,12 @@ export interface OrderRequest {
     amount?: number;
     price?: number | undefined;
     params?: any;
+}
+
+export interface CancellationRequest {
+    id: string;
+    clientOrderId?: string;
+    symbol: string;
 }
 
 export interface FundingHistory {
@@ -550,6 +570,15 @@ export interface MarginModes extends Dictionary<MarginMode> {
 }
 
 export interface OptionChain extends Dictionary<Option> {
+}
+
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+}
+
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+}
+
+export interface TransferEntries extends Dictionary<TransferEntry> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

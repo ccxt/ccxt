@@ -114,6 +114,7 @@ class currencycom(Exchange, ImplicitAPI):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': None,
+                'sandbox': True,
                 'setLeverage': None,
                 'setMarginMode': None,
                 'setPositionMode': None,
@@ -779,7 +780,7 @@ class currencycom(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #

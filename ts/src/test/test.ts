@@ -32,8 +32,24 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
-const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
-// const sanitizedSymnol = exchangeSymbol !== undefined && exchangeSymbol.includes ('/') ? exchangeSymbol : undefined;
+
+// ############## detect cli arguments ############## //
+const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
+
+function filterArgvs (argsArray, needle, include = true) {
+    return argsArray.filter ((x) => (include && x.includes (needle)) || (!include && !x.includes (needle)));
+}
+function selectArgv (argsArray, needle) {
+    const foundArray = argsArray.filter ((x) => (x.includes (needle)));
+    return foundArray.length ? foundArray[0] : undefined;
+}
+
+const argvExchange = filterArgvs (argv, '--', false)[0];
+const argvSymbol   = selectArgv (argv, '/');
+const argvMethod   = selectArgv (argv, '()');
+// #################################################### //
+
+
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
@@ -212,7 +228,7 @@ export default class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
-    async init (exchangeId, symbolArgv) {
+    async init (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgs ();
 
         if (this.requestTests && this.responseTests) {
@@ -232,9 +248,7 @@ export default class testMainClass extends baseMainTestClass {
             await this.runBrokerIdTests ();
             return;
         }
-        const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
-        const exchangeObject = { 'exchange': exchangeId, 'symbol': symbolStr, 'isWs': this.wsTests };
-        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, jsonStringify (exchangeObject), this.newLine);
+        dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -248,32 +262,28 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
-        const symbol = this.checkIfSpecificTestIsChosen (symbolArgv);
-        await this.startTest (exchange, symbol);
+        this.checkIfSpecificTestIsChosen (methodArgv);
+        await this.startTest (exchange, symbolArgv);
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 
-    checkIfSpecificTestIsChosen (symbolArgv) {
-        if (symbolArgv !== undefined) {
+    checkIfSpecificTestIsChosen (methodArgv) {
+        if (methodArgv !== undefined) {
             const testFileNames = Object.keys (this.testFiles);
-            const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
                     const testFileName = testFileNames[i];
                     for (let j = 0; j < possibleMethodNames.length; j++) {
-                        const methodName = possibleMethodNames[j];
+                        let methodName = possibleMethodNames[j];
+                        methodName = methodName.replace ('()', '');
                         if (testFileName === methodName) {
                             this.onlySpecificTests.push (testFileName);
                         }
                     }
                 }
             }
-            // if method names were found, then remove them from symbolArgv
-            if (this.onlySpecificTests.length > 0) {
-                return undefined;
-            }
         }
-        return symbolArgv;
     }
 
     async importFiles (exchange: Exchange) {
@@ -481,6 +491,9 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (('bid' in finalSkips) && !('ask' in finalSkips)) {
             finalSkips['ask'] = finalSkips['bid'];
+        }
+        if (('baseVolume' in finalSkips) && !('quoteVolume' in finalSkips)) {
+            finalSkips['quoteVolume'] = finalSkips['baseVolume'];
         }
         return finalSkips;
     }
@@ -1835,4 +1848,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);
+(new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, IsolatedBorrowRates, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1121,7 +1121,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = response['data']
         return self.parse_deposit_withdraw_fee(data)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot(REST)
         #
@@ -2424,7 +2424,7 @@ class bitmart(Exchange, ImplicitAPI):
         elif isMarketOrder:
             # for market buy it requires the amount of quote currency to spend
             if side == 'buy':
-                notional = self.safe_number_2(params, 'cost', 'notional')
+                notional = self.safe_string_2(params, 'cost', 'notional')
                 params = self.omit(params, 'cost')
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
@@ -2434,9 +2434,9 @@ class bitmart(Exchange, ImplicitAPI):
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
-                        notional = self.parse_number(Precise.string_mul(amountString, priceString))
+                        notional = Precise.string_mul(amountString, priceString)
                 else:
-                    notional = amount if (notional is None) else notional
+                    notional = self.number_to_string(amount) if (notional is None) else notional
                 request['notional'] = self.decimal_to_precision(notional, TRUNCATE, market['precision']['price'], self.precisionMode)
             elif side == 'sell':
                 request['size'] = self.amount_to_precision(symbol, amount)
@@ -2961,7 +2961,7 @@ class bitmart(Exchange, ImplicitAPI):
             return code
         return self.network_id_to_code(networkId)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3342,7 +3342,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_isolated_borrow_rate(self, symbol: str, params={}):
+    def fetch_isolated_borrow_rate(self, symbol: str, params={}) -> IsolatedBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3393,7 +3393,7 @@ class bitmart(Exchange, ImplicitAPI):
         borrowRate = self.safe_value(symbols, 0)
         return self.parse_isolated_borrow_rate(borrowRate, market)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None):
+    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -3435,7 +3435,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_isolated_borrow_rates(self, params={}):
+    def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """
         fetch the borrow interest rates of all currencies, currently only works for isolated margin
         :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3478,11 +3478,7 @@ class bitmart(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         symbols = self.safe_value(data, 'symbols', [])
-        result = []
-        for i in range(0, len(symbols)):
-            symbol = self.safe_value(symbols, i)
-            result.append(self.parse_isolated_borrow_rate(symbol))
-        return result
+        return self.parse_isolated_borrow_rates(symbols)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
@@ -3553,7 +3549,7 @@ class bitmart(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string_2(response, 'code', 'message')),
         })
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '1000': 'ok',
             'OK': 'ok',
@@ -3575,7 +3571,7 @@ class bitmart(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # margin
         #
@@ -3614,7 +3610,7 @@ class bitmart(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
         }
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
         :see: https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
@@ -3641,9 +3637,9 @@ class bitmart(Exchange, ImplicitAPI):
             request['time_start'] = since
         if limit is not None:
             request['limit'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'time_end', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['till', 'until'])
+        params = self.omit(params, ['until'])
         if endTime is not None:
             request['time_end'] = endTime
         response = self.privatePostAccountV1TransferContractList(self.extend(request, params))

@@ -356,7 +356,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "symbol": "BTCUSDTPERP",                   # Market of the symbol
@@ -383,8 +383,15 @@ class poloniexfutures(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestampString = self.safe_string(ticker, 'ts')
-        # check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
-        multiplier = 0.00001 if (len(timestampString) == 18) else 0.000001
+        # check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        multiplier = None
+        if len(timestampString) == 17:
+            multiplier = 0.0001
+        elif len(timestampString) == 18:
+            multiplier = 0.00001
+        else:
+            # 19 length default
+            multiplier = 0.000001
         timestamp = self.safe_integer_product(ticker, 'ts', multiplier)
         last = self.safe_string_2(ticker, 'price', 'lastPrice')
         percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
@@ -1212,8 +1219,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['triger', 'stop', 'until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['trigger', 'stop', 'until'])
         if status == 'closed':
             status = 'done'
         request = {}
@@ -1301,7 +1308,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1317,7 +1324,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`

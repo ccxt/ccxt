@@ -74,8 +74,11 @@ class probit extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -90,6 +93,7 @@ class probit extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -679,7 +683,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "last":"0.022902",
@@ -1430,7 +1434,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://docs-en.probit.com/reference/withdrawal
@@ -1538,10 +1542,10 @@ class probit extends Exchange {
             } else {
                 $request['start_time'] = $this->iso8601(1);
             }
-            $until = $this->safe_integer_2($params, 'till', 'until');
+            $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
                 $request['end_time'] = $this->iso8601($until);
-                $params = $this->omit($params, array( 'until', 'till' ));
+                $params = $this->omit($params, array( 'until' ));
             } else {
                 $request['end_time'] = $this->iso8601($this->milliseconds());
             }

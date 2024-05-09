@@ -89,7 +89,11 @@ class novadax(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -326,7 +330,7 @@ class novadax(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker, fetchTickers
         #
@@ -1124,7 +1128,7 @@ class novadax(Exchange, ImplicitAPI):
             transfer['amount'] = amount
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    {
         #        "code":"A10000",
@@ -1139,7 +1143,6 @@ class novadax(Exchange, ImplicitAPI):
             'info': transfer,
             'id': id,
             'amount': None,
-            'code': currencyCode,  # kept here for backward-compatibility, but will be removed soon
             'currency': currencyCode,
             'fromAccount': None,
             'toAccount': None,
@@ -1148,13 +1151,13 @@ class novadax(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'pending',
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://doc.novadax.com/en-US/#send-cryptocurrencies

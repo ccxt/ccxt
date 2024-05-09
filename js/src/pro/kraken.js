@@ -137,7 +137,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('createOrderWs()', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('createOrderWs', symbol, type, request, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     handleCreateEditOrder(client, message) {
@@ -193,7 +193,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('editOrderWs()', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('editOrderWs', symbol, type, request, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
@@ -770,6 +770,8 @@ export default class kraken extends krakenRest {
                 const localChecksum = this.crc32(payload, false);
                 if (localChecksum !== c) {
                     const error = new InvalidNonce(this.id + ' invalid checksum');
+                    delete client.subscriptions[messageHash];
+                    delete this.orderbooks[symbol];
                     client.reject(error, messageHash);
                     return;
                 }
@@ -1323,7 +1325,7 @@ export default class kraken extends krakenRest {
             },
         };
         const url = this.urls['api']['ws']['public'];
-        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscriptionArgs);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes, subscriptionArgs);
     }
     getMessageHash(unifiedElementName, subChannelName = undefined, symbol = undefined) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...

@@ -285,7 +285,7 @@ class zaif extends Exchange {
         return $this->parse_order_book($response, $market['symbol']);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "last" => 9e-08,
@@ -574,7 +574,7 @@ class zaif extends Exchange {
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
          * make a withdrawal
@@ -671,7 +671,7 @@ class zaif extends Exchange {
     }
 
     public function custom_nonce() {
-        $num = ($this->milliseconds() / (string) 1000);
+        $num = $this->number_to_string($this->milliseconds() / 1000);
         $nonce = floatval($num);
         return sprintf('%.8f', $nonce);
     }

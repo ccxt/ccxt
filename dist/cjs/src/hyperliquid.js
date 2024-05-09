@@ -35,8 +35,10 @@ class hyperliquid extends hyperliquid$1 {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': false,
@@ -104,6 +106,7 @@ class hyperliquid extends hyperliquid$1 {
                 'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -311,6 +314,7 @@ class hyperliquid extends hyperliquid$1 {
         //         ]
         //     ]
         //
+        //
         let meta = this.safeDict(response, 0, {});
         meta = this.safeList(meta, 'universe', []);
         const assetCtxs = this.safeDict(response, 1, {});
@@ -369,14 +373,78 @@ class hyperliquid extends hyperliquid$1 {
         //         },
         //     ],
         // ];
+        // mainnet
+        // [
+        //     {
+        //        "canonical_tokens2":[
+        //           0,
+        //           1
+        //        ],
+        //        "spot_infos":[
+        //           {
+        //              "name":"PURR/USDC",
+        //              "tokens":[
+        //                 1,
+        //                 0
+        //              ]
+        //           }
+        //        ],
+        //        "token_id_to_token":[
+        //           [
+        //              "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //              0
+        //           ],
+        //           [
+        //              "0xc1fb593aeffbeb02f85e0308e9956a90",
+        //              1
+        //           ]
+        //        ],
+        //        "token_infos":[
+        //           {
+        //              "deployer":null,
+        //              "spec":{
+        //                 "name":"USDC",
+        //                 "szDecimals":"8",
+        //                 "weiDecimals":"8"
+        //              },
+        //              "spots":[
+        //              ]
+        //           },
+        //           {
+        //              "deployer":null,
+        //              "spec":{
+        //                 "name":"PURR",
+        //                 "szDecimals":"0",
+        //                 "weiDecimals":"5"
+        //              },
+        //              "spots":[
+        //                 0
+        //              ]
+        //           }
+        //        ]
+        //     },
+        //     [
+        //        {
+        //           "dayNtlVlm":"35001170.16631",
+        //           "markPx":"0.15743",
+        //           "midPx":"0.157555",
+        //           "prevDayPx":"0.158"
+        //        }
+        //     ]
+        // ]
         //
+        // response differs depending on the environment (mainnet vs sandbox)
         const first = this.safeDict(response, 0, {});
-        const meta = this.safeList(first, 'universe', []);
-        const tokens = this.safeList(first, 'tokens', []);
+        const meta = this.safeList2(first, 'universe', 'spot_infos', []);
+        const tokens = this.safeList2(first, 'tokens', 'token_infos', []);
         const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict(meta, i, {});
             const marketName = this.safeString(market, 'name');
+            if (marketName.indexOf('/') < 0) {
+                // there are some weird spot markets in testnet, eg @2
+                continue;
+            }
             const marketParts = marketName.split('/');
             const baseName = this.safeString(marketParts, 0);
             const quoteId = this.safeString(marketParts, 1);
@@ -388,14 +456,16 @@ class hyperliquid extends hyperliquid$1 {
             const maker = this.safeNumber(fees, 'maker');
             const tokensPos = this.safeList(market, 'tokens', []);
             const baseTokenPos = this.safeInteger(tokensPos, 0);
-            const quoteTokenPos = this.safeInteger(tokensPos, 1);
+            // const quoteTokenPos = this.safeInteger (tokensPos, 1);
             const baseTokenInfo = this.safeDict(tokens, baseTokenPos, {});
-            const quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, {});
-            const baseDecimals = this.safeString(baseTokenInfo, 'szDecimals');
-            const quoteDecimals = this.safeInteger(quoteTokenInfo, 'szDecimals');
+            // const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
+            // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(innerBaseTokenInfo, 'szDecimals')));
+            // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString(i + 10000);
             markets.push(this.safeMarketStructure({
-                'id': baseId,
+                'id': marketName,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -405,14 +475,15 @@ class hyperliquid extends hyperliquid$1 {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'subType': undefined,
                 'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
                 'active': true,
                 'contract': false,
-                'linear': true,
-                'inverse': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
@@ -421,8 +492,8 @@ class hyperliquid extends hyperliquid$1 {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(baseDecimals)),
-                    'price': quoteDecimals, // significant digits
+                    'amount': amountPrecision,
+                    'price': 5, // significant digits
                 },
                 'limits': {
                     'leverage': {
@@ -638,7 +709,7 @@ class hyperliquid extends hyperliquid$1 {
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['base'],
+            'coin': market['swap'] ? market['base'] : market['id'],
         };
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -698,7 +769,7 @@ class hyperliquid extends hyperliquid$1 {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['base'],
+                'coin': market['swap'] ? market['base'] : market['id'],
                 'interval': timeframe,
                 'startTime': since,
                 'endTime': until,
@@ -806,6 +877,10 @@ class hyperliquid extends hyperliquid$1 {
         return this.parseTrades(response, market, since, limit);
     }
     amountToPrecision(symbol, amount) {
+        const market = this.market(symbol);
+        if (market['spot']) {
+            return super.amountToPrecision(symbol, amount);
+        }
         return this.decimalToPrecision(amount, number.ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
     priceToPrecision(symbol, price) {
@@ -1215,6 +1290,118 @@ class hyperliquid extends hyperliquid$1 {
         //                 ]
         //             }
         //         }
+        //     }
+        //
+        return response;
+    }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.vaultAddress] the vault address
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        const nonce = this.milliseconds();
+        const request = {
+            'nonce': nonce,
+            // 'vaultAddress': vaultAddress,
+        };
+        const cancelReq = [];
+        const cancelAction = {
+            'type': '',
+            'cancels': [],
+        };
+        let cancelByCloid = false;
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const clientOrderId = this.safeString(order, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                cancelByCloid = true;
+            }
+            const id = this.safeString(order, 'id');
+            const symbol = this.safeString(order, 'symbol');
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrdersForSymbols() requires a symbol argument in each order');
+            }
+            if (id !== undefined && cancelByCloid) {
+                throw new errors.BadRequest(this.id + ' cancelOrdersForSymbols() all orders must have either id or clientOrderId');
+            }
+            const assetKey = cancelByCloid ? 'asset' : 'a';
+            const idKey = cancelByCloid ? 'cloid' : 'o';
+            const market = this.market(symbol);
+            const cancelObj = {};
+            cancelObj[assetKey] = this.parseToNumeric(market['baseId']);
+            cancelObj[idKey] = cancelByCloid ? clientOrderId : this.parseToNumeric(id);
+            cancelReq.push(cancelObj);
+        }
+        cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
+        cancelAction['cancels'] = cancelReq;
+        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
+        request['action'] = cancelAction;
+        request['signature'] = signature;
+        if (vaultAddress !== undefined) {
+            params = this.omit(params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.privatePostExchange(this.extend(request, params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":[
+        //                     "success"
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        return response;
+    }
+    async cancelAllOrdersAfter(timeout, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.vaultAddress] the vault address
+         * @returns {object} the api result
+         */
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        params = this.omit(params, ['clientOrderId', 'client_id']);
+        const nonce = this.milliseconds();
+        const request = {
+            'nonce': nonce,
+            // 'vaultAddress': vaultAddress,
+        };
+        const cancelAction = {
+            'type': 'scheduleCancel',
+            'time': nonce + timeout,
+        };
+        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
+        request['action'] = cancelAction;
+        request['signature'] = signature;
+        if (vaultAddress !== undefined) {
+            params = this.omit(params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.privatePostExchange(this.extend(request, params));
+        //
+        //     {
+        //         "status":"err",
+        //         "response":"Cannot set scheduled cancel time until enough volume traded. Required: $1000000. Traded: $373.47205."
         //     }
         //
         return response;
@@ -2280,6 +2467,12 @@ class hyperliquid extends hyperliquid$1 {
             return [this.walletAddress, params];
         }
         throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
+    }
+    coinToMarketId(coin) {
+        if (coin.indexOf('/') > -1) {
+            return coin; // spot
+        }
+        return coin + '/USDC:USDC';
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

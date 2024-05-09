@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -96,6 +96,7 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
                 'setMarginMode': True,
@@ -1269,7 +1270,7 @@ class phemex(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, userLimit)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot
         #
@@ -2299,7 +2300,7 @@ class phemex(Exchange, ImplicitAPI):
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        stopPrice = self.omit_zero(self.safe_number_2(order, 'stopPx', 'stopPxRp'))
+        stopPrice = self.omit_zero(self.safe_string_2(order, 'stopPx', 'stopPxRp'))
         postOnly = (timeInForce == 'PO')
         reduceOnly = self.safe_value(order, 'reduceOnly')
         execInst = self.safe_string(order, 'execInst')
@@ -2699,11 +2700,15 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        stop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, 'stop', 'trigger')
         request = {
             'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
+        if stop:
+            request['untriggerred'] = stop
         response = None
         if market['settle'] == 'USDT':
             response = self.privateDeleteGOrdersAll(self.extend(request, params))
@@ -4134,7 +4139,7 @@ class phemex(Exchange, ImplicitAPI):
                 transfer['currency'] = code
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -4179,7 +4184,7 @@ class phemex(Exchange, ImplicitAPI):
         transfers = self.safe_list(data, 'rows', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -4233,7 +4238,7 @@ class phemex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '3': 'rejected',  # 'Rejected',
             '6': 'canceled',  # 'Got error and wait for recovery',
@@ -4315,7 +4320,7 @@ class phemex(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://phemex-docs.github.io/#create-withdraw-request

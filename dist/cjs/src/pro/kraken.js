@@ -134,7 +134,7 @@ class kraken extends kraken$1 {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('createOrderWs()', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('createOrderWs', symbol, type, request, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     handleCreateEditOrder(client, message) {
@@ -190,7 +190,7 @@ class kraken extends kraken$1 {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('editOrderWs()', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('editOrderWs', symbol, type, request, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
@@ -767,6 +767,8 @@ class kraken extends kraken$1 {
                 const localChecksum = this.crc32(payload, false);
                 if (localChecksum !== c) {
                     const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                    delete client.subscriptions[messageHash];
+                    delete this.orderbooks[symbol];
                     client.reject(error, messageHash);
                     return;
                 }
@@ -1320,7 +1322,7 @@ class kraken extends kraken$1 {
             },
         };
         const url = this.urls['api']['ws']['public'];
-        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscriptionArgs);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes, subscriptionArgs);
     }
     getMessageHash(unifiedElementName, subChannelName = undefined, symbol = undefined) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...

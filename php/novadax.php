@@ -71,7 +71,11 @@ class novadax extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -312,7 +316,7 @@ class novadax extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -1151,7 +1155,7 @@ class novadax extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    {
         //        "code":"A10000",
@@ -1166,7 +1170,6 @@ class novadax extends Exchange {
             'info' => $transfer,
             'id' => $id,
             'amount' => null,
-            'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
             'currency' => $currencyCode,
             'fromAccount' => null,
             'toAccount' => null,
@@ -1176,14 +1179,14 @@ class novadax extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'pending',
         );
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://doc.novadax.com/en-US/#send-cryptocurrencies

@@ -24,6 +24,7 @@ public partial class kraken : Exchange
                 { "option", false },
                 { "addMargin", false },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "createDepositAddress", true },
@@ -500,6 +501,8 @@ public partial class kraken : Exchange
             object leverageBuy = this.safeValue(market, "leverage_buy", new List<object>() {});
             object leverageBuyLength = getArrayLength(leverageBuy);
             object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
+            object status = this.safeString(market, "status");
+            object isActive = isEqual(status, "online");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "wsId", this.safeString(market, "wsname") },
@@ -518,7 +521,7 @@ public partial class kraken : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", true },
+                { "active", isActive },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -1444,7 +1447,7 @@ public partial class kraken : Exchange
             { "ordertype", type },
             { "volume", this.amountToPrecision(symbol, amount) },
         };
-        object orderRequest = this.orderRequest("createOrder()", symbol, type, request, price, parameters);
+        object orderRequest = this.orderRequest("createOrder", symbol, type, request, price, parameters);
         object response = await this.privatePostAddOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
         //
         //     {
@@ -1854,7 +1857,13 @@ public partial class kraken : Exchange
         }
         if (isTrue(reduceOnly))
         {
-            ((IDictionary<string,object>)request)["reduce_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+            if (isTrue(isEqual(method, "createOrderWs")))
+            {
+                ((IDictionary<string,object>)request)["reduce_only"] = true; // ws request can't have stringified bool
+            } else
+            {
+                ((IDictionary<string,object>)request)["reduce_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+            }
         }
         object close = this.safeValue(parameters, "close");
         if (isTrue(!isEqual(close, null)))
@@ -1927,7 +1936,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
         }
-        object orderRequest = this.orderRequest("editOrder()", symbol, type, request, price, parameters);
+        object orderRequest = this.orderRequest("editOrder", symbol, type, request, price, parameters);
         object response = await this.privatePostEditOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
         //
         //     {
@@ -2288,6 +2297,39 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         return await this.privatePostCancelAll(parameters);
+    }
+
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kraken#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isGreaterThan(timeout, 86400000)))
+        {
+            throw new BadRequest ((string)add(this.id, "cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+        }
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+        };
+        object response = await this.privatePostCancelAllOrdersAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         "error": [ ],
+        //         "result": {
+        //             "currentTime": "2023-03-24T17:41:56Z",
+        //             "triggerTime": "2023-03-24T17:42:56Z"
+        //         }
+        //     }
+        //
+        return response;
     }
 
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

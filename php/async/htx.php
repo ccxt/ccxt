@@ -43,6 +43,7 @@ class htx extends Exchange {
                 'borrowCrossMargin' => true,
                 'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => null,
@@ -109,7 +110,9 @@ class htx extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
@@ -1976,7 +1979,7 @@ class htx extends Exchange {
         return $symbolOrMarketId;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -3282,7 +3285,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function network_id_to_code($networkId, $currencyCode = null) {
+    public function network_id_to_code(?string $networkId = null, ?string $currencyCode = null) {
         // here network-id is provided pair of currency & chain (i.e. trc20usdt)
         $keys = is_array($this->options['networkNamesByChainIds']) ? array_keys($this->options['networkNamesByChainIds']) : array();
         $keysLength = count($keys);
@@ -3293,7 +3296,7 @@ class htx extends Exchange {
         return parent::network_id_to_code($networkTitle);
     }
 
-    public function network_code_to_id($networkCode, $currencyCode = null) {
+    public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
         if ($currencyCode === null) {
             throw new ArgumentsRequired($this->id . ' networkCodeToId() requires a $currencyCode argument');
         }
@@ -6020,6 +6023,34 @@ class htx extends Exchange {
         }) ();
     }
 
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'timeout' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
+            );
+            $response = Async\await($this->v2PrivatePostAlgoOrdersCancelAllAfter (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 200,
+            //         "message" => "success",
+            //         "data" => {
+            //             "currentTime" => 1630491627230,
+            //             "triggerTime" => 1630491637230
+            //         }
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
@@ -6372,7 +6403,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6433,7 +6464,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -6547,10 +6578,10 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetch the borrow interest $rates of all currencies
+             * fetch the borrow interest rates of all currencies
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure isolated borrow rate structures~
              */
@@ -6586,15 +6617,11 @@ class htx extends Exchange {
             // }
             //
             $data = $this->safe_value($response, 'data', array());
-            $rates = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $rates[] = $this->parse_isolated_borrow_rate($data[$i]);
-            }
-            return $rates;
+            return $this->parse_isolated_borrow_rates($data);
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "1inchusdt",
@@ -8570,8 +8597,8 @@ class htx extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             $market = $this->market($symbol);
             $request = array();
             if ($market['future']) {

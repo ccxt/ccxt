@@ -450,10 +450,12 @@ class okx extends okx$1 {
         /**
          * @method
          * @name okx#watchOrderBook
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         //
@@ -485,16 +487,18 @@ class okx extends okx$1 {
         /**
          * @method
          * @name okx#watchOrderBookForSymbols
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
-        let depth = this.safeString(options, 'depth', 'books');
+        let depth = undefined;
+        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'depth', 'books');
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -502,17 +506,17 @@ class okx extends okx$1 {
             else if (limit > 1 && limit <= 5) {
                 depth = 'books5';
             }
-            else if (limit === 400) {
-                depth = 'books';
-            }
             else if (limit === 50) {
                 depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
             }
-            else if (limit === 4000) {
-                depth = 'books-l2-tbt'; // Make sure you have VIP5 and above
+            else if (limit === 400) {
+                depth = 'books';
             }
         }
         if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
+            if (!this.checkRequiredCredentials(false)) {
+                throw new errors.AuthenticationError(this.id + ' watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5');
+            }
             await this.authenticate({ 'access': 'public' });
         }
         const topics = [];
@@ -576,6 +580,8 @@ class okx extends okx$1 {
         const storedBids = orderbook['bids'];
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
+        const marketId = this.safeString(message, 'instId');
+        const symbol = this.safeSymbol(marketId);
         const checksum = this.safeBool(this.options, 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
@@ -596,6 +602,8 @@ class okx extends okx$1 {
             const localChecksum = this.crc32(payload, true);
             if (responseChecksum !== localChecksum) {
                 const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
             }
         }
@@ -690,10 +698,10 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const action = this.safeString(message, 'action');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -1523,29 +1531,21 @@ class okx extends okx$1 {
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        const errorCode = this.safeInteger(message, 'code');
+        const errorCode = this.safeString(message, 'code');
         try {
-            if (errorCode) {
+            if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue(message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
+                throw new errors.ExchangeError(feedback);
             }
         }
         catch (e) {
-            if (e instanceof errors.AuthenticationError) {
-                const messageHash = 'authenticated';
-                client.reject(e, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
-                }
-                return false;
-            }
-            else {
-                client.reject(e);
-            }
+            client.reject(e);
+            return false;
         }
         return message;
     }

@@ -353,7 +353,7 @@ class poloniexfutures extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "BTCUSDTPERP",                   // Market of the $symbol
@@ -380,8 +380,16 @@ class poloniexfutures extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestampString = $this->safe_string($ticker, 'ts');
-        // check $timestamp bcz bug => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
-        $multiplier = (strlen($timestampString) === 18) ? 0.00001 : 0.000001;
+        // check $timestamp bcz bug => https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        $multiplier = null;
+        if (strlen($timestampString) === 17) {
+            $multiplier = 0.0001;
+        } elseif (strlen($timestampString) === 18) {
+            $multiplier = 0.00001;
+        } else {
+            // 19 length default
+            $multiplier = 0.000001;
+        }
         $timestamp = $this->safe_integer_product($ticker, 'ts', $multiplier);
         $last = $this->safe_string_2($ticker, 'price', 'lastPrice');
         $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChgPct'), '100');
@@ -1281,8 +1289,8 @@ class poloniexfutures extends Exchange {
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'triger', 'stop', 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'trigger', 'stop', 'until' ));
             if ($status === 'closed') {
                 $status = 'done';
             }
@@ -1381,7 +1389,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->till] end time in ms
+             * @param {int} [$params->until] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1400,7 +1408,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->till] end time in ms
+             * @param {int} [$params->until] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~

@@ -372,8 +372,19 @@ public partial class poloniexfutures : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object timestampString = this.safeString(ticker, "ts");
-        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
-        object multiplier = ((bool) isTrue((isEqual(((string)timestampString).Length, 18)))) ? 0.00001 : 0.000001;
+        // check timestamp bcz bug: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011 and also 17 digits occured
+        object multiplier = null;
+        if (isTrue(isEqual(((string)timestampString).Length, 17)))
+        {
+            multiplier = 0.0001;
+        } else if (isTrue(isEqual(((string)timestampString).Length, 18)))
+        {
+            multiplier = 0.00001;
+        } else
+        {
+            // 19 length default
+            multiplier = 0.000001;
+        }
         object timestamp = this.safeIntegerProduct(ticker, "ts", multiplier);
         object last = this.safeString2(ticker, "price", "lastPrice");
         object percentage = Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100");
@@ -1346,8 +1357,8 @@ public partial class poloniexfutures : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object stop = this.safeValue2(parameters, "stop", "trigger");
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"triger", "stop", "until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"trigger", "stop", "until"});
         if (isTrue(isEqual(status, "closed")))
         {
             status = "done";
@@ -1457,7 +1468,7 @@ public partial class poloniexfutures : Exchange
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1478,7 +1489,7 @@ public partial class poloniexfutures : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

@@ -9,9 +9,10 @@ public partial class coinbase : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbase" },
-            { "name", "Coinbase" },
+            { "name", "Coinbase Advanced" },
             { "countries", new List<object>() {"US"} },
             { "pro", true },
+            { "certified", true },
             { "rateLimit", 34 },
             { "version", "v2" },
             { "userAgent", getValue(this.userAgents, "chrome") },
@@ -30,6 +31,7 @@ public partial class coinbase : Exchange
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", true },
+                { "createConvertTrade", true },
                 { "createDepositAddress", true },
                 { "createLimitBuyOrder", true },
                 { "createLimitSellOrder", true },
@@ -53,6 +55,9 @@ public partial class coinbase : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchConvertQuote", true },
+                { "fetchConvertTrade", true },
+                { "fetchConvertTradeHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -182,6 +187,11 @@ public partial class coinbase : Exchange
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "brokerage/time", 3 },
+                            { "brokerage/market/product_book", 3 },
+                            { "brokerage/market/products", 3 },
+                            { "brokerage/market/products/{product_id}", 3 },
+                            { "brokerage/market/products/{product_id}/candles", 3 },
+                            { "brokerage/market/products/{product_id}/ticker", 3 },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -1104,7 +1114,7 @@ public partial class coinbase : Exchange
         /**
         * @method
         * @name coinbase#fetchMarkets
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproducts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
         * @description retrieves data on all markets for coinbase
@@ -1201,24 +1211,56 @@ public partial class coinbase : Exchange
     public async virtual Task<object> fetchMarketsV3(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object spotUnresolvedPromises = new List<object> {this.v3PrivateGetBrokerageProducts(parameters), this.v3PrivateGetBrokerageTransactionSummary(parameters)};
+        object spotUnresolvedPromises = new List<object> {this.v3PublicGetBrokerageMarketProducts(parameters)};
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            ((IList<object>)spotUnresolvedPromises).Add(this.v3PrivateGetBrokerageTransactionSummary(parameters));
+        }
+        //
+        //    {
+        //        total_volume: '9.995989116664404',
+        //        total_fees: '0.07996791093331522',
+        //        fee_tier: {
+        //            pricing_tier: 'Advanced 1',
+        //            usd_from: '0',
+        //            usd_to: '1000',
+        //            taker_fee_rate: '0.008',
+        //            maker_fee_rate: '0.006',
+        //            aop_from: '',
+        //            aop_to: ''
+        //        },
+        //        margin_rate: null,
+        //        goods_and_services_tax: null,
+        //        advanced_trade_only_volume: '9.995989116664404',
+        //        advanced_trade_only_fees: '0.07996791093331522',
+        //        coinbase_pro_volume: '0',
+        //        coinbase_pro_fees: '0',
+        //        total_balance: '',
+        //        has_promo_fee: false
+        //    }
+        //
         object unresolvedContractPromises = new List<object>() {};
         try
         {
-            unresolvedContractPromises = new List<object> {this.v3PrivateGetBrokerageProducts(this.extend(parameters, new Dictionary<string, object>() {
+            unresolvedContractPromises = new List<object> {this.v3PublicGetBrokerageMarketProducts(this.extend(parameters, new Dictionary<string, object>() {
     { "product_type", "FUTURE" },
-})), this.v3PrivateGetBrokerageProducts(this.extend(parameters, new Dictionary<string, object>() {
-    { "product_type", "FUTURE" },
-    { "contract_expiry_type", "PERPETUAL" },
-})), this.v3PrivateGetBrokerageTransactionSummary(this.extend(parameters, new Dictionary<string, object>() {
-    { "product_type", "FUTURE" },
-})), this.v3PrivateGetBrokerageTransactionSummary(this.extend(parameters, new Dictionary<string, object>() {
+})), this.v3PublicGetBrokerageMarketProducts(this.extend(parameters, new Dictionary<string, object>() {
     { "product_type", "FUTURE" },
     { "contract_expiry_type", "PERPETUAL" },
 }))};
+            if (isTrue(this.checkRequiredCredentials(false)))
+            {
+                ((IList<object>)unresolvedContractPromises).Add(this.extend(parameters, new Dictionary<string, object>() {
+                    { "product_type", "FUTURE" },
+                }));
+                ((IList<object>)unresolvedContractPromises).Add(this.extend(parameters, new Dictionary<string, object>() {
+                    { "product_type", "FUTURE" },
+                    { "contract_expiry_type", "PERPETUAL" },
+                }));
+            }
         } catch(Exception e)
         {
-            unresolvedContractPromises = new List<object>() {}; // the sync version of ccxt won't have the promise.all line so the request is made here
+            unresolvedContractPromises = new List<object>() {}; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
         object promises = await promiseAll(spotUnresolvedPromises);
         object contractPromises = null;
@@ -1495,6 +1537,7 @@ public partial class coinbase : Exchange
         object contractSize = this.safeNumber(futureProductDetails, "contract_size");
         object contractExpire = this.safeString(futureProductDetails, "contract_expiry");
         object expireTimestamp = this.parse8601(contractExpire);
+        object expireDateTime = this.iso8601(expireTimestamp);
         object isSwap = (isEqual(contractExpiryType, "PERPETUAL"));
         object baseId = this.safeString(futureProductDetails, "contract_root_unit");
         object quoteId = this.safeString(market, "quote_currency_id");
@@ -1539,7 +1582,7 @@ public partial class coinbase : Exchange
             { "maker", maker },
             { "contractSize", contractSize },
             { "expiry", expireTimestamp },
-            { "expiryDatetime", contractExpire },
+            { "expiryDatetime", expireDateTime },
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
@@ -1780,7 +1823,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["product_ids"] = this.marketIds(symbols);
         }
-        object response = await this.v3PrivateGetBrokerageProducts(this.extend(request, parameters));
+        object response = await this.v3PublicGetBrokerageMarketProducts(this.extend(request, parameters));
         //
         //     {
         //         "products": [
@@ -1894,7 +1937,7 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "limit", 1 },
         };
-        object response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
+        object response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker(this.extend(request, parameters));
         //
         //     {
         //         "trades": [
@@ -2716,7 +2759,7 @@ public partial class coinbase : Exchange
         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
         * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
         * @param {bool} [params.postOnly] true or false
-        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
         * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -2827,6 +2870,14 @@ public partial class coinbase : Exchange
                 {
                     ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
                         { "sor_limit_ioc", new Dictionary<string, object>() {
+                            { "base_size", this.amountToPrecision(symbol, amount) },
+                            { "limit_price", this.priceToPrecision(symbol, price) },
+                        } },
+                    };
+                } else if (isTrue(isEqual(timeInForce, "FOK")))
+                {
+                    ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
+                        { "limit_limit_fok", new Dictionary<string, object>() {
                             { "base_size", this.amountToPrecision(symbol, amount) },
                             { "limit_price", this.priceToPrecision(symbol, price) },
                         } },
@@ -3380,10 +3431,10 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "till"});
+        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_date"] = this.iso8601(until);
         }
         object response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, parameters));
@@ -3465,10 +3516,10 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "till"});
+        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_date"] = this.iso8601(until);
         }
         object response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, parameters));
@@ -3604,7 +3655,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpubliccandles
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3632,8 +3683,8 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "granularity", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "till", "end"});
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeIntegerN(parameters, new List<object>() {"until", "end"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object duration = this.parseTimeframe(timeframe);
         object requestedDuration = multiply(limit, duration);
         object sinceString = null;
@@ -3646,14 +3697,15 @@ public partial class coinbase : Exchange
             sinceString = Precise.stringSub(now, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["start"] = sinceString;
-        object endString = this.numberToString(until);
-        if (isTrue(isEqual(until, null)))
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+        } else
         {
             // 300 candles max
-            endString = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
+            ((IDictionary<string,object>)request)["end"] = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
         }
-        ((IDictionary<string,object>)request)["end"] = endString;
-        object response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, parameters));
+        object response = await this.v3PublicGetBrokerageMarketProductsProductIdCandles(this.extend(request, parameters));
         //
         //     {
         //         "candles": [
@@ -3695,7 +3747,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicmarkettrades
         * @param {string} symbol unified market symbol of the trades
         * @param {int} [since] not used by coinbase fetchTrades
         * @param {int} [limit] the maximum number of trade structures to fetch
@@ -3727,7 +3779,7 @@ public partial class coinbase : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
         }
-        object response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
+        object response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker(this.extend(request, parameters));
         //
         //     {
         //         "trades": [
@@ -3791,10 +3843,10 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_sequence_timestamp"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "till"});
+        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_sequence_timestamp"] = this.iso8601(until);
         }
         object response = await this.v3PrivateGetBrokerageOrdersHistoricalFills(this.extend(request, parameters));
@@ -3838,7 +3890,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproductbook
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3854,7 +3906,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.v3PrivateGetBrokerageProductBook(this.extend(request, parameters));
+        object response = await this.v3PublicGetBrokerageMarketProductBook(this.extend(request, parameters));
         //
         //     {
         //         "pricebook": {
@@ -4320,6 +4372,118 @@ public partial class coinbase : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
+    }
+
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchConvertQuote
+        * @description fetch a quote for converting from one currency to another
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
+        * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
+        * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "from_account", fromCode },
+            { "to_account", toCode },
+            { "amount", this.numberToString(amount) },
+        };
+        object response = await this.v3PrivatePostBrokerageConvertQuote(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "trade_id", id },
+            { "from_account", fromCode },
+            { "to_account", toCode },
+        };
+        object response = await this.v3PrivatePostBrokerageConvertTradeTradeId(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchConvertTrade
+        * @description fetch the data for a conversion trade
+        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
+        * @param {string} id the id of the trade that you want to commit
+        * @param {string} code the unified currency code that was converted from
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {strng} params.toCode the unified currency code that was converted into
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchConvertTrade() requires a code argument")) ;
+        }
+        object toCode = this.safeString(parameters, "toCode");
+        if (isTrue(isEqual(toCode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchConvertTrade() requires a toCode parameter")) ;
+        }
+        parameters = this.omit(parameters, "toCode");
+        object request = new Dictionary<string, object>() {
+            { "trade_id", id },
+            { "from_account", code },
+            { "to_account", toCode },
+        };
+        object response = await this.v3PrivateGetBrokerageConvertTradeTradeId(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        object fromCoin = this.safeString(conversion, "source_currency");
+        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        object to = this.safeString(conversion, "target_currency");
+        object toCode = this.safeCurrencyCode(to, toCurrency);
+        object fromAmountStructure = this.safeDict(conversion, "user_entered_amount");
+        object feeStructure = this.safeDict(conversion, "total_fee");
+        object feeAmountStructure = this.safeDict(feeStructure, "amount");
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", null },
+            { "datetime", null },
+            { "id", this.safeString(conversion, "id") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.safeNumber(fromAmountStructure, "value") },
+            { "toCurrency", toCode },
+            { "toAmount", null },
+            { "price", null },
+            { "fee", this.safeNumber(feeAmountStructure, "value") },
+        };
     }
 
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)

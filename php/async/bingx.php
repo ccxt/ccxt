@@ -38,6 +38,7 @@ class bingx extends Exchange {
                 'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => true,
@@ -77,8 +78,10 @@ class bingx extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -86,6 +89,7 @@ class bingx extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
                 'setMarginMode' => true,
@@ -234,6 +238,7 @@ class bingx extends Exchange {
                                 'trade/order' => 3,
                                 'trade/batchOrders' => 3,
                                 'trade/closeAllPositions' => 3,
+                                'trade/cancelAllAfter' => 3,
                                 'trade/marginType' => 3,
                                 'trade/leverage' => 3,
                                 'trade/positionMargin' => 3,
@@ -291,7 +296,6 @@ class bingx extends Exchange {
                             'get' => array(
                                 'list' => 3,
                                 'assets' => 3,
-                                'apiKey/query' => 1,
                             ),
                             'post' => array(
                                 'create' => 3,
@@ -308,6 +312,7 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'uid' => 1,
+                                'apiKey/query' => 1,
                             ),
                             'post' => array(
                                 'innerTransfer/authorizeSubAccount' => 3,
@@ -388,19 +393,20 @@ class bingx extends Exchange {
                     '100202' => '\\ccxt\\InsufficientFunds',
                     '100204' => '\\ccxt\\BadRequest',
                     '100400' => '\\ccxt\\BadRequest',
+                    '100410' => '\\ccxt\\OperationFailed', // array("code":100410,"msg":"The current system is busy, please try again later")
                     '100421' => '\\ccxt\\BadSymbol', // array("code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":"")
                     '100440' => '\\ccxt\\ExchangeError',
-                    '100500' => '\\ccxt\\ExchangeError',
+                    '100500' => '\\ccxt\\OperationFailed', // array("code":100500,"msg":"The current system is busy, please try again later","debugMsg":"")
                     '100503' => '\\ccxt\\ExchangeError',
                     '80001' => '\\ccxt\\BadRequest',
-                    '80012' => '\\ccxt\\InsufficientFunds', // bingx array("code":80012,"msg":"array(\"Code\":101253,\"Msg\":\"margin is not enough\"))
+                    '80012' => '\\ccxt\\InsufficientFunds', // array("code":80012,"msg":"array(\"Code\":101253,\"Msg\":\"margin is not enough\"))
                     '80014' => '\\ccxt\\BadRequest',
                     '80016' => '\\ccxt\\OrderNotFound',
                     '80017' => '\\ccxt\\OrderNotFound',
                     '100414' => '\\ccxt\\AccountSuspended', // array("code":100414,"msg":"Code => 100414, Msg => risk control check fail,code(1)","debugMsg":"")
                     '100419' => '\\ccxt\\PermissionDenied', // array("code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347)
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
-                    '101204' => '\\ccxt\\InsufficientFunds', // bingx array("code":101204,"msg":"","data":array())
+                    '101204' => '\\ccxt\\InsufficientFunds', // array("code":101204,"msg":"","data":array())
                 ),
                 'broad' => array(),
             ),
@@ -1857,6 +1863,12 @@ class bingx extends Exchange {
         );
         $isMarketOrder = $type === 'MARKET';
         $isSpot = $marketType === 'spot';
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $isTriggerOrder = $triggerPrice !== null;
+        $isStopLossPriceOrder = $stopLossPrice !== null;
+        $isTakeProfitPriceOrder = $takeProfitPrice !== null;
         $exchangeClientOrderId = $isSpot ? 'newClientOrderId' : 'clientOrderID';
         $clientOrderId = $this->safe_string_2($params, $exchangeClientOrderId, 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -1871,7 +1883,6 @@ class bingx extends Exchange {
         } elseif ($timeInForce === 'GTC') {
             $request['timeInForce'] = 'GTC';
         }
-        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         if ($isSpot) {
             $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
             $params = $this->omit($params, 'cost');
@@ -1899,19 +1910,22 @@ class bingx extends Exchange {
                 } elseif ($type === 'MARKET') {
                     $request['type'] = 'TRIGGER_MARKET';
                 }
+            } elseif (($stopLossPrice !== null) || ($takeProfitPrice !== null)) {
+                $stopTakePrice = ($stopLossPrice !== null) ? $stopLossPrice : $takeProfitPrice;
+                if ($type === 'LIMIT') {
+                    $request['type'] = 'TAKE_STOP_LIMIT';
+                } elseif ($type === 'MARKET') {
+                    $request['type'] = 'TAKE_STOP_MARKET';
+                }
+                $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopTakePrice));
             }
         } else {
             if ($timeInForce === 'FOK') {
                 $request['timeInForce'] = 'FOK';
             }
-            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
             $trailingAmount = $this->safe_string($params, 'trailingAmount');
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'priceRate');
             $trailingType = $this->safe_string($params, 'trailingType', 'TRAILING_STOP_MARKET');
-            $isTriggerOrder = $triggerPrice !== null;
-            $isStopLossPriceOrder = $stopLossPrice !== null;
-            $isTakeProfitPriceOrder = $takeProfitPrice !== null;
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
@@ -2002,8 +2016,8 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
-            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         }
+        $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return array_merge($request, $params);
     }
 
@@ -2023,9 +2037,9 @@ class bingx extends Exchange {
              * @param {bool} [$params->postOnly] true to place a post only $order
              * @param {string} [$params->timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
              * @param {bool} [$params->reduceOnly] *swap only* true or false whether the $order is reduce only
-             * @param {float} [$params->triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss $order will be triggered
-             * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
-             * @param {float} [$params->takeProfitPrice] *swap only* take profit trigger $price
+             * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss $order will be triggered
+             * @param {float} [$params->stopLossPrice] stop loss trigger $price
+             * @param {float} [$params->takeProfitPrice] take profit trigger $price
              * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
              * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
              * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
@@ -2469,7 +2483,7 @@ class bingx extends Exchange {
         return $this->safe_order(array(
             'info' => $info,
             'id' => $this->safe_string_2($order, 'orderId', 'i'),
-            'clientOrderId' => $this->safe_string_n($order, array( 'clientOrderID', 'origClientOrderId', 'c' )),
+            'clientOrderId' => $this->safe_string_n($order, array( 'clientOrderID', 'clientOrderId', 'origClientOrderId', 'c' )),
             'symbol' => $this->safe_symbol($marketId, $market, '-', $marketType),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2758,6 +2772,48 @@ class bingx extends Exchange {
         }) ();
     }
 
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] spot or swap market
+             * @return {array} the api result
+             */
+            Async\await($this->load_markets());
+            $isActive = ($timeout > 0);
+            $request = array(
+                'type' => ($isActive) ? 'ACTIVATE' : 'CLOSE',
+                'timeOut' => ($isActive) ? ($this->parse_to_int($timeout / 1000)) : 0,
+            );
+            $response = null;
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params);
+            if ($type === 'spot') {
+                $response = Async\await($this->spotV1PrivatePostTradeCancelAllAfter (array_merge($request, $params)));
+            } elseif ($type === 'swap') {
+                $response = Async\await($this->swapV2PrivatePostTradeCancelAllAfter (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' cancelAllOrdersAfter() is not supported for ' . $type . ' markets');
+            }
+            //
+            //     {
+            //         code => '0',
+            //         msg => '',
+            //         data => {
+            //             triggerTime => '1712645434',
+            //             status => 'ACTIVATED',
+            //             note => 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or extend triggerTime time by this request'
+            //         }
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
@@ -2872,9 +2928,9 @@ class bingx extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+            $params = $this->omit($params, array( 'endTime', 'until' ));
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             }
@@ -3161,7 +3217,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -3215,7 +3271,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         $tranId = $this->safe_string($transfer, 'tranId');
         $timestamp = $this->safe_integer($transfer, 'timestamp');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -3920,7 +3976,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4008,7 +4064,7 @@ class bingx extends Exchange {
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $request['symbol'] = $symbol;
+                $request['symbol'] = $market['id'];
             }
             if ($since !== null) {
                 $request['startTime'] = $since;

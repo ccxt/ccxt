@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
 /**
  * @class bitmart
  * @augments Exchange
@@ -36,7 +36,7 @@ export default class bitmart extends Exchange {
         networks: {};
     };
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -80,7 +80,7 @@ export default class bitmart extends Exchange {
         network: any;
     };
     safeNetworkCode(networkId: any, currency?: any): string;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
     fetchTransactionsByType(type: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -99,44 +99,15 @@ export default class bitmart extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<{
-        symbol: string;
-        base: string;
-        baseRate: number;
-        quote: string;
-        quoteRate: number;
-        period: number;
-        timestamp: any;
-        datetime: any;
-        info: any;
-    }>;
-    parseIsolatedBorrowRate(info: any, market?: Market): {
-        symbol: string;
-        base: string;
-        baseRate: number;
-        quote: string;
-        quoteRate: number;
-        period: number;
-        timestamp: any;
-        datetime: any;
-        info: any;
-    };
-    fetchIsolatedBorrowRates(params?: {}): Promise<any[]>;
+    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
+    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
+    fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransferStatus(status: any): string;
+    parseTransferStatus(status: Str): Str;
     parseTransferToAccount(type: any): string;
     parseTransferFromAccount(type: any): string;
-    parseTransfer(transfer: any, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    };
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: Market): {
         symbol: string;

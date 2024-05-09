@@ -98,6 +98,7 @@ class deribit extends Exchange {
                 'fetchVolatilityHistory' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'sandbox' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -1096,7 +1097,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker /public/ticker
         //
@@ -2768,7 +2769,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
@@ -2884,7 +2885,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "updated_timestamp" => 1550232862350,
@@ -2908,7 +2909,7 @@ class deribit extends Exchange {
             'id' => $this->safe_string($transfer, 'id'),
             'status' => $this->parse_transfer_status($status),
             'amount' => $this->safe_number($transfer, 'amount'),
-            'code' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $direction !== 'payment' ? $account : null,
             'toAccount' => $direction === 'payment' ? $account : null,
             'timestamp' => $timestamp,
@@ -2916,7 +2917,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'prepared' => 'pending',
             'confirmed' => 'ok',
@@ -2926,7 +2927,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

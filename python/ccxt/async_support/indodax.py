@@ -78,8 +78,11 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -404,7 +407,7 @@ class indodax(Exchange, ImplicitAPI):
         orderbook = await self.publicGetApiDepthPair(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'buy', 'sell')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "high":"0.01951",
@@ -502,7 +505,7 @@ class indodax(Exchange, ImplicitAPI):
         # }
         #
         response = await self.publicGetApiTickerAll(params)
-        tickers = self.safe_list(response, 'tickers')
+        tickers = self.safe_dict(response, 'tickers', {})
         return self.parse_tickers(tickers, symbols)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -577,8 +580,8 @@ class indodax(Exchange, ImplicitAPI):
         timeframes = self.options['timeframes']
         selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
         now = self.seconds()
-        until = self.safe_integer_2(params, 'until', 'till', now)
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until', now)
+        params = self.omit(params, ['until'])
         request = {
             'to': until,
             'tf': selectedTimeframe,
@@ -951,7 +954,7 @@ class indodax(Exchange, ImplicitAPI):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints

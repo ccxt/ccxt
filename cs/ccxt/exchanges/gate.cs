@@ -132,8 +132,10 @@ public partial class gate : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", true },
                 { "fetchTicker", true },
@@ -149,6 +151,7 @@ public partial class gate : Exchange
                 { "reduceMargin", true },
                 { "repayCrossMargin", true },
                 { "repayIsolatedMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", false },
                 { "setPositionMode", true },
@@ -644,7 +647,6 @@ public partial class gate : Exchange
                     { "option", "options" },
                     { "options", "options" },
                 } },
-                { "defaultType", "spot" },
                 { "swap", new Dictionary<string, object>() {
                     { "fetchMarkets", new Dictionary<string, object>() {
                         { "settlementCurrencies", new List<object>() {"usdt", "btc"} },
@@ -3403,8 +3405,8 @@ public partial class gate : Exchange
         object marginMode = null;
         object request = new Dictionary<string, object>() {};
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
@@ -5682,43 +5684,75 @@ public partial class gate : Exchange
         //         "pending_orders": 0
         //     }
         //
+        // fetchPositionsHistory (swap and future)
+        //
+        //    {
+        //        "contract": "SLERF_USDT",         // Futures contract
+        //        "text": "web",                    // Text of close order
+        //        "long_price": "0.766306",         // When 'side' is 'long,' it indicates the opening average price; when 'side' is 'short,' it indicates the closing average price.
+        //        "pnl": "-23.41702352",            // PNL
+        //        "pnl_pnl": "-22.7187",            // Position P/L
+        //        "pnl_fee": "-0.06527125",         // Transaction Fees
+        //        "pnl_fund": "-0.63305227",        // Funding Fees
+        //        "accum_size": "100",
+        //        "time": 1711279263,               // Position close time
+        //        "short_price": "0.539119",        // When 'side' is 'long,' it indicates the opening average price; when 'side' is 'short,' it indicates the closing average price
+        //        "side": "long",                   // Position side, long or short
+        //        "max_size": "100",                // Max Trade Size
+        //        "first_open_time": 1711037985     // First Open Time
+        //    }
+        //
         object contract = this.safeString(position, "contract");
         market = this.safeMarket(contract, market, "_", "contract");
-        object size = this.safeString(position, "size");
-        object side = null;
-        if (isTrue(Precise.stringGt(size, "0")))
+        object size = this.safeString2(position, "size", "accum_size");
+        object side = this.safeString(position, "side");
+        if (isTrue(isEqual(side, null)))
         {
-            side = "long";
-        } else if (isTrue(Precise.stringLt(size, "0")))
-        {
-            side = "short";
+            if (isTrue(Precise.stringGt(size, "0")))
+            {
+                side = "long";
+            } else if (isTrue(Precise.stringLt(size, "0")))
+            {
+                side = "short";
+            }
         }
         object maintenanceRate = this.safeString(position, "maintenance_rate");
         object notional = this.safeString(position, "value");
         object leverage = this.safeString(position, "leverage");
         object marginMode = null;
-        if (isTrue(isEqual(leverage, "0")))
+        if (isTrue(!isEqual(leverage, null)))
         {
-            marginMode = "cross";
-        } else
-        {
-            marginMode = "isolated";
+            if (isTrue(isEqual(leverage, "0")))
+            {
+                marginMode = "cross";
+            } else
+            {
+                marginMode = "isolated";
+            }
         }
-        object unrealisedPnl = this.safeString(position, "unrealised_pnl");
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         // *The default leverage under the full position is the highest leverage in the market.
         // *Trading fee is charged as Taker Fee Rate (0.075%).
-        object takerFee = "0.00075";
-        object feePaid = Precise.stringMul(takerFee, notional);
-        object initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), feePaid);
-        object timestamp = this.safeTimestamp(position, "open_time");
+        object feePaid = this.safeString(position, "pnl_fee");
+        object initialMarginString = null;
+        if (isTrue(isEqual(feePaid, null)))
+        {
+            object takerFee = "0.00075";
+            feePaid = Precise.stringMul(takerFee, notional);
+            initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), feePaid);
+        }
+        object timestamp = this.safeTimestamp2(position, "open_time", "first_open_time");
+        if (isTrue(isEqual(timestamp, 0)))
+        {
+            timestamp = null;
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", this.safeTimestamp(position, "update_time") },
+            { "lastUpdateTimestamp", this.safeTimestamp2(position, "update_time", "time") },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional)) },
             { "maintenanceMargin", this.parseNumber(Precise.stringMul(maintenanceRate, notional)) },
@@ -5726,8 +5760,8 @@ public partial class gate : Exchange
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
-            { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
-            { "realizedPnl", this.safeNumber(position, "realised_pnl") },
+            { "unrealizedPnl", this.safeNumber(position, "unrealised_pnl") },
+            { "realizedPnl", this.safeNumber2(position, "realised_pnl", "pnl") },
             { "contracts", this.parseNumber(Precise.stringAbs(size)) },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", null },
@@ -7868,6 +7902,93 @@ public partial class gate : Exchange
             { "baseVolume", null },
             { "quoteVolume", null },
         };
+    }
+
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history
+        * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history-2
+        * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
+        * @param {int} [since] the earliest time in ms to fetch positions for
+        * @param {int} [limit] the maximum amount of records to fetch, default=1000
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @param {int} [params.until] the latest time in ms to fetch positions for
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} offset list offset, starting from 0
+        * @param {string} side long or short
+        * @param {string} pnl query profit or loss
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                market = this.market(getValue(symbols, 0));
+            }
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositionsHistory", market, parameters, "swap");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.prepareRequest(market, marketType, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+        }
+        object response = null;
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            response = await this.privateFuturesGetSettlePositionClose(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marketType, "future")))
+        {
+            response = await this.privateDeliveryGetSettlePositionClose(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(this.id, " fetchPositionsHistory() does not support markets of type "), marketType)) ;
+        }
+        //
+        //    [
+        //        {
+        //            "contract": "SLERF_USDT",
+        //            "text": "web",
+        //            "long_price": "0.766306",
+        //            "pnl": "-23.41702352",
+        //            "pnl_pnl": "-22.7187",
+        //            "pnl_fee": "-0.06527125",
+        //            "pnl_fund": "-0.63305227",
+        //            "accum_size": "100",
+        //            "time": 1711279263,
+        //            "short_price": "0.539119",
+        //            "side": "long",
+        //            "max_size": "100",
+        //            "first_open_time": 1711037985
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parsePositions(response, symbols, parameters);
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

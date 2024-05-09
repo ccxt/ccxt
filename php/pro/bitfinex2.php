@@ -700,6 +700,8 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $responseChecksum = $this->safe_integer($message, 2);
         if ($responseChecksum !== $localChecksum) {
             $error = new InvalidNonce ($this->id . ' invalid checksum');
+            unset($client->subscriptions[$messageHash]);
+            unset($this->orderbooks[$symbol]);
             $client->reject ($error, $messageHash);
         }
     }

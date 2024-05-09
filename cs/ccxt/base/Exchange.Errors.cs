@@ -75,6 +75,12 @@ namespace ccxt;
         public MarginModeAlreadySet(string message) : base(message) { }
         public MarginModeAlreadySet(string message, NoChange inner) : base(message, inner) { }
     }
+   public class MarketClosed : OperationRejected
+    {
+        public MarketClosed() : base() { }
+        public MarketClosed(string message) : base(message) { }
+        public MarketClosed(string message, OperationRejected inner) : base(message, inner) { }
+    }
    public class BadResponse : ExchangeError
     {
         public BadResponse() : base() { }

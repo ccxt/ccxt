@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, IsolatedBorrowRates, Leverage, Leverages, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -103,7 +103,9 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionHistory': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -617,54 +619,52 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinex
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        promises = [
+        promisesUnresolved = [
             self.fetch_spot_markets(params),
             self.fetch_contract_markets(params),
         ]
-        promises = await asyncio.gather(*promises)
+        promises = await asyncio.gather(*promisesUnresolved)
         spotMarkets = promises[0]
         swapMarkets = promises[1]
         return self.array_concat(spotMarkets, swapMarkets)
 
     async def fetch_spot_markets(self, params):
-        response = await self.v1PublicGetMarketInfo(params)
+        response = await self.v2PublicGetSpotMarket(params)
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "WAVESBTC": {
-        #                 "name": "WAVESBTC",
-        #                 "min_amount": "1",
-        #                 "maker_fee_rate": "0.001",
-        #                 "taker_fee_rate": "0.001",
-        #                 "pricing_name": "BTC",
-        #                 "pricing_decimal": 8,
-        #                 "trading_name": "WAVES",
-        #                 "trading_decimal": 8
-        #             }
-        #         }
+        #         "data": [
+        #             {
+        #                 "base_ccy": "SORA",
+        #                 "base_ccy_precision": 8,
+        #                 "is_amm_available": True,
+        #                 "is_margin_available": False,
+        #                 "maker_fee_rate": "0.003",
+        #                 "market": "SORAUSDT",
+        #                 "min_amount": "500",
+        #                 "quote_ccy": "USDT",
+        #                 "quote_ccy_precision": 6,
+        #                 "taker_fee_rate": "0.003"
+        #             },
+        #         ],
+        #         "message": "OK"
         #     }
         #
-        markets = self.safe_value(response, 'data', {})
+        markets = self.safe_list(response, 'data', [])
         result = []
-        keys = list(markets.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            market = markets[key]
-            id = self.safe_string(market, 'name')
-            tradingName = self.safe_string(market, 'trading_name')
-            baseId = tradingName
-            quoteId = self.safe_string(market, 'pricing_name')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'market')
+            baseId = self.safe_string(market, 'base_ccy')
+            quoteId = self.safe_string(market, 'quote_ccy')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            if tradingName == id:
-                symbol = id
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -692,8 +692,8 @@ class coinex(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'trading_decimal'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricing_decimal'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_ccy_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_ccy_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -719,45 +719,43 @@ class coinex(Exchange, ImplicitAPI):
         return result
 
     async def fetch_contract_markets(self, params):
-        response = await self.v1PerpetualPublicGetMarketList(params)
+        response = await self.v2PublicGetFuturesMarket(params)
         #
         #     {
         #         "code": 0,
         #         "data": [
         #             {
-        #                 "name": "BTCUSD",
-        #                 "type": 2,  # 1: USDT-M Contracts, 2: Coin-M Contracts
-        #                 "leverages": ["3", "5", "8", "10", "15", "20", "30", "50", "100"],
-        #                 "stock": "BTC",
-        #                 "money": "USD",
-        #                 "fee_prec": 5,
-        #                 "stock_prec": 8,
-        #                 "money_prec": 1,
-        #                 "amount_prec": 0,
-        #                 "amount_min": "10",
-        #                 "multiplier": "1",
-        #                 "tick_size": "0.1",  # Min. Price Increment
-        #                 "available": True
+        #                 "base_ccy": "BTC",
+        #                 "base_ccy_precision": 8,
+        #                 "contract_type": "inverse",
+        #                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+        #                 "maker_fee_rate": "0",
+        #                 "market": "BTCUSD",
+        #                 "min_amount": "10",
+        #                 "open_interest_volume": "2566879",
+        #                 "quote_ccy": "USD",
+        #                 "quote_ccy_precision": 2,
+        #                 "taker_fee_rate": "0"
         #             },
         #         ],
         #         "message": "OK"
         #     }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(markets)):
             entry = markets[i]
             fees = self.fees
-            leverages = self.safe_value(entry, 'leverages', [])
-            subType = self.safe_integer(entry, 'type')
-            linear = (subType == 1)
-            inverse = (subType == 2)
-            id = self.safe_string(entry, 'name')
-            baseId = self.safe_string(entry, 'stock')
-            quoteId = self.safe_string(entry, 'money')
+            leverages = self.safe_list(entry, 'leverage', [])
+            subType = self.safe_string(entry, 'contract_type')
+            linear = (subType == 'linear')
+            inverse = (subType == 'inverse')
+            id = self.safe_string(entry, 'market')
+            baseId = self.safe_string(entry, 'base_ccy')
+            quoteId = self.safe_string(entry, 'quote_ccy')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            settleId = 'USDT' if (subType == 1) else baseId
+            settleId = 'USDT' if (subType == 'linear') else baseId
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             leveragesLength = len(leverages)
@@ -776,20 +774,20 @@ class coinex(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'active': self.safe_value(entry, 'available'),
+                'active': None,
                 'contract': True,
                 'linear': linear,
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': self.safe_number(entry, 'multiplier'),
+                'contractSize': self.parse_number('1'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_prec'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'money_prec'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'base_ccy_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'quote_ccy_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -797,7 +795,7 @@ class coinex(Exchange, ImplicitAPI):
                         'max': self.safe_number(leverages, leveragesLength - 1),
                     },
                     'amount': {
-                        'min': self.safe_number(entry, 'amount_min'),
+                        'min': self.safe_number(entry, 'min_amount'),
                         'max': None,
                     },
                     'price': {
@@ -814,70 +812,64 @@ class coinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # Spot fetchTicker, fetchTickers
         #
         #     {
-        #         "vol": "293.19415130",
-        #         "low": "38200.00",
-        #         "open": "39514.99",
-        #         "high": "39530.00",
-        #         "last": "38649.57",
-        #         "buy": "38640.20",
-        #         "buy_amount": "0.22800000",
-        #         "sell": "38640.21",
-        #         "sell_amount": "0.02828439"
+        #         "close": "62393.47",
+        #         "high": "64106.41",
+        #         "last": "62393.47",
+        #         "low": "59650.01",
+        #         "market": "BTCUSDT",
+        #         "open": "61616.15",
+        #         "period": 86400,
+        #         "value": "28711273.4065667262",
+        #         "volume": "461.76557205",
+        #         "volume_buy": "11.41506354",
+        #         "volume_sell": "7.3240169"
         #     }
         #
         # Swap fetchTicker, fetchTickers
         #
         #     {
-        #         "vol": "7714.2175",
-        #         "low": "38200.00",
-        #         "open": "39569.23",
-        #         "high": "39569.23",
-        #         "last": "38681.37",
-        #         "buy": "38681.36",
+        #         "close": "62480.08",
+        #         "high": "64100",
+        #         "index_price": "62443.05",
+        #         "last": "62480.08",
+        #         "low": "59600",
+        #         "mark_price": "62443.05",
+        #         "market": "BTCUSDT",
+        #         "open": "61679.98",
         #         "period": 86400,
-        #         "funding_time": 462,
-        #         "position_amount": "296.7552",
-        #         "funding_rate_last": "0.00009395",
-        #         "funding_rate_next": "0.00000649",
-        #         "funding_rate_predict": "-0.00007176",
-        #         "insurance": "16464465.09431942163278132918",
-        #         "sign_price": "38681.93",
-        #         "index_price": "38681.69500000",
-        #         "sell_total": "16.6039",
-        #         "buy_total": "19.8481",
-        #         "buy_amount": "4.6315",
-        #         "sell": "38681.37",
-        #         "sell_amount": "11.4044"
+        #         "value": "180226025.69791713065326633165",
+        #         "volume": "2900.2218",
+        #         "volume_buy": "7.3847",
+        #         "volume_sell": "6.1249"
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'date')
-        symbol = self.safe_symbol(None, market)
-        ticker = self.safe_value(ticker, 'ticker', {})
-        last = self.safe_string(ticker, 'last')
+        marketType = 'swap' if ('mark_price' in ticker) else 'spot'
+        marketId = self.safe_string(ticker, 'market')
+        symbol = self.safe_symbol(marketId, market, None, marketType)
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
-            'bid': self.safe_string(ticker, 'buy'),
-            'bidVolume': self.safe_string(ticker, 'buy_amount'),
-            'ask': self.safe_string(ticker, 'sell'),
-            'askVolume': self.safe_string(ticker, 'sell_amount'),
+            'bid': None,
+            'bidVolume': self.safe_string(ticker, 'volume_buy'),
+            'ask': None,
+            'askVolume': self.safe_string(ticker, 'volume_sell'),
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
-            'close': last,
-            'last': last,
+            'close': self.safe_string(ticker, 'close'),
+            'last': self.safe_string(ticker, 'last'),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string_2(ticker, 'vol', 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }, market)
@@ -885,8 +877,8 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market007_single_market_ticker
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -898,28 +890,29 @@ class coinex(Exchange, ImplicitAPI):
         }
         response = None
         if market['swap']:
-            response = await self.v1PerpetualPublicGetMarketTicker(self.extend(request, params))
+            response = await self.v2PublicGetFuturesTicker(self.extend(request, params))
         else:
-            response = await self.v1PublicGetMarketTicker(self.extend(request, params))
+            response = await self.v2PublicGetSpotTicker(self.extend(request, params))
         #
         # Spot
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "date": 1651306913414,
-        #             "ticker": {
-        #                 "vol": "293.19415130",
-        #                 "low": "38200.00",
-        #                 "open": "39514.99",
-        #                 "high": "39530.00",
-        #                 "last": "38649.57",
-        #                 "buy": "38640.20",
-        #                 "buy_amount": "0.22800000",
-        #                 "sell": "38640.21",
-        #                 "sell_amount": "0.02828439"
+        #         "data": [
+        #             {
+        #                 "close": "62393.47",
+        #                 "high": "64106.41",
+        #                 "last": "62393.47",
+        #                 "low": "59650.01",
+        #                 "market": "BTCUSDT",
+        #                 "open": "61616.15",
+        #                 "period": 86400,
+        #                 "value": "28711273.4065667262",
+        #                 "volume": "461.76557205",
+        #                 "volume_buy": "11.41506354",
+        #                 "volume_sell": "7.3240169"
         #             }
-        #         },
+        #         ],
         #         "message": "OK"
         #     }
         #
@@ -927,41 +920,35 @@ class coinex(Exchange, ImplicitAPI):
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "date": 1651306641500,
-        #             "ticker": {
-        #                 "vol": "7714.2175",
-        #                 "low": "38200.00",
-        #                 "open": "39569.23",
-        #                 "high": "39569.23",
-        #                 "last": "38681.37",
-        #                 "buy": "38681.36",
+        #         "data": [
+        #             {
+        #                 "close": "62480.08",
+        #                 "high": "64100",
+        #                 "index_price": "62443.05",
+        #                 "last": "62480.08",
+        #                 "low": "59600",
+        #                 "mark_price": "62443.05",
+        #                 "market": "BTCUSDT",
+        #                 "open": "61679.98",
         #                 "period": 86400,
-        #                 "funding_time": 462,
-        #                 "position_amount": "296.7552",
-        #                 "funding_rate_last": "0.00009395",
-        #                 "funding_rate_next": "0.00000649",
-        #                 "funding_rate_predict": "-0.00007176",
-        #                 "insurance": "16464465.09431942163278132918",
-        #                 "sign_price": "38681.93",
-        #                 "index_price": "38681.69500000",
-        #                 "sell_total": "16.6039",
-        #                 "buy_total": "19.8481",
-        #                 "buy_amount": "4.6315",
-        #                 "sell": "38681.37",
-        #                 "sell_amount": "11.4044"
+        #                 "value": "180226025.69791713065326633165",
+        #                 "volume": "2900.2218",
+        #                 "volume_buy": "7.3847",
+        #                 "volume_sell": "6.1249"
         #             }
-        #         },
+        #         ],
         #         "message": "OK"
         #     }
         #
-        return self.parse_ticker(response['data'], market)
+        data = self.safe_list(response, 'data', [])
+        result = self.safe_dict(data, 0, {})
+        return self.parse_ticker(result, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -975,83 +962,58 @@ class coinex(Exchange, ImplicitAPI):
         marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         response = None
         if marketType == 'swap':
-            response = await self.v1PerpetualPublicGetMarketTickerAll(query)
+            response = await self.v2PublicGetFuturesTicker(query)
         else:
-            response = await self.v1PublicGetMarketTickerAll()
+            response = await self.v2PublicGetSpotTicker(query)
         #
         # Spot
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "date": 1651519857284,
-        #             "ticker": {
-        #                 "PSPUSDT": {
-        #                     "vol": "127131.55227034",
-        #                     "low": "0.0669",
-        #                     "open": "0.0688",
-        #                     "high": "0.0747",
-        #                     "last": "0.0685",
-        #                     "buy": "0.0676",
-        #                     "buy_amount": "702.70117866",
-        #                     "sell": "0.0690",
-        #                     "sell_amount": "686.76861562"
-        #                 },
+        #         "data": [
+        #             {
+        #                 "close": "62393.47",
+        #                 "high": "64106.41",
+        #                 "last": "62393.47",
+        #                 "low": "59650.01",
+        #                 "market": "BTCUSDT",
+        #                 "open": "61616.15",
+        #                 "period": 86400,
+        #                 "value": "28711273.4065667262",
+        #                 "volume": "461.76557205",
+        #                 "volume_buy": "11.41506354",
+        #                 "volume_sell": "7.3240169"
         #             }
-        #         },
-        #         "message": "Ok"
+        #         ],
+        #         "message": "OK"
         #     }
         #
         # Swap
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "date": 1651520268644,
-        #             "ticker": {
-        #                 "KAVAUSDT": {
-        #                     "vol": "834924",
-        #                     "low": "3.9418",
-        #                     "open": "4.1834",
-        #                     "high": "4.4328",
-        #                     "last": "4.0516",
-        #                     "buy": "4.0443",
-        #                     "period": 86400,
-        #                     "funding_time": 262,
-        #                     "position_amount": "16111",
-        #                     "funding_rate_last": "-0.00069514",
-        #                     "funding_rate_next": "-0.00061009",
-        #                     "funding_rate_predict": "-0.00055812",
-        #                     "insurance": "16532425.53026084124483989548",
-        #                     "sign_price": "4.0516",
-        #                     "index_price": "4.0530",
-        #                     "sell_total": "59446",
-        #                     "buy_total": "62423",
-        #                     "buy_amount": "959",
-        #                     "sell": "4.0466",
-        #                     "sell_amount": "141"
-        #                 },
+        #         "data": [
+        #             {
+        #                 "close": "62480.08",
+        #                 "high": "64100",
+        #                 "index_price": "62443.05",
+        #                 "last": "62480.08",
+        #                 "low": "59600",
+        #                 "mark_price": "62443.05",
+        #                 "market": "BTCUSDT",
+        #                 "open": "61679.98",
+        #                 "period": 86400,
+        #                 "value": "180226025.69791713065326633165",
+        #                 "volume": "2900.2218",
+        #                 "volume_buy": "7.3847",
+        #                 "volume_sell": "6.1249"
         #             }
-        #         },
-        #         "message": "Ok"
+        #         ],
+        #         "message": "OK"
         #     }
         #
-        data = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(data, 'date')
-        tickers = self.safe_value(data, 'ticker', {})
-        marketIds = list(tickers.keys())
-        result = {}
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            marketInner = self.safe_market(marketId, None, None, marketType)
-            symbol = marketInner['symbol']
-            ticker = self.parse_ticker({
-                'date': timestamp,
-                'ticker': tickers[marketId],
-            }, marketInner)
-            ticker['symbol'] = symbol
-            result[symbol] = ticker
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_tickers(data, symbols)
 
     async def fetch_time(self, params={}):
         """
@@ -1156,124 +1118,66 @@ class coinex(Exchange, ImplicitAPI):
         #
         # Spot and Swap fetchTrades(public)
         #
-        #      {
-        #          "id":  2611511379,
-        #          "type": "buy",
-        #          "price": "192.63",
-        #          "amount": "0.02266931",
-        #          "date":  1638990110,
-        #          "date_ms":  1638990110518
-        #      },
+        #     {
+        #         "amount": "0.00049432",
+        #         "created_at": 1713849825667,
+        #         "deal_id": 4137517302,
+        #         "price": "66251",
+        #         "side": "buy"
+        #     }
         #
         # Spot and Margin fetchMyTrades(private)
         #
-        #      {
-        #          "id": 2611520950,
-        #          "order_id": 63286573298,
-        #          "account_id": 0,
-        #          "create_time": 1638990636,
-        #          "type": "sell",
-        #          "role": "taker",
-        #          "price": "192.29",
-        #          "amount": "0.098",
-        #          "fee": "0.03768884",
-        #          "fee_asset": "USDT",
-        #          "market": "AAVEUSDT",
-        #          "deal_money": "18.84442"
-        #      }
+        #     {
+        #         "amount": "0.00010087",
+        #         "created_at": 1714618087585,
+        #         "deal_id": 4161200602,
+        #         "margin_market": "",
+        #         "market": "BTCUSDT",
+        #         "order_id": 117654919342,
+        #         "price": "57464.04",
+        #         "side": "sell"
+        #     }
         #
         # Swap fetchMyTrades(private)
         #
         #     {
-        #         "amount": "0.0012",
-        #         "deal_fee": "0.0237528",
-        #         "deal_insurance": "0",
-        #         "deal_margin": "15.8352",
-        #         "deal_order_id": 17797031903,
-        #         "deal_profit": "0",
-        #         "deal_stock": "47.5056",
-        #         "deal_type": 1,
-        #         "deal_user_id": 2969195,
-        #         "fee_asset": "",
-        #         "fee_discount": "0",
-        #         "fee_price": "0",
-        #         "fee_rate": "0.0005",
-        #         "fee_real_rate": "0.0005",
-        #         "id": 379044296,
-        #         "leverage": "3",
-        #         "margin_amount": "15.8352",
+        #         "deal_id": 1180222387,
+        #         "created_at": 1714119054558,
         #         "market": "BTCUSDT",
-        #         "open_price": "39588",
-        #         "order_id": 17797092987,
-        #         "position_amount": "0.0012",
-        #         "position_id": 62052321,
-        #         "position_type": 1,
-        #         "price": "39588",
-        #         "role": 2,
-        #         "side": 2,
-        #         "time": 1650675936.016103,
-        #         "user_id": 3620173
+        #         "side": "buy",
+        #         "order_id": 136915589622,
+        #         "price": "64376",
+        #         "amount": "0.0001"
         #     }
         #
-        timestamp = self.safe_timestamp_2(trade, 'create_time', 'time')
-        if timestamp is None:
-            timestamp = self.safe_integer(trade, 'date_ms')
-        tradeId = self.safe_string(trade, 'id')
-        orderId = self.safe_string(trade, 'order_id')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
+        timestamp = self.safe_integer(trade, 'created_at')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if market is not None:
+            defaultType = market['type']
         marketId = self.safe_string(trade, 'market')
-        marketType = self.safe_string(trade, 'market_type')
-        defaultType = 'spot' if (marketType is None) else 'swap'
         market = self.safe_market(marketId, market, None, defaultType)
-        symbol = market['symbol']
-        costString = self.safe_string(trade, 'deal_money')
-        fee = None
-        feeCostString = self.safe_string_2(trade, 'fee', 'deal_fee')
-        if feeCostString is not None:
-            feeCurrencyId = self.safe_string(trade, 'fee_asset')
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            fee = {
-                'cost': feeCostString,
-                'currency': feeCurrencyCode,
-            }
-        takerOrMaker = self.safe_string(trade, 'role')
-        if takerOrMaker == '1':
-            takerOrMaker = 'maker'
-        elif takerOrMaker == '2':
-            takerOrMaker = 'taker'
-        side: Str = None
-        if market['type'] == 'swap':
-            rawSide = self.safe_integer(trade, 'side')
-            if rawSide == 1:
-                side = 'sell'
-            elif rawSide == 2:
-                side = 'buy'
-            if side is None:
-                side = self.safe_string(trade, 'type')
-        else:
-            side = self.safe_string(trade, 'type')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'id': tradeId,
-            'order': orderId,
+            'symbol': market['symbol'],
+            'id': self.safe_string(trade, 'deal_id'),
+            'order': self.safe_string(trade, 'order_id'),
             'type': None,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': fee,
+            'side': self.safe_string(trade, 'side'),
+            'takerOrMaker': None,
+            'price': self.safe_string(trade, 'price'),
+            'amount': self.safe_string(trade, 'amount'),
+            'cost': self.safe_string(trade, 'deal_money'),
+            'fee': None,
         }, market)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        get the list of most recent trades for a particular symbol
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
+        get the list of the most recent trades for a particular symbol
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-deals
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1290,26 +1194,25 @@ class coinex(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = None
         if market['swap']:
-            response = await self.v1PerpetualPublicGetMarketDeals(self.extend(request, params))
+            response = await self.v2PublicGetFuturesDeals(self.extend(request, params))
         else:
-            response = await self.v1PublicGetMarketDeals(self.extend(request, params))
+            response = await self.v2PublicGetSpotDeals(self.extend(request, params))
         #
         # Spot and Swap
         #
-        #      {
-        #          "code":    0,
-        #          "data": [
-        #              {
-        #                  "id":  2611511379,
-        #                  "type": "buy",
-        #                  "price": "192.63",
-        #                  "amount": "0.02266931",
-        #                  "date":  1638990110,
-        #                  "date_ms":  1638990110518
-        #                  },
-        #              ],
-        #          "message": "OK"
-        #      }
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "amount": "0.00049432",
+        #                 "created_at": 1713849825667,
+        #                 "deal_id": 4137517302,
+        #                 "price": "66251",
+        #                 "side": "buy"
+        #             },
+        #         ],
+        #         "message": "OK"
+        #     }
         #
         return self.parse_trades(response['data'], market, since, limit)
 
@@ -1458,31 +1361,31 @@ class coinex(Exchange, ImplicitAPI):
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
-        #     [
-        #         1591484400,
-        #         "0.02505349",
-        #         "0.02506988",
-        #         "0.02507000",
-        #         "0.02505304",
-        #         "343.19716223",
-        #         "8.6021323866383196",
-        #         "ETHBTC"
-        #     ]
+        #     {
+        #         "close": "66999.95",
+        #         "created_at": 1713934620000,
+        #         "high": "66999.95",
+        #         "low": "66988.53",
+        #         "market": "BTCUSDT",
+        #         "open": "66988.53",
+        #         "value": "0.1572393",        # base volume
+        #         "volume": "10533.2501364336"  # quote volume
+        #     }
         #
         return [
-            self.safe_timestamp(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 5),
+            self.safe_integer(ohlcv, 'created_at'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'value'),
         ]
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline
+        :see: https://docs.coinex.com/api/v2/spot/market/http/list-market-kline
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1494,36 +1397,31 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'type': self.safe_string(self.timeframes, timeframe, timeframe),
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
         response = None
         if market['swap']:
-            response = await self.v1PerpetualPublicGetMarketKline(self.extend(request, params))
+            response = await self.v2PublicGetFuturesKline(self.extend(request, params))
         else:
-            response = await self.v1PublicGetMarketKline(self.extend(request, params))
+            response = await self.v2PublicGetSpotKline(self.extend(request, params))
         #
-        # Spot
-        #
-        #     {
-        #         "code": 0,
-        #         "data": [
-        #             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
-        #             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
-        #             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
-        #         ],
-        #         "message": "OK"
-        #     }
-        #
-        # Swap
+        # Spot and Swap
         #
         #     {
         #         "code": 0,
         #         "data": [
-        #             [1650569400, "41524.64", "41489.31", "41564.61", "41480.58", "29.7060", "1233907.099562"],
-        #             [1650569700, "41489.31", "41438.29", "41489.31", "41391.87", "42.4115", "1756154.189061"],
-        #             [1650570000, "41438.29", "41482.21", "41485.05", "41427.31", "22.2892", "924000.317861"]
+        #             {
+        #                 "close": "66999.95",
+        #                 "created_at": 1713934620000,
+        #                 "high": "66999.95",
+        #                 "low": "66988.53",
+        #                 "market": "BTCUSDT",
+        #                 "open": "66988.53",
+        #                 "value": "0.1572393",
+        #                 "volume": "10533.2501364336"
+        #             },
         #         ],
         #         "message": "OK"
         #     }
@@ -1533,196 +1431,151 @@ class coinex(Exchange, ImplicitAPI):
 
     async def fetch_margin_balance(self, params={}):
         await self.load_markets()
-        symbol = self.safe_string(params, 'symbol')
-        marketId = self.safe_string(params, 'market')
-        market: Market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            marketId = market['id']
-        elif marketId is None:
-            raise ArgumentsRequired(self.id + ' fetchMarginBalance() fetching a margin account requires a market parameter or a symbol parameter')
-        params = self.omit(params, ['symbol', 'market'])
-        request = {
-            'market': marketId,
-        }
-        response = await self.v1PrivateGetMarginAccount(self.extend(request, params))
+        response = await self.v2PrivateGetAssetsMarginBalance(params)
         #
-        #      {
-        #          "code":    0,
-        #           "data": {
-        #              "account_id":    126,
-        #              "leverage":    3,
-        #              "market_type":   "AAVEUSDT",
-        #              "sell_asset_type":   "AAVE",
-        #              "buy_asset_type":   "USDT",
-        #              "balance": {
-        #                  "sell_type": "0.3",     # borrowed
-        #                  "buy_type": "30"
-        #                  },
-        #              "frozen": {
-        #                  "sell_type": "0",
-        #                  "buy_type": "0"
-        #                  },
-        #              "loan": {
-        #                  "sell_type": "0.3",  # loan
-        #                  "buy_type": "0"
-        #                  },
-        #              "interest": {
-        #                  "sell_type": "0.0000125",
-        #                  "buy_type": "0"
-        #                  },
-        #              "can_transfer": {
-        #                  "sell_type": "0.02500646",
-        #                  "buy_type": "4.28635738"
-        #                  },
-        #              "warn_rate":   "",
-        #              "liquidation_price":   ""
-        #              },
-        #          "message": "Success"
-        #      }
+        #     {
+        #         "data": [
+        #             {
+        #                 "margin_account": "BTCUSDT",
+        #                 "base_ccy": "BTC",
+        #                 "quote_ccy": "USDT",
+        #                 "available": {
+        #                     "base_ccy": "0.00000026",
+        #                     "quote_ccy": "0"
+        #                 },
+        #                 "frozen": {
+        #                     "base_ccy": "0",
+        #                     "quote_ccy": "0"
+        #                 },
+        #                 "repaid": {
+        #                     "base_ccy": "0",
+        #                     "quote_ccy": "0"
+        #                 },
+        #                 "interest": {
+        #                     "base_ccy": "0",
+        #                     "quote_ccy": "0"
+        #                 },
+        #                 "rik_rate": "",
+        #                 "liq_price": ""
+        #             },
+        #         ],
+        #         "code": 0,
+        #         "message": "OK"
+        #     }
         #
         result = {'info': response}
-        data = self.safe_value(response, 'data', {})
-        free = self.safe_value(data, 'can_transfer', {})
-        total = self.safe_value(data, 'balance', {})
-        loan = self.safe_value(data, 'loan', {})
-        interest = self.safe_value(data, 'interest', {})
-        #
-        sellAccount = self.account()
-        sellCurrencyId = self.safe_string(data, 'sell_asset_type')
-        sellCurrencyCode = self.safe_currency_code(sellCurrencyId)
-        sellAccount['free'] = self.safe_string(free, 'sell_type')
-        sellAccount['total'] = self.safe_string(total, 'sell_type')
-        sellDebt = self.safe_string(loan, 'sell_type')
-        sellInterest = self.safe_string(interest, 'sell_type')
-        sellAccount['debt'] = Precise.string_add(sellDebt, sellInterest)
-        result[sellCurrencyCode] = sellAccount
-        #
-        buyAccount = self.account()
-        buyCurrencyId = self.safe_string(data, 'buy_asset_type')
-        buyCurrencyCode = self.safe_currency_code(buyCurrencyId)
-        buyAccount['free'] = self.safe_string(free, 'buy_type')
-        buyAccount['total'] = self.safe_string(total, 'buy_type')
-        buyDebt = self.safe_string(loan, 'buy_type')
-        buyInterest = self.safe_string(interest, 'buy_type')
-        buyAccount['debt'] = Precise.string_add(buyDebt, buyInterest)
-        result[buyCurrencyCode] = buyAccount
-        #
+        balances = self.safe_list(response, 'data', [])
+        for i in range(0, len(balances)):
+            entry = balances[i]
+            free = self.safe_dict(entry, 'available', {})
+            used = self.safe_dict(entry, 'frozen', {})
+            loan = self.safe_dict(entry, 'repaid', {})
+            interest = self.safe_dict(entry, 'interest', {})
+            baseAccount = self.account()
+            baseCurrencyId = self.safe_string(entry, 'base_ccy')
+            baseCurrencyCode = self.safe_currency_code(baseCurrencyId)
+            baseAccount['free'] = self.safe_string(free, 'base_ccy')
+            baseAccount['used'] = self.safe_string(used, 'base_ccy')
+            baseDebt = self.safe_string(loan, 'base_ccy')
+            baseInterest = self.safe_string(interest, 'base_ccy')
+            baseAccount['debt'] = Precise.string_add(baseDebt, baseInterest)
+            result[baseCurrencyCode] = baseAccount
         return self.safe_balance(result)
 
     async def fetch_spot_balance(self, params={}):
         await self.load_markets()
-        response = await self.v1PrivateGetBalanceInfo(params)
+        response = await self.v2PrivateGetAssetsSpotBalance(params)
         #
         #     {
-        #       "code": 0,
-        #       "data": {
-        #         "BCH": {                    # BCH account
-        #           "available": "13.60109",   # Available BCH
-        #           "frozen": "0.00000"        # Frozen BCH
-        #         },
-        #         "BTC": {                    # BTC account
-        #           "available": "32590.16",   # Available BTC
-        #           "frozen": "7000.00"        # Frozen BTC
-        #         },
-        #         "ETH": {                    # ETH account
-        #           "available": "5.06000",    # Available ETH
-        #           "frozen": "0.00000"        # Frozen ETH
-        #         }
-        #       },
-        #       "message": "Ok"
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "available": "0.00000046",
+        #                 "ccy": "USDT",
+        #                 "frozen": "0"
+        #             }
+        #         ],
+        #         "message": "OK"
         #     }
         #
         result = {'info': response}
-        balances = self.safe_value(response, 'data', {})
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+        balances = self.safe_list(response, 'data', [])
+        for i in range(0, len(balances)):
+            entry = balances[i]
+            currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'frozen')
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'frozen')
             result[code] = account
         return self.safe_balance(result)
 
     async def fetch_swap_balance(self, params={}):
         await self.load_markets()
-        response = await self.v1PerpetualPrivateGetAssetQuery(params)
+        response = await self.v2PrivateGetAssetsFuturesBalance(params)
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "USDT": {
-        #                 "available": "37.24817690383456000000",
-        #                 "balance_total": "37.24817690383456000000",
-        #                 "frozen": "0.00000000000000000000",
-        #                 "margin": "0.00000000000000000000",
-        #                 "profit_unreal": "0.00000000000000000000",
-        #                 "transfer": "37.24817690383456000000"
+        #         "data": [
+        #             {
+        #                 "available": "0.00000046",
+        #                 "ccy": "USDT",
+        #                 "frozen": "0",
+        #                 "margin": "0",
+        #                 "transferrable": "0.00000046",
+        #                 "unrealized_pnl": "0"
         #             }
-        #         },
+        #         ],
         #         "message": "OK"
         #     }
         #
         result = {'info': response}
-        balances = self.safe_value(response, 'data', {})
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+        balances = self.safe_list(response, 'data', [])
+        for i in range(0, len(balances)):
+            entry = balances[i]
+            currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'frozen')
-            account['total'] = self.safe_string(balance, 'balance_total')
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'frozen')
             result[code] = account
         return self.safe_balance(result)
 
     async def fetch_financial_balance(self, params={}):
         await self.load_markets()
-        response = await self.v1PrivateGetAccountInvestmentBalance(params)
+        response = await self.v2PrivateGetAssetsFinancialBalance(params)
         #
         #     {
-        #          "code": 0,
-        #          "data": [
-        #              {
-        #                  "asset": "CET",
-        #                  "available": "0",
-        #                  "frozen": "0",
-        #                  "lock": "0",
-        #              },
-        #              {
-        #                  "asset": "USDT",
-        #                  "available": "999900",
-        #                  "frozen": "0",
-        #                  "lock": "0"
-        #              }
-        #          ],
-        #          "message": "Success"
-        #      }
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "available": "0.00000046",
+        #                 "ccy": "USDT",
+        #                 "frozen": "0"
+        #             }
+        #         ],
+        #         "message": "OK"
+        #     }
         #
         result = {'info': response}
-        balances = self.safe_value(response, 'data', {})
+        balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'asset')
+            entry = balances[i]
+            currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            frozen = self.safe_string(balance, 'frozen')
-            locked = self.safe_string(balance, 'lock')
-            account['used'] = Precise.string_add(frozen, locked)
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'frozen')
             result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         # spot
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   # financial
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       # margin
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       # swap
+        :see: https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         # spot
+        :see: https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      # swap
+        :see: https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      # margin
+        :see: https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    # financial
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'margin', 'swap', 'financial', or 'spot'
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -1755,329 +1608,263 @@ class coinex(Exchange, ImplicitAPI):
 
     def parse_order(self, order, market: Market = None) -> Order:
         #
-        # fetchOrder
+        # Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
         #
         #     {
-        #         "amount": "0.1",
-        #         "asset_fee": "0.22736197736197736197",
-        #         "avg_price": "196.85000000000000000000",
-        #         "create_time": 1537270135,
-        #         "deal_amount": "0.1",
-        #         "deal_fee": "0",
-        #         "deal_money": "19.685",
-        #         "fee_asset": "CET",
-        #         "fee_discount": "0.5",
-        #         "id": 1788259447,
-        #         "left": "0",
-        #         "maker_fee_rate": "0",
-        #         "market": "ETHUSDT",
-        #         "order_type": "limit",
-        #         "price": "170.00000000",
-        #         "status": "done",
-        #         "taker_fee_rate": "0.0005",
-        #         "type": "sell",
-        #         "client_id": "",
-        #     }
-        #
-        # Spot and Margin createOrder, createOrders, cancelOrder, cancelOrders, fetchOrder
-        #
-        #      {
-        #          "amount":"1.5",
-        #          "asset_fee":"0",
-        #          "avg_price":"0.14208538",
-        #          "client_id":"",
-        #          "create_time":1650993819,
-        #          "deal_amount":"10.55703267",
-        #          "deal_fee":"0.0029999999971787292",
-        #          "deal_money":"1.4999999985893646",
-        #          "fee_asset":null,
-        #          "fee_discount":"1",
-        #          "finished_time":null,
-        #          "id":74556296907,
-        #          "left":"0.0000000014106354",
-        #          "maker_fee_rate":"0",
-        #          "market":"DOGEUSDT",
-        #          "money_fee":"0.0029999999971787292",
-        #          "order_type":"market",
-        #          "price":"0",
-        #          "status":"done",
-        #          "stock_fee":"0",
-        #          "taker_fee_rate":"0.002",
-        #          "type":"buy"
-        #          "client_id": "",
-        #      }
-        #
-        # Swap createOrder, cancelOrder, fetchOrder
-        #
-        #     {
-        #         "amount": "0.0005",
-        #         "client_id": "",
-        #         "create_time": 1651004578.618224,
-        #         "deal_asset_fee": "0.00000000000000000000",
-        #         "deal_fee": "0.00000000000000000000",
-        #         "deal_profit": "0.00000000000000000000",
-        #         "deal_stock": "0.00000000000000000000",
-        #         "effect_type": 1,
-        #         "fee_asset": "",
-        #         "fee_discount": "0.00000000000000000000",
-        #         "last_deal_amount": "0.00000000000000000000",
-        #         "last_deal_id": 0,
-        #         "last_deal_price": "0.00000000000000000000",
-        #         "last_deal_role": 0,
-        #         "last_deal_time": 0,
-        #         "last_deal_type": 0,
-        #         "left": "0.0005",
-        #         "leverage": "3",
-        #         "maker_fee": "0.00030",
-        #         "market": "BTCUSDT",
-        #         "order_id": 18221659097,
-        #         "position_id": 0,
-        #         "position_type": 1,
-        #         "price": "30000.00",
-        #         "side": 2,
-        #         "source": "api.v1",
-        #         "stop_id": 0,
-        #         "taker_fee": "0.00050",
-        #         "target": 0,
-        #         "type": 1,
-        #         "update_time": 1651004578.618224,
-        #         "user_id": 3620173
-        #     }
-        #
-        # Stop order createOrder
-        #
-        #     {"status":"success"}
-        #
-        # Swap Stop cancelOrder, fetchOrder
-        #
-        #     {
-        #         "amount": "0.0005",
-        #         "client_id": "",
-        #         "create_time": 1651034023.008771,
-        #         "effect_type": 1,
-        #         "fee_asset": "",
-        #         "fee_discount": "0.00000000000000000000",
-        #         "maker_fee": "0.00030",
-        #         "market": "BTCUSDT",
-        #         "order_id": 18256915101,
-        #         "price": "31000.00",
-        #         "side": 2,
-        #         "source": "api.v1",
-        #         "state": 1,
-        #         "stop_price": "31500.00",
-        #         "stop_type": 1,
-        #         "taker_fee": "0.00050",
-        #         "target": 0,
-        #         "type": 1,
-        #         "update_time": 1651034397.193624,
-        #         "user_id": 3620173
-        #     }
-        #
-        #
-        # Spot and Margin fetchOpenOrders, fetchClosedOrders
-        #
-        #     {
-        #         "account_id": 0,
-        #         "amount": "0.0005",
-        #         "asset_fee": "0",
-        #         "avg_price": "0.00",
-        #         "client_id": "",
-        #         "create_time": 1651089247,
-        #         "deal_amount": "0",
-        #         "deal_fee": "0",
-        #         "deal_money": "0",
-        #         "fee_asset": null,
-        #         "fee_discount": "1",
-        #         "finished_time": 0,
-        #         "id": 74660190839,
-        #         "left": "0.0005",
+        #         "amount": "0.0001",
+        #         "base_fee": "0",
+        #         "ccy": "BTC",
+        #         "client_id": "x-167673045-a0a3c6461459a801",
+        #         "created_at": 1714114386250,
+        #         "discount_fee": "0",
+        #         "filled_amount": "0",
+        #         "filled_value": "0",
+        #         "last_fill_amount": "0",
+        #         "last_fill_price": "0",
         #         "maker_fee_rate": "0.002",
         #         "market": "BTCUSDT",
-        #         "money_fee": "0",
-        #         "order_type": "limit",
-        #         "price": "31000",
-        #         "status": "not_deal",
-        #         "stock_fee": "0",
+        #         "market_type": "SPOT",
+        #         "order_id": 117178743547,
+        #         "price": "61000",
+        #         "quote_fee": "0",
+        #         "side": "buy",
         #         "taker_fee_rate": "0.002",
-        #         "type": "buy"
+        #         "type": "limit",
+        #         "unfilled_amount": "0.0001",
+        #         "updated_at": 1714114386250
         #     }
         #
-        # Swap fetchOpenOrders, fetchClosedOrders
+        # Spot and Margin fetchClosedOrders
         #
         #     {
-        #         "amount": "0.0005",
-        #         "client_id": "",
-        #         "create_time": 1651030414.088431,
-        #         "deal_asset_fee": "0",
-        #         "deal_fee": "0.00960069",
-        #         "deal_profit": "0.009825",
-        #         "deal_stock": "19.20138",
-        #         "effect_type": 0,
-        #         "fee_asset": "",
-        #         "fee_discount": "0",
-        #         "left": "0",
-        #         "leverage": "3",
-        #         "maker_fee": "0",
+        #         "order_id": 117180532345,
         #         "market": "BTCUSDT",
-        #         "order_id": 18253447431,
-        #         "position_id": 0,
-        #         "position_type": 1,
+        #         "market_type": "SPOT",
+        #         "side": "sell",
+        #         "type": "market",
+        #         "ccy": "BTC",
+        #         "amount": "0.00015484",
         #         "price": "0",
-        #         "side": 1,
-        #         "source": "web",
-        #         "stop_id": 0,
-        #         "taker_fee": "0.0005",
-        #         "target": 0,
-        #         "type": 2,
-        #         "update_time": 1651030414.08847,
-        #         "user_id": 3620173
-        #     }
-        #
-        # Spot and Margin Stop fetchOpenOrders, fetchClosedOrders
-        #
-        #     {
-        #         "account_id": 0,
-        #         "amount": "155",
         #         "client_id": "",
-        #         "create_time": 1651089182,
-        #         "fee_asset": null,
-        #         "fee_discount": "1",
-        #         "maker_fee": "0.002",
-        #         "market": "BTCUSDT",
-        #         "order_id": 74660111965,
-        #         "order_type": "market",
-        #         "price": "0",
-        #         "state": 0,
-        #         "stop_price": "31500",
-        #         "taker_fee": "0.002",
-        #         "type": "buy"
+        #         "created_at": 1714116494219,
+        #         "updated_at": 0,
+        #         "base_fee": "0",
+        #         "quote_fee": "0.0199931699632",
+        #         "discount_fee": "0",
+        #         "maker_fee_rate": "0",
+        #         "taker_fee_rate": "0.002",
+        #         "unfilled_amount": "0",
+        #         "filled_amount": "0.00015484",
+        #         "filled_value": "9.9965849816"
         #     }
         #
-        # Swap Stop fetchOpenOrders
+        # Spot, Margin and Swap trigger createOrder, createOrders, editOrder
         #
         #     {
-        #         "amount": "0.0005",
-        #         "client_id": "",
-        #         "create_time": 1651089147.321691,
-        #         "effect_type": 1,
-        #         "fee_asset": "",
-        #         "fee_discount": "0.00000000000000000000",
-        #         "maker_fee": "0.00030",
-        #         "market": "BTCUSDT",
-        #         "order_id": 18332143848,
-        #         "price": "31000.00",
-        #         "side": 2,
-        #         "source": "api.v1",
-        #         "state": 1,
-        #         "stop_price": "31500.00",
-        #         "stop_type": 1,
-        #         "taker_fee": "0.00050",
-        #         "target": 0,
-        #         "type": 1,
-        #         "update_time": 1651089147.321691,
-        #         "user_id": 3620173
+        #         "stop_id": 117180138153
         #     }
         #
-        # swap: cancelOrders
+        # Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders
         #
         #     {
-        #         "amount": "0.0005",
-        #         "client_id": "x-167673045-b0cee0c584718b65",
-        #         "create_time": 1701233683.294231,
-        #         "deal_asset_fee": "0.00000000000000000000",
-        #         "deal_fee": "0.00000000000000000000",
-        #         "deal_profit": "0.00000000000000000000",
-        #         "deal_stock": "0.00000000000000000000",
-        #         "effect_type": 1,
-        #         "fee_asset": "",
-        #         "fee_discount": "0.00000000000000000000",
-        #         "last_deal_amount": "0.00000000000000000000",
-        #         "last_deal_id": 0,
-        #         "last_deal_price": "0.00000000000000000000",
-        #         "last_deal_role": 0,
-        #         "last_deal_time": 0,
-        #         "last_deal_type": 0,
-        #         "left": "0.0005",
+        #         "amount": "0.0001",
+        #         "client_id": "x-167673045-1471b81d747080a0",
+        #         "created_at": 1714116769986,
+        #         "fee": "0",
+        #         "fee_ccy": "USDT",
+        #         "filled_amount": "0",
+        #         "filled_value": "0",
+        #         "last_filled_amount": "0",
+        #         "last_filled_price": "0",
+        #         "maker_fee_rate": "0.0003",
+        #         "market": "BTCUSDT",
+        #         "market_type": "FUTURES",
+        #         "order_id": 136913377780,
+        #         "price": "61000.42",
+        #         "realized_pnl": "0",
+        #         "side": "buy",
+        #         "taker_fee_rate": "0.0005",
+        #         "type": "limit",
+        #         "unfilled_amount": "0.0001",
+        #         "updated_at": 1714116769986
+        #     }
+        #
+        # Swap stopLossPrice and takeProfitPrice createOrder
+        #
+        #     {
+        #         "adl_level": 1,
+        #         "ath_margin_size": "2.14586666",
+        #         "ath_position_amount": "0.0001",
+        #         "avg_entry_price": "64376",
+        #         "bkr_price": "0",
+        #         "close_avbl": "0.0001",
+        #         "cml_position_value": "6.4376",
+        #         "created_at": 1714119054558,
         #         "leverage": "3",
-        #         "maker_fee": "0.00030",
+        #         "liq_price": "0",
+        #         "maintenance_margin_rate": "0.005",
+        #         "maintenance_margin_value": "0.03218632",
+        #         "margin_avbl": "2.14586666",
+        #         "margin_mode": "cross",
         #         "market": "BTCUSDT",
-        #         "option": 0,
-        #         "order_id": 115940476323,
-        #         "position_id": 0,
-        #         "position_type": 2,
-        #         "price": "25000.00",
-        #         "side": 2,
-        #         "source": "api.v1",
-        #         "stop_id": 0,
-        #         "stop_loss_price": "0.00000000000000000000",
-        #         "stop_loss_type": 0,
-        #         "take_profit_price": "0.00000000000000000000",
-        #         "take_profit_type": 0,
-        #         "taker_fee": "0.00050",
-        #         "target": 0,
-        #         "type": 1,
-        #         "update_time": 1701233721.718884,
-        #         "user_id": 3620173
+        #         "market_type": "FUTURES",
+        #         "max_position_value": "6.4376",
+        #         "open_interest": "0.0001",
+        #         "position_id": 303884204,
+        #         "position_margin_rate": "3.10624785634397912265",
+        #         "realized_pnl": "-0.0032188",
+        #         "settle_price": "64376",
+        #         "settle_value": "6.4376",
+        #         "side": "long",
+        #         "stop_loss_price": "62000",
+        #         "stop_loss_type": "latest_price",
+        #         "take_profit_price": "0",
+        #         "take_profit_type": "",
+        #         "unrealized_pnl": "0",
+        #         "updated_at": 1714119054559
+        #     }
+        #
+        # Swap fetchOrder
+        #
+        #     {
+        #         "amount": "0.0001",
+        #         "client_id": "x-167673045-da5f31dcd478a829",
+        #         "created_at": 1714460987164,
+        #         "fee": "0",
+        #         "fee_ccy": "USDT",
+        #         "filled_amount": "0",
+        #         "filled_value": "0",
+        #         "last_filled_amount": "0",
+        #         "last_filled_price": "0",
+        #         "maker_fee_rate": "0.0003",
+        #         "market": "BTCUSDT",
+        #         "market_type": "FUTURES",
+        #         "order_id": 137319868771,
+        #         "price": "61000",
+        #         "realized_pnl": "0",
+        #         "side": "buy",
+        #         "status": "open",
+        #         "taker_fee_rate": "0.0005",
+        #         "type": "limit",
+        #         "unfilled_amount": "0.0001",
+        #         "updated_at": 1714460987164
+        #     }
+        #
+        # Spot and Margin fetchOrder
+        #
+        #     {
+        #         "amount": "0.0001",
+        #         "base_fee": "0",
+        #         "ccy": "BTC",
+        #         "client_id": "x-167673045-da918d6724e3af81",
+        #         "created_at": 1714461638958,
+        #         "discount_fee": "0",
+        #         "filled_amount": "0",
+        #         "filled_value": "0",
+        #         "last_fill_amount": "0",
+        #         "last_fill_price": "0",
+        #         "maker_fee_rate": "0.002",
+        #         "market": "BTCUSDT",
+        #         "market_type": "SPOT",
+        #         "order_id": 117492012985,
+        #         "price": "61000",
+        #         "quote_fee": "0",
+        #         "side": "buy",
+        #         "status": "open",
+        #         "taker_fee_rate": "0.002",
+        #         "type": "limit",
+        #         "unfilled_amount": "0.0001",
+        #         "updated_at": 1714461638958
+        #     }
+        #
+        # Swap trigger fetchOpenOrders, fetchClosedOrders - Spot and Swap trigger cancelOrders, cancelOrder
+        #
+        #     {
+        #         "amount": "0.0001",
+        #         "client_id": "x-167673045-a7d7714c6478acf6",
+        #         "created_at": 1714187923820,
+        #         "market": "BTCUSDT",
+        #         "market_type": "FUTURES",
+        #         "price": "61000",
+        #         "side": "buy",
+        #         "stop_id": 136984426097,
+        #         "trigger_direction": "higher",
+        #         "trigger_price": "62000",
+        #         "trigger_price_type": "latest_price",
+        #         "type": "limit",
+        #         "updated_at": 1714187974363
+        #     }
+        #
+        # Spot and Margin trigger fetchOpenOrders, fetchClosedOrders
+        #
+        #     {
+        #         "stop_id": 117586439530,
+        #         "market": "BTCUSDT",
+        #         "market_type": "SPOT",
+        #         "ccy": "BTC",
+        #         "side": "buy",
+        #         "type": "limit",
+        #         "amount": "0.0001",
+        #         "price": "51000",
+        #         "trigger_price": "52000",
+        #         "trigger_direction": "higher",
+        #         "trigger_price_type": "mark_price",
+        #         "client_id": "x-167673045-df61777094c69312",
+        #         "created_at": 1714551237335,
+        #         "updated_at": 1714551237335
         #     }
         #
         rawStatus = self.safe_string(order, 'status')
-        timestamp = self.safe_timestamp(order, 'create_time')
+        timestamp = self.safe_integer(order, 'created_at')
+        updatedTimestamp = self.safe_integer(order, 'updated_at')
+        if updatedTimestamp == 0:
+            updatedTimestamp = timestamp
         marketId = self.safe_string(order, 'market')
         defaultType = self.safe_string(self.options, 'defaultType')
-        orderType = 'swap' if ('source' in order) else defaultType
-        market = self.safe_market(marketId, market, None, orderType)
-        feeCurrencyId = self.safe_string(order, 'fee_asset')
+        orderType = self.safe_string_lower(order, 'market_type', defaultType)
+        if orderType == 'futures':
+            orderType = 'swap'
+        marketType = 'swap' if (orderType == 'swap') else 'spot'
+        market = self.safe_market(marketId, market, None, marketType)
+        feeCurrencyId = self.safe_string(order, 'fee_ccy')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         if feeCurrency is None:
             feeCurrency = market['quote']
-        rawSide = self.safe_integer(order, 'side')
-        side: Str = None
-        if rawSide == 1:
-            side = 'sell'
-        elif rawSide == 2:
+        side = self.safe_string(order, 'side')
+        if side == 'long':
             side = 'buy'
-        else:
-            side = self.safe_string(order, 'type')
-        rawType = self.safe_string(order, 'order_type')
-        type: Str = None
-        if rawType is None:
-            typeInteger = self.safe_integer(order, 'type')
-            if typeInteger == 1:
-                type = 'limit'
-            elif typeInteger == 2:
-                type = 'market'
-        else:
-            type = rawType
+        elif side == 'short':
+            side = 'sell'
         clientOrderId = self.safe_string(order, 'client_id')
         if clientOrderId == '':
             clientOrderId = None
         return self.safe_order({
-            'id': self.safe_string_2(order, 'id', 'order_id'),
+            'id': self.safe_string_n(order, ['position_id', 'order_id', 'stop_id']),
             'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': self.safe_timestamp(order, 'update_time'),
+            'lastTradeTimestamp': updatedTimestamp,
             'status': self.parse_order_status(rawStatus),
             'symbol': market['symbol'],
-            'type': type,
+            'type': self.safe_string(order, 'type'),
             'timeInForce': None,
             'postOnly': None,
             'reduceOnly': None,
             'side': side,
             'price': self.safe_string(order, 'price'),
-            'stopPrice': self.safe_string(order, 'stop_price'),
-            'triggerPrice': self.safe_string(order, 'stop_price'),
+            'stopPrice': self.safe_string(order, 'trigger_price'),
+            'triggerPrice': self.safe_string(order, 'trigger_price'),
             'takeProfitPrice': self.safe_number(order, 'take_profit_price'),
             'stopLossPrice': self.safe_number(order, 'stop_loss_price'),
-            'cost': self.safe_string(order, 'deal_money'),
-            'average': self.safe_string(order, 'avg_price'),
+            'cost': self.safe_string(order, 'filled_value'),
+            'average': self.safe_string(order, 'avg_entry_price'),
             'amount': self.safe_string(order, 'amount'),
-            'filled': self.safe_string(order, 'deal_amount'),
-            'remaining': self.safe_string(order, 'left'),
+            'filled': self.safe_string(order, 'filled_amount'),
+            'remaining': self.safe_string(order, 'unfilled_amount'),
             'trades': None,
             'fee': {
                 'currency': feeCurrency,
-                'cost': self.safe_string(order, 'deal_fee'),
+                'cost': self.safe_string_2(order, 'quote_fee', 'fee'),
             },
             'info': order,
         }, market)
@@ -2086,6 +1873,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         create a market buy order by providing the symbol and cost
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/put-order
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2102,20 +1890,17 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         swap = market['swap']
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
-        stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         option = self.safe_string(params, 'option')
         isMarketOrder = type == 'market'
-        postOnly = self.is_post_only(isMarketOrder, option == 'MAKER_ONLY', params)
-        positionId = self.safe_integer_2(params, 'position_id', 'positionId')  # Required for closing swap positions
-        timeInForceRaw = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
-        reduceOnly = self.safe_value(params, 'reduceOnly')
+        postOnly = self.is_post_only(isMarketOrder, option == 'maker_only', params)
+        timeInForceRaw = self.safe_string_upper(params, 'timeInForce')
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
         if reduceOnly:
             if not market['swap']:
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
-            if positionId is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders')
         request = {
             'market': market['id'],
         }
@@ -2125,53 +1910,41 @@ class coinex(Exchange, ImplicitAPI):
             request['client_id'] = brokerId + '-' + self.uuid16()
         else:
             request['client_id'] = clientOrderId
+        if (stopLossPrice is None) and (takeProfitPrice is None):
+            if not reduceOnly:
+                request['side'] = side
+            requestType = type
+            if postOnly:
+                requestType = 'maker_only'
+            elif timeInForceRaw is not None:
+                if timeInForceRaw == 'IOC':
+                    requestType = 'ioc'
+                elif timeInForceRaw == 'FOK':
+                    requestType = 'fok'
+            if not isMarketOrder:
+                request['price'] = self.price_to_precision(symbol, price)
+            request['type'] = requestType
         if swap:
+            request['market_type'] = 'FUTURES'
             if stopLossPrice or takeProfitPrice:
-                request['stop_type'] = self.safe_integer(params, 'stop_type', 1)  # 1: triggered by the latest transaction, 2: mark price, 3: index price
-                if positionId is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders')
-                request['position_id'] = positionId
                 if stopLossPrice:
                     request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
+                    request['stop_loss_type'] = self.safe_string(params, 'stop_type', 'latest_price')
                 elif takeProfitPrice:
                     request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
+                    request['take_profit_type'] = self.safe_string(params, 'stop_type', 'latest_price')
             else:
-                requestSide = 2 if (side == 'buy') else 1
+                request['amount'] = self.amount_to_precision(symbol, amount)
                 if stopPrice is not None:
-                    request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-                    request['stop_type'] = self.safe_integer(params, 'stop_type', 1)  # 1: triggered by the latest transaction, 2: mark price, 3: index price
-                    request['amount'] = self.amount_to_precision(symbol, amount)
-                    request['side'] = requestSide
-                    if type == 'limit':
-                        request['price'] = self.price_to_precision(symbol, price)
-                    request['amount'] = self.amount_to_precision(symbol, amount)
-                timeInForce = None
-                if (type != 'market') or (stopPrice is not None):
-                    if postOnly:
-                        request['option'] = 1
-                    elif timeInForceRaw is not None:
-                        if timeInForceRaw == 'IOC':
-                            timeInForce = 2
-                        elif timeInForceRaw == 'FOK':
-                            timeInForce = 3
-                        else:
-                            timeInForce = 1
-                        request['effect_type'] = timeInForce  # exchange takes 'IOC' and 'FOK'
-                if type == 'limit' and stopPrice is None:
-                    if reduceOnly:
-                        request['position_id'] = positionId
-                    else:
-                        request['side'] = requestSide
-                    request['price'] = self.price_to_precision(symbol, price)
-                    request['amount'] = self.amount_to_precision(symbol, amount)
-                elif type == 'market' and stopPrice is None:
-                    if reduceOnly:
-                        request['position_id'] = positionId
-                    else:
-                        request['side'] = requestSide
-                        request['amount'] = self.amount_to_precision(symbol, amount)
+                    request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+                    request['trigger_price_type'] = self.safe_string(params, 'stop_type', 'latest_price')
         else:
-            request['type'] = side
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+            if marginMode is not None:
+                request['market_type'] = 'MARGIN'
+            else:
+                request['market_type'] = 'SPOT'
             if (type == 'market') and (side == 'buy'):
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
@@ -2190,44 +1963,21 @@ class coinex(Exchange, ImplicitAPI):
                     request['amount'] = self.cost_to_precision(symbol, amount)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
-            if (type == 'limit') or (type == 'ioc'):
-                request['price'] = self.price_to_precision(symbol, price)
             if stopPrice is not None:
-                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-            if (type != 'market') or (stopPrice is not None):
-                # following options cannot be applied to vanilla market orders(but can be applied to stop-market orders)
-                if (timeInForceRaw is not None) or postOnly:
-                    if (postOnly or (timeInForceRaw != 'IOC')) and ((type == 'limit') and (stopPrice is not None)):
-                        raise InvalidOrder(self.id + ' createOrder() only supports the IOC option for stop-limit orders')
-                    if postOnly:
-                        request['option'] = 'MAKER_ONLY'
-                    else:
-                        if timeInForceRaw is not None:
-                            request['option'] = timeInForceRaw  # exchange takes 'IOC' and 'FOK'
-        accountId = self.safe_integer(params, 'account_id')
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        if marginMode is not None:
-            if accountId is None:
-                raise BadRequest(self.id + ' createOrder() requires an account_id parameter for margin orders')
-            request['account_id'] = accountId
-        params = self.omit(params, ['reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+                request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+        params = self.omit(params, ['reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade004_IOC_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade005_stop_limit_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade006_stop_market_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
+        :see: https://docs.coinex.com/api/v2/spot/order/http/put-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/put-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/put-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/put-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/position/http/close-position
+        :see: https://docs.coinex.com/api/v2/futures/position/http/set-position-stop-loss
+        :see: https://docs.coinex.com/api/v2/futures/position/http/set-position-take-profit
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2240,15 +1990,14 @@ class coinex(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK', 'PO'
         :param boolean [params.postOnly]: set to True if you wish to make a post only order
         :param boolean [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
-        :param int [params.position_id]: *required for reduce only orders* the position id to reduce
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
+        triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
         isTriggerOrder = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
@@ -2257,121 +2006,211 @@ class coinex(Exchange, ImplicitAPI):
         response = None
         if market['spot']:
             if isTriggerOrder:
-                if type == 'limit':
-                    response = await self.v1PrivatePostOrderStopLimit(request)
-                else:
-                    response = await self.v1PrivatePostOrderStopMarket(request)
+                response = await self.v2PrivatePostSpotStopOrder(request)
+                #
+                #     {
+                #         "code": 0,
+                #         "data": {
+                #             "stop_id": 117180138153
+                #         },
+                #         "message": "OK"
+                #     }
+                #
             else:
-                if type == 'limit':
-                    response = await self.v1PrivatePostOrderLimit(request)
-                else:
-                    response = await self.v1PrivatePostOrderMarket(request)
+                response = await self.v2PrivatePostSpotOrder(request)
+                #
+                #     {
+                #         "code": 0,
+                #         "data": {
+                #             "amount": "0.0001",
+                #             "base_fee": "0",
+                #             "ccy": "BTC",
+                #             "client_id": "x-167673045-a0a3c6461459a801",
+                #             "created_at": 1714114386250,
+                #             "discount_fee": "0",
+                #             "filled_amount": "0",
+                #             "filled_value": "0",
+                #             "last_fill_amount": "0",
+                #             "last_fill_price": "0",
+                #             "maker_fee_rate": "0.002",
+                #             "market": "BTCUSDT",
+                #             "market_type": "SPOT",
+                #             "order_id": 117178743547,
+                #             "price": "61000",
+                #             "quote_fee": "0",
+                #             "side": "buy",
+                #             "taker_fee_rate": "0.002",
+                #             "type": "limit",
+                #             "unfilled_amount": "0.0001",
+                #             "updated_at": 1714114386250
+                #         },
+                #         "message": "OK"
+                #     }
+                #
         else:
             if isTriggerOrder:
-                if type == 'limit':
-                    response = await self.v1PerpetualPrivatePostOrderPutStopLimit(request)
-                else:
-                    response = await self.v1PerpetualPrivatePostOrderPutStopMarket(request)
+                response = await self.v2PrivatePostFuturesStopOrder(request)
+                #
+                #     {
+                #         "code": 0,
+                #         "data": {
+                #             "stop_id": 136915460994
+                #         },
+                #         "message": "OK"
+                #     }
+                #
             elif isStopLossOrTakeProfitTrigger:
                 if isStopLossTriggerOrder:
-                    response = await self.v1PerpetualPrivatePostPositionStopLoss(request)
+                    response = await self.v2PrivatePostFuturesSetPositionStopLoss(request)
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": {
+                    #             "adl_level": 1,
+                    #             "ath_margin_size": "2.14586666",
+                    #             "ath_position_amount": "0.0001",
+                    #             "avg_entry_price": "64376",
+                    #             "bkr_price": "0",
+                    #             "close_avbl": "0.0001",
+                    #             "cml_position_value": "6.4376",
+                    #             "created_at": 1714119054558,
+                    #             "leverage": "3",
+                    #             "liq_price": "0",
+                    #             "maintenance_margin_rate": "0.005",
+                    #             "maintenance_margin_value": "0.03218632",
+                    #             "margin_avbl": "2.14586666",
+                    #             "margin_mode": "cross",
+                    #             "market": "BTCUSDT",
+                    #             "market_type": "FUTURES",
+                    #             "max_position_value": "6.4376",
+                    #             "open_interest": "0.0001",
+                    #             "position_id": 303884204,
+                    #             "position_margin_rate": "3.10624785634397912265",
+                    #             "realized_pnl": "-0.0032188",
+                    #             "settle_price": "64376",
+                    #             "settle_value": "6.4376",
+                    #             "side": "long",
+                    #             "stop_loss_price": "62000",
+                    #             "stop_loss_type": "latest_price",
+                    #             "take_profit_price": "0",
+                    #             "take_profit_type": "",
+                    #             "unrealized_pnl": "0",
+                    #             "updated_at": 1714119054559
+                    #         },
+                    #         "message": "OK"
+                    #     }
+                    #
                 elif isTakeProfitTriggerOrder:
-                    response = await self.v1PerpetualPrivatePostPositionTakeProfit(request)
+                    response = await self.v2PrivatePostFuturesSetPositionTakeProfit(request)
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": {
+                    #             "adl_level": 1,
+                    #             "ath_margin_size": "2.14586666",
+                    #             "ath_position_amount": "0.0001",
+                    #             "avg_entry_price": "64376",
+                    #             "bkr_price": "0",
+                    #             "close_avbl": "0.0001",
+                    #             "cml_position_value": "6.4376",
+                    #             "created_at": 1714119054558,
+                    #             "leverage": "3",
+                    #             "liq_price": "0",
+                    #             "maintenance_margin_rate": "0.005",
+                    #             "maintenance_margin_value": "0.03218632",
+                    #             "margin_avbl": "2.14586666",
+                    #             "margin_mode": "cross",
+                    #             "market": "BTCUSDT",
+                    #             "market_type": "FUTURES",
+                    #             "max_position_value": "6.4376",
+                    #             "open_interest": "0.0001",
+                    #             "position_id": 303884204,
+                    #             "position_margin_rate": "3.10624785634397912265",
+                    #             "realized_pnl": "-0.0032188",
+                    #             "settle_price": "64376",
+                    #             "settle_value": "6.4376",
+                    #             "side": "long",
+                    #             "stop_loss_price": "62000",
+                    #             "stop_loss_type": "latest_price",
+                    #             "take_profit_price": "70000",
+                    #             "take_profit_type": "latest_price",
+                    #             "unrealized_pnl": "0",
+                    #             "updated_at": 1714119054559
+                    #         },
+                    #         "message": "OK"
+                    #     }
+                    #
             else:
                 if reduceOnly:
-                    if type == 'limit':
-                        response = await self.v1PerpetualPrivatePostOrderCloseLimit(request)
-                    else:
-                        response = await self.v1PerpetualPrivatePostOrderCloseMarket(request)
+                    response = await self.v2PrivatePostFuturesClosePosition(request)
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": {
+                    #             "amount": "0.0001",
+                    #             "client_id": "x-167673045-4f264600c432ac06",
+                    #             "created_at": 1714119323764,
+                    #             "fee": "0.003221",
+                    #             "fee_ccy": "USDT",
+                    #             "filled_amount": "0.0001",
+                    #             "filled_value": "6.442017",
+                    #             "last_filled_amount": "0.0001",
+                    #             "last_filled_price": "64420.17",
+                    #             "maker_fee_rate": "0",
+                    #             "market": "BTCUSDT",
+                    #             "market_type": "FUTURES",
+                    #             "order_id": 136915813578,
+                    #             "price": "0",
+                    #             "realized_pnl": "0.004417",
+                    #             "side": "sell",
+                    #             "taker_fee_rate": "0.0005",
+                    #             "type": "market",
+                    #             "unfilled_amount": "0",
+                    #             "updated_at": 1714119323764
+                    #         },
+                    #         "message": "OK"
+                    #     }
+                    #
                 else:
-                    if type == 'limit':
-                        response = await self.v1PerpetualPrivatePostOrderPutLimit(request)
-                    else:
-                        response = await self.v1PerpetualPrivatePostOrderPutMarket(request)
-        #
-        # Spot and Margin
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "asset_fee": "0",
-        #             "avg_price": "0.00",
-        #             "client_id": "",
-        #             "create_time": 1650951627,
-        #             "deal_amount": "0",
-        #             "deal_fee": "0",
-        #             "deal_money": "0",
-        #             "fee_asset": null,
-        #             "fee_discount": "1",
-        #             "finished_time": null,
-        #             "id": 74510932594,
-        #             "left": "0.0005",
-        #             "maker_fee_rate": "0.002",
-        #             "market": "BTCUSDT",
-        #             "money_fee": "0",
-        #             "order_type": "limit",
-        #             "price": "30000",
-        #             "status": "not_deal",
-        #             "stock_fee": "0",
-        #             "taker_fee_rate": "0.002",
-        #             "type": "buy"
-        #         },
-        #         "message": "Success"
-        #     }
-        #
-        # Swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "client_id": "",
-        #             "create_time": 1651004578.618224,
-        #             "deal_asset_fee": "0.00000000000000000000",
-        #             "deal_fee": "0.00000000000000000000",
-        #             "deal_profit": "0.00000000000000000000",
-        #             "deal_stock": "0.00000000000000000000",
-        #             "effect_type": 1,
-        #             "fee_asset": "",
-        #             "fee_discount": "0.00000000000000000000",
-        #             "last_deal_amount": "0.00000000000000000000",
-        #             "last_deal_id": 0,
-        #             "last_deal_price": "0.00000000000000000000",
-        #             "last_deal_role": 0,
-        #             "last_deal_time": 0,
-        #             "last_deal_type": 0,
-        #             "left": "0.0005",
-        #             "leverage": "3",
-        #             "maker_fee": "0.00030",
-        #             "market": "BTCUSDT",
-        #             "order_id": 18221659097,
-        #             "position_id": 0,
-        #             "position_type": 1,
-        #             "price": "30000.00",
-        #             "side": 2,
-        #             "source": "api.v1",
-        #             "stop_id": 0,
-        #             "taker_fee": "0.00050",
-        #             "target": 0,
-        #             "type": 1,
-        #             "update_time": 1651004578.618224,
-        #             "user_id": 3620173
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        # Stop Order
-        #
-        #     {"code":0,"data":{"status":"success"},"message":"OK"}
-        #
+                    response = await self.v2PrivatePostFuturesOrder(request)
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": {
+                    #             "amount": "0.0001",
+                    #             "client_id": "x-167673045-1471b81d747080a0",
+                    #             "created_at": 1714116769986,
+                    #             "fee": "0",
+                    #             "fee_ccy": "USDT",
+                    #             "filled_amount": "0",
+                    #             "filled_value": "0",
+                    #             "last_filled_amount": "0",
+                    #             "last_filled_price": "0",
+                    #             "maker_fee_rate": "0.0003",
+                    #             "market": "BTCUSDT",
+                    #             "market_type": "FUTURES",
+                    #             "order_id": 136913377780,
+                    #             "price": "61000.42",
+                    #             "realized_pnl": "0",
+                    #             "side": "buy",
+                    #             "taker_fee_rate": "0.0005",
+                    #             "type": "limit",
+                    #             "unfilled_amount": "0.0001",
+                    #             "updated_at": 1714116769986
+                    #         },
+                    #         "message": "OK"
+                    #     }
+                    #
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
         """
         create a list of trade orders(all orders should be of the same symbol)
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade002_batch_limit_orders
+        :see: https://docs.coinex.com/api/v2/spot/order/http/put-multi-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/put-multi-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/put-multi-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/put-multi-stop-order
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2379,6 +2218,9 @@ class coinex(Exchange, ImplicitAPI):
         await self.load_markets()
         ordersRequests = []
         symbol = None
+        reduceOnly = False
+        isTriggerOrder = False
+        isStopLossOrTakeProfitTrigger = False
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -2394,54 +2236,138 @@ class coinex(Exchange, ImplicitAPI):
             orderParams = self.safe_value(rawOrder, 'params', {})
             if type != 'limit':
                 raise NotSupported(self.id + ' createOrders() does not support ' + type + ' orders, only limit orders are accepted')
+            reduceOnly = self.safe_value(orderParams, 'reduceOnly')
+            triggerPrice = self.safe_number_2(orderParams, 'stopPrice', 'triggerPrice')
+            stopLossTriggerPrice = self.safe_number(orderParams, 'stopLossPrice')
+            takeProfitTriggerPrice = self.safe_number(orderParams, 'takeProfitPrice')
+            isTriggerOrder = triggerPrice is not None
+            isStopLossTriggerOrder = stopLossTriggerPrice is not None
+            isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+            isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request = {
             'market': market['id'],
-            'batch_orders': self.json(ordersRequests),
+            'orders': ordersRequests,
         }
-        response = await self.v1PrivatePostOrderLimitBatch(request)
-        #
-        #     {
-        #         "code": 0,
-        #         "data": [
-        #             {
-        #                 "code": 0,
-        #                 "data": {
-        #                     "amount": "0.0005",
-        #                     "asset_fee": "0",
-        #                     "avg_price": "0.00",
-        #                     "client_id": "x-167673045-d34bfb41242d8fd1",
-        #                     "create_time": 1701229157,
-        #                     "deal_amount": "0",
-        #                     "deal_fee": "0",
-        #                     "deal_money": "0",
-        #                     "fee_asset": null,
-        #                     "fee_discount": "1",
-        #                     "finished_time": null,
-        #                     "id": 107745856676,
-        #                     "left": "0.0005",
-        #                     "maker_fee_rate": "0.002",
-        #                     "market": "BTCUSDT",
-        #                     "money_fee": "0",
-        #                     "order_type": "limit",
-        #                     "price": "23000",
-        #                     "source_id": "",
-        #                     "status": "not_deal",
-        #                     "stock_fee": "0",
-        #                     "taker_fee_rate": "0.002",
-        #                     "type": "buy"
-        #                 },
-        #                 "message": "OK"
-        #             },
-        #         ],
-        #         "message": "Success"
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
+        response = None
+        if market['spot']:
+            if isTriggerOrder:
+                response = await self.v2PrivatePostSpotBatchStopOrder(request)
+                #
+                #     {
+                #         "code": 0,
+                #         "data": [
+                #             {
+                #                 "code": 0,
+                #                 "data": {
+                #                     "stop_id": 117186257510
+                #                 },
+                #                 "message": "OK"
+                #             },
+                #         ],
+                #         "message": "OK"
+                #     }
+                #
+            else:
+                response = await self.v2PrivatePostSpotBatchOrder(request)
+                #
+                #     {
+                #         "code": 0,
+                #         "data": [
+                #             {
+                #                 "amount": "0.0001",
+                #                 "base_fee": "0",
+                #                 "ccy": "BTC",
+                #                 "client_id": "x-167673045-f3651372049dab0d",
+                #                 "created_at": 1714121403450,
+                #                 "discount_fee": "0",
+                #                 "filled_amount": "0",
+                #                 "filled_value": "0",
+                #                 "last_fill_amount": "0",
+                #                 "last_fill_price": "0",
+                #                 "maker_fee_rate": "0.002",
+                #                 "market": "BTCUSDT",
+                #                 "market_type": "SPOT",
+                #                 "order_id": 117185362233,
+                #                 "price": "61000",
+                #                 "quote_fee": "0",
+                #                 "side": "buy",
+                #                 "taker_fee_rate": "0.002",
+                #                 "type": "limit",
+                #                 "unfilled_amount": "0.0001",
+                #                 "updated_at": 1714121403450
+                #             },
+                #             {
+                #                 "code": 3109,
+                #                 "data": null,
+                #                 "message": "balance not enough"
+                #             }
+                #         ],
+                #         "message": "OK"
+                #     }
+                #
+        else:
+            if isTriggerOrder:
+                response = await self.v2PrivatePostFuturesBatchStopOrder(request)
+                #
+                #     {
+                #         "code": 0,
+                #         "data": [
+                #             {
+                #                 "code": 0,
+                #                 "data": {
+                #                     "stop_id": 136919625994
+                #                 },
+                #                 "message": "OK"
+                #             },
+                #         ],
+                #         "message": "OK"
+                #     }
+                #
+            elif isStopLossOrTakeProfitTrigger:
+                raise NotSupported(self.id + ' createOrders() does not support stopLossPrice or takeProfitPrice orders')
+            else:
+                if reduceOnly:
+                    raise NotSupported(self.id + ' createOrders() does not support reduceOnly orders')
+                else:
+                    response = await self.v2PrivatePostFuturesBatchOrder(request)
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "code": 0,
+                    #                 "data": {
+                    #                     "amount": "0.0001",
+                    #                     "client_id": "x-167673045-2cb7436f3462a654",
+                    #                     "created_at": 1714122832493,
+                    #                     "fee": "0",
+                    #                     "fee_ccy": "USDT",
+                    #                     "filled_amount": "0",
+                    #                     "filled_value": "0",
+                    #                     "last_filled_amount": "0",
+                    #                     "last_filled_price": "0",
+                    #                     "maker_fee_rate": "0.0003",
+                    #                     "market": "BTCUSDT",
+                    #                     "market_type": "FUTURES",
+                    #                     "order_id": 136918835063,
+                    #                     "price": "61000",
+                    #                     "realized_pnl": "0",
+                    #                     "side": "buy",
+                    #                     "taker_fee_rate": "0.0005",
+                    #                     "type": "limit",
+                    #                     "unfilled_amount": "0.0001",
+                    #                     "updated_at": 1714122832493
+                    #                 },
+                    #                 "message": "OK"
+                    #             },
+                    #         ],
+                    #         "message": "OK"
+                    #     }
+                    #
+        data = self.safe_list(response, 'data', [])
         results = []
         for i in range(0, len(data)):
             entry = data[i]
@@ -2452,20 +2378,28 @@ class coinex(Exchange, ImplicitAPI):
                     status = 'rejected'
                 else:
                     status = 'open'
-            item = self.safe_value(entry, 'data', {})
-            item['status'] = status
-            order = self.parse_order(item, market)
+            innerData = self.safe_dict(entry, 'data', {})
+            order = None
+            if market['spot'] and not isTriggerOrder:
+                entry['status'] = status
+                order = self.parse_order(entry, market)
+            else:
+                innerData['status'] = status
+                order = self.parse_order(innerData, market)
             results.append(order)
         return results
 
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade016_batch_cancel_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021-0_cancel_order_batch
+        :see: https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-stop-order
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for canceling stop orders
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -2475,111 +2409,153 @@ class coinex(Exchange, ImplicitAPI):
         request = {
             'market': market['id'],
         }
-        idsString = ','.join(ids)
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
         response = None
-        if market['spot']:
-            request['batch_ids'] = idsString
-            response = await self.v1PrivateDeleteOrderPendingBatch(self.extend(request, params))
+        if stop:
+            request['stop_ids'] = ids
         else:
-            request['order_ids'] = idsString
-            response = await self.v1PerpetualPrivatePostOrderCancelBatch(self.extend(request, params))
-        #
-        # spot
-        #
-        #     {
-        #         "code": 0,
-        #         "data": [
-        #             {
-        #                 "code": 0,
-        #                 "data": {
-        #                     "account_id": 0,
-        #                     "amount": "0.0005",
-        #                     "asset_fee": "0",
-        #                     "avg_price": "0.00",
-        #                     "client_id": "x-167673045-d4e03c38f4d19b4e",
-        #                     "create_time": 1701229157,
-        #                     "deal_amount": "0",
-        #                     "deal_fee": "0",
-        #                     "deal_money": "0",
-        #                     "fee_asset": null,
-        #                     "fee_discount": "1",
-        #                     "finished_time": 0,
-        #                     "id": 107745856682,
-        #                     "left": "0",
-        #                     "maker_fee_rate": "0.002",
-        #                     "market": "BTCUSDT",
-        #                     "money_fee": "0",
-        #                     "order_type": "limit",
-        #                     "price": "22000",
-        #                     "status": "not_deal",
-        #                     "stock_fee": "0",
-        #                     "taker_fee_rate": "0.002",
-        #                     "type": "buy"
-        #                 },
-        #                 "message": ""
-        #             },
-        #         ],
-        #         "message": "Success"
-        #     }
-        #
-        # swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": [
-        #             {
-        #                 "code": 0,
-        #                 "message": "",
-        #                 "order": {
-        #                     "amount": "0.0005",
-        #                     "client_id": "x-167673045-b0cee0c584718b65",
-        #                     "create_time": 1701233683.294231,
-        #                     "deal_asset_fee": "0.00000000000000000000",
-        #                     "deal_fee": "0.00000000000000000000",
-        #                     "deal_profit": "0.00000000000000000000",
-        #                     "deal_stock": "0.00000000000000000000",
-        #                     "effect_type": 1,
-        #                     "fee_asset": "",
-        #                     "fee_discount": "0.00000000000000000000",
-        #                     "last_deal_amount": "0.00000000000000000000",
-        #                     "last_deal_id": 0,
-        #                     "last_deal_price": "0.00000000000000000000",
-        #                     "last_deal_role": 0,
-        #                     "last_deal_time": 0,
-        #                     "last_deal_type": 0,
-        #                     "left": "0.0005",
-        #                     "leverage": "3",
-        #                     "maker_fee": "0.00030",
-        #                     "market": "BTCUSDT",
-        #                     "option": 0,
-        #                     "order_id": 115940476323,
-        #                     "position_id": 0,
-        #                     "position_type": 2,
-        #                     "price": "25000.00",
-        #                     "side": 2,
-        #                     "source": "api.v1",
-        #                     "stop_id": 0,
-        #                     "stop_loss_price": "0.00000000000000000000",
-        #                     "stop_loss_type": 0,
-        #                     "take_profit_price": "0.00000000000000000000",
-        #                     "take_profit_type": 0,
-        #                     "taker_fee": "0.00050",
-        #                     "target": 0,
-        #                     "type": 1,
-        #                     "update_time": 1701233721.718884,
-        #                     "user_id": 3620173
-        #                 }
-        #             },
-        #         ],
-        #         "message": "OK"
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
+            request['order_ids'] = ids
+        if market['spot']:
+            if stop:
+                response = await self.v2PrivatePostSpotCancelBatchStopOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "data": [
+                #             {
+                #                 "code": 0,
+                #                 "data": {
+                #                     "amount": "0.0001",
+                #                     "ccy": "BTC",
+                #                     "client_id": "x-167673045-8e33d6f4a4bcb022",
+                #                     "created_at": 1714188827291,
+                #                     "market": "BTCUSDT",
+                #                     "market_type": "SPOT",
+                #                     "price": "61000",
+                #                     "side": "buy",
+                #                     "stop_id": 117248845854,
+                #                     "trigger_direction": "higher",
+                #                     "trigger_price": "62000",
+                #                     "trigger_price_type": "mark_price",
+                #                     "type": "limit",
+                #                     "updated_at": 1714188827291
+                #                 },
+                #                 "message": "OK"
+                #             },
+                #         ],
+                #         "message": "OK"
+                #     }
+                #
+            else:
+                response = await self.v2PrivatePostSpotCancelBatchOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "data": [
+                #             {
+                #                 "code": 0,
+                #                 "data": {
+                #                     "amount": "0.0001",
+                #                     "base_fee": "0",
+                #                     "ccy": "BTC",
+                #                     "client_id": "x-167673045-c1cc78e5b42d8c4e",
+                #                     "created_at": 1714188449497,
+                #                     "discount_fee": "0",
+                #                     "filled_amount": "0",
+                #                     "filled_value": "0",
+                #                     "last_fill_amount": "0",
+                #                     "last_fill_price": "0",
+                #                     "maker_fee_rate": "0.002",
+                #                     "market": "BTCUSDT",
+                #                     "market_type": "SPOT",
+                #                     "order_id": 117248494358,
+                #                     "price": "60000",
+                #                     "quote_fee": "0",
+                #                     "side": "buy",
+                #                     "taker_fee_rate": "0.002",
+                #                     "type": "limit",
+                #                     "unfilled_amount": "0.0001",
+                #                     "updated_at": 1714188449497
+                #                 },
+                #                 "message": ""
+                #             },
+                #         ],
+                #         "message": "OK"
+                #     }
+                #
+        else:
+            request['market_type'] = 'FUTURES'
+            if stop:
+                response = await self.v2PrivatePostFuturesCancelBatchStopOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "data": [
+                #             {
+                #                 "code": 0,
+                #                 "data": {
+                #                     "amount": "0.0001",
+                #                     "client_id": "x-167673045-a7d7714c6478acf6",
+                #                     "created_at": 1714187923820,
+                #                     "market": "BTCUSDT",
+                #                     "market_type": "FUTURES",
+                #                     "price": "61000",
+                #                     "side": "buy",
+                #                     "stop_id": 136984426097,
+                #                     "trigger_direction": "higher",
+                #                     "trigger_price": "62000",
+                #                     "trigger_price_type": "latest_price",
+                #                     "type": "limit",
+                #                     "updated_at": 1714187974363
+                #                 },
+                #                 "message": ""
+                #             },
+                #         ],
+                #         "message": "OK"
+                #     }
+                #
+            else:
+                response = await self.v2PrivatePostFuturesCancelBatchOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "data": [
+                #             {
+                #                 "code": 0,
+                #                 "data": {
+                #                     "amount": "0.0001",
+                #                     "client_id": "x-167673045-9f80fde284339a72",
+                #                     "created_at": 1714187491784,
+                #                     "fee": "0",
+                #                     "fee_ccy": "USDT",
+                #                     "filled_amount": "0",
+                #                     "filled_value": "0",
+                #                     "last_filled_amount": "0",
+                #                     "last_filled_price": "0",
+                #                     "maker_fee_rate": "0.0003",
+                #                     "market": "BTCUSDT",
+                #                     "market_type": "FUTURES",
+                #                     "order_id": 136983851788,
+                #                     "price": "61000",
+                #                     "realized_pnl": "0",
+                #                     "side": "buy",
+                #                     "taker_fee_rate": "0.0005",
+                #                     "type": "limit",
+                #                     "unfilled_amount": "0.0001",
+                #                     "updated_at": 1714187567079
+                #                 },
+                #                 "message": ""
+                #             },
+                #         ],
+                #         "message": "OK"
+                #     }
+                #
+        data = self.safe_list(response, 'data', [])
         results = []
         for i in range(0, len(data)):
             entry = data[i]
-            dataRequest = 'data' if market['spot'] else 'order'
-            item = self.safe_value(entry, dataRequest, {})
+            item = self.safe_dict(entry, 'data', {})
             order = self.parse_order(item, market)
             results.append(order)
         return results
@@ -2587,7 +2563,10 @@ class coinex(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/edit-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/edit-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2595,282 +2574,448 @@ class coinex(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: the price to trigger stop orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request = {
             'market': market['id'],
-            'id': int(id),
         }
         if amount is not None:
             request['amount'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.v1PrivatePostOrderModify(self.extend(request, params))
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "id": 35436205,
-        #             "create_time": 1636080705,
-        #             "finished_time": null,
-        #             "amount": "0.30000000",
-        #             "price": " 56000",
-        #             "deal_amount": "0.24721428",
-        #             "deal_money": "13843.9996800000000000",
-        #             "deal_fee": "0",
-        #             "stock_fee": "0",
-        #             "money_fee": "0",
-        #             " asset_fee": "8.721719798400000000000000",
-        #             "fee_asset": "CET",
-        #             "fee_discount": "0.70",
-        #             "avg_price": "56000",
-        #             "market": "BTCUSDT",
-        #             "left": "0.05278572 ",
-        #             "maker_fee_rate": "0.0018",
-        #             "taker_fee_rate": "0.0018",
-        #             "order_type": "limit",
-        #             "type": "buy",
-        #             "status": "cancel",
-        #             "client_id ": "abcd222",
-        #             "source_id": "1234"
-        #     },
-        #         "message": "Success"
-        #     }
-        #
+        response = None
+        triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'trigger_price'])
+        params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        isTriggerOrder = triggerPrice is not None
+        if isTriggerOrder:
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            request['stop_id'] = self.parse_to_numeric(id)
+        else:
+            request['order_id'] = self.parse_to_numeric(id)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('editOrder', params)
+        if market['spot']:
+            if marginMode is not None:
+                request['market_type'] = 'MARGIN'
+            else:
+                request['market_type'] = 'SPOT'
+            if isTriggerOrder:
+                response = await self.v2PrivatePostSpotModifyStopOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "data": {
+                #             "stop_id": 117337235167
+                #         },
+                #         "message": "OK"
+                #     }
+                #
+            else:
+                response = await self.v2PrivatePostSpotModifyOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "data": {
+                #             "amount": "0.0001",
+                #             "base_fee": "0",
+                #             "ccy": "BTC",
+                #             "client_id": "x-167673045-87eb2bebf42882d8",
+                #             "created_at": 1714290302047,
+                #             "discount_fee": "0",
+                #             "filled_amount": "0",
+                #             "filled_value": "0",
+                #             "last_fill_amount": "0",
+                #             "last_fill_price": "0",
+                #             "maker_fee_rate": "0.002",
+                #             "market": "BTCUSDT",
+                #             "market_type": "SPOT",
+                #             "order_id": 117336922195,
+                #             "price": "61000",
+                #             "quote_fee": "0",
+                #             "side": "buy",
+                #             "status": "open",
+                #             "taker_fee_rate": "0.002",
+                #             "type": "limit",
+                #             "unfilled_amount": "0.0001",
+                #             "updated_at": 1714290191141
+                #         },
+                #         "message": "OK"
+                #     }
+                #
+        else:
+            request['market_type'] = 'FUTURES'
+            if isTriggerOrder:
+                response = await self.v2PrivatePostFuturesModifyStopOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "data": {
+                #             "stop_id": 137091875605
+                #         },
+                #         "message": "OK"
+                #     }
+                #
+            else:
+                response = await self.v2PrivatePostFuturesModifyOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "data": {
+                #             "amount": "0.0001",
+                #             "client_id": "x-167673045-3f2d09191462b207",
+                #             "created_at": 1714290927630,
+                #             "fee": "0",
+                #             "fee_ccy": "USDT",
+                #             "filled_amount": "0",
+                #             "filled_value": "0",
+                #             "last_filled_amount": "0",
+                #             "last_filled_price": "0",
+                #             "maker_fee_rate": "0.0003",
+                #             "market": "BTCUSDT",
+                #             "market_type": "FUTURES",
+                #             "order_id": 137091566717,
+                #             "price": "61000",
+                #             "realized_pnl": "0",
+                #             "side": "buy",
+                #             "taker_fee_rate": "0.0005",
+                #             "type": "limit",
+                #             "unfilled_amount": "0.0001",
+                #             "updated_at": 1714290927630
+                #         },
+                #         "message": "OK"
+                #     }
+                #
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade024_cancel_order_by_client_id
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade025_cancel_stop_order_by_client_id
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http042_cancel_order_by_client_id
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http043_cancel_stop_order_by_client_id
+        :see: https://docs.coinex.com/api/v2/spot/order/http/cancel-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/cancel-order-by-client-id
+        :see: https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order-by-client-id
+        :see: https://docs.coinex.com/api/v2/futures/order/http/cancel-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/cancel-order-by-client-id
+        :see: https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order-by-client-id
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id, defaults to id if not passed
-        :param boolean [params.stop]: if stop order = True, default = False
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param boolean [params.trigger]: set to True for canceling a trigger order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        stop = self.safe_value(params, 'stop')
+        isTriggerOrder = self.safe_bool_2(params, 'stop', 'trigger')
         swap = market['swap']
         request = {
             'market': market['id'],
         }
-        accountId = self.safe_integer(params, 'account_id')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
+        if swap:
+            request['market_type'] = 'FUTURES'
+        else:
+            if marginMode is not None:
+                request['market_type'] = 'MARGIN'
+            else:
+                request['market_type'] = 'SPOT'
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
-        if marginMode is not None:
-            if accountId is None:
-                raise BadRequest(self.id + ' cancelOrder() requires an account_id parameter for margin orders')
-            request['account_id'] = accountId
-        query = self.omit(params, ['stop', 'account_id', 'clientOrderId'])
+        params = self.omit(params, ['stop', 'trigger', 'clientOrderId'])
         response = None
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-            if stop:
+            if isTriggerOrder:
                 if swap:
-                    response = await self.v1PerpetualPrivatePostOrderCancelStopByClientId(self.extend(request, query))
+                    response = await self.v2PrivatePostFuturesCancelStopOrderByClientId(self.extend(request, params))
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "code": 0,
+                    #                 "data": {
+                    #                     "amount": "0.0001",
+                    #                     "client_id": "client01",
+                    #                     "created_at": 1714368624473,
+                    #                     "market": "BTCUSDT",
+                    #                     "market_type": "FUTURES",
+                    #                     "price": "61000",
+                    #                     "side": "buy",
+                    #                     "stop_id": 137175823891,
+                    #                     "trigger_direction": "higher",
+                    #                     "trigger_price": "61500",
+                    #                     "trigger_price_type": "latest_price",
+                    #                     "type": "limit",
+                    #                     "updated_at": 1714368661444
+                    #                 },
+                    #                 "message": ""
+                    #             }
+                    #         ],
+                    #         "message": "OK"
+                    #     }
                 else:
-                    response = await self.v1PrivateDeleteOrderStopPendingByClientId(self.extend(request, query))
+                    response = await self.v2PrivatePostSpotCancelStopOrderByClientId(self.extend(request, params))
+                    #     {
+                    #         "code" :0,
+                    #         "data": [
+                    #             {
+                    #                 "code": 0,
+                    #                 "data": {
+                    #                     "amount": "0.0001",
+                    #                     "ccy": "BTC",
+                    #                     "client_id": "client01",
+                    #                     "created_at": 1714366950279,
+                    #                     "market": "BTCUSDT",
+                    #                     "market_type": "SPOT",
+                    #                     "price": "61000",
+                    #                     "side": "buy",
+                    #                     "stop_id": 117402512706,
+                    #                     "trigger_direction": "higher",
+                    #                     "trigger_price": "61500",
+                    #                     "trigger_price_type": "mark_price",
+                    #                     "type": "limit",
+                    #                     "updated_at": 1714366950279
+                    #                 },
+                    #                 "message": "OK"
+                    #             }
+                    #         ],
+                    #         "message": "OK"
+                    #     }
             else:
                 if swap:
-                    response = await self.v1PerpetualPrivatePostOrderCancelByClientId(self.extend(request, query))
+                    response = await self.v2PrivatePostFuturesCancelOrderByClientId(self.extend(request, params))
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "code": 0,
+                    #                 "data": {
+                    #                     "amount": "0.0001",
+                    #                     "client_id": "x-167673045-bf60e24bb437a3df",
+                    #                     "created_at": 1714368416437,
+                    #                     "fee": "0",
+                    #                     "fee_ccy": "USDT",
+                    #                     "filled_amount": "0",
+                    #                     "filled_value": "0",
+                    #                     "last_filled_amount": "0",
+                    #                     "last_filled_price": "0",
+                    #                     "maker_fee_rate": "0.0003",
+                    #                     "market": "BTCUSDT",
+                    #                     "market_type": "FUTURES",
+                    #                     "order_id": 137175616437,
+                    #                     "price": "61000",
+                    #                     "realized_pnl": "0",
+                    #                     "side": "buy",
+                    #                     "taker_fee_rate": "0.0005",
+                    #                     "type": "limit",
+                    #                     "unfilled_amount": "0.0001",
+                    #                     "updated_at": 1714368507174
+                    #                 },
+                    #                 "message": ""
+                    #             }
+                    #         ],
+                    #         "message": "OK"
+                    #     }
                 else:
-                    response = await self.v1PrivateDeleteOrderPendingByClientId(self.extend(request, query))
+                    response = await self.v2PrivatePostSpotCancelOrderByClientId(self.extend(request, params))
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "code": 0,
+                    #                 "data": {
+                    #                     "amount": "0.0001",
+                    #                     "base_fee": "0",
+                    #                     "ccy": "BTC",
+                    #                     "client_id": "x-167673045-d49eaca5f412afc8",
+                    #                     "created_at": 1714366502807,
+                    #                     "discount_fee": "0",
+                    #                     "filled_amount": "0",
+                    #                     "filled_value": "0",
+                    #                     "last_fill_amount": "0",
+                    #                     "last_fill_price": "0",
+                    #                     "maker_fee_rate": "0.002",
+                    #                     "market": "BTCUSDT",
+                    #                     "market_type": "SPOT",
+                    #                     "order_id": 117402157490,
+                    #                     "price": "61000",
+                    #                     "quote_fee": "0",
+                    #                     "side": "buy",
+                    #                     "taker_fee_rate": "0.002",
+                    #                     "type": "limit",
+                    #                     "unfilled_amount": "0.0001",
+                    #                     "updated_at": 1714366502807
+                    #                 },
+                    #                 "message": "OK"
+                    #             }
+                    #         ],
+                    #         "message": "OK"
+                    #     }
         else:
-            idRequest = 'order_id' if swap else 'id'
-            request[idRequest] = id
-            if stop:
+            if isTriggerOrder:
+                request['stop_id'] = self.parse_to_numeric(id)
                 if swap:
-                    response = await self.v1PerpetualPrivatePostOrderCancelStop(self.extend(request, query))
+                    response = await self.v2PrivatePostFuturesCancelStopOrder(self.extend(request, params))
+                    #     {
+                    #         "code": 0,
+                    #         "data": {
+                    #             "amount": "0.0001",
+                    #             "ccy": "BTC",
+                    #             "client_id": "x-167673045-f21ecfd7542abf1f",
+                    #             "created_at": 1714366177334,
+                    #             "market": "BTCUSDT",
+                    #             "market_type": "SPOT",
+                    #             "price": "61000",
+                    #             "side": "buy",
+                    #             "stop_id": 117401897954,
+                    #             "trigger_direction": "higher",
+                    #             "trigger_price": "61500",
+                    #             "trigger_price_type": "mark_price",
+                    #             "type": "limit",
+                    #             "updated_at": 1714366177334
+                    #         },
+                    #         "message": "OK"
+                    #     }
                 else:
-                    response = await self.v1PrivateDeleteOrderStopPendingId(self.extend(request, query))
+                    response = await self.v2PrivatePostSpotCancelStopOrder(self.extend(request, params))
+                    #     {
+                    #         "code": 0,
+                    #         "data": {
+                    #             "amount": "0.0001",
+                    #             "ccy": "BTC",
+                    #             "client_id": "x-167673045-f21ecfd7542abf1f",
+                    #             "created_at": 1714366177334,
+                    #             "market": "BTCUSDT",
+                    #             "market_type": "SPOT",
+                    #             "price": "61000",
+                    #             "side": "buy",
+                    #             "stop_id": 117401897954,
+                    #             "trigger_direction": "higher",
+                    #             "trigger_price": "61500",
+                    #             "trigger_price_type": "mark_price",
+                    #             "type": "limit",
+                    #             "updated_at": 1714366177334
+                    #         },
+                    #         "message": "OK"
+                    #     }
             else:
+                request['order_id'] = self.parse_to_numeric(id)
                 if swap:
-                    response = await self.v1PerpetualPrivatePostOrderCancel(self.extend(request, query))
+                    response = await self.v2PrivatePostFuturesCancelOrder(self.extend(request, params))
+                    #     {
+                    #         "code": 0,
+                    #         "data": {
+                    #             "amount": "0.0001",
+                    #             "client_id": "x-167673045-7f14381c74a98a85",
+                    #             "created_at": 1714367342024,
+                    #             "fee": "0",
+                    #             "fee_ccy": "USDT",
+                    #             "filled_amount": "0",
+                    #             "filled_value": "0",
+                    #             "last_filled_amount": "0",
+                    #             "last_filled_price": "0",
+                    #             "maker_fee_rate": "0.0003",
+                    #             "market": "BTCUSDT",
+                    #             "market_type": "FUTURES",
+                    #             "order_id": 137174472136,
+                    #             "price": "61000",
+                    #             "realized_pnl": "0",
+                    #             "side": "buy",
+                    #             "taker_fee_rate": "0.0005",
+                    #             "type": "limit",
+                    #             "unfilled_amount": "0.0001",
+                    #             "updated_at": 1714367515978
+                    #         },
+                    #         "message": "OK"
+                    #     }
                 else:
-                    response = await self.v1PrivateDeleteOrderPending(self.extend(request, query))
-        #
-        # Spot and Margin
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "asset_fee": "0",
-        #             "avg_price": "0.00",
-        #             "client_id": "",
-        #             "create_time": 1650951627,
-        #             "deal_amount": "0",
-        #             "deal_fee": "0",
-        #             "deal_money": "0",
-        #             "fee_asset": null,
-        #             "fee_discount": "1",
-        #             "finished_time": null,
-        #             "id": 74510932594,
-        #             "left": "0.0005",
-        #             "maker_fee_rate": "0.002",
-        #             "market": "BTCUSDT",
-        #             "money_fee": "0",
-        #             "order_type": "limit",
-        #             "price": "30000",
-        #             "status": "not_deal",
-        #             "stock_fee": "0",
-        #             "taker_fee_rate": "0.002",
-        #             "type": "buy"
-        #         },
-        #         "message": "Success"
-        #     }
-        #
-        # Swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "client_id": "",
-        #             "create_time": 1651004578.618224,
-        #             "deal_asset_fee": "0.00000000000000000000",
-        #             "deal_fee": "0.00000000000000000000",
-        #             "deal_profit": "0.00000000000000000000",
-        #             "deal_stock": "0.00000000000000000000",
-        #             "effect_type": 1,
-        #             "fee_asset": "",
-        #             "fee_discount": "0.00000000000000000000",
-        #             "last_deal_amount": "0.00000000000000000000",
-        #             "last_deal_id": 0,
-        #             "last_deal_price": "0.00000000000000000000",
-        #             "last_deal_role": 0,
-        #             "last_deal_time": 0,
-        #             "last_deal_type": 0,
-        #             "left": "0.0005",
-        #             "leverage": "3",
-        #             "maker_fee": "0.00030",
-        #             "market": "BTCUSDT",
-        #             "order_id": 18221659097,
-        #             "position_id": 0,
-        #             "position_type": 1,
-        #             "price": "30000.00",
-        #             "side": 2,
-        #             "source": "api.v1",
-        #             "stop_id": 0,
-        #             "taker_fee": "0.00050",
-        #             "target": 0,
-        #             "type": 1,
-        #             "update_time": 1651004578.618224,
-        #             "user_id": 3620173
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        # Swap Stop
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "client_id": "",
-        #             "create_time": 1651034023.008771,
-        #             "effect_type": 1,
-        #             "fee_asset": "",
-        #             "fee_discount": "0.00000000000000000000",
-        #             "maker_fee": "0.00030",
-        #             "market": "BTCUSDT",
-        #             "order_id": 18256915101,
-        #             "price": "31000.00",
-        #             "side": 2,
-        #             "source": "api.v1",
-        #             "state": 1,
-        #             "stop_price": "31500.00",
-        #             "stop_type": 1,
-        #             "taker_fee": "0.00050",
-        #             "target": 0,
-        #             "type": 1,
-        #             "update_time": 1651034397.193624,
-        #             "user_id": 3620173
-        #         },
-        #         "message":"OK"
-        #     }
-        #
-        # Spot and Margin Stop
-        #
-        #     {"code":0,"data":{},"message":"Success"}
-        #
-        data = self.safe_dict(response, 'data')
+                    response = await self.v2PrivatePostSpotCancelOrder(self.extend(request, params))
+                    #     {
+                    #         "code": 0,
+                    #         "data": {
+                    #             "amount": "0.0001",
+                    #             "base_fee": "0",
+                    #             "ccy": "BTC",
+                    #             "client_id": "x-167673045-86fbe37b54a2aea3",
+                    #             "created_at": 1714365277437,
+                    #             "discount_fee": "0",
+                    #             "filled_amount": "0",
+                    #             "filled_value": "0",
+                    #             "last_fill_amount": "0",
+                    #             "last_fill_price": "0",
+                    #             "maker_fee_rate": "0.002",
+                    #             "market": "BTCUSDT",
+                    #             "market_type": "SPOT",
+                    #             "order_id": 117401168172,
+                    #             "price": "61000",
+                    #             "quote_fee": "0",
+                    #             "side": "buy",
+                    #             "taker_fee_rate": "0.002",
+                    #             "type": "limit",
+                    #             "unfilled_amount": "0.0001",
+                    #             "updated_at": 1714365277437
+                    #         },
+                    #         "message": "OK"
+                    #     }
+        data = None
+        if clientOrderId is not None:
+            rows = self.safe_list(response, 'data', [])
+            data = self.safe_dict(rows[0], 'data', {})
+        else:
+            data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http024_cancel_stop_all
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http022_cancel_all
+        :see: https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' for canceling spot margin orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
-        accountId = self.safe_integer(params, 'account_id', 0)
         request = {
-            'market': marketId,
-            # 'account_id': accountId,  # SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
-            # 'side': 0,  # SWAP, 0: All, 1: Sell, 2: Buy
+            'market': market['id'],
         }
-        swap = market['swap']
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, ['stop', 'account_id'])
         response = None
-        if swap:
-            if stop:
-                response = await self.v1PerpetualPrivatePostOrderCancelStopAll(self.extend(request, params))
-            else:
-                response = await self.v1PerpetualPrivatePostOrderCancelAll(self.extend(request, params))
+        if market['swap']:
+            request['market_type'] = 'FUTURES'
+            response = await self.v2PrivatePostFuturesCancelAllOrder(self.extend(request, params))
+            #
+            # {"code":0,"data":{},"message":"OK"}
+            #
         else:
-            request['account_id'] = accountId
-            if stop:
-                response = await self.v1PrivateDeleteOrderStopPending(self.extend(request, params))
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
+            if marginMode is not None:
+                request['market_type'] = 'MARGIN'
             else:
-                response = await self.v1PrivateDeleteOrderPending(self.extend(request, params))
-        #
-        # Spot and Margin
-        #
-        #     {"code": 0, "data": null, "message": "Success"}
-        #
-        # Swap
-        #
-        #     {"code": 0, "data": {"status":"success"}, "message": "OK"}
-        #
+                request['market_type'] = 'SPOT'
+            response = await self.v2PrivatePostSpotCancelAllOrder(self.extend(request, params))
+            #
+            # {"code":0,"data":{},"message":"OK"}
+            #
         return response
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http028_stop_status
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http026_order_status
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade007_order_status
+        :see: https://docs.coinex.com/api/v2/spot/order/http/get-order-status
+        :see: https://docs.coinex.com/api/v2/futures/order/http/get-order-status
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2879,344 +3024,390 @@ class coinex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        swap = market['swap']
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
         request = {
             'market': market['id'],
-            # 'id': id,  # SPOT
-            # 'order_id': id,  # SWAP
+            'order_id': self.parse_to_numeric(id),
         }
-        idRequest = 'order_id' if swap else 'id'
-        request[idRequest] = id
         response = None
-        if swap:
-            if stop:
-                response = await self.v1PerpetualPrivateGetOrderStopStatus(self.extend(request, params))
-            else:
-                response = await self.v1PerpetualPrivateGetOrderStatus(self.extend(request, params))
+        if market['swap']:
+            response = await self.v2PrivateGetFuturesOrderStatus(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "amount": "0.0001",
+            #             "client_id": "x-167673045-da5f31dcd478a829",
+            #             "created_at": 1714460987164,
+            #             "fee": "0",
+            #             "fee_ccy": "USDT",
+            #             "filled_amount": "0",
+            #             "filled_value": "0",
+            #             "last_filled_amount": "0",
+            #             "last_filled_price": "0",
+            #             "maker_fee_rate": "0.0003",
+            #             "market": "BTCUSDT",
+            #             "market_type": "FUTURES",
+            #             "order_id": 137319868771,
+            #             "price": "61000",
+            #             "realized_pnl": "0",
+            #             "side": "buy",
+            #             "status": "open",
+            #             "taker_fee_rate": "0.0005",
+            #             "type": "limit",
+            #             "unfilled_amount": "0.0001",
+            #             "updated_at": 1714460987164
+            #         },
+            #         "message": "OK"
+            #     }
+            #
         else:
-            response = await self.v1PrivateGetOrderStatus(self.extend(request, params))
-        #
-        # Spot
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.1",
-        #             "asset_fee": "0.22736197736197736197",
-        #             "avg_price": "196.85000000000000000000",
-        #             "create_time": 1537270135,
-        #             "deal_amount": "0.1",
-        #             "deal_fee": "0",
-        #             "deal_money": "19.685",
-        #             "fee_asset": "CET",
-        #             "fee_discount": "0.5",
-        #             "id": 1788259447,
-        #             "left": "0",
-        #             "maker_fee_rate": "0",
-        #             "market": "ETHUSDT",
-        #             "order_type": "limit",
-        #             "price": "170.00000000",
-        #             "status": "done",
-        #             "taker_fee_rate": "0.0005",
-        #             "type": "sell",
-        #         },
-        #         "message": "Ok"
-        #     }
-        #
-        # Swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "client_id": "",
-        #             "create_time": 1651004578.618224,
-        #             "deal_asset_fee": "0.00000000000000000000",
-        #             "deal_fee": "0.00000000000000000000",
-        #             "deal_profit": "0.00000000000000000000",
-        #             "deal_stock": "0.00000000000000000000",
-        #             "effect_type": 1,
-        #             "fee_asset": "",
-        #             "fee_discount": "0.00000000000000000000",
-        #             "last_deal_amount": "0.00000000000000000000",
-        #             "last_deal_id": 0,
-        #             "last_deal_price": "0.00000000000000000000",
-        #             "last_deal_role": 0,
-        #             "last_deal_time": 0,
-        #             "last_deal_type": 0,
-        #             "left": "0.0005",
-        #             "leverage": "3",
-        #             "maker_fee": "0.00030",
-        #             "market": "BTCUSDT",
-        #             "order_id": 18221659097,
-        #             "position_id": 0,
-        #             "position_type": 1,
-        #             "price": "30000.00",
-        #             "side": 2,
-        #             "source": "api.v1",
-        #             "stop_id": 0,
-        #             "taker_fee": "0.00050",
-        #             "target": 0,
-        #             "type": 1,
-        #             "update_time": 1651004578.618224,
-        #             "user_id": 3620173
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        # Swap Stop
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "amount": "0.0005",
-        #             "client_id": "",
-        #             "create_time": 1651034023.008771,
-        #             "effect_type": 1,
-        #             "fee_asset": "",
-        #             "fee_discount": "0.00000000000000000000",
-        #             "maker_fee": "0.00030",
-        #             "market": "BTCUSDT",
-        #             "order_id": 18256915101,
-        #             "price": "31000.00",
-        #             "side": 2,
-        #             "source": "api.v1",
-        #             "state": 1,
-        #             "stop_price": "31500.00",
-        #             "stop_type": 1,
-        #             "taker_fee": "0.00050",
-        #             "target": 0,
-        #             "type": 1,
-        #             "update_time": 1651034397.193624,
-        #             "user_id": 3620173
-        #         },
-        #         "message":"OK"
-        #     }
-        #
-        data = self.safe_dict(response, 'data')
+            response = await self.v2PrivateGetSpotOrderStatus(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "amount": "0.0001",
+            #             "base_fee": "0",
+            #             "ccy": "BTC",
+            #             "client_id": "x-167673045-da918d6724e3af81",
+            #             "created_at": 1714461638958,
+            #             "discount_fee": "0",
+            #             "filled_amount": "0",
+            #             "filled_value": "0",
+            #             "last_fill_amount": "0",
+            #             "last_fill_price": "0",
+            #             "maker_fee_rate": "0.002",
+            #             "market": "BTCUSDT",
+            #             "market_type": "SPOT",
+            #             "order_id": 117492012985,
+            #             "price": "61000",
+            #             "quote_fee": "0",
+            #             "side": "buy",
+            #             "status": "open",
+            #             "taker_fee_rate": "0.002",
+            #             "type": "limit",
+            #             "unfilled_amount": "0.0001",
+            #             "updated_at": 1714461638958
+            #         },
+            #         "message": "OK"
+            #     }
+            #
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch a list of orders
+        :see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param boolean [params.trigger]: set to True for fetching trigger orders
+        :param str [params.marginMode]: 'cross' or 'isolated' for fetching spot margin orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         await self.load_markets()
-        limit = 100 if (limit is None) else limit
-        request = {
-            'limit': limit,
-            # 'page': 1,  # SPOT
-            # 'offset': 0,  # SWAP
-            # 'side': 0,  # SWAP, 0: All, 1: Sell, 2: Buy
-        }
-        stop = self.safe_value(params, 'stop')
-        side = self.safe_integer(params, 'side')
-        params = self.omit(params, 'stop')
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        marketType, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
-        accountId = self.safe_integer(params, 'account_id')
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
-        if marginMode is not None:
-            if accountId is None:
-                raise BadRequest(self.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders')
-            request['account_id'] = accountId
-        params = self.omit(query, 'account_id')
+        if limit is not None:
+            request['limit'] = limit
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         response = None
+        isClosed = (status == 'finished') or (status == 'closed')
+        isOpen = (status == 'pending') or (status == 'open')
         if marketType == 'swap':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument for swap markets')
-            if side is not None:
-                request['side'] = side
-            else:
-                request['side'] = 0
-            request['offset'] = 0
-            if stop:
-                response = await self.v1PerpetualPrivateGetOrderStopPending(self.extend(request, params))
-            else:
-                if status == 'finished':
-                    response = await self.v1PerpetualPrivateGetOrderFinished(self.extend(request, params))
-                elif status == 'pending':
-                    response = await self.v1PerpetualPrivateGetOrderPending(self.extend(request, params))
-        else:
-            request['page'] = 1
-            if status == 'finished':
+            request['market_type'] = 'FUTURES'
+            if isClosed:
                 if stop:
-                    response = await self.v1PrivateGetOrderStopFinished(self.extend(request, params))
+                    response = await self.v2PrivateGetFuturesFinishedStopOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "stop_id": 52431158859,
+                    #                 "market": "BTCUSDT",
+                    #                 "market_type": "FUTURES",
+                    #                 "side": "sell",
+                    #                 "type": "market",
+                    #                 "amount": "0.0005",
+                    #                 "price": "20599.64",
+                    #                 "client_id": "",
+                    #                 "created_at": 1667547909856,
+                    #                 "updated_at": 1667547909856,
+                    #                 "trigger_price": "20599.64",
+                    #                 "trigger_price_type": "latest_price",
+                    #                 "trigger_direction": ""
+                    #             },
+                    #         ],
+                    #         "message": "OK",
+                    #         "pagination": {
+                    #             "has_next": False
+                    #         }
+                    #     }
+                    #
                 else:
-                    response = await self.v1PrivateGetOrderFinished(self.extend(request, params))
+                    response = await self.v2PrivateGetFuturesFinishedOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "order_id": 136915813578,
+                    #                 "market": "BTCUSDT",
+                    #                 "market_type": "FUTURES",
+                    #                 "side": "sell",
+                    #                 "type": "market",
+                    #                 "amount": "0.0001",
+                    #                 "price": "0",
+                    #                 "client_id": "x-167673045-4f264600c432ac06",
+                    #                 "created_at": 1714119323764,
+                    #                 "updated_at": 1714119323764,
+                    #                 "unfilled_amount": "0",
+                    #                 "filled_amount": "0.0001",
+                    #                 "filled_value": "6.442017",
+                    #                 "fee": "0.003221",
+                    #                 "fee_ccy": "USDT",
+                    #                 "maker_fee_rate": "0",
+                    #                 "taker_fee_rate": "0.0005"
+                    #             },
+                    #         ],
+                    #         "message": "OK",
+                    #         "pagination": {
+                    #             "has_next": False
+                    #         }
+                    #     }
+                    #
+            elif isOpen:
+                if stop:
+                    response = await self.v2PrivateGetFuturesPendingStopOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "stop_id": 137481469849,
+                    #                 "market": "BTCUSDT",
+                    #                 "market_type": "FUTURES",
+                    #                 "side": "buy",
+                    #                 "type": "limit",
+                    #                 "amount": "0.0001",
+                    #                 "price": "51000",
+                    #                 "client_id": "x-167673045-2b932341949fa2a1",
+                    #                 "created_at": 1714552257876,
+                    #                 "updated_at": 1714552257876,
+                    #                 "trigger_price": "52000",
+                    #                 "trigger_price_type": "latest_price",
+                    #                 "trigger_direction": "higher"
+                    #             }
+                    #         ],
+                    #         "message": "OK",
+                    #         "pagination": {
+                    #             "total": 1,
+                    #             "has_next": False
+                    #         }
+                    #     }
+                    #
+                else:
+                    response = await self.v2PrivateGetFuturesPendingOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "order_id": 137480580906,
+                    #                 "market": "BTCUSDT",
+                    #                 "market_type": "FUTURES",
+                    #                 "side": "buy",
+                    #                 "type": "limit",
+                    #                 "amount": "0.0001",
+                    #                 "price": "51000",
+                    #                 "client_id": "",
+                    #                 "created_at": 1714551877569,
+                    #                 "updated_at": 1714551877569,
+                    #                 "unfilled_amount": "0.0001",
+                    #                 "filled_amount": "0",
+                    #                 "filled_value": "0",
+                    #                 "fee": "0",
+                    #                 "fee_ccy": "USDT",
+                    #                 "maker_fee_rate": "0.0003",
+                    #                 "taker_fee_rate": "0.0005",
+                    #                 "last_filled_amount": "0",
+                    #                 "last_filled_price": "0",
+                    #                 "realized_pnl": "0"
+                    #             }
+                    #         ],
+                    #         "message": "OK",
+                    #         "pagination": {
+                    #             "total": 1,
+                    #             "has_next": False
+                    #         }
+                    #     }
+                    #
+        else:
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
+            if marginMode is not None:
+                request['market_type'] = 'MARGIN'
+            else:
+                request['market_type'] = 'SPOT'
+            if isClosed:
+                if stop:
+                    response = await self.v2PrivateGetSpotFinishedStopOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "stop_id": 117654881420,
+                    #                 "market": "BTCUSDT",
+                    #                 "market_type": "SPOT",
+                    #                 "ccy": "USDT",
+                    #                 "side": "buy",
+                    #                 "type": "market",
+                    #                 "amount": "5.83325524",
+                    #                 "price": "0",
+                    #                 "trigger_price": "57418",
+                    #                 "trigger_direction": "lower",
+                    #                 "trigger_price_type": "mark_price",
+                    #                 "client_id": "",
+                    #                 "created_at": 1714618050597,
+                    #                 "updated_at": 0
+                    #             }
+                    #         ],
+                    #         "message": "OK",
+                    #         "pagination": {
+                    #             "has_next": False
+                    #         }
+                    #     }
+                    #
+                else:
+                    response = await self.v2PrivateGetSpotFinishedOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "order_id": 117180532345,
+                    #                 "market": "BTCUSDT",
+                    #                 "market_type": "SPOT",
+                    #                 "side": "sell",
+                    #                 "type": "market",
+                    #                 "ccy": "BTC",
+                    #                 "amount": "0.00015484",
+                    #                 "price": "0",
+                    #                 "client_id": "",
+                    #                 "created_at": 1714116494219,
+                    #                 "updated_at": 0,
+                    #                 "base_fee": "0",
+                    #                 "quote_fee": "0.0199931699632",
+                    #                 "discount_fee": "0",
+                    #                 "maker_fee_rate": "0",
+                    #                 "taker_fee_rate": "0.002",
+                    #                 "unfilled_amount": "0",
+                    #                 "filled_amount": "0.00015484",
+                    #                 "filled_value": "9.9965849816"
+                    #             },
+                    #         ],
+                    #         "message": "OK",
+                    #         "pagination": {
+                    #             "has_next": False
+                    #         }
+                    #     }
+                    #
             elif status == 'pending':
                 if stop:
-                    response = await self.v1PrivateGetOrderStopPending(self.extend(request, params))
+                    response = await self.v2PrivateGetSpotPendingStopOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "stop_id": 117586439530,
+                    #                 "market": "BTCUSDT",
+                    #                 "market_type": "SPOT",
+                    #                 "ccy": "BTC",
+                    #                 "side": "buy",
+                    #                 "type": "limit",
+                    #                 "amount": "0.0001",
+                    #                 "price": "51000",
+                    #                 "trigger_price": "52000",
+                    #                 "trigger_direction": "higher",
+                    #                 "trigger_price_type": "mark_price",
+                    #                 "client_id": "x-167673045-df61777094c69312",
+                    #                 "created_at": 1714551237335,
+                    #                 "updated_at": 1714551237335
+                    #             }
+                    #         ],
+                    #         "message": "OK",
+                    #         "pagination": {
+                    #             "total": 1,
+                    #             "has_next": False
+                    #         }
+                    #     }
+                    #
                 else:
-                    response = await self.v1PrivateGetOrderPending(self.extend(request, params))
-        #
-        # Spot and Margin
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "count": 1,
-        #             "curr_page": 1,
-        #             "data": [
-        #                 {
-        #                     "account_id": 0,
-        #                     "amount": "0.0005",
-        #                     "asset_fee": "0",
-        #                     "avg_price": "0.00",
-        #                     "client_id": "",
-        #                     "create_time": 1651089247,
-        #                     "deal_amount": "0",
-        #                     "deal_fee": "0",
-        #                     "deal_money": "0",
-        #                     "fee_asset": null,
-        #                     "fee_discount": "1",
-        #                     "finished_time": 0,
-        #                     "id": 74660190839,
-        #                     "left": "0.0005",
-        #                     "maker_fee_rate": "0.002",
-        #                     "market": "BTCUSDT",
-        #                     "money_fee": "0",
-        #                     "order_type": "limit",
-        #                     "price": "31000",
-        #                     "status": "not_deal",
-        #                     "stock_fee": "0",
-        #                     "taker_fee_rate": "0.002",
-        #                     "type": "buy"
-        #                 }
-        #             ],
-        #             "has_next": False,
-        #             "total": 1
-        #         },
-        #         "message": "Success"
-        #     }
-        #
-        # Swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "limit": 100,
-        #             "offset": 0,
-        #             "records": [
-        #                 {
-        #                     "amount": "0.0005",
-        #                     "client_id": "",
-        #                     "create_time": 1651030414.088431,
-        #                     "deal_asset_fee": "0",
-        #                     "deal_fee": "0.00960069",
-        #                     "deal_profit": "0.009825",
-        #                     "deal_stock": "19.20138",
-        #                     "effect_type": 0,
-        #                     "fee_asset": "",
-        #                     "fee_discount": "0",
-        #                     "left": "0",
-        #                     "leverage": "3",
-        #                     "maker_fee": "0",
-        #                     "market": "BTCUSDT",
-        #                     "order_id": 18253447431,
-        #                     "position_id": 0,
-        #                     "position_type": 1,
-        #                     "price": "0",
-        #                     "side": 1,
-        #                     "source": "web",
-        #                     "stop_id": 0,
-        #                     "taker_fee": "0.0005",
-        #                     "target": 0,
-        #                     "type": 2,
-        #                     "update_time": 1651030414.08847,
-        #                     "user_id": 3620173
-        #                 },
-        #             ]
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        # Spot and Margin Stop
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "count": 1,
-        #             "curr_page": 1,
-        #             "data": [
-        #                 {
-        #                     "account_id": 0,
-        #                     "amount": "155",
-        #                     "client_id": "",
-        #                     "create_time": 1651089182,
-        #                     "fee_asset": null,
-        #                     "fee_discount": "1",
-        #                     "maker_fee": "0.002",
-        #                     "market": "BTCUSDT",
-        #                     "order_id": 74660111965,
-        #                     "order_type": "market",
-        #                     "price": "0",
-        #                     "state": 0,
-        #                     "stop_price": "31500",
-        #                     "taker_fee": "0.002",
-        #                     "type": "buy"
-        #                 }
-        #             ],
-        #             "has_next": False,
-        #             "total": 0
-        #         },
-        #         "message": "Success"
-        #     }
-        #
-        # Swap Stop
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "limit": 100,
-        #             "offset": 0,
-        #             "records": [
-        #                 {
-        #                     "amount": "0.0005",
-        #                     "client_id": "",
-        #                     "create_time": 1651089147.321691,
-        #                     "effect_type": 1,
-        #                     "fee_asset": "",
-        #                     "fee_discount": "0.00000000000000000000",
-        #                     "maker_fee": "0.00030",
-        #                     "market": "BTCUSDT",
-        #                     "order_id": 18332143848,
-        #                     "price": "31000.00",
-        #                     "side": 2,
-        #                     "source": "api.v1",
-        #                     "state": 1,
-        #                     "stop_price": "31500.00",
-        #                     "stop_type": 1,
-        #                     "taker_fee": "0.00050",
-        #                     "target": 0,
-        #                     "type": 1,
-        #                     "update_time": 1651089147.321691,
-        #                     "user_id": 3620173
-        #                 }
-        #             ],
-        #             "total": 1
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        tradeRequest = 'records' if (marketType == 'swap') else 'data'
-        data = self.safe_value(response, 'data')
-        orders = self.safe_list(data, tradeRequest, [])
-        return self.parse_orders(orders, market, since, limit)
+                    response = await self.v2PrivateGetSpotPendingOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "data": [
+                    #             {
+                    #                 "order_id": 117585921297,
+                    #                 "market": "BTCUSDT",
+                    #                 "market_type": "SPOT",
+                    #                 "side": "buy",
+                    #                 "type": "limit",
+                    #                 "ccy": "BTC",
+                    #                 "amount": "0.00011793",
+                    #                 "price": "52000",
+                    #                 "client_id": "",
+                    #                 "created_at": 1714550707486,
+                    #                 "updated_at": 1714550707486,
+                    #                 "base_fee": "0",
+                    #                 "quote_fee": "0",
+                    #                 "discount_fee": "0",
+                    #                 "maker_fee_rate": "0.002",
+                    #                 "taker_fee_rate": "0.002",
+                    #                 "last_fill_amount": "0",
+                    #                 "last_fill_price": "0",
+                    #                 "unfilled_amount": "0.00011793",
+                    #                 "filled_amount": "0",
+                    #                 "filled_value": "0"
+                    #             }
+                    #         ],
+                    #         "message": "OK",
+                    #         "pagination": {
+                    #             "total": 1,
+                    #             "has_next": False
+                    #         }
+                    #     }
+                    #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http027_query_pending_stop
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http025_query_pending
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade013_stop_pending_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade011_pending_order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/list-pending-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/list-pending-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/list-pending-stop-order
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for fetching trigger orders
+        :param str [params.marginMode]: 'cross' or 'isolated' for fetching spot margin orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.fetch_orders_by_status('pending', symbol, since, limit, params)
@@ -3224,13 +3415,15 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http029_query_finished
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade010_stop_finished_order
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade012_finished_order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
+        :see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
+        :see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for fetching trigger orders
+        :param str [params.marginMode]: 'cross' or 'isolated' for fetching spot margin orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.fetch_orders_by_status('finished', symbol, since, limit, params)
@@ -3238,48 +3431,49 @@ class coinex(Exchange, ImplicitAPI):
     async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account019_update_deposit_address
+        :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/update-deposit-address
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the blockchain network to create a deposit address on
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
+        network = self.safe_string_2(params, 'chain', 'network')
+        if network is None:
+            raise ArgumentsRequired(self.id + ' createDepositAddress() requires a network parameter')
+        params = self.omit(params, 'network')
         request = {
-            'coin_type': currency['id'],
+            'ccy': currency['id'],
+            'chain': self.network_code_to_id(network, currency['code']),
         }
-        if 'network' in params:
-            network = self.safe_string(params, 'network')
-            params = self.omit(params, 'network')
-            request['smart_contract_name'] = network
-        response = await self.v1PrivatePutBalanceDepositAddressCoinType(self.extend(request, params))
+        response = await self.v2PrivatePostAssetsRenewalDepositAddress(self.extend(request, params))
         #
         #     {
         #         "code": 0,
         #         "data": {
-        #             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
-        #             "is_bitcoin_cash": False
+        #             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        #             "memo": ""
         #         },
-        #         "message": "Success"
+        #         "message": "OK"
         #     }
+        #
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account020_query_deposit_address
+        :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the blockchain network to create a deposit address on
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
-            'coin_type': currency['id'],
-        }
-        networks = self.safe_value(currency, 'networks', {})
-        network = self.safe_string(params, 'network')
+        networks = self.safe_dict(currency, 'networks', {})
+        network = self.safe_string_2(params, 'network', 'chain')
         params = self.omit(params, 'network')
         networksKeys = list(networks.keys())
         numOfNetworks = len(networksKeys)
@@ -3288,23 +3482,24 @@ class coinex(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() ' + code + ' requires a network parameter')
             if not (network in networks):
                 raise ExchangeError(self.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code)
-        if network is not None:
-            request['smart_contract_name'] = network
-        response = await self.v1PrivateGetBalanceDepositAddressCoinType(self.extend(request, params))
+        request = {
+            'ccy': currency['id'],
+            'chain': network,
+        }
+        response = await self.v2PrivateGetAssetsDepositAddress(self.extend(request, params))
         #
-        #      {
-        #          "code": 0,
-        #          "data": {
-        #            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        #            # coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy",  # with embedded tag/memo
-        #            "is_bitcoin_cash": False
-        #          },
-        #          "message": "Success"
-        #      }
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        #             "memo": ""
+        #         },
+        #         "message": "OK"
+        #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         depositAddress = self.parse_deposit_address(data, currency)
-        options = self.safe_value(self.options, 'fetchDepositAddress', {})
+        options = self.safe_dict(self.options, 'fetchDepositAddress', {})
         fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             depositAddress['network'] = self.safe_network_code(network, currency)
@@ -3328,11 +3523,11 @@ class coinex(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
-        #         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        #         "is_bitcoin_cash": False
+        #         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        #         "memo": ""
         #     }
         #
-        coinAddress = self.safe_string(depositAddress, 'coin_address')
+        coinAddress = self.safe_string(depositAddress, 'address')
         parts = coinAddress.split(':')
         address = None
         tag = None
@@ -3353,145 +3548,101 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http013_user_deals
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade014_user_deals
+        :see: https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals
+        :see: https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trades structures to retrieve
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest trades
+        :param str [params.side]: the side of the trades, either 'buy' or 'sell', required for swap
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
-        market = None
-        if limit is None:
-            limit = 100
+        market = self.market(symbol)
         request = {
-            'limit': limit,  # SPOT and SWAP
-            'offset': 0,  # SWAP, means query from a certain record
-            # 'page': 1,  # SPOT
-            # 'side': 2,  # SWAP, 0 for no limit, 1 for sell, 2 for buy
-            # 'start_time': since,  # SWAP
-            # 'end_time': 1524228297,  # SWAP
+            'market': market['id'],
         }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
-        type = None
-        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
-        if type != 'spot' and symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument for non-spot markets')
-        swap = (type == 'swap')
-        accountId = self.safe_integer(params, 'account_id')
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
-        if marginMode is not None:
-            if accountId is None:
-                raise BadRequest(self.id + ' fetchMyTrades() requires an account_id parameter for margin trades')
-            request['account_id'] = accountId
-            params = self.omit(params, 'account_id')
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_time'] = since
+        request, params = self.handle_until_option('end_time', request, params)
         response = None
-        if swap:
-            if since is not None:
-                request['start_time'] = since
-            request['side'] = 0
-            response = await self.v1PerpetualPrivateGetMarketUserDeals(self.extend(request, params))
+        if market['swap']:
+            request['market_type'] = 'FUTURES'
+            response = await self.v2PrivateGetFuturesUserDeals(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": [
+            #             {
+            #                 "deal_id": 1180222387,
+            #                 "created_at": 1714119054558,
+            #                 "market": "BTCUSDT",
+            #                 "side": "buy",
+            #                 "order_id": 136915589622,
+            #                 "price": "64376",
+            #                 "amount": "0.0001"
+            #             }
+            #         ],
+            #         "message": "OK",
+            #         "pagination": {
+            #             "has_next": True
+            #         }
+            #     }
+            #
         else:
-            request['page'] = 1
-            response = await self.v1PrivateGetOrderUserDeals(self.extend(request, params))
-        #
-        # Spot and Margin
-        #
-        #      {
-        #          "code": 0,
-        #          "data": {
-        #              "data": [
-        #                  {
-        #                      "id": 2611520950,
-        #                      "order_id": 63286573298,
-        #                      "account_id": 0,
-        #                      "create_time": 1638990636,
-        #                      "type": "sell",
-        #                      "role": "taker",
-        #                      "price": "192.29",
-        #                      "amount": "0.098",
-        #                      "fee": "0.03768884",
-        #                      "fee_asset": "USDT",
-        #                      "market": "AAVEUSDT",
-        #                      "deal_money": "18.84442"
-        #                          },
-        #                      ],
-        #              "curr_page": 1,
-        #              "has_next": False,
-        #              "count": 3
-        #              },
-        #          "message": "Success"
-        #      }
-        #
-        # Swap
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "limit": 100,
-        #             "offset": 0,
-        #             "records": [
-        #                 {
-        #                     "amount": "0.0012",
-        #                     "deal_fee": "0.0237528",
-        #                     "deal_insurance": "0",
-        #                     "deal_margin": "15.8352",
-        #                     "deal_order_id": 17797031903,
-        #                     "deal_profit": "0",
-        #                     "deal_stock": "47.5056",
-        #                     "deal_type": 1,
-        #                     "deal_user_id": 2969195,
-        #                     "fee_asset": "",
-        #                     "fee_discount": "0",
-        #                     "fee_price": "0",
-        #                     "fee_rate": "0.0005",
-        #                     "fee_real_rate": "0.0005",
-        #                     "id": 379044296,
-        #                     "leverage": "3",
-        #                     "margin_amount": "15.8352",
-        #                     "market": "BTCUSDT",
-        #                     "open_price": "39588",
-        #                     "order_id": 17797092987,
-        #                     "position_amount": "0.0012",
-        #                     "position_id": 62052321,
-        #                     "position_type": 1,
-        #                     "price": "39588",
-        #                     "role": 2,
-        #                     "side": 2,
-        #                     "time": 1650675936.016103,
-        #                     "user_id": 3620173
-        #                 }
-        #             ]
-        #         },
-        #         "message": "OK"
-        #     }
-        #
-        tradeRequest = 'records' if swap else 'data'
-        data = self.safe_value(response, 'data')
-        trades = self.safe_list(data, tradeRequest, [])
-        return self.parse_trades(trades, market, since, limit)
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
+            if marginMode is not None:
+                request['market_type'] = 'MARGIN'
+            else:
+                request['market_type'] = 'SPOT'
+            response = await self.v2PrivateGetSpotUserDeals(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "data": [
+            #             {
+            #                 "amount": "0.00010087",
+            #                 "created_at": 1714618087585,
+            #                 "deal_id": 4161200602,
+            #                 "margin_market": "",
+            #                 "market": "BTCUSDT",
+            #                 "order_id": 117654919342,
+            #                 "price": "57464.04",
+            #                 "side": "sell"
+            #             }
+            #         ],
+            #         "message": "OK",
+            #         "pagination": {
+            #             "has_next": True
+            #         }
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+        :see: https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+        :see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.method]: the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
-        :param int [params.side]: *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
+        :param str [params.method]: the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         defaultMethod = None
-        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'v1PerpetualPrivateGetPositionPending')
-        isHistory = (defaultMethod == 'v1PerpetualPrivateGetPositionFinished')
+        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition')
         symbols = self.market_symbols(symbols)
-        request = {}
+        request = {
+            'market_type': 'FUTURES',
+        }
         market = None
         if symbols is not None:
             symbol = None
@@ -3504,77 +3655,55 @@ class coinex(Exchange, ImplicitAPI):
                 symbol = symbols
             market = self.market(symbol)
             request['market'] = market['id']
-        else:
-            if isHistory:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires a symbol argument for closed positions')
-        if isHistory:
-            request['limit'] = 100
-            request['side'] = self.safe_integer(params, 'side', 0)  # 0: All, 1: Sell, 2: Buy
         response = None
-        if defaultMethod == 'v1PerpetualPrivateGetPositionPending':
-            response = await self.v1PerpetualPrivateGetPositionPending(self.extend(request, params))
+        if defaultMethod == 'v2PrivateGetFuturesPendingPosition':
+            response = await self.v2PrivateGetFuturesPendingPosition(self.extend(request, params))
         else:
-            response = await self.v1PerpetualPrivateGetPositionFinished(self.extend(request, params))
+            response = await self.v2PrivateGetFuturesFinishedPosition(self.extend(request, params))
         #
         #     {
         #         "code": 0,
         #         "data": [
         #             {
-        #                 "adl_sort": 3396,
-        #                 "adl_sort_val": "0.00007786",
-        #                 "amount": "0.0005",
-        #                 "amount_max": "0.0005",
-        #                 "amount_max_margin": "6.42101333333333333333",
-        #                 "bkr_price": "25684.05333333333333346175",
-        #                 "bkr_price_imply": "0.00000000000000000000",
-        #                 "close_left": "0.0005",
-        #                 "create_time": 1651294226.110899,
-        #                 "deal_all": "19.26000000000000000000",
-        #                 "deal_asset_fee": "0.00000000000000000000",
-        #                 "fee_asset": "",
-        #                 "finish_type": 1,
-        #                 "first_price": "38526.08",
-        #                 "insurance": "0.00000000000000000000",
-        #                 "latest_price": "38526.08",
-        #                 "leverage": "3",
-        #                 "liq_amount": "0.00000000000000000000",
-        #                 "liq_order_price": "0",
-        #                 "liq_order_time": 0,
-        #                 "liq_price": "25876.68373333333333346175",
-        #                 "liq_price_imply": "0.00000000000000000000",
-        #                 "liq_profit": "0.00000000000000000000",
-        #                 "liq_time": 0,
-        #                 "mainten_margin": "0.005",
-        #                 "mainten_margin_amount": "0.09631520000000000000",
-        #                 "maker_fee": "0.00000000000000000000",
-        #                 "margin_amount": "6.42101333333333333333",
+        #                 "position_id": 305891033,
         #                 "market": "BTCUSDT",
-        #                 "open_margin": "0.33333333333333333333",
-        #                 "open_margin_imply": "0.00000000000000000000",
-        #                 "open_price": "38526.08000000000000000000",
-        #                 "open_val": "19.26304000000000000000",
-        #                 "open_val_max": "19.26304000000000000000",
-        #                 "position_id": 65847227,
-        #                 "profit_clearing": "-0.00963152000000000000",
-        #                 "profit_real": "-0.00963152000000000000",
-        #                 "profit_unreal": "0.00",
-        #                 "side": 2,
-        #                 "stop_loss_price": "0.00000000000000000000",
-        #                 "stop_loss_type": 0,
-        #                 "sys": 0,
-        #                 "take_profit_price": "0.00000000000000000000",
-        #                 "take_profit_type": 0,
-        #                 "taker_fee": "0.00000000000000000000",
-        #                 "total": 4661,
-        #                 "type": 1,
-        #                 "update_time": 1651294226.111196,
-        #                 "user_id": 3620173
-        #             },
+        #                 "market_type": "FUTURES",
+        #                 "side": "long",
+        #                 "margin_mode": "cross",
+        #                 "open_interest": "0.0001",
+        #                 "close_avbl": "0.0001",
+        #                 "ath_position_amount": "0.0001",
+        #                 "unrealized_pnl": "0",
+        #                 "realized_pnl": "-0.00311684",
+        #                 "avg_entry_price": "62336.8",
+        #                 "cml_position_value": "6.23368",
+        #                 "max_position_value": "6.23368",
+        #                 "created_at": 1715152208041,
+        #                 "updated_at": 1715152208041,
+        #                 "take_profit_price": "0",
+        #                 "stop_loss_price": "0",
+        #                 "take_profit_type": "",
+        #                 "stop_loss_type": "",
+        #                 "settle_price": "62336.8",
+        #                 "settle_value": "6.23368",
+        #                 "leverage": "3",
+        #                 "margin_avbl": "2.07789333",
+        #                 "ath_margin_size": "2.07789333",
+        #                 "position_margin_rate": "2.40545879023305655728",
+        #                 "maintenance_margin_rate": "0.005",
+        #                 "maintenance_margin_value": "0.03118094",
+        #                 "liq_price": "0",
+        #                 "bkr_price": "0",
+        #                 "adl_level": 1
+        #             }
         #         ],
-        #         "message": "OK"
+        #         "message": "OK",
+        #         "pagination": {
+        #             "has_next": False
+        #         }
         #     }
         #
-        position = self.safe_value(response, 'data', [])
+        position = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))
@@ -3583,74 +3712,59 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :see: https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+        :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
+            'market_type': 'FUTURES',
             'market': market['id'],
         }
-        response = await self.v1PerpetualPrivateGetPositionPending(self.extend(request, params))
+        response = await self.v2PrivateGetFuturesPendingPosition(self.extend(request, params))
         #
         #     {
         #         "code": 0,
         #         "data": [
         #             {
-        #                 "adl_sort": 3396,
-        #                 "adl_sort_val": "0.00007786",
-        #                 "amount": "0.0005",
-        #                 "amount_max": "0.0005",
-        #                 "amount_max_margin": "6.42101333333333333333",
-        #                 "bkr_price": "25684.05333333333333346175",
-        #                 "bkr_price_imply": "0.00000000000000000000",
-        #                 "close_left": "0.0005",
-        #                 "create_time": 1651294226.110899,
-        #                 "deal_all": "19.26000000000000000000",
-        #                 "deal_asset_fee": "0.00000000000000000000",
-        #                 "fee_asset": "",
-        #                 "finish_type": 1,
-        #                 "first_price": "38526.08",
-        #                 "insurance": "0.00000000000000000000",
-        #                 "latest_price": "38526.08",
-        #                 "leverage": "3",
-        #                 "liq_amount": "0.00000000000000000000",
-        #                 "liq_order_price": "0",
-        #                 "liq_order_time": 0,
-        #                 "liq_price": "25876.68373333333333346175",
-        #                 "liq_price_imply": "0.00000000000000000000",
-        #                 "liq_profit": "0.00000000000000000000",
-        #                 "liq_time": 0,
-        #                 "mainten_margin": "0.005",
-        #                 "mainten_margin_amount": "0.09631520000000000000",
-        #                 "maker_fee": "0.00000000000000000000",
-        #                 "margin_amount": "6.42101333333333333333",
+        #                 "position_id": 305891033,
         #                 "market": "BTCUSDT",
-        #                 "open_margin": "0.33333333333333333333",
-        #                 "open_margin_imply": "0.00000000000000000000",
-        #                 "open_price": "38526.08000000000000000000",
-        #                 "open_val": "19.26304000000000000000",
-        #                 "open_val_max": "19.26304000000000000000",
-        #                 "position_id": 65847227,
-        #                 "profit_clearing": "-0.00963152000000000000",
-        #                 "profit_real": "-0.00963152000000000000",
-        #                 "profit_unreal": "0.00",
-        #                 "side": 2,
-        #                 "stop_loss_price": "0.00000000000000000000",
-        #                 "stop_loss_type": 0,
-        #                 "sys": 0,
-        #                 "take_profit_price": "0.00000000000000000000",
-        #                 "take_profit_type": 0,
-        #                 "taker_fee": "0.00000000000000000000",
-        #                 "total": 4661,
-        #                 "type": 1,
-        #                 "update_time": 1651294226.111196,
-        #                 "user_id": 3620173
+        #                 "market_type": "FUTURES",
+        #                 "side": "long",
+        #                 "margin_mode": "cross",
+        #                 "open_interest": "0.0001",
+        #                 "close_avbl": "0.0001",
+        #                 "ath_position_amount": "0.0001",
+        #                 "unrealized_pnl": "0",
+        #                 "realized_pnl": "-0.00311684",
+        #                 "avg_entry_price": "62336.8",
+        #                 "cml_position_value": "6.23368",
+        #                 "max_position_value": "6.23368",
+        #                 "created_at": 1715152208041,
+        #                 "updated_at": 1715152208041,
+        #                 "take_profit_price": "0",
+        #                 "stop_loss_price": "0",
+        #                 "take_profit_type": "",
+        #                 "stop_loss_type": "",
+        #                 "settle_price": "62336.8",
+        #                 "settle_value": "6.23368",
+        #                 "leverage": "3",
+        #                 "margin_avbl": "2.07789333",
+        #                 "ath_margin_size": "2.07789333",
+        #                 "position_margin_rate": "2.40545879023305655728",
+        #                 "maintenance_margin_rate": "0.005",
+        #                 "maintenance_margin_value": "0.03118094",
+        #                 "liq_price": "0",
+        #                 "bkr_price": "0",
+        #                 "adl_level": 1
         #             }
         #         ],
-        #         "message": "OK"
+        #         "message": "OK",
+        #         "pagination": {
+        #             "has_next": False
+        #         }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -3659,103 +3773,68 @@ class coinex(Exchange, ImplicitAPI):
     def parse_position(self, position, market: Market = None):
         #
         #     {
-        #         "adl_sort": 3396,
-        #         "adl_sort_val": "0.00007786",
-        #         "amount": "0.0005",
-        #         "amount_max": "0.0005",
-        #         "amount_max_margin": "6.42101333333333333333",
-        #         "bkr_price": "25684.05333333333333346175",
-        #         "bkr_price_imply": "0.00000000000000000000",
-        #         "close_left": "0.0005",
-        #         "create_time": 1651294226.110899,
-        #         "deal_all": "19.26000000000000000000",
-        #         "deal_asset_fee": "0.00000000000000000000",
-        #         "fee_asset": "",
-        #         "finish_type": 1,
-        #         "first_price": "38526.08",
-        #         "insurance": "0.00000000000000000000",
-        #         "latest_price": "38526.08",
-        #         "leverage": "3",
-        #         "liq_amount": "0.00000000000000000000",
-        #         "liq_order_price": "0",
-        #         "liq_order_time": 0,
-        #         "liq_price": "25876.68373333333333346175",
-        #         "liq_price_imply": "0.00000000000000000000",
-        #         "liq_profit": "0.00000000000000000000",
-        #         "liq_time": 0,
-        #         "mainten_margin": "0.005",
-        #         "mainten_margin_amount": "0.09631520000000000000",
-        #         "maker_fee": "0.00000000000000000000",
-        #         "margin_amount": "6.42101333333333333333",
+        #         "position_id": 305891033,
         #         "market": "BTCUSDT",
-        #         "open_margin": "0.33333333333333333333",
-        #         "open_margin_imply": "0.00000000000000000000",
-        #         "open_price": "38526.08000000000000000000",
-        #         "open_val": "19.26304000000000000000",
-        #         "open_val_max": "19.26304000000000000000",
-        #         "position_id": 65847227,
-        #         "profit_clearing": "-0.00963152000000000000",
-        #         "profit_real": "-0.00963152000000000000",
-        #         "profit_unreal": "0.00",
-        #         "side": 2,
-        #         "stop_loss_price": "0.00000000000000000000",
-        #         "stop_loss_type": 0,
-        #         "sys": 0,
-        #         "take_profit_price": "0.00000000000000000000",
-        #         "take_profit_type": 0,
-        #         "taker_fee": "0.00000000000000000000",
-        #         "total": 4661,
-        #         "type": 1,
-        #         "update_time": 1651294226.111196,
-        #         "user_id": 3620173
+        #         "market_type": "FUTURES",
+        #         "side": "long",
+        #         "margin_mode": "cross",
+        #         "open_interest": "0.0001",
+        #         "close_avbl": "0.0001",
+        #         "ath_position_amount": "0.0001",
+        #         "unrealized_pnl": "0",
+        #         "realized_pnl": "-0.00311684",
+        #         "avg_entry_price": "62336.8",
+        #         "cml_position_value": "6.23368",
+        #         "max_position_value": "6.23368",
+        #         "created_at": 1715152208041,
+        #         "updated_at": 1715152208041,
+        #         "take_profit_price": "0",
+        #         "stop_loss_price": "0",
+        #         "take_profit_type": "",
+        #         "stop_loss_type": "",
+        #         "settle_price": "62336.8",
+        #         "settle_value": "6.23368",
+        #         "leverage": "3",
+        #         "margin_avbl": "2.07789333",
+        #         "ath_margin_size": "2.07789333",
+        #         "position_margin_rate": "2.40545879023305655728",
+        #         "maintenance_margin_rate": "0.005",
+        #         "maintenance_margin_value": "0.03118094",
+        #         "liq_price": "0",
+        #         "bkr_price": "0",
+        #         "adl_level": 1
         #     }
         #
         marketId = self.safe_string(position, 'market')
         market = self.safe_market(marketId, market, None, 'swap')
-        symbol = market['symbol']
-        positionId = self.safe_integer(position, 'position_id')
-        marginModeInteger = self.safe_integer(position, 'type')
-        marginMode = 'isolated' if (marginModeInteger == 1) else 'cross'
-        liquidationPrice = self.safe_string(position, 'liq_price')
-        entryPrice = self.safe_string(position, 'open_price')
-        unrealizedPnl = self.safe_string(position, 'profit_unreal')
-        contracts = self.safe_number(position, 'amount')
-        sideInteger = self.safe_integer(position, 'side')
-        side = 'short' if (sideInteger == 1) else 'long'
-        timestamp = self.safe_timestamp(position, 'update_time')
-        maintenanceMargin = self.safe_string(position, 'mainten_margin_amount')
-        maintenanceMarginPercentage = self.safe_string(position, 'mainten_margin')
-        collateral = self.safe_string(position, 'margin_amount')
-        leverage = self.safe_string(position, 'leverage')
-        notional = self.safe_string(position, 'open_val')
-        initialMargin = Precise.string_div(notional, leverage)
-        initialMarginPercentage = Precise.string_div('1', leverage)
+        timestamp = self.safe_integer(position, 'created_at')
         return self.safe_position({
             'info': position,
-            'id': positionId,
-            'symbol': symbol,
-            'notional': self.parse_number(notional),
-            'marginMode': marginMode,
-            'liquidationPrice': liquidationPrice,
-            'entryPrice': self.parse_number(entryPrice),
-            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'id': self.safe_integer(position, 'position_id'),
+            'symbol': market['symbol'],
+            'notional': self.safe_number(position, 'settle_value'),
+            'marginMode': self.safe_string(position, 'margin_mode'),
+            'liquidationPrice': self.safe_number(position, 'liq_price'),
+            'entryPrice': self.safe_number(position, 'avg_entry_price'),
+            'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
+            'realizedPnl': self.safe_number(position, 'realized_pnl'),
             'percentage': None,
-            'contracts': contracts,
+            'contracts': self.safe_number(position, 'close_avbl'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'markPrice': None,
             'lastPrice': None,
-            'side': side,
+            'side': self.safe_string(position, 'side'),
             'hedged': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastUpdateTimestamp': None,
-            'maintenanceMargin': self.parse_number(maintenanceMargin),
-            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
-            'collateral': self.parse_number(collateral),
-            'initialMargin': self.parse_number(initialMargin),
-            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
-            'leverage': self.parse_number(leverage),
-            'marginRatio': None,
+            'lastUpdateTimestamp': self.safe_integer(position, 'updated_at'),
+            'maintenanceMargin': self.safe_number(position, 'maintenance_margin_value'),
+            'maintenanceMarginPercentage': self.safe_number(position, 'maintenance_margin_rate'),
+            'collateral': self.safe_number(position, 'margin_avbl'),
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': self.safe_number(position, 'leverage'),
+            'marginRatio': self.safe_number(position, 'position_margin_rate'),
             'stopLossPrice': self.omit_zero(self.safe_string(position, 'stop_loss_price')),
             'takeProfitPrice': self.omit_zero(self.safe_string(position, 'take_profit_price')),
         })
@@ -3935,7 +4014,7 @@ class coinex(Exchange, ImplicitAPI):
         #             "side": 2,
         #             "stop_loss_price": "0.00000000000000000000",
         #             "stop_loss_type": 0,
-        #             "sys": 0,
+        #             "s ys": 0,
         #             "take_profit_price": "0.00000000000000000000",
         #             "take_profit_type": 0,
         #             "taker_fee": "0.00000000000000000000",
@@ -4000,7 +4079,7 @@ class coinex(Exchange, ImplicitAPI):
         #        "side": 2,
         #        "stop_loss_price": "0.00000000000000000000",
         #        "stop_loss_type": 0,
-        #        "sys": 0,
+        #        "sy s": 0,
         #        "take_profit_price": "0.00000000000000000000",
         #        "take_profit_type": 0,
         #        "taker_fee": "0.00000000000000000000",
@@ -4044,7 +4123,7 @@ class coinex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
@@ -4055,7 +4134,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
@@ -4245,7 +4324,6 @@ class coinex(Exchange, ImplicitAPI):
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
-         *  @method
         fetch the current funding rates
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
         :param str[] symbols: unified market symbols
@@ -4308,7 +4386,7 @@ class coinex(Exchange, ImplicitAPI):
                 result.append(self.parse_funding_rate(ticker, marketInner))
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
@@ -4592,14 +4670,14 @@ class coinex(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '0': 'ok',
             'SUCCESS': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # fetchTransfers Swap
         #
@@ -4646,7 +4724,7 @@ class coinex(Exchange, ImplicitAPI):
         currencyCode = self.safe_currency_code(currencyId, currency)
         return {
             'info': transfer,
-            'id': self.safe_integer(transfer, 'id'),
+            'id': self.safe_string(transfer, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': currencyCode,
@@ -4656,7 +4734,7 @@ class coinex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'status')),
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
@@ -4869,7 +4947,7 @@ class coinex(Exchange, ImplicitAPI):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None):
+    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "market": "BTCUSDT",
@@ -4902,7 +4980,7 @@ class coinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_isolated_borrow_rate(self, symbol: str, params={}):
+    async def fetch_isolated_borrow_rate(self, symbol: str, params={}) -> IsolatedBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
@@ -4939,7 +5017,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_isolated_borrow_rate(data, market)
 
-    async def fetch_isolated_borrow_rates(self, params={}):
+    async def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """
         fetch the borrow interest rates of all currencies
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
@@ -4971,10 +5049,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        rates = []
-        for i in range(0, len(data)):
-            rates.append(self.parse_isolated_borrow_rate(data[i]))
-        return rates
+        return self.parse_isolated_borrow_rates(data)
 
     async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
@@ -5295,6 +5370,76 @@ class coinex(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> Position:
+        """
+        fetches historical positions
+        :see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
+        :param str symbol: unified contract symbol
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum amount of records to fetch, default is 10
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param int [params.until]: the latest time in ms to fetch positions for
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market_type': 'FUTURES',
+            'market': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_time'] = since
+        request, params = self.handle_until_option('end_time', request, params)
+        response = await self.v2PrivateGetFuturesFinishedPosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "position_id": 305891033,
+        #                 "market": "BTCUSDT",
+        #                 "market_type": "FUTURES",
+        #                 "side": "long",
+        #                 "margin_mode": "cross",
+        #                 "open_interest": "0.0001",
+        #                 "close_avbl": "0.0001",
+        #                 "ath_position_amount": "0.0001",
+        #                 "unrealized_pnl": "0",
+        #                 "realized_pnl": "-0.00311684",
+        #                 "avg_entry_price": "62336.8",
+        #                 "cml_position_value": "6.23368",
+        #                 "max_position_value": "6.23368",
+        #                 "created_at": 1715152208041,
+        #                 "updated_at": 1715152208041,
+        #                 "take_profit_price": "0",
+        #                 "stop_loss_price": "0",
+        #                 "take_profit_type": "",
+        #                 "stop_loss_type": "",
+        #                 "settle_price": "62336.8",
+        #                 "settle_value": "6.23368",
+        #                 "leverage": "3",
+        #                 "margin_avbl": "2.07789333",
+        #                 "ath_margin_size": "2.07789333",
+        #                 "position_margin_rate": "2.40545879023305655728",
+        #                 "maintenance_margin_rate": "0.005",
+        #                 "maintenance_margin_value": "0.03118094",
+        #                 "liq_price": "0",
+        #                 "bkr_price": "0",
+        #                 "adl_level": 1
+        #             }
+        #         ],
+        #         "message": "OK",
+        #         "pagination": {
+        #             "has_next": False
+        #         }
+        #     }
+        #
+        records = self.safe_list(response, 'data', [])
+        positions = self.parse_positions(records)
+        return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
+
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
@@ -5387,17 +5532,24 @@ class coinex(Exchange, ImplicitAPI):
                 self.check_required_credentials()
                 query = self.keysort(query)
                 urlencoded = self.rawencode(query)
-                preparedString = method + '/' + version + '/' + path + '?' + urlencoded + nonce + self.secret
+                preparedString = method + '/' + version + '/' + path
+                if method == 'POST':
+                    body = self.json(query)
+                    preparedString += body
+                elif urlencoded:
+                    preparedString += '?' + urlencoded
+                preparedString += nonce + self.secret
                 signature = self.hash(self.encode(preparedString), 'sha256')
                 headers = {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json',
                     'X-COINEX-KEY': self.apiKey,
                     'X-COINEX-SIGN': signature,
                     'X-COINEX-TIMESTAMP': nonce,
                 }
-                if (method == 'GET') or (method == 'DELETE') or (method == 'PUT'):
-                    url += '?' + urlencoded
-                else:
-                    body = self.json(query)
+                if method != 'POST':
+                    if urlencoded:
+                        url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

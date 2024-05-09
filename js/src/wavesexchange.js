@@ -69,8 +69,11 @@ export default class wavesexchange extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -79,6 +82,7 @@ export default class wavesexchange extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1237,7 +1241,7 @@ export default class wavesexchange extends Exchange {
         const amountPrecision = this.numberToString(this.toPrecision(amount, this.numberToString(this.markets[symbol]['precision']['amount'])));
         return this.parseToInt(parseFloat(amountPrecision));
     }
-    currencyToPrecision(code, amount, networkCode = undefined) {
+    customCurrencyToPrecision(code, amount, networkCode = undefined) {
         const amountPrecision = this.numberToString(this.toPrecision(amount, this.currencies[code]['precision']));
         return this.parseToInt(parseFloat(amountPrecision));
     }
@@ -2522,7 +2526,7 @@ export default class wavesexchange extends Exchange {
         const feeAssetId = 'WAVES';
         const type = 4; // transfer
         const version = 2;
-        const amountInteger = this.currencyToPrecision(code, amount);
+        const amountInteger = this.customCurrencyToPrecision(code, amount);
         const currency = this.currency(code);
         const timestamp = this.milliseconds();
         const byteArray = [

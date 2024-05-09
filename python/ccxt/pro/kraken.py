@@ -150,7 +150,7 @@ class kraken(ccxt.async_support.kraken):
             'pair': market['wsId'],
             'volume': self.amount_to_precision(symbol, amount),
         }
-        request, params = self.orderRequest('createOrderWs()', symbol, type, request, price, params)
+        request, params = self.orderRequest('createOrderWs', symbol, type, request, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     def handle_create_edit_order(self, client, message):
@@ -204,7 +204,7 @@ class kraken(ccxt.async_support.kraken):
             'pair': market['wsId'],
             'volume': self.amount_to_precision(symbol, amount),
         }
-        request, params = self.orderRequest('editOrderWs()', symbol, type, request, price, params)
+        request, params = self.orderRequest('editOrderWs', symbol, type, request, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
@@ -734,6 +734,8 @@ class kraken(ccxt.async_support.kraken):
                 localChecksum = self.crc32(payload, False)
                 if localChecksum != c:
                     error = InvalidNonce(self.id + ' invalid checksum')
+                    del client.subscriptions[messageHash]
+                    del self.orderbooks[symbol]
                     client.reject(error, messageHash)
                     return
             orderbook['symbol'] = symbol
@@ -1242,7 +1244,7 @@ class kraken(ccxt.async_support.kraken):
             },
         }
         url = self.urls['api']['ws']['public']
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscriptionArgs)
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, subscriptionArgs)
 
     def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...

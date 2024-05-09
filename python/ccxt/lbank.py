@@ -534,7 +534,7 @@ class lbank(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -1908,7 +1908,7 @@ class lbank(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://www.lbank.com/en-US/docs/index.html#withdrawal

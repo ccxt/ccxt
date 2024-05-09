@@ -50,6 +50,7 @@ public partial class woo
     /// retrieves data on all markets for woo
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#exchange-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -69,6 +70,7 @@ public partial class woo
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#market-trades-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -142,6 +144,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -168,6 +171,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -387,6 +391,26 @@ public partial class woo
     public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woo.org/#cancel-all-after"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
@@ -615,6 +639,7 @@ public partial class woo
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#orderbook-snapshot-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -676,6 +701,7 @@ public partial class woo
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -749,6 +775,7 @@ public partial class woo
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-assets-of-subaccounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -788,6 +815,7 @@ public partial class woo
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-token-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -807,6 +835,7 @@ public partial class woo
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -840,6 +869,7 @@ public partial class woo
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -873,6 +903,7 @@ public partial class woo
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -906,6 +937,7 @@ public partial class woo
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -994,17 +1026,18 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#token-withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1015,7 +1048,7 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1191,6 +1224,78 @@ public partial class woo
         var amount = amount2 == 0 ? null : (object)amount2;
         var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
         return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the data for a conversion trade
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-quote-trade"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code of the conversion trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertTrade(id, code, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the users history of conversion trades
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-quote-trades"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch conversions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of conversion structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest conversion to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
     }
     /// <summary>
     /// fetches all available currencies that can be converted

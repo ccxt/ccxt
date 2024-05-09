@@ -73,8 +73,11 @@ class bitstamp extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -729,7 +732,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "timestamp" => "1686068944",
@@ -2113,7 +2116,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2175,10 +2178,8 @@ class bitstamp extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $amount = $this->currency_to_precision($code, $amount);
-            $amount = $this->parse_to_numeric($amount);
             $request = array(
-                'amount' => $amount,
+                'amount' => $this->parse_to_numeric($this->currency_to_precision($code, $amount)),
                 'currency' => strtoupper($currency['id']),
             );
             $response = null;
@@ -2220,7 +2221,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'ok' => 'ok',
             'error' => 'failed',

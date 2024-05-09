@@ -432,6 +432,8 @@ class htx extends htx$1 {
             }
         }
         catch (e) {
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject(e, messageHash);
         }
     }

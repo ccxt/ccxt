@@ -98,6 +98,7 @@ class currencycom extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => null,
+                'sandbox' => true,
                 'setLeverage' => null,
                 'setMarginMode' => null,
                 'setPositionMode' => null,
@@ -313,7 +314,7 @@ class currencycom extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
@@ -787,7 +788,7 @@ class currencycom extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //

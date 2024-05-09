@@ -106,6 +106,7 @@ class currencycom extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => null,
+                'sandbox' => true,
                 'setLeverage' => null,
                 'setMarginMode' => null,
                 'setPositionMode' => null,
@@ -809,7 +810,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //

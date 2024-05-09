@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Dictionary } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -90,6 +90,7 @@ export default class hitbtc extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -614,6 +615,7 @@ export default class hitbtc extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {
@@ -1126,7 +1128,7 @@ export default class hitbtc extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //       "ask": "62756.01",
@@ -1743,7 +1745,7 @@ export default class hitbtc extends Exchange {
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
-        [ request, params ] = this.handleUntilOption ('till', request, params);
+        [ request, params ] = this.handleUntilOption ('until', request, params);
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
@@ -2616,7 +2618,7 @@ export default class hitbtc extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -2666,7 +2668,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#withdraw
@@ -2795,11 +2797,11 @@ export default class hitbtc extends Exchange {
             // 'symbols': Comma separated list of symbol codes,
             // 'sort': 'DESC' or 'ASC'
             // 'from': 'Datetime or Number',
-            // 'till': 'Datetime or Number',
+            // 'until': 'Datetime or Number',
             // 'limit': 100,
             // 'offset': 0,
         };
-        [ request, params ] = this.handleUntilOption ('till', request, params);
+        [ request, params ] = this.handleUntilOption ('until', request, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -3232,8 +3234,9 @@ export default class hitbtc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
         }
-        if (amount !== 0) {
-            amount = this.amountToPrecision (symbol, amount);
+        const stringAmount = this.numberToString (amount);
+        if (stringAmount !== '0') {
+            amount = this.amountToPrecision (symbol, stringAmount);
         } else {
             amount = '0';
         }
@@ -3320,7 +3323,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name hitbtc#reduceMargin
@@ -3334,13 +3337,13 @@ export default class hitbtc extends Exchange {
          * @param {bool} [params.margin] true for reducing spot-margin
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
-        if (amount !== 0) {
+        if (this.numberToString (amount) !== '0') {
             throw new BadRequest (this.id + ' reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount');
         }
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name hitbtc#addMargin

@@ -1,21 +1,21 @@
 import Exchange from './abstract/bitvavo.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 /**
  * @class bitvavo
  * @augments Exchange
  */
 export default class bitvavo extends Exchange {
     describe(): any;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): any;
-    amountToPrecision(symbol: any, amount: any): any;
-    priceToPrecision(symbol: any, price: any): any;
+    currencyToPrecision(code: any, fee: any, networkCode?: any): string;
+    amountToPrecision(symbol: any, amount: any): string;
+    priceToPrecision(symbol: any, price: any): string;
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarkets(markets: any): any[];
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrencies(currencies: any): {};
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;
@@ -50,7 +50,7 @@ export default class bitvavo extends Exchange {
     fetchMyTradesRequest(symbol?: Str, since?: Int, limit?: Int, params?: {}): any;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     withdrawRequest(code: Str, amount: any, address: any, tag?: any, params?: {}): any;
-    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawalsRequest(code?: Str, since?: Int, limit?: Int, params?: {}): any;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsRequest(code?: Str, since?: Int, limit?: Int, params?: {}): any;

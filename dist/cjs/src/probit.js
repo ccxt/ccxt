@@ -67,8 +67,11 @@ class probit extends probit$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -83,6 +86,7 @@ class probit extends probit$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1513,10 +1517,10 @@ class probit extends probit$1 {
         else {
             request['start_time'] = this.iso8601(1);
         }
-        const until = this.safeInteger2(params, 'till', 'until');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             request['end_time'] = this.iso8601(until);
-            params = this.omit(params, ['until', 'till']);
+            params = this.omit(params, ['until']);
         }
         else {
             request['end_time'] = this.iso8601(this.milliseconds());

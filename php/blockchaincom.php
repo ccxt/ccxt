@@ -394,7 +394,7 @@ class blockchaincom extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //     "symbol" => "BTC-USD",
@@ -911,7 +911,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://api.blockchain.com/v3/#/payments/createWithdrawal

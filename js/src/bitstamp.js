@@ -72,8 +72,11 @@ export default class bitstamp extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -2151,10 +2154,8 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        amount = this.parseToNumeric(amount);
         const request = {
-            'amount': amount,
+            'amount': this.parseToNumeric(this.currencyToPrecision(code, amount)),
             'currency': currency['id'].toUpperCase(),
         };
         let response = undefined;

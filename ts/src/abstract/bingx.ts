@@ -69,6 +69,7 @@ interface Exchange {
     swapV2PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeCloseAllPositions (params?: {}): Promise<implicitReturnType>;
+    swapV2PrivatePostTradeCancelAllAfter (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeMarginType (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeLeverage (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradePositionMargin (params?: {}): Promise<implicitReturnType>;
@@ -92,13 +93,13 @@ interface Exchange {
     walletsV1PrivatePostCapitalDepositCreateSubAddress (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivateGetList (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivateGetAssets (params?: {}): Promise<implicitReturnType>;
-    subAccountV1PrivateGetApiKeyQuery (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostCreate (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostApiKeyCreate (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostApiKeyEdit (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostApiKeyDel (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostUpdateStatus (params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetUid (params?: {}): Promise<implicitReturnType>;
+    accountV1PrivateGetApiKeyQuery (params?: {}): Promise<implicitReturnType>;
     accountV1PrivatePostInnerTransferAuthorizeSubAccount (params?: {}): Promise<implicitReturnType>;
     userAuthPrivatePostUserDataStream (params?: {}): Promise<implicitReturnType>;
     userAuthPrivatePutUserDataStream (params?: {}): Promise<implicitReturnType>;

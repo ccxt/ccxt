@@ -314,7 +314,7 @@ class poloniex extends poloniex$1 {
         //        }]
         //    }
         //
-        const messageHash = this.safeInteger(message, 'id');
+        const messageHash = this.safeString(message, 'id');
         const data = this.safeValue(message, 'data', []);
         const orders = [];
         for (let i = 0; i < data.length; i++) {
@@ -652,8 +652,8 @@ class poloniex extends poloniex$1 {
             'type': this.safeStringLower(trade, 'type'),
             'side': this.safeStringLower2(trade, 'takerSide', 'side'),
             'takerOrMaker': takerMaker,
-            'price': this.omitZero(this.safeNumber2(trade, 'tradePrice', 'price')),
-            'amount': this.omitZero(this.safeNumber2(trade, 'filledQuantity', 'quantity')),
+            'price': this.omitZero(this.safeString2(trade, 'tradePrice', 'price')),
+            'amount': this.omitZero(this.safeString2(trade, 'filledQuantity', 'quantity')),
             'cost': this.safeString2(trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': undefined,

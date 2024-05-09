@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -93,6 +93,7 @@ export default class ascendex extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -963,7 +964,7 @@ export default class ascendex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol":"QTUM/BTC",
@@ -2916,7 +2917,7 @@ export default class ascendex extends Exchange {
         };
     }
 
-    async reduceMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name ascendex#reduceMargin
@@ -2929,7 +2930,7 @@ export default class ascendex extends Exchange {
         return await this.modifyMarginHelper (symbol, -amount, 'reduce', params);
     }
 
-    async addMargin (symbol: string, amount, params = {}): Promise<MarginModification> {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name ascendex#addMargin
@@ -3188,7 +3189,6 @@ export default class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const currency = this.currency (code);
-        amount = this.currencyToPrecision (code, amount);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
@@ -3197,7 +3197,7 @@ export default class ascendex extends Exchange {
         }
         const request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -3218,11 +3218,11 @@ export default class ascendex extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //    { "code": "0" }
         //
-        const status = this.safeInteger (transfer, 'code');
+        const status = this.safeString (transfer, 'code');
         const currencyCode = this.safeCurrencyCode (undefined, currency);
         return {
             'info': transfer,
@@ -3237,8 +3237,8 @@ export default class ascendex extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
-        if (status === 0) {
+    parseTransferStatus (status: Str): Str {
+        if (status === '0') {
             return 'ok';
         }
         return 'failed';

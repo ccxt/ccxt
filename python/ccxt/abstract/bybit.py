@@ -128,6 +128,7 @@ class ImplicitAPI:
     private_get_v5_account_fee_rate = privateGetV5AccountFeeRate = Entry('v5/account/fee-rate', 'private', 'GET', {'cost': 10})
     private_get_v5_account_info = privateGetV5AccountInfo = Entry('v5/account/info', 'private', 'GET', {'cost': 5})
     private_get_v5_account_transaction_log = privateGetV5AccountTransactionLog = Entry('v5/account/transaction-log', 'private', 'GET', {'cost': 1})
+    private_get_v5_account_contract_transaction_log = privateGetV5AccountContractTransactionLog = Entry('v5/account/contract-transaction-log', 'private', 'GET', {'cost': 1})
     private_get_v5_account_smp_group = privateGetV5AccountSmpGroup = Entry('v5/account/smp-group', 'private', 'GET', {'cost': 1})
     private_get_v5_account_mmp_state = privateGetV5AccountMmpState = Entry('v5/account/mmp-state', 'private', 'GET', {'cost': 5})
     private_get_v5_asset_exchange_order_record = privateGetV5AssetExchangeOrderRecord = Entry('v5/asset/exchange/order-record', 'private', 'GET', {'cost': 5})

@@ -63,8 +63,11 @@ class wavesexchange extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -73,6 +76,7 @@ class wavesexchange extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -766,7 +770,7 @@ class wavesexchange extends Exchange {
         return null;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //       {
         //           "symbol" => "WAVES/BTC",
@@ -1226,7 +1230,7 @@ class wavesexchange extends Exchange {
         return $this->parse_to_int(floatval($amountPrecision));
     }
 
-    public function currency_to_precision($code, $amount, $networkCode = null) {
+    public function custom_currency_to_precision($code, $amount, $networkCode = null) {
         $amountPrecision = $this->number_to_string($this->to_precision($amount, $this->currencies[$code]['precision']));
         return $this->parse_to_int(floatval($amountPrecision));
     }
@@ -2413,7 +2417,7 @@ class wavesexchange extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2501,7 +2505,7 @@ class wavesexchange extends Exchange {
         $feeAssetId = 'WAVES';
         $type = 4;  // transfer
         $version = 2;
-        $amountInteger = $this->currency_to_precision($code, $amount);
+        $amountInteger = $this->custom_currency_to_precision($code, $amount);
         $currency = $this->currency($code);
         $timestamp = $this->milliseconds();
         $byteArray = [

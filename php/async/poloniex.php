@@ -73,6 +73,7 @@ class poloniex extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'sandbox' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -587,7 +588,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" : "BTC_USDT",
@@ -1873,12 +1874,11 @@ class poloniex extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $amount = $this->currency_to_precision($code, $amount);
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $fromAccount);
             $request = array(
-                'amount' => $amount,
+                'amount' => $this->currency_to_precision($code, $amount),
                 'currency' => $currency['id'],
                 'fromAccount' => $fromId,
                 'toAccount' => $toId,
@@ -1893,7 +1893,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    {
         //        "transferId" : "168041074"
@@ -1912,7 +1912,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

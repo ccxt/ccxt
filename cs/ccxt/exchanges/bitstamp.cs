@@ -61,8 +61,11 @@ public partial class bitstamp : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -2278,10 +2281,8 @@ public partial class bitstamp : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        amount = this.parseToNumeric(amount);
         object request = new Dictionary<string, object>() {
-            { "amount", amount },
+            { "amount", this.parseToNumeric(this.currencyToPrecision(code, amount)) },
             { "currency", ((string)getValue(currency, "id")).ToUpper() },
         };
         object response = null;

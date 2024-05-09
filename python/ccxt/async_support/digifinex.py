@@ -8,7 +8,7 @@ from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1095,7 +1095,7 @@ class digifinex(Exchange, ImplicitAPI):
             result = self.extend({'date': date}, firstTicker)
         return self.parse_ticker(result, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -2680,13 +2680,13 @@ class digifinex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '0': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -2755,7 +2755,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2852,7 +2852,7 @@ class digifinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_cross_borrow_rate(self, code: str, params={}):
+    async def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
@@ -2889,7 +2889,7 @@ class digifinex(Exchange, ImplicitAPI):
         currency = self.currency(code)
         return self.parse_borrow_rate(result, currency)
 
-    async def fetch_cross_borrow_rates(self, params={}):
+    async def fetch_cross_borrow_rates(self, params={}) -> CrossBorrowRates:
         """
         fetch the borrow interest rates of all currencies
         :see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
@@ -3439,7 +3439,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch the transfer history, only transfers between spot and swap accounts are supported
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
@@ -3735,7 +3735,7 @@ class digifinex(Exchange, ImplicitAPI):
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
 
-    async def add_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin to a position
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
@@ -3749,7 +3749,7 @@ class digifinex(Exchange, ImplicitAPI):
         self.check_required_argument('addMargin', side, 'side', ['long', 'short'])
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    async def reduce_margin(self, symbol: str, amount, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin

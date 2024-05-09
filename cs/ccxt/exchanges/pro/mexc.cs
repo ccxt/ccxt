@@ -776,6 +776,21 @@ public partial class mexc : ccxt.mexc
         //        "v": "5"
         //    }
         //
+        //
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
+        //   }
         object timestamp = this.safeInteger(trade, "T");
         object tradeId = this.safeString(trade, "t");
         if (isTrue(isEqual(timestamp, null)))
@@ -788,6 +803,8 @@ public partial class mexc : ccxt.mexc
         object rawSide = this.safeString(trade, "S");
         object side = ((bool) isTrue((isEqual(rawSide, "1")))) ? "buy" : "sell";
         object isMaker = this.safeInteger(trade, "m");
+        object feeAmount = this.safeNumber(trade, "n");
+        object feeCurrencyId = this.safeString(trade, "N");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", tradeId },
@@ -801,7 +818,10 @@ public partial class mexc : ccxt.mexc
             { "price", priceString },
             { "amount", amountString },
             { "cost", null },
-            { "fee", null },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", feeAmount },
+                { "currency", this.safeCurrencyCode(feeCurrencyId) },
+            } },
         }, market);
     }
 

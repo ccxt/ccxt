@@ -37,7 +37,9 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                 test_trade($exchange, $skipped_properties, $method, $trade, $symbol, $now);
                 assert_in_array($exchange, $skipped_properties, $method, $trade, 'symbol', $symbols);
             }
-            assert_timestamp_order($exchange, $method, $symbol, $response);
+            if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
+                assert_timestamp_order($exchange, $method, $symbol, $response);
+            }
         }
     }) ();
 }

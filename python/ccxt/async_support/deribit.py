@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -107,6 +107,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchVolatilityHistory': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
+                'sandbox': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -1060,7 +1061,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker /public/ticker
         #
@@ -2603,7 +2604,7 @@ class deribit(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.deribit.com/#private-get_transfers
@@ -2709,7 +2710,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_transfer(result, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "updated_timestamp": 1550232862350,
@@ -2733,14 +2734,14 @@ class deribit(Exchange, ImplicitAPI):
             'id': self.safe_string(transfer, 'id'),
             'status': self.parse_transfer_status(status),
             'amount': self.safe_number(transfer, 'amount'),
-            'code': self.safe_currency_code(currencyId, currency),
+            'currency': self.safe_currency_code(currencyId, currency),
             'fromAccount': direction != account if 'payment' else None,
             'toAccount': direction == account if 'payment' else None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'prepared': 'pending',
             'confirmed': 'ok',
@@ -2749,7 +2750,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.deribit.com/#private-withdraw

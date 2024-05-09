@@ -82,8 +82,11 @@ class probit(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -98,6 +101,7 @@ class probit(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -655,7 +659,7 @@ class probit(Exchange, ImplicitAPI):
             raise BadResponse(self.id + ' fetchTicker() returned an empty response')
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "last":"0.022902",
@@ -1331,7 +1335,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://docs-en.probit.com/reference/withdrawal
         make a withdrawal
@@ -1425,10 +1429,10 @@ class probit(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         else:
             request['start_time'] = self.iso8601(1)
-        until = self.safe_integer_2(params, 'till', 'until')
+        until = self.safe_integer(params, 'until')
         if until is not None:
             request['end_time'] = self.iso8601(until)
-            params = self.omit(params, ['until', 'till'])
+            params = self.omit(params, ['until'])
         else:
             request['end_time'] = self.iso8601(self.milliseconds())
         if limit is not None:

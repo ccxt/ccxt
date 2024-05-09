@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@ export default class htx extends Exchange {
                 'borrowCrossMargin': true,
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
@@ -103,7 +104,9 @@ export default class htx extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
@@ -1962,7 +1965,7 @@ export default class htx extends Exchange {
         return symbolOrMarketId;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -3264,7 +3267,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    networkIdToCode (networkId, currencyCode = undefined) {
+    networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined) {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         const keys = Object.keys (this.options['networkNamesByChainIds']);
         const keysLength = keys.length;
@@ -3275,7 +3278,7 @@ export default class htx extends Exchange {
         return super.networkIdToCode (networkTitle);
     }
 
-    networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+    networkCodeToId (networkCode: string, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if (currencyCode === undefined) {
             throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
         }
@@ -5994,6 +5997,34 @@ export default class htx extends Exchange {
         return response;
     }
 
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        /**
+         * @method
+         * @name huobi#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
+        };
+        const response = await this.v2PrivatePostAlgoOrdersCancelAllAfter (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "currentTime": 1630491627230,
+        //             "triggerTime": 1630491637230
+        //         }
+        //     }
+        //
+        return response;
+    }
+
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
@@ -6344,7 +6375,7 @@ export default class htx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name huobi#withdraw
@@ -6405,7 +6436,7 @@ export default class htx extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -6519,7 +6550,7 @@ export default class htx extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async fetchIsolatedBorrowRates (params = {}) {
+    async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
         /**
          * @method
          * @name htx#fetchIsolatedBorrowRates
@@ -6559,14 +6590,10 @@ export default class htx extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'data', []);
-        const rates = [];
-        for (let i = 0; i < data.length; i++) {
-            rates.push (this.parseIsolatedBorrowRate (data[i]));
-        }
-        return rates as BorrowRate[];
+        return this.parseIsolatedBorrowRates (data);
     }
 
-    parseIsolatedBorrowRate (info, market: Market = undefined) {
+    parseIsolatedBorrowRate (info, market: Market = undefined): IsolatedBorrowRate {
         //
         //     {
         //         "symbol": "1inchusdt",
@@ -8543,8 +8570,8 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
         const market = this.market (symbol);
         const request = {};
         if (market['future']) {

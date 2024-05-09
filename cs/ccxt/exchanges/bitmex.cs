@@ -25,6 +25,7 @@ public partial class bitmex : Exchange
                 { "option", false },
                 { "addMargin", null },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
@@ -64,7 +65,9 @@ public partial class bitmex : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -74,6 +77,7 @@ public partial class bitmex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "reduceMargin", null },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", null },
                 { "setMarginMode", true },
@@ -2278,6 +2282,32 @@ public partial class bitmex : Exchange
         return this.parseOrders(response, market);
     }
 
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+        };
+        object response = await this.privatePostOrderCancelAllAfter(this.extend(request, parameters));
+        //
+        //     {
+        //         now: '2024-04-09T09:01:56.560Z',
+        //         cancelTime: '2024-04-09T09:01:56.660Z'
+        //     }
+        //
+        return response;
+    }
+
     public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
     {
         /**
@@ -2735,8 +2765,8 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);

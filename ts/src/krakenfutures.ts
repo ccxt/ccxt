@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ export default class krakenfutures extends Exchange {
                 'future': true,
                 'option': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createMarketOrder': false,
@@ -71,6 +72,7 @@ export default class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -541,7 +543,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -1269,6 +1271,34 @@ export default class krakenfutures extends Exchange {
             request['symbol'] = this.marketId (symbol);
         }
         const response = await this.privatePostCancelallorders (this.extend (request, params));
+        return response;
+    }
+
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#cancelAllOrdersAfter
+         * @description dead man's switch, cancel all orders after the given timeout
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the api result
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'timeout': (timeout > 0) ? (this.parseToInt (timeout / 1000)) : 0,
+        };
+        const response = await this.privatePostCancelallordersafter (this.extend (request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2018-06-19T16:51:23.839Z",
+        //         "status": {
+        //             "currentTime": "2018-06-19T16:51:23.839Z",
+        //             "triggerTime": "0"
+        //         }
+        //     }
+        //
         return response;
     }
 
@@ -2439,7 +2469,7 @@ export default class krakenfutures extends Exchange {
         return tiers;
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //

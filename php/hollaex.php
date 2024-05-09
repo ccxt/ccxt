@@ -85,6 +85,7 @@ class hollaex extends Exchange {
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -320,7 +321,7 @@ class hollaex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://apidocs.hollaex.com/#constants
@@ -525,12 +526,12 @@ class hollaex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_tickers($response, ?array $symbols = null, $params = array ()) {
+    public function parse_tickers($tickers, ?array $symbols = null, $params = array ()): array {
         $result = array();
-        $keys = is_array($response) ? array_keys($response) : array();
+        $keys = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $ticker = $response[$key];
+            $ticker = $tickers[$key];
             $marketId = $this->safe_string($ticker, 'symbol', $key);
             $market = $this->safe_market($marketId, null, '-');
             $symbol = $market['symbol'];
@@ -539,7 +540,7 @@ class hollaex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -1663,7 +1664,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://apidocs.hollaex.com/#withdrawal
