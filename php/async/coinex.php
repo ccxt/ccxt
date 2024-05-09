@@ -4971,7 +4971,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '0' => 'ok',
             'SUCCESS' => 'ok',
@@ -4979,7 +4979,7 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // fetchTransfers Swap
         //
@@ -5027,7 +5027,7 @@ class coinex extends Exchange {
         $currencyCode = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transfer,
-            'id' => $this->safe_integer($transfer, 'id'),
+            'id' => $this->safe_string($transfer, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $currencyCode,
@@ -5038,7 +5038,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account

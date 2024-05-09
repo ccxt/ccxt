@@ -2264,7 +2264,7 @@ class woo extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://docs.woo.org/#get-transfer-history
@@ -2316,7 +2316,7 @@ class woo extends Exchange {
         return $this->parse_transfers($data, null, $since, $limit, $params);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    fetchTransfers
         //     {
@@ -2360,7 +2360,7 @@ class woo extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',

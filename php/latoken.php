@@ -1525,7 +1525,7 @@ class latoken extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers made on an account
          * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
@@ -1626,7 +1626,7 @@ class latoken extends Exchange {
         return $this->parse_transfer($response);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -1665,7 +1665,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'TRANSFER_STATUS_COMPLETED' => 'ok',
             'TRANSFER_STATUS_PENDING' => 'pending',

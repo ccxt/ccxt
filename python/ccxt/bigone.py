@@ -2017,14 +2017,14 @@ class bigone(Exchange, ImplicitAPI):
             transfer['id'] = guid
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "code": 0,
         #         "data": null
         #     }
         #
-        code = self.safe_number(transfer, 'code')
+        code = self.safe_string(transfer, 'code')
         return {
             'info': transfer,
             'id': None,
@@ -2037,7 +2037,7 @@ class bigone(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(code),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '0': 'ok',
         }

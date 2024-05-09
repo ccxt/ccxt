@@ -266,6 +266,7 @@ interface Exchange {
     privatePostTradingBotGridComputeMarginBalance(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridMarginBalance(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotGridMinInvestment(params?: {}): Promise<implicitReturnType>;
+    privatePostTradingBotGridAdjustInvestment(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotSignalCreateSignal(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotSignalOrderAlgo(params?: {}): Promise<implicitReturnType>;
     privatePostTradingBotSignalStopOrderAlgo(params?: {}): Promise<implicitReturnType>;

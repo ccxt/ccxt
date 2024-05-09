@@ -2221,7 +2221,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'ok' => 'ok',
             'error' => 'failed',

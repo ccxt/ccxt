@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -7512,13 +7512,13 @@ class binance(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'CONFIRMED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -7676,7 +7676,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data

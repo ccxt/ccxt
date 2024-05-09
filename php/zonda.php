@@ -1628,7 +1628,7 @@ class zonda extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "status" => "Ok",
@@ -1676,7 +1676,7 @@ class zonda extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'Ok' => 'ok',
             'Fail' => 'failed',

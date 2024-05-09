@@ -2813,14 +2813,14 @@ class digifinex extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '0' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -3622,7 +3622,7 @@ class digifinex extends Exchange {
         //
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the transfer history, only $transfers between spot and swap accounts are supported
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord

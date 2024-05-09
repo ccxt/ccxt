@@ -3870,7 +3870,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer (spot)
         //
@@ -3926,7 +3926,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'PROCESSING' => 'pending',
         );

@@ -1840,7 +1840,7 @@ class poloniex extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    {
         //        "transferId" : "168041074"

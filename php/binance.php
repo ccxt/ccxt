@@ -7843,14 +7843,14 @@ class binance extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'CONFIRMED' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -8026,7 +8026,7 @@ class binance extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data

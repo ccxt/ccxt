@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -505,6 +505,7 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/grid/adjust-investment': 1,
                         'tradingBot/signal/create-signal': 1,
                         'tradingBot/signal/order-algo': 1,
                         'tradingBot/signal/stop-order-algo': 1,
@@ -5386,7 +5387,7 @@ class okx(Exchange, ImplicitAPI):
         rawTransfer = self.safe_dict(data, 0, {})
         return self.parse_transfer(rawTransfer, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -5462,13 +5463,13 @@ class okx(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'success': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_transfer(self, id: str, code: Str = None, params={}):
+    async def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
         await self.load_markets()
         request = {
             'transId': id,
@@ -5499,7 +5500,7 @@ class okx(Exchange, ImplicitAPI):
         transfer = self.safe_dict(data, 0)
         return self.parse_transfer(transfer)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months

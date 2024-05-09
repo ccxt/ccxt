@@ -6365,7 +6365,7 @@ class htx extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //

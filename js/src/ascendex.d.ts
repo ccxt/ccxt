@@ -92,18 +92,8 @@ export default class ascendex extends Exchange {
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    };
-    parseTransferStatus(status: any): "ok" | "failed";
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    parseTransferStatus(status: Str): Str;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseIncome(income: any, market?: Market): {
         info: any;

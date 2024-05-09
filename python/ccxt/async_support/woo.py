@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -2155,7 +2155,7 @@ class woo(Exchange, ImplicitAPI):
             transfer['toAccount'] = toAccount
         return transfer
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.woo.org/#get-transfer-history
@@ -2203,7 +2203,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'rows', [])
         return self.parse_transfers(data, None, since, limit, params)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    fetchTransfers
         #     {
@@ -2245,7 +2245,7 @@ class woo(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',

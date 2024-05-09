@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRates, IsolatedBorrowRate, Dict } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries } from './base/types.js';
 /**
  * @class coinex
  * @augments Exchange
@@ -121,19 +121,9 @@ export default class coinex extends Exchange {
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransferStatus(status: any): string;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: number;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    };
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseTransferStatus(status: Str): Str;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;

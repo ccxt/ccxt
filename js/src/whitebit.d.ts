@@ -55,17 +55,7 @@ export default class whitebit extends Exchange {
     }>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-    };
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;

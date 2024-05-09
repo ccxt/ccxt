@@ -4889,7 +4889,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_transfer(string $id, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()): array {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
         $this->load_markets();
         if ($marketType === 'spot') {
@@ -4918,7 +4918,7 @@ class mexc extends Exchange {
         return null;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @param {string} $code unified $currency $code of the $currency transferred
@@ -5061,7 +5061,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // spot => fetchTransfer
         //
@@ -5128,7 +5128,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'FAILED' => 'failed',

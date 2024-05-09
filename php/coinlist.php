@@ -1743,7 +1743,7 @@ class coinlist extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$transfers
@@ -1798,7 +1798,7 @@ class coinlist extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // fetchTransfers
         //     {
@@ -1856,7 +1856,7 @@ class coinlist extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'confirmed' => 'ok',
         );

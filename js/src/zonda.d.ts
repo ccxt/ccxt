@@ -59,18 +59,8 @@ export default class zonda extends Exchange {
     }>;
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    };
-    parseTransferStatus(status: any): string;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    parseTransferStatus(status: Str): Str;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

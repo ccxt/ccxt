@@ -4994,8 +4994,8 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_transfer(string $id, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($id, $since, $limit, $params) {
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $code, $params) {
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
             Async\await($this->load_markets());
             if ($marketType === 'spot') {
@@ -5025,7 +5025,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -5172,7 +5172,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // spot => fetchTransfer
         //
@@ -5239,7 +5239,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'FAILED' => 'failed',

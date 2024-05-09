@@ -2151,14 +2151,14 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "code" => 0,
         //         "data" => null
         //     }
         //
-        $code = $this->safe_number($transfer, 'code');
+        $code = $this->safe_string($transfer, 'code');
         return array(
             'info' => $transfer,
             'id' => null,
@@ -2172,7 +2172,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '0' => 'ok',
         );

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -6664,7 +6664,7 @@ class bybit(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
@@ -6809,7 +6809,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '0': 'ok',
             'OK': 'ok',
@@ -6817,7 +6817,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #

@@ -1794,7 +1794,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    []
         #

@@ -1924,3 +1924,24 @@ class Exchange(BaseExchange):
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
+
+    async def fetch_transfer(self, id: str, code: Str = None, params={}):
+        """
+        fetches a transfer
+        :param str id: transfer id
+        :param [str] code: unified currency code
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        raise NotSupported(self.id + ' fetchTransfer() is not supported yet')
+
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches a transfer
+        :param str id: transfer id
+        :param int [since]: timestamp in ms of the earliest transfer to fetch
+        :param int [limit]: the maximum amount of transfers to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        raise NotSupported(self.id + ' fetchTransfers() is not supported yet')

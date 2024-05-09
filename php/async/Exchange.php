@@ -842,7 +842,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseTransaction() is not supported yet');
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
     }
 
@@ -5475,5 +5475,28 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $marginModifications;
+    }
+
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()) {
+        /**
+         * fetches a transfer
+         * @param {string} $id transfer $id
+         * @param {[string]} $code unified currency $code
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transfer-structure transfer structure~
+         */
+        throw new NotSupported($this->id . ' fetchTransfer () is not supported yet');
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches a transfer
+         * @param {string} id transfer id
+         * @param {int} [$since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [$limit] the maximum amount of transfers to fetch
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         */
+        throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
 }

@@ -132,7 +132,7 @@ export default class bitstamp extends Exchange {
         toAccount: any;
         status: string;
     };
-    parseTransferStatus(status: any): string;
+    parseTransferStatus(status: Str): Str;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

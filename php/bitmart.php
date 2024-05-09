@@ -3713,7 +3713,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '1000' => 'ok',
             'OK' => 'ok',
@@ -3738,7 +3738,7 @@ class bitmart extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // margin
         //
@@ -3778,7 +3778,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
          * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed

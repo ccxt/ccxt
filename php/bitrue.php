@@ -2845,7 +2845,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256

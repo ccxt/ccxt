@@ -480,6 +480,7 @@ class okx extends okx$1 {
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/grid/adjust-investment': 1,
                         'tradingBot/signal/create-signal': 1,
                         'tradingBot/signal/order-algo': 1,
                         'tradingBot/signal/stop-order-algo': 1,

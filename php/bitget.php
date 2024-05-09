@@ -7152,7 +7152,7 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords
@@ -7259,7 +7259,7 @@ class bitget extends Exchange {
         return $this->parse_transfer($data, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -7305,7 +7305,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'successful' => 'ok',
         );

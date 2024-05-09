@@ -943,10 +943,10 @@ class bitfinex2 extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
-        return $this->parse_transfer($response, $currency);
+        return $this->parse_transfer(array( 'result' => $response ), $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -970,12 +970,13 @@ class bitfinex2 extends Exchange {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     )
         //
-        $timestamp = $this->safe_integer($transfer, 0);
-        $info = $this->safe_value($transfer, 4);
+        $result = $this->safe_list($transfer, 'result');
+        $timestamp = $this->safe_integer($result, 0);
+        $info = $this->safe_value($result, 4);
         $fromAccount = $this->safe_string($info, 1);
         $toAccount = $this->safe_string($info, 2);
         $currencyId = $this->safe_string($info, 5);
-        $status = $this->safe_string($transfer, 6);
+        $status = $this->safe_string($result, 6);
         return array(
             'id' => null,
             'timestamp' => $timestamp,
@@ -985,11 +986,11 @@ class bitfinex2 extends Exchange {
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'info' => $transfer,
+            'info' => $result,
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'ERROR' => 'failed',

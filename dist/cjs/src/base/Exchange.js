@@ -6303,6 +6303,31 @@ class Exchange {
         }
         return marginModifications;
     }
+    async fetchTransfer(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {[string]} code unified currency code
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchTransfer () is not supported yet');
+    }
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {int} [since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [limit] the maximum amount of transfers to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchTransfers () is not supported yet');
+    }
 }
 
 exports.Exchange = Exchange;

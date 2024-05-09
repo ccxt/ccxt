@@ -3625,7 +3625,7 @@ class kucoin(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data')
             return self.parse_transfer(data, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer(spot)
         #
@@ -3680,7 +3680,7 @@ class kucoin(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'PROCESSING': 'pending',
         }

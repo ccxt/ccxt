@@ -2227,7 +2227,7 @@ class okcoin(Exchange, ImplicitAPI):
         rawTransfer = self.safe_dict(data, 0, {})
         return self.parse_transfer(rawTransfer, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -2303,7 +2303,7 @@ class okcoin(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'success': 'ok',
         }

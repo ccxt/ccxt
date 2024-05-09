@@ -775,7 +775,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'amount': self.parse_number(requestedAmount),
         })
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "status": "success",
@@ -794,7 +794,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'ok',
         }

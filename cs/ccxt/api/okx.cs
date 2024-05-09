@@ -1336,6 +1336,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privatePostTradingBotGridMinInvestment",parameters);
     }
 
+    public async Task<object> privatePostTradingBotGridAdjustInvestment (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTradingBotGridAdjustInvestment",parameters);
+    }
+
     public async Task<object> privatePostTradingBotSignalCreateSignal (object parameters = null)
     {
         return await this.callAsync ("privatePostTradingBotSignalCreateSignal",parameters);

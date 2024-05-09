@@ -482,7 +482,7 @@ class paymium extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -534,7 +534,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'executed' => 'ok',
             // what are the other $statuses?

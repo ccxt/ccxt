@@ -3148,7 +3148,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
@@ -3200,7 +3200,7 @@ class bingx extends Exchange {
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         $tranId = $this->safe_string($transfer, 'tranId');
         $timestamp = $this->safe_integer($transfer, 'timestamp');
         $currencyCode = $this->safe_currency_code(null, $currency);

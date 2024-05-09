@@ -95,18 +95,8 @@ export default class kucoin extends Exchange {
     parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        id: string;
-        currency: string;
-        timestamp: number;
-        datetime: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-        info: any;
-    };
-    parseTransferStatus(status: any): string;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    parseTransferStatus(status: Str): Str;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: Currency): {
         id: string;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, TransferEntries } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -127,32 +127,12 @@ export default class mexc extends Exchange {
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: any, market?: Market): Position;
-    fetchTransfer(id: string, since?: Int, limit?: Int, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    }>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    };
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseAccountId(status: any): string;
-    parseTransferStatus(status: any): string;
+    parseTransferStatus(status: Str): Str;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchPositionMode(symbol?: Str, params?: {}): Promise<{

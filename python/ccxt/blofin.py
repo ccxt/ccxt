@@ -1643,7 +1643,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transfer(data, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         id = self.safe_string(transfer, 'transferId')
         return {
             'info': transfer,

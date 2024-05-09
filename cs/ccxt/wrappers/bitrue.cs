@@ -690,12 +690,12 @@ public partial class bitrue
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account

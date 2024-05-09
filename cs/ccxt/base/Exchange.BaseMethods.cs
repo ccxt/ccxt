@@ -6368,5 +6368,17 @@ public partial class Exchange
         }
         return marginModifications;
     }
+
+    public async virtual Task<object> fetchTransfer(object id, object code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTransfer () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
+    }
 }
 

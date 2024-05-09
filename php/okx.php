@@ -477,6 +477,7 @@ class okx extends Exchange {
                         'tradingBot/grid/compute-margin-balance' => 1,
                         'tradingBot/grid/margin-balance' => 1,
                         'tradingBot/grid/min-investment' => 1,
+                        'tradingBot/grid/adjust-investment' => 1,
                         'tradingBot/signal/create-signal' => 1,
                         'tradingBot/signal/order-algo' => 1,
                         'tradingBot/signal/stop-order-algo' => 1,
@@ -5654,7 +5655,7 @@ class okx extends Exchange {
         return $this->parse_transfer($rawTransfer, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -5732,14 +5733,14 @@ class okx extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'success' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_transfer(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()): array {
         $this->load_markets();
         $request = array(
             'transId' => $id,
@@ -5771,7 +5772,7 @@ class okx extends Exchange {
         return $this->parse_transfer($transfer);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers made on an account
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months

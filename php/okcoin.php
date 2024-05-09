@@ -2323,7 +2323,7 @@ class okcoin extends Exchange {
         return $this->parse_transfer($rawTransfer, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -2401,7 +2401,7 @@ class okcoin extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'success' => 'ok',
         );

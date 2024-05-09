@@ -2705,7 +2705,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers made on an account
          * @see https://docs.deribit.com/#private-get_transfers
@@ -2817,7 +2817,7 @@ class deribit extends Exchange {
         return $this->parse_transfer($result, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "updated_timestamp" => 1550232862350,
@@ -2841,7 +2841,7 @@ class deribit extends Exchange {
             'id' => $this->safe_string($transfer, 'id'),
             'status' => $this->parse_transfer_status($status),
             'amount' => $this->safe_number($transfer, 'amount'),
-            'code' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $direction !== 'payment' ? $account : null,
             'toAccount' => $direction === 'payment' ? $account : null,
             'timestamp' => $timestamp,
@@ -2849,7 +2849,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'prepared' => 'pending',
             'confirmed' => 'ok',

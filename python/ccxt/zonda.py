@@ -1595,7 +1595,7 @@ class zonda(Exchange, ImplicitAPI):
             transfer['amount'] = amount
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "status": "Ok",
@@ -1642,7 +1642,7 @@ class zonda(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'Ok': 'ok',
             'Fail': 'failed',

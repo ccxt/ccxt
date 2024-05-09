@@ -1155,7 +1155,7 @@ class novadax extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    {
         //        "code":"A10000",
@@ -1170,7 +1170,6 @@ class novadax extends Exchange {
             'info' => $transfer,
             'id' => $id,
             'amount' => null,
-            'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
             'currency' => $currencyCode,
             'fromAccount' => null,
             'toAccount' => null,
@@ -1180,7 +1179,7 @@ class novadax extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'pending',
         );

@@ -4367,7 +4367,7 @@ class phemex extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers made on an account
          * @param {string} $code unified $currency $code of the $currency transferred
@@ -4416,7 +4416,7 @@ class phemex extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -4472,7 +4472,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '3' => 'rejected', // 'Rejected',
             '6' => 'canceled', // 'Got error and wait for recovery',

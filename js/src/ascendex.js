@@ -3197,7 +3197,7 @@ export default class ascendex extends Exchange {
         //
         //    { "code": "0" }
         //
-        const status = this.safeInteger(transfer, 'code');
+        const status = this.safeString(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
         return {
             'info': transfer,
@@ -3212,7 +3212,7 @@ export default class ascendex extends Exchange {
         };
     }
     parseTransferStatus(status) {
-        if (status === 0) {
+        if (status === '0') {
             return 'ok';
         }
         return 'failed';

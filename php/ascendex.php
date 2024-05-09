@@ -3149,11 +3149,11 @@ class ascendex extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    array( "code" => "0" )
         //
-        $status = $this->safe_integer($transfer, 'code');
+        $status = $this->safe_string($transfer, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
         return array(
             'info' => $transfer,
@@ -3168,8 +3168,8 @@ class ascendex extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
-        if ($status === 0) {
+    public function parse_transfer_status(?string $status): ?string {
+        if ($status === '0') {
             return 'ok';
         }
         return 'failed';

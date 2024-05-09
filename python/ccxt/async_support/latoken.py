@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1472,7 +1472,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
@@ -1570,7 +1570,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -1608,7 +1608,7 @@ class latoken(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'TRANSFER_STATUS_COMPLETED': 'ok',
             'TRANSFER_STATUS_PENDING': 'pending',

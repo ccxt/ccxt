@@ -1738,7 +1738,7 @@ class blofin extends Exchange {
         return $this->parse_transfer($data, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         $id = $this->safe_string($transfer, 'transferId');
         return array(
             'info' => $transfer,

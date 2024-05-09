@@ -2308,7 +2308,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #

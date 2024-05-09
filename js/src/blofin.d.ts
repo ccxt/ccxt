@@ -91,17 +91,7 @@ export default class blofin extends Exchange {
     parseIds(ids: any): any;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: string;
-        timestamp: any;
-        datetime: any;
-        currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-    };
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     parsePosition(position: any, market?: Market): Position;
