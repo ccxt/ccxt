@@ -368,6 +368,7 @@ export default class okx extends Exchange {
                         'tradingBot/recurring/orders-algo-history': 1,
                         'tradingBot/recurring/orders-algo-details': 1,
                         'tradingBot/recurring/sub-orders': 1,
+                        // earn
                         'finance/savings/balance': 5 / 3,
                         'finance/savings/lending-history': 5 / 3,
                         'finance/staking-defi/offers': 10 / 3,
