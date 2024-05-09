@@ -6666,7 +6666,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined): Option {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         throw new NotSupported (this.id + ' parseOption () is not supported yet');
     }
 

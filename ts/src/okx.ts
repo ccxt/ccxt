@@ -7768,7 +7768,7 @@ export default class okx extends Exchange {
         return this.parseOptionChain (result, undefined, 'instId');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "instType": "OPTION",
