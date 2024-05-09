@@ -920,7 +920,7 @@ export default class woofipro extends woofiproRest {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        let messageHashes = [];
+        const messageHashes = [];
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
