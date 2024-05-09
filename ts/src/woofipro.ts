@@ -1822,7 +1822,7 @@ export default class woofipro extends Exchange {
         if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
-        [ request, params ] = this.handleUntilOption ('end_t', params, request);
+        [ request, params ] = this.handleUntilOption ('end_t', request, params);
         let response = undefined;
         if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
@@ -1996,7 +1996,7 @@ export default class woofipro extends Exchange {
         } else {
             request['size'] = 500;
         }
-        [ request, params ] = this.handleUntilOption ('end_t', params, request);
+        [ request, params ] = this.handleUntilOption ('end_t', request, params);
         const response = await this.v1PrivateGetTrades (this.extend (request, params));
         //
         // {
