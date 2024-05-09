@@ -142,8 +142,8 @@ export default class woofipro extends Exchange {
                     'https://dex.woo.org/en/orderly',
                 ],
                 'referral': {
-                    'url': '',
-                    'discount': 0, // TODO: update
+                    'url': 'https://dex.woo.org/en/trade?ref=CCXT',
+                    'discount': 0.05,
                 },
             },
             'api': {
