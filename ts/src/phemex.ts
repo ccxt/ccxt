@@ -3852,13 +3852,13 @@ export default class phemex extends Exchange {
         //                 {
         //                     "symbol": "BTCUSD",
         //                     "currency": "BTC",
-        //                     "execQty": 18, // "execQty" v1, but "execQtyRq" in v2
+        //                     "execQty": 18, // "execQty" regular, but "execQtyRq" in hedge
         //                     "side": "Buy",
-        //                     "execPriceEp": 360086455, // "execPriceEp" v1, but "execPriceRp" in v2
-        //                     "execValueEv": 49987, // "execValueEv" v1, but "execValueRv" in v2
-        //                     "fundingRateEr": 10000, // "fundingRateEr" v1, but "fundingRateRr" in v2
-        //                     "feeRateEr": 10000, // "feeRateEr" v1, but "feeRateRr" in v2
-        //                     "execFeeEv": 5, // "execFeeEv" v1, but "execFeeRv" in v2
+        //                     "execPriceEp": 360086455, // "execPriceEp" regular, but "execPriceRp" in hedge
+        //                     "execValueEv": 49987, // "execValueEv" regular, but "execValueRv" in hedge
+        //                     "fundingRateEr": 10000, // "fundingRateEr" regular, but "fundingRateRr" in hedge
+        //                     "feeRateEr": 10000, // "feeRateEr" regular, but "feeRateRr" in hedge
+        //                     "execFeeEv": 5, // "execFeeEv" regular, but "execFeeRv" in hedge
         //                     "createTime": 1651881600000
         //                 }
         //             ]
