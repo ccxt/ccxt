@@ -5,7 +5,7 @@ import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ export default class oxfun extends Exchange {
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -185,7 +185,7 @@ export default class oxfun extends Exchange {
                     'post': {
                         'v3/transfer': 1, // todo doesn't work
                         'v3/withdrawal': 1,
-                        'v3/orders/ploxfun': 1,
+                        'v3/orders/place': 1,
                     },
                     'delete': {
                         'v3/orders/cancel': 1,
@@ -245,6 +245,7 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"30001","message":"Required parameter 'marketCode' is missing"}
                     // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
                     // {"success":false,"code":"20001","message":"subAcc is invalid"}
+                    // {"success":false,"message":null,"code":"500","timestamp":"2024-05-09T13:15:30.418+0000","data":null}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -411,7 +412,7 @@ export default class oxfun extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
+                'amount': undefined, // todo find it out
                 'price': this.safeNumber (market, 'tickSize'),
             },
             'limits': {
@@ -1019,7 +1020,7 @@ export default class oxfun extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['pairId'] = market['numericId'];
+            request['marketCode'] = market['id'];
         }
         if (since !== undefined) { // startTime and endTime must be within 7 days of each other
             request['startTime'] = since;
@@ -1502,6 +1503,48 @@ export default class oxfun extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name oxfun#createOrder
+         * @description create a trade order
+         * @see https://docs.ox.fun/?json#post-v3-orders-place
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const listOfOrders = [];
+        const orderRequest = this.createOrderRequest (market, type, side, amount, price, params);
+        listOfOrders.push (orderRequest);
+        const request = {
+            'orders': listOfOrders,
+        };
+        return await this.privatePostV3OrdersPlace (request);
+        // return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
+    }
+
+    createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+        // const symbol = market['symbol'];
+        const request = {
+            'marketCode': market['id'],
+            'orderType': type.toUpperCase (),
+            'side': side.toUpperCase (),
+            'quantity': amount, // todo this.amountToPrecision (symbol, amount),
+        };
+        return request;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
