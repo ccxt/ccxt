@@ -606,7 +606,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name blockchaincom#cancelOrder
@@ -621,13 +621,13 @@ export default class blockchaincom extends Exchange {
             'orderId': id,
         };
         const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': response,
-        };
+        });
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name blockchaincom#cancelAllOrders
@@ -643,15 +643,13 @@ export default class blockchaincom extends Exchange {
         const request = {
             // 'symbol': marketId,
         };
+        let market = undefined;
         if (symbol !== undefined) {
-            const marketId = this.marketId (symbol);
-            request['symbol'] = marketId;
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
         const response = await this.privateDeleteOrders (this.extend (request, params));
-        return {
-            'symbol': symbol,
-            'info': response,
-        };
+        return this.parseOrders (response, market);
     }
 
     async fetchTradingFees (params = {}): Promise<TradingFees> {

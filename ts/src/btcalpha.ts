@@ -788,7 +788,7 @@ export default class btcalpha extends Exchange {
         return order;
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name btcalpha#cancelOrder

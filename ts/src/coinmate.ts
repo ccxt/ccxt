@@ -1054,7 +1054,7 @@ export default class coinmate extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name coinmate#cancelOrder
@@ -1068,9 +1068,9 @@ export default class coinmate extends Exchange {
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         const request = { 'orderId': id };
         const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));
-        return {
+        return this.safeOrder ({
             'info': response,
-        };
+        });
     }
 
     nonce () {

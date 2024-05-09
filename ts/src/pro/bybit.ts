@@ -270,7 +270,7 @@ export default class bybit extends bybitRest {
         return await this.watch (url, requestId, request, requestId, true) as Order;
     }
 
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bybit#cancelOrderWs

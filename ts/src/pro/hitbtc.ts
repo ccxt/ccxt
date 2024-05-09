@@ -1091,7 +1091,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#cancelAllOrdersWs

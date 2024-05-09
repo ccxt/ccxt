@@ -956,7 +956,7 @@ export default class bithumb extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bithumb#cancelOrder
@@ -987,7 +987,7 @@ export default class bithumb extends Exchange {
         return await this.privatePostTradeCancel (this.extend (request, params));
     }
 
-    async cancelUnifiedOrder (order, params = {}) {
+    async cancelUnifiedOrder (order: Order, params = {}): Promise<Order> {
         const request = {
             'side': order['side'],
         };

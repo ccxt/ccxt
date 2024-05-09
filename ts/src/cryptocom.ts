@@ -1359,7 +1359,7 @@ export default class cryptocom extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cryptocom#cancelAllOrders
@@ -1379,7 +1379,7 @@ export default class cryptocom extends Exchange {
         return await this.v1PrivatePostPrivateCancelAllOrders (this.extend (request, params));
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cryptocom#cancelOrder
@@ -1449,7 +1449,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (result, market, undefined, undefined, params);
     }
 
-    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cryptocom#cancelOrdersForSymbols

@@ -2521,7 +2521,7 @@ export default class bingx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bingx#cancelOrder
@@ -2607,7 +2607,7 @@ export default class bingx extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#cancelAllOrders
@@ -2767,7 +2767,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#cancelAllOrdersAfter

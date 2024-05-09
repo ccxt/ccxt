@@ -2965,7 +2965,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name mexc#cancelOrder
@@ -3113,7 +3113,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name mexc#cancelAllOrders

@@ -3149,7 +3149,7 @@ export default class okx extends Exchange {
         return order;
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name okx#cancelOrder
@@ -3309,7 +3309,7 @@ export default class okx extends Exchange {
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
-    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okx#cancelOrdersForSymbols
@@ -3390,7 +3390,7 @@ export default class okx extends Exchange {
         return this.parseOrders (ordersData, undefined, undefined, undefined, params);
     }
 
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okx#cancelAllOrdersAfter

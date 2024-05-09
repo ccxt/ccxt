@@ -602,7 +602,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateUpdateOrder', request);
     }
 
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#cancelOrderWs
@@ -619,7 +619,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateCancelOrder', request);
     }
 
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitvavo#cancelAllOrdersWs

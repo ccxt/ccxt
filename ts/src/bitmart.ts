@@ -2573,7 +2573,7 @@ export default class bitmart extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitmart#cancelOrder
@@ -2662,7 +2662,7 @@ export default class bitmart extends Exchange {
         return this.extend (order, { 'id': id });
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmart#cancelAllOrders

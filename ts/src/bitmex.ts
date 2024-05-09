@@ -2018,7 +2018,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitmex#cancelOrder
@@ -2076,7 +2076,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#cancelAllOrders
@@ -2136,7 +2136,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#cancelAllOrdersAfter

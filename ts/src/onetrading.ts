@@ -1593,7 +1593,7 @@ export default class onetrading extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name onetrading#cancelOrder
@@ -1621,7 +1621,7 @@ export default class onetrading extends Exchange {
         return response;
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name onetrading#cancelAllOrders

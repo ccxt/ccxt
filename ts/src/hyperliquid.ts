@@ -1226,7 +1226,7 @@ export default class hyperliquid extends Exchange {
         return this.parseOrders (statuses, undefined);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name hyperliquid#cancelOrder
@@ -1322,7 +1322,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hyperliquid#cancelOrdersForSymbols
@@ -1396,7 +1396,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hyperliquid#cancelAllOrdersAfter
