@@ -956,7 +956,7 @@ export default class bitfinex2 extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
             throw new ExchangeError (this.id + ' ' + message);
         }
-        return this.parseTransfer (response, currency);
+        return this.parseTransfer ({ 'result': response }, currency);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -983,12 +983,13 @@ export default class bitfinex2 extends Exchange {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        const timestamp = this.safeInteger (transfer, 0);
-        const info = this.safeValue (transfer, 4);
+        const result = this.safeList (transfer, 'result');
+        const timestamp = this.safeInteger (result, 0);
+        const info = this.safeValue (result, 4);
         const fromAccount = this.safeString (info, 1);
         const toAccount = this.safeString (info, 2);
         const currencyId = this.safeString (info, 5);
-        const status = this.safeString (transfer, 6);
+        const status = this.safeString (result, 6);
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -998,7 +999,7 @@ export default class bitfinex2 extends Exchange {
             'currency': this.safeCurrencyCode (currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'info': transfer,
+            'info': result,
         };
     }
 
