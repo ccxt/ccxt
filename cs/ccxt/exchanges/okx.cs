@@ -447,6 +447,7 @@ public partial class okx : Exchange
                         { "tradingBot/grid/compute-margin-balance", 1 },
                         { "tradingBot/grid/margin-balance", 1 },
                         { "tradingBot/grid/min-investment", 1 },
+                        { "tradingBot/grid/adjust-investment", 1 },
                         { "tradingBot/signal/create-signal", 1 },
                         { "tradingBot/signal/order-algo", 1 },
                         { "tradingBot/signal/stop-order-algo", 1 },
@@ -6126,7 +6127,7 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public async virtual Task<object> fetchTransfer(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -6159,7 +6160,7 @@ public partial class okx : Exchange
         return this.parseTransfer(transfer);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

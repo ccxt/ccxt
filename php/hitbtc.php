@@ -933,7 +933,7 @@ class hitbtc extends Exchange {
             }
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privatePostWalletCryptoAddress (array_merge($request, $params));
+        $response = $this->privatePostWalletCryptoAddress ($this->extend($request, $params));
         //
         //  array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")
         //
@@ -969,7 +969,7 @@ class hitbtc extends Exchange {
             }
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privateGetWalletCryptoAddress (array_merge($request, $params));
+        $response = $this->privateGetWalletCryptoAddress ($this->extend($request, $params));
         //
         //  [array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")]
         //
@@ -1053,7 +1053,7 @@ class hitbtc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetPublicTickerSymbol (array_merge($request, $params));
+        $response = $this->publicGetPublicTickerSymbol ($this->extend($request, $params));
         //
         //     {
         //         "ask" => "0.020572",
@@ -1086,7 +1086,7 @@ class hitbtc extends Exchange {
             $delimited = implode(',', $marketIds);
             $request['symbols'] = $delimited;
         }
-        $response = $this->publicGetPublicTicker (array_merge($request, $params));
+        $response = $this->publicGetPublicTicker ($this->extend($request, $params));
         //
         //     {
         //       "BTCUSDT" => {
@@ -1181,9 +1181,9 @@ class hitbtc extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $response = $this->publicGetPublicTradesSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicTradesSymbol ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetPublicTrades (array_merge($request, $params));
+            $response = $this->publicGetPublicTrades ($this->extend($request, $params));
         }
         if ($symbol !== null) {
             return $this->parse_trades($response, $market);
@@ -1234,14 +1234,14 @@ class hitbtc extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginHistoryTrade (array_merge($request, $params));
+            $response = $this->privateGetMarginHistoryTrade ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetSpotHistoryTrade ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetFuturesHistoryTrade ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetMarginHistoryTrade ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchMyTrades() not support this $market type');
             }
@@ -1369,7 +1369,7 @@ class hitbtc extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetWalletTransactions (array_merge($request, $params));
+        $response = $this->privateGetWalletTransactions ($this->extend($request, $params));
         //
         //     array(
         //       {
@@ -1557,7 +1557,7 @@ class hitbtc extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetPublicOrderbook (array_merge($request, $params));
+        $response = $this->publicGetPublicOrderbook ($this->extend($request, $params));
         $result = array();
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -1587,7 +1587,7 @@ class hitbtc extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetPublicOrderbookSymbol (array_merge($request, $params));
+        $response = $this->publicGetPublicOrderbookSymbol ($this->extend($request, $params));
         $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
         return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask');
     }
@@ -1630,9 +1630,9 @@ class hitbtc extends Exchange {
         );
         $response = null;
         if ($market['type'] === 'spot') {
-            $response = $this->privateGetSpotFeeSymbol (array_merge($request, $params));
+            $response = $this->privateGetSpotFeeSymbol ($this->extend($request, $params));
         } elseif ($market['type'] === 'swap') {
-            $response = $this->privateGetFuturesFeeSymbol (array_merge($request, $params));
+            $response = $this->privateGetFuturesFeeSymbol ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchTradingFee() not support this $market type');
         }
@@ -1719,13 +1719,13 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, 'price');
         $response = null;
         if ($price === 'mark') {
-            $response = $this->publicGetPublicFuturesCandlesMarkPriceSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicFuturesCandlesMarkPriceSymbol ($this->extend($request, $params));
         } elseif ($price === 'index') {
-            $response = $this->publicGetPublicFuturesCandlesIndexPriceSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicFuturesCandlesIndexPriceSymbol ($this->extend($request, $params));
         } elseif ($price === 'premiumIndex') {
-            $response = $this->publicGetPublicFuturesCandlesPremiumIndexSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicFuturesCandlesPremiumIndexSymbol ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetPublicCandlesSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicCandlesSymbol ($this->extend($request, $params));
         }
         //
         // Spot and Swap
@@ -1825,14 +1825,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginHistoryOrder (array_merge($request, $params));
+            $response = $this->privateGetMarginHistoryOrder ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetSpotHistoryOrder ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetFuturesHistoryOrder ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetMarginHistoryOrder ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchClosedOrders() not support this $market type');
             }
@@ -1868,14 +1868,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginHistoryOrder (array_merge($request, $params));
+            $response = $this->privateGetMarginHistoryOrder ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetSpotHistoryOrder ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetFuturesHistoryOrder ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetMarginHistoryOrder ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOrder() not support this $market type');
             }
@@ -1933,14 +1933,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginHistoryTrade (array_merge($request, $params));
+            $response = $this->privateGetMarginHistoryTrade ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetSpotHistoryTrade ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetFuturesHistoryTrade ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetMarginHistoryTrade ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOrderTrades() not support this $market type');
             }
@@ -2014,14 +2014,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginOrder (array_merge($request, $params));
+            $response = $this->privateGetMarginOrder ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotOrder (array_merge($request, $params));
+                $response = $this->privateGetSpotOrder ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesOrder (array_merge($request, $params));
+                $response = $this->privateGetFuturesOrder ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginOrder (array_merge($request, $params));
+                $response = $this->privateGetMarginOrder ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOpenOrders() not support this $market type');
             }
@@ -2076,14 +2076,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginOrderClientOrderId (array_merge($request, $params));
+            $response = $this->privateGetMarginOrderClientOrderId ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateGetSpotOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateGetFuturesOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateGetMarginOrderClientOrderId ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOpenOrder() not support this $market type');
             }
@@ -2117,14 +2117,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateDeleteMarginOrder (array_merge($request, $params));
+            $response = $this->privateDeleteMarginOrder ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateDeleteSpotOrder (array_merge($request, $params));
+                $response = $this->privateDeleteSpotOrder ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateDeleteFuturesOrder (array_merge($request, $params));
+                $response = $this->privateDeleteFuturesOrder ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateDeleteMarginOrder (array_merge($request, $params));
+                $response = $this->privateDeleteMarginOrder ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' cancelAllOrders() not support this $market type');
             }
@@ -2160,14 +2160,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateDeleteMarginOrderClientOrderId (array_merge($request, $params));
+            $response = $this->privateDeleteMarginOrderClientOrderId ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateDeleteSpotOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateDeleteSpotOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateDeleteFuturesOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateDeleteFuturesOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateDeleteMarginOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateDeleteMarginOrderClientOrderId ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' cancelOrder() not support this $market type');
             }
@@ -2198,14 +2198,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privatePatchMarginOrderClientOrderId (array_merge($request, $params));
+            $response = $this->privatePatchMarginOrderClientOrderId ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privatePatchSpotOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privatePatchSpotOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privatePatchFuturesOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privatePatchFuturesOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privatePatchMarginOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privatePatchMarginOrderClientOrderId ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' editOrder() not support this $market type');
             }
@@ -2242,11 +2242,11 @@ class hitbtc extends Exchange {
         list($request, $params) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
         $response = null;
         if ($marketType === 'swap') {
-            $response = $this->privatePostFuturesOrder (array_merge($request, $params));
+            $response = $this->privatePostFuturesOrder ($this->extend($request, $params));
         } elseif (($marketType === 'margin') || ($marginMode !== null)) {
-            $response = $this->privatePostMarginOrder (array_merge($request, $params));
+            $response = $this->privatePostMarginOrder ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostSpotOrder (array_merge($request, $params));
+            $response = $this->privatePostSpotOrder ($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
@@ -2555,7 +2555,7 @@ class hitbtc extends Exchange {
             'source' => $fromId,
             'destination' => $toId,
         );
-        $response = $this->privatePostWalletTransfer (array_merge($request, $params));
+        $response = $this->privatePostWalletTransfer ($this->extend($request, $params));
         //
         //     array(
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
@@ -2564,7 +2564,7 @@ class hitbtc extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -2607,7 +2607,7 @@ class hitbtc extends Exchange {
             'to_currency' => $toNetwork,
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privatePostWalletConvert (array_merge($request, $params));
+        $response = $this->privatePostWalletConvert ($this->extend($request, $params));
         // array("result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"])
         return array(
             'info' => $response,
@@ -2651,7 +2651,7 @@ class hitbtc extends Exchange {
         if ($includeFee) {
             $request['include_fee'] = true;
         }
-        $response = $this->privatePostWalletCryptoWithdraw (array_merge($request, $params));
+        $response = $this->privatePostWalletCryptoWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
@@ -2682,7 +2682,7 @@ class hitbtc extends Exchange {
         if ($type !== 'swap') {
             throw new NotSupported($this->id . ' fetchFundingRates() does not support ' . $type . ' markets');
         }
-        $response = $this->publicGetPublicFuturesInfo (array_merge($request, $params));
+        $response = $this->publicGetPublicFuturesInfo ($this->extend($request, $params));
         //
         //     {
         //         "BTCUSDT_PERP" => {
@@ -2753,7 +2753,7 @@ class hitbtc extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetPublicFuturesHistoryFunding (array_merge($request, $params));
+        $response = $this->publicGetPublicFuturesHistoryFunding ($this->extend($request, $params));
         //
         //    {
         //        "BTCUSDT_PERP" => array(
@@ -2816,12 +2816,12 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginAccount (array_merge($request, $params));
+            $response = $this->privateGetMarginAccount ($this->extend($request, $params));
         } else {
             if ($marketType === 'swap') {
-                $response = $this->privateGetFuturesAccount (array_merge($request, $params));
+                $response = $this->privateGetFuturesAccount ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginAccount (array_merge($request, $params));
+                $response = $this->privateGetMarginAccount ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchPositions() not support this market type');
             }
@@ -2888,12 +2888,12 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+            $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
         } else {
             if ($marketType === 'swap') {
-                $response = $this->privateGetFuturesAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetFuturesAccountIsolatedSymbol ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchPosition() not support this $market type');
             }
@@ -3064,7 +3064,7 @@ class hitbtc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetPublicFuturesInfoSymbol (array_merge($request, $params));
+        $response = $this->publicGetPublicFuturesInfoSymbol ($this->extend($request, $params));
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3099,7 +3099,7 @@ class hitbtc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetPublicFuturesInfoSymbol (array_merge($request, $params));
+        $response = $this->publicGetPublicFuturesInfoSymbol ($this->extend($request, $params));
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3187,9 +3187,9 @@ class hitbtc extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('modifyMarginHelper', $params);
         $response = null;
         if ($marketType === 'swap') {
-            $response = $this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params));
+            $response = $this->privatePutFuturesAccountIsolatedSymbol ($this->extend($request, $params));
         } elseif (($marketType === 'margin') || ($marketType === 'spot') || ($marginMode === 'isolated')) {
-            $response = $this->privatePutMarginAccountIsolatedSymbol (array_merge($request, $params));
+            $response = $this->privatePutMarginAccountIsolatedSymbol ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' modifyMarginHelper() not support this $market type');
         }
@@ -3211,7 +3211,7 @@ class hitbtc extends Exchange {
         //         "positions" => null
         //     }
         //
-        return array_merge($this->parse_margin_modification($response, $market), array(
+        return $this->extend($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
             'type' => $type,
         ));
@@ -3309,14 +3309,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+            $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
         } else {
             if ($market['type'] === 'spot') {
-                $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
             } elseif ($market['type'] === 'swap') {
-                $response = $this->privateGetFuturesAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetFuturesAccountIsolatedSymbol ($this->extend($request, $params));
             } elseif ($market['type'] === 'margin') {
-                $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchLeverage() not support this $market type');
             }
@@ -3397,7 +3397,7 @@ class hitbtc extends Exchange {
             'margin_balance' => $this->amount_to_precision($symbol, $amount),
             // 'strict_validate' => false,
         );
-        return $this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params));
+        return $this->privatePutFuturesAccountIsolatedSymbol ($this->extend($request, $params));
     }
 
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
@@ -3505,7 +3505,7 @@ class hitbtc extends Exchange {
             'symbol' => $market['id'],
             'margin_mode' => $marginMode,
         );
-        $response = $this->privateDeleteFuturesPositionMarginModeSymbol (array_merge($request, $params));
+        $response = $this->privateDeleteFuturesPositionMarginModeSymbol ($this->extend($request, $params));
         //
         // {
         //     "id":"202471640",

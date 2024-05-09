@@ -4967,7 +4967,7 @@ class mexc extends mexc$1 {
             'lastUpdateTimestamp': undefined,
         });
     }
-    async fetchTransfer(id, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfer(id, code = undefined, params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfer', undefined, params);
         await this.loadMarkets();
         if (marketType === 'spot') {

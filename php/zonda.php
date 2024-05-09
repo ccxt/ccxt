@@ -407,7 +407,7 @@ class zonda extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $response = $this->v1_01PrivateGetTradingOffer (array_merge($request, $params));
+        $response = $this->v1_01PrivateGetTradingOffer ($this->extend($request, $params));
         $items = $this->safe_list($response, 'items', array());
         return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
     }
@@ -480,7 +480,7 @@ class zonda extends Exchange {
             $symbol = $this->symbol($symbol);
             $request['markets'] = $markets;
         }
-        $query = array( 'query' => $this->json(array_merge($request, $params)) );
+        $query = array( 'query' => $this->json($this->extend($request, $params)) );
         $response = $this->v1_01PrivateGetTradingHistoryTransactions ($query);
         //
         //     {
@@ -554,7 +554,7 @@ class zonda extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1_01PublicGetTradingOrderbookSymbol (array_merge($request, $params));
+        $response = $this->v1_01PublicGetTradingOrderbookSymbol ($this->extend($request, $params));
         //
         //     {
         //         "status":"Ok",
@@ -671,7 +671,7 @@ class zonda extends Exchange {
         $fetchTickerMethod = $this->safe_string_2($params, 'method', 'fetchTickerMethod', $defaultMethod);
         $response = null;
         if ($fetchTickerMethod === $method) {
-            $response = $this->v1_01PublicGetTradingTickerSymbol (array_merge($request, $params));
+            $response = $this->v1_01PublicGetTradingTickerSymbol ($this->extend($request, $params));
             //
             //    {
             //        "status" => "Ok",
@@ -701,7 +701,7 @@ class zonda extends Exchange {
             //    }
             //
         } elseif ($fetchTickerMethod === 'v1_01PublicGetTradingStatsSymbol') {
-            $response = $this->v1_01PublicGetTradingStatsSymbol (array_merge($request, $params));
+            $response = $this->v1_01PublicGetTradingStatsSymbol ($this->extend($request, $params));
             //
             //    {
             //        "status" => "Ok",
@@ -817,7 +817,7 @@ class zonda extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $request = array_merge($request, $params);
+        $request = $this->extend($request, $params);
         $response = $this->v1_01PrivateGetBalancesBITBAYHistory (array( 'query' => $this->json($request) ));
         $items = $response['items'];
         return $this->parse_ledger($items, null, $since, $limit);
@@ -1203,7 +1203,7 @@ class zonda extends Exchange {
             $request['from'] = $since;
             $request['to'] = $this->sum($request['from'], $timerange);
         }
-        $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
+        $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution ($this->extend($request, $params));
         //
         //     {
         //         "status":"Ok",
@@ -1318,7 +1318,7 @@ class zonda extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default - 10, max - 300
         }
-        $response = $this->v1_01PublicGetTradingTransactionsSymbol (array_merge($request, $params));
+        $response = $this->v1_01PublicGetTradingTransactionsSymbol ($this->extend($request, $params));
         $items = $this->safe_list($response, 'items');
         return $this->parse_trades($items, $market, $since, $limit);
     }
@@ -1365,9 +1365,9 @@ class zonda extends Exchange {
                 throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-$market orders');
             }
             $request['stopRate'] = $this->price_to_precision($symbol, $stopLossPrice);
-            $response = $this->v1_01PrivatePostTradingStopOfferSymbol (array_merge($request, $params));
+            $response = $this->v1_01PrivatePostTradingStopOfferSymbol ($this->extend($request, $params));
         } else {
-            $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
+            $response = $this->v1_01PrivatePostTradingOfferSymbol ($this->extend($request, $params));
         }
         //
         // unfilled (open order)
@@ -1477,7 +1477,7 @@ class zonda extends Exchange {
         );
         // array( status => "Fail", errors => array( "NOT_RECOGNIZED_OFFER_TYPE" ) )  -- if required $params are missing
         // array( status => "Ok", errors => array() )
-        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge($request, $params));
+        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params));
     }
 
     public function is_fiat($currency) {
@@ -1525,7 +1525,7 @@ class zonda extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (array_merge($request, $params));
+        $response = $this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses ($this->extend($request, $params));
         //
         //     {
         //         "status" => "Ok",
@@ -1590,7 +1590,7 @@ class zonda extends Exchange {
             'currency' => $code,
             'funds' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (array_merge($request, $params));
+        $response = $this->v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination ($this->extend($request, $params));
         //
         //     {
         //         "status" => "Ok",
@@ -1628,7 +1628,7 @@ class zonda extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "status" => "Ok",
@@ -1676,7 +1676,7 @@ class zonda extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'Ok' => 'ok',
             'Fail' => 'failed',
@@ -1708,12 +1708,12 @@ class zonda extends Exchange {
         );
         if ($this->is_fiat($code)) {
             // $request['swift'] = $params['swift']; // Bank identifier, if required.
-            $response = $this->v1_01PrivatePostApiPaymentsWithdrawalsFiat (array_merge($request, $params));
+            $response = $this->v1_01PrivatePostApiPaymentsWithdrawalsFiat ($this->extend($request, $params));
         } else {
             if ($tag !== null) {
                 $request['tag'] = $tag;
             }
-            $response = $this->v1_01PrivatePostApiPaymentsWithdrawalsCrypto (array_merge($request, $params));
+            $response = $this->v1_01PrivatePostApiPaymentsWithdrawalsCrypto ($this->extend($request, $params));
         }
         //
         //     {
@@ -1798,7 +1798,7 @@ class zonda extends Exchange {
             );
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'moment' => $this->nonce(),
             ), $params));

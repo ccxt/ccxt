@@ -761,7 +761,7 @@ class phemex extends \ccxt\async\phemex {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . $market['symbol'];
                 if ($market['settle'] === 'USDT') {
-                    $params = array_merge($params);
+                    $params = $this->extend($params);
                     $params['settle'] = 'USDT';
                 }
             }
@@ -926,7 +926,7 @@ class phemex extends \ccxt\async\phemex {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . $market['symbol'];
                 if ($market['settle'] === 'USDT') {
-                    $params = array_merge($params);
+                    $params = $this->extend($params);
                     $params['settle'] = 'USDT';
                 }
             }
@@ -1509,7 +1509,7 @@ class phemex extends \ccxt\async\phemex {
                 'method' => $channel,
                 'params' => array(),
             );
-            $request = array_merge($request, $params);
+            $request = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $request, $channel));
         }) ();
     }
@@ -1534,7 +1534,7 @@ class phemex extends \ccxt\async\phemex {
                     'id' => $requestId,
                 );
                 $subscriptionHash = (string) $requestId;
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
                     $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
                 }

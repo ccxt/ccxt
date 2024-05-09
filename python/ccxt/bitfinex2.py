@@ -936,9 +936,9 @@ class bitfinex2(Exchange, ImplicitAPI):
             # same message v1
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + message)
-        return self.parse_transfer(response, currency)
+        return self.parse_transfer({'result': response}, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -962,12 +962,13 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         "1.0 Tether USDt transfered from Exchange to Margin"
         #     ]
         #
-        timestamp = self.safe_integer(transfer, 0)
-        info = self.safe_value(transfer, 4)
+        result = self.safe_list(transfer, 'result')
+        timestamp = self.safe_integer(result, 0)
+        info = self.safe_value(result, 4)
         fromAccount = self.safe_string(info, 1)
         toAccount = self.safe_string(info, 2)
         currencyId = self.safe_string(info, 5)
-        status = self.safe_string(transfer, 6)
+        status = self.safe_string(result, 6)
         return {
             'id': None,
             'timestamp': timestamp,
@@ -977,10 +978,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             'currency': self.safe_currency_code(currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'info': transfer,
+            'info': result,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'ok',
             'ERROR': 'failed',

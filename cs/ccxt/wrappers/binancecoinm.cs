@@ -6,14 +6,14 @@ namespace ccxt;
 
 public partial class binancecoinm
 {
-    public async Task<Dictionary<string, object>> TransferIn(string code, object amount, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> TransferIn(string code, object amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transferIn(code, amount, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntry(res);
     }
-    public async Task<Dictionary<string, object>> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transferOut(code, amount, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntry(res);
     }
 }

@@ -189,17 +189,7 @@ export default class gate extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        id: string;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-        info: any;
-    };
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     parsePosition(position: any, market?: Market): Position;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;

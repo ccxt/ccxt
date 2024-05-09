@@ -3865,7 +3865,7 @@ export default class kucoin extends Exchange {
         }
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer (spot)
         //
@@ -3921,7 +3921,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'PROCESSING': 'pending',
         };

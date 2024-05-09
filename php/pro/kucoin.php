@@ -139,7 +139,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'topic' => $subscriptionHash,
                 'response' => true,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $client = $this->client($url);
             if (!(is_array($client->subscriptions) && array_key_exists($subscriptionHash, $client->subscriptions))) {
                 $client->subscriptions[$requestId] = $subscriptionHash;
@@ -157,7 +157,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'topic' => $topic,
                 'response' => true,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $client = $this->client($url);
             for ($i = 0; $i < count($subscriptionHashes); $i++) {
                 $subscriptionHash = $subscriptionHashes[$i];
@@ -359,7 +359,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'topic' => $channelName . $joined,
                 'response' => true,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
     }
@@ -858,7 +858,7 @@ class kucoin extends \ccxt\async\kucoin {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
-            $orders = Async\await($this->subscribe($url, $messageHash, $topic, array_merge($request, $params)));
+            $orders = Async\await($this->subscribe($url, $messageHash, $topic, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -1024,7 +1024,7 @@ class kucoin extends \ccxt\async\kucoin {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . ':' . $market['symbol'];
             }
-            $trades = Async\await($this->subscribe($url, $messageHash, $topic, array_merge($request, $params)));
+            $trades = Async\await($this->subscribe($url, $messageHash, $topic, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -1111,7 +1111,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'privateChannel' => true,
             );
             $messageHash = 'balance';
-            return Async\await($this->subscribe($url, $messageHash, $topic, array_merge($request, $params)));
+            return Async\await($this->subscribe($url, $messageHash, $topic, $this->extend($request, $params)));
         }) ();
     }
 

@@ -4195,7 +4195,7 @@ public partial class coinex : Exchange
         object currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transfer },
-            { "id", this.safeInteger(transfer, "id") },
+            { "id", this.safeString(transfer, "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "currency", currencyCode },
@@ -4206,7 +4206,7 @@ public partial class coinex : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

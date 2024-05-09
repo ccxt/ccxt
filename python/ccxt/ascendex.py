@@ -3021,11 +3021,11 @@ class ascendex(Exchange, ImplicitAPI):
             transfer['currency'] = code
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    {"code": "0"}
         #
-        status = self.safe_integer(transfer, 'code')
+        status = self.safe_string(transfer, 'code')
         currencyCode = self.safe_currency_code(None, currency)
         return {
             'info': transfer,
@@ -3039,8 +3039,8 @@ class ascendex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
-        if status == 0:
+    def parse_transfer_status(self, status: Str) -> Str:
+        if status == '0':
             return 'ok'
         return 'failed'
 

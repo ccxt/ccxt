@@ -3403,7 +3403,7 @@ public partial class ascendex : Exchange
         //
         //    { "code": "0" }
         //
-        object status = this.safeInteger(transfer, "code");
+        object status = this.safeString(transfer, "code");
         object currencyCode = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -3420,7 +3420,7 @@ public partial class ascendex : Exchange
 
     public virtual object parseTransferStatus(object status)
     {
-        if (isTrue(isEqual(status, 0)))
+        if (isTrue(isEqual(status, "0")))
         {
             return "ok";
         }

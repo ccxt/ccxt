@@ -89,7 +89,7 @@ class coinbase extends \ccxt\async\coinbase {
                 // 'signature' => $this->hmac($this->encode(auth), $this->encode($this->secret), 'sha256'),
             );
             if ($isPrivate) {
-                $subscribe = array_merge($subscribe, $this->create_ws_auth($name, $productIds));
+                $subscribe = $this->extend($subscribe, $this->create_ws_auth($name, $productIds));
             }
             return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
         }) ();
@@ -124,7 +124,7 @@ class coinbase extends \ccxt\async\coinbase {
                 'channel' => $name,
             );
             if ($isPrivate) {
-                $subscribe = array_merge($subscribe, $this->create_ws_auth($name, $productIds));
+                $subscribe = $this->extend($subscribe, $this->create_ws_auth($name, $productIds));
             }
             return Async\await($this->watch_multiple($url, $messageHashes, $subscribe, $messageHashes));
         }) ();

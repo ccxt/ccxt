@@ -802,6 +802,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_post_tradingbot_grid_min_investment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_tradingbot_grid_adjust_investment($params = array()) {
+        return $this->request('tradingBot/grid/adjust-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_tradingbot_signal_create_signal($params = array()) {
         return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1719,6 +1722,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostTradingBotGridMinInvestment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotGridAdjustInvestment($params = array()) {
+        return $this->request('tradingBot/grid/adjust-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradingBotSignalCreateSignal($params = array()) {
         return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));

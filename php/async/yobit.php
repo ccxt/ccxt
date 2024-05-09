@@ -296,7 +296,7 @@ class yobit extends Exchange {
         );
         $free = $this->safe_dict($balances, 'funds', array());
         $total = $this->safe_dict($balances, 'funds_incl_orders', array());
-        $currencyIds = is_array(array_merge($free, $total)) ? array_keys(array_merge($free, $total)) : array();
+        $currencyIds = is_array($this->extend($free, $total)) ? array_keys($this->extend($free, $total)) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
@@ -463,7 +463,7 @@ class yobit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default = 150, max = 2000
             }
-            $response = Async\await($this->publicGetDepthPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDepthPair ($this->extend($request, $params)));
             $market_id_in_reponse = (is_array($response) && array_key_exists($market['id'], $response));
             if (!$market_id_in_reponse) {
                 throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
@@ -503,7 +503,7 @@ class yobit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetDepthPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDepthPair ($this->extend($request, $params)));
             $result = array();
             $ids = is_array($response) ? array_keys($response) : array();
             for ($i = 0; $i < count($ids); $i++) {
@@ -587,7 +587,7 @@ class yobit extends Exchange {
             $request = array(
                 'pair' => $idsString,
             );
-            $tickers = Async\await($this->publicGetTickerPair (array_merge($request, $params)));
+            $tickers = Async\await($this->publicGetTickerPair ($this->extend($request, $params)));
             $result = array();
             $keys = is_array($tickers) ? array_keys($tickers) : array();
             for ($k = 0; $k < count($keys); $k++) {
@@ -713,7 +713,7 @@ class yobit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetTradesPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradesPair ($this->extend($request, $params)));
             //
             //      {
             //          "doge_usdt" => array(
@@ -815,7 +815,7 @@ class yobit extends Exchange {
                 'amount' => $this->amount_to_precision($symbol, $amount),
                 'rate' => $this->price_to_precision($symbol, $price),
             );
-            $response = Async\await($this->privatePostTrade (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTrade ($this->extend($request, $params)));
             //
             //      {
             //          "success":1,
@@ -856,7 +856,7 @@ class yobit extends Exchange {
             $request = array(
                 'order_id' => intval($id),
             );
-            $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
             //
             //      {
             //          "success":1,
@@ -1008,7 +1008,7 @@ class yobit extends Exchange {
             $request = array(
                 'order_id' => intval($id),
             );
-            $response = Async\await($this->privatePostOrderInfo (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderInfo ($this->extend($request, $params)));
             $id = (string) $id;
             $orders = $this->safe_dict($response, 'return', array());
             //
@@ -1027,7 +1027,7 @@ class yobit extends Exchange {
             //          }
             //      }
             //
-            return $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
+            return $this->parse_order($this->extend(array( 'id' => $id ), $orders[$id]));
         }) ();
     }
 
@@ -1052,7 +1052,7 @@ class yobit extends Exchange {
                 $marketInner = $this->market($symbol);
                 $request['pair'] = $marketInner['id'];
             }
-            $response = Async\await($this->privatePostActiveOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostActiveOrders ($this->extend($request, $params)));
             //
             //      {
             //          "success":1,
@@ -1114,7 +1114,7 @@ class yobit extends Exchange {
             if ($since !== null) {
                 $request['since'] = $this->parse_to_int($since / 1000);
             }
-            $response = Async\await($this->privatePostTradeHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeHistory ($this->extend($request, $params)));
             //
             //      {
             //          "success":1,
@@ -1136,7 +1136,7 @@ class yobit extends Exchange {
             $result = array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
-                $trade = $this->parse_trade(array_merge($trades[$id], array(
+                $trade = $this->parse_trade($this->extend($trades[$id], array(
                     'trade_id' => $id,
                 )), $market);
                 $result[] = $trade;
@@ -1157,7 +1157,7 @@ class yobit extends Exchange {
             $request = array(
                 'need_new' => 1,
             );
-            $response = Async\await($this->fetch_deposit_address($code, array_merge($request, $params)));
+            $response = Async\await($this->fetch_deposit_address($code, $this->extend($request, $params)));
             $address = $this->safe_string($response, 'address');
             $this->check_address($address);
             return array(
@@ -1194,7 +1194,7 @@ class yobit extends Exchange {
                 'coinName' => $currencyId,
                 'need_new' => 0,
             );
-            $response = Async\await($this->privatePostGetDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetDepositAddress ($this->extend($request, $params)));
             $address = $this->safe_string($response['return'], 'address');
             $this->check_address($address);
             return array(
@@ -1250,7 +1250,7 @@ class yobit extends Exchange {
             if ($tag !== null) {
                 throw new ExchangeError($this->id . ' withdraw() does not support the $tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
             }
-            $response = Async\await($this->privatePostWithdrawCoinsToAddress (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawCoinsToAddress ($this->extend($request, $params)));
             return array(
                 'info' => $response,
                 'id' => null,
@@ -1285,7 +1285,7 @@ class yobit extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'nonce' => $nonce,
                 'method' => $path,
             ), $query));

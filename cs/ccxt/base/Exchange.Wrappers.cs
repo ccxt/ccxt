@@ -1099,6 +1099,18 @@ public partial class Exchange
         var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
+    public async Task<TransferEntry> FetchTransfer(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTransfer(id, code, parameters);
+        return new TransferEntry(res);
+    }
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTransfers(code, since, limit, parameters);
+        return new TransferEntries(res);
+    }
 }
 // class wrappers
 public class  Ace: ace { public Ace(object args = null) : base(args) { } }

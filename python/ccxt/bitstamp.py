@@ -2059,7 +2059,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'ok': 'ok',
             'error': 'failed',

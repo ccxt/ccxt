@@ -270,7 +270,7 @@ class bit2c extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $orderbook = $this->publicGetExchangesPairOrderbook (array_merge($request, $params));
+        $orderbook = $this->publicGetExchangesPairOrderbook ($this->extend($request, $params));
         return $this->parse_order_book($orderbook, $symbol);
     }
 
@@ -316,7 +316,7 @@ class bit2c extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetExchangesPairTicker (array_merge($request, $params));
+        $response = $this->publicGetExchangesPairTicker ($this->extend($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -345,9 +345,9 @@ class bit2c extends Exchange {
         }
         $response = null;
         if ($method === 'public_get_exchanges_pair_trades') {
-            $response = $this->publicGetExchangesPairTrades (array_merge($request, $params));
+            $response = $this->publicGetExchangesPairTrades ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetExchangesPairLasttrades (array_merge($request, $params));
+            $response = $this->publicGetExchangesPairLasttrades ($this->extend($request, $params));
         }
         //
         //     array(
@@ -438,7 +438,7 @@ class bit2c extends Exchange {
             $request['Total'] = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
             $request['IsBid'] = ($side === 'buy');
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         return $this->parse_order($response, $market);
     }
 
@@ -454,7 +454,7 @@ class bit2c extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privatePostOrderCancelOrder (array_merge($request, $params));
+        return $this->privatePostOrderCancelOrder ($this->extend($request, $params));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -475,7 +475,7 @@ class bit2c extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->privateGetOrderMyOrders (array_merge($request, $params));
+        $response = $this->privateGetOrderMyOrders ($this->extend($request, $params));
         $orders = $this->safe_value($response, $market['id'], array());
         $asks = $this->safe_value($orders, 'ask', array());
         $bids = $this->safe_list($orders, 'bid', array());
@@ -495,7 +495,7 @@ class bit2c extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrderGetById (array_merge($request, $params));
+        $response = $this->privateGetOrderGetById ($this->extend($request, $params));
         //
         //         {
         //             "pair" => "BtcNis",
@@ -653,7 +653,7 @@ class bit2c extends Exchange {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->privateGetOrderOrderHistory (array_merge($request, $params));
+        $response = $this->privateGetOrderOrderHistory ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -824,7 +824,7 @@ class bit2c extends Exchange {
         $request = array(
             'Coin' => $currency['id'],
         );
-        $response = $this->privatePostFundsAddCoinFundsRequest (array_merge($request, $params));
+        $response = $this->privatePostFundsAddCoinFundsRequest ($this->extend($request, $params));
         //
         //     {
         //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -864,7 +864,7 @@ class bit2c extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $query = array_merge(array(
+            $query = $this->extend(array(
                 'nonce' => $nonce,
             ), $params);
             $auth = $this->urlencode($query);

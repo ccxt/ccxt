@@ -272,7 +272,7 @@ class independentreserve extends Exchange {
                 'primaryCurrencyCode' => $market['baseId'],
                 'secondaryCurrencyCode' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetGetOrderBook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetOrderBook ($this->extend($request, $params)));
             $timestamp = $this->parse8601($this->safe_string($response, 'CreatedTimestampUtc'));
             return $this->parse_order_book($response, $market['symbol'], $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
         }) ();
@@ -340,7 +340,7 @@ class independentreserve extends Exchange {
                 'primaryCurrencyCode' => $market['baseId'],
                 'secondaryCurrencyCode' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetGetMarketSummary (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetMarketSummary ($this->extend($request, $params)));
             // {
             //     "DayHighestPrice":43489.49,
             //     "DayLowestPrice":41998.32,
@@ -480,7 +480,7 @@ class independentreserve extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostGetOrderDetails (array_merge(array(
+            $response = Async\await($this->privatePostGetOrderDetails ($this->extend(array(
                 'orderGuid' => $id,
             ), $params)));
             $market = null;
@@ -514,7 +514,7 @@ class independentreserve extends Exchange {
             }
             $request['pageIndex'] = 1;
             $request['pageSize'] = $limit;
-            $response = Async\await($this->privatePostGetOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetOpenOrders ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'Data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
@@ -543,7 +543,7 @@ class independentreserve extends Exchange {
             }
             $request['pageIndex'] = 1;
             $request['pageSize'] = $limit;
-            $response = Async\await($this->privatePostGetClosedOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetClosedOrders ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'Data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
@@ -568,7 +568,7 @@ class independentreserve extends Exchange {
                 'pageIndex' => $pageIndex,
                 'pageSize' => $limit,
             ));
-            $response = Async\await($this->privatePostGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetTrades ($this->extend($request, $params)));
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -635,7 +635,7 @@ class independentreserve extends Exchange {
                 'secondaryCurrencyCode' => $market['quoteId'],
                 'numberOfRecentTradesToRetrieve' => 50, // max = 50
             );
-            $response = Async\await($this->publicGetGetRecentTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetRecentTrades ($this->extend($request, $params)));
             return $this->parse_trades($response['Trades'], $market, $since, $limit);
         }) ();
     }
@@ -712,9 +712,9 @@ class independentreserve extends Exchange {
             $request['volume'] = $amount;
             if ($type === 'limit') {
                 $request['price'] = $price;
-                $response = Async\await($this->privatePostPlaceLimitOrder (array_merge($request, $params)));
+                $response = Async\await($this->privatePostPlaceLimitOrder ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostPlaceMarketOrder (array_merge($request, $params)));
+                $response = Async\await($this->privatePostPlaceMarketOrder ($this->extend($request, $params)));
             }
             return $this->safe_order(array(
                 'info' => $response,
@@ -736,7 +736,7 @@ class independentreserve extends Exchange {
             $request = array(
                 'orderGuid' => $id,
             );
-            return Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            return Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
         }) ();
     }
 
@@ -754,7 +754,7 @@ class independentreserve extends Exchange {
             $request = array(
                 'primaryCurrencyCode' => $currency['id'],
             );
-            $response = Async\await($this->privatePostGetDigitalCurrencyDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetDigitalCurrencyDepositAddress ($this->extend($request, $params)));
             //
             //    {
             //        Tag => '3307446684',

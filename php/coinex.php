@@ -887,9 +887,9 @@ class coinex extends Exchange {
         );
         $response = null;
         if ($market['swap']) {
-            $response = $this->v2PublicGetFuturesTicker (array_merge($request, $params));
+            $response = $this->v2PublicGetFuturesTicker ($this->extend($request, $params));
         } else {
-            $response = $this->v2PublicGetSpotTicker (array_merge($request, $params));
+            $response = $this->v2PublicGetSpotTicker ($this->extend($request, $params));
         }
         //
         // Spot
@@ -1060,7 +1060,7 @@ class coinex extends Exchange {
         );
         $response = null;
         if ($market['swap']) {
-            $response = $this->v2PublicGetFuturesDepth (array_merge($request, $params));
+            $response = $this->v2PublicGetFuturesDepth ($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -1087,7 +1087,7 @@ class coinex extends Exchange {
             //     }
             //
         } else {
-            $response = $this->v2PublicGetSpotDepth (array_merge($request, $params));
+            $response = $this->v2PublicGetSpotDepth ($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -1203,9 +1203,9 @@ class coinex extends Exchange {
         }
         $response = null;
         if ($market['swap']) {
-            $response = $this->v2PublicGetFuturesDeals (array_merge($request, $params));
+            $response = $this->v2PublicGetFuturesDeals ($this->extend($request, $params));
         } else {
-            $response = $this->v2PublicGetSpotDeals (array_merge($request, $params));
+            $response = $this->v2PublicGetSpotDeals ($this->extend($request, $params));
         }
         //
         // Spot and Swap
@@ -1243,7 +1243,7 @@ class coinex extends Exchange {
         );
         $response = null;
         if ($market['spot']) {
-            $response = $this->v2PublicGetSpotMarket (array_merge($request, $params));
+            $response = $this->v2PublicGetSpotMarket ($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -1265,7 +1265,7 @@ class coinex extends Exchange {
             //     }
             //
         } else {
-            $response = $this->v2PublicGetFuturesMarket (array_merge($request, $params));
+            $response = $this->v2PublicGetFuturesMarket ($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -1422,9 +1422,9 @@ class coinex extends Exchange {
         }
         $response = null;
         if ($market['swap']) {
-            $response = $this->v2PublicGetFuturesKline (array_merge($request, $params));
+            $response = $this->v2PublicGetFuturesKline ($this->extend($request, $params));
         } else {
-            $response = $this->v2PublicGetSpotKline (array_merge($request, $params));
+            $response = $this->v2PublicGetSpotKline ($this->extend($request, $params));
         }
         //
         // Spot and Swap
@@ -2023,7 +2023,7 @@ class coinex extends Exchange {
             }
         }
         $params = $this->omit($params, array( 'reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -2497,7 +2497,7 @@ class coinex extends Exchange {
         }
         if ($market['spot']) {
             if ($stop) {
-                $response = $this->v2PrivatePostSpotCancelBatchStopOrder (array_merge($request, $params));
+                $response = $this->v2PrivatePostSpotCancelBatchStopOrder ($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -2527,7 +2527,7 @@ class coinex extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->v2PrivatePostSpotCancelBatchOrder (array_merge($request, $params));
+                $response = $this->v2PrivatePostSpotCancelBatchOrder ($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -2567,7 +2567,7 @@ class coinex extends Exchange {
         } else {
             $request['market_type'] = 'FUTURES';
             if ($stop) {
-                $response = $this->v2PrivatePostFuturesCancelBatchStopOrder (array_merge($request, $params));
+                $response = $this->v2PrivatePostFuturesCancelBatchStopOrder ($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -2596,7 +2596,7 @@ class coinex extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->v2PrivatePostFuturesCancelBatchOrder (array_merge($request, $params));
+                $response = $this->v2PrivatePostFuturesCancelBatchOrder ($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -2694,7 +2694,7 @@ class coinex extends Exchange {
                 $request['market_type'] = 'SPOT';
             }
             if ($isTriggerOrder) {
-                $response = $this->v2PrivatePostSpotModifyStopOrder (array_merge($request, $params));
+                $response = $this->v2PrivatePostSpotModifyStopOrder ($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -2705,7 +2705,7 @@ class coinex extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->v2PrivatePostSpotModifyOrder (array_merge($request, $params));
+                $response = $this->v2PrivatePostSpotModifyOrder ($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -2740,7 +2740,7 @@ class coinex extends Exchange {
         } else {
             $request['market_type'] = 'FUTURES';
             if ($isTriggerOrder) {
-                $response = $this->v2PrivatePostFuturesModifyStopOrder (array_merge($request, $params));
+                $response = $this->v2PrivatePostFuturesModifyStopOrder ($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -2751,7 +2751,7 @@ class coinex extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->v2PrivatePostFuturesModifyOrder (array_merge($request, $params));
+                $response = $this->v2PrivatePostFuturesModifyOrder ($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -2832,7 +2832,7 @@ class coinex extends Exchange {
             $request['client_id'] = $clientOrderId;
             if ($isTriggerOrder) {
                 if ($swap) {
-                    $response = $this->v2PrivatePostFuturesCancelStopOrderByClientId (array_merge($request, $params));
+                    $response = $this->v2PrivatePostFuturesCancelStopOrderByClientId ($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
                     //         "data" => array(
@@ -2859,7 +2859,7 @@ class coinex extends Exchange {
                     //         "message" => "OK"
                     //     }
                 } else {
-                    $response = $this->v2PrivatePostSpotCancelStopOrderByClientId (array_merge($request, $params));
+                    $response = $this->v2PrivatePostSpotCancelStopOrderByClientId ($this->extend($request, $params));
                     //     {
                     //         "code" :0,
                     //         "data" => array(
@@ -2889,7 +2889,7 @@ class coinex extends Exchange {
                 }
             } else {
                 if ($swap) {
-                    $response = $this->v2PrivatePostFuturesCancelOrderByClientId (array_merge($request, $params));
+                    $response = $this->v2PrivatePostFuturesCancelOrderByClientId ($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
                     //         "data" => array(
@@ -2923,7 +2923,7 @@ class coinex extends Exchange {
                     //         "message" => "OK"
                     //     }
                 } else {
-                    $response = $this->v2PrivatePostSpotCancelOrderByClientId (array_merge($request, $params));
+                    $response = $this->v2PrivatePostSpotCancelOrderByClientId ($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
                     //         "data" => array(
@@ -2963,7 +2963,7 @@ class coinex extends Exchange {
             if ($isTriggerOrder) {
                 $request['stop_id'] = $this->parse_to_numeric($id);
                 if ($swap) {
-                    $response = $this->v2PrivatePostFuturesCancelStopOrder (array_merge($request, $params));
+                    $response = $this->v2PrivatePostFuturesCancelStopOrder ($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
                     //         "data" => array(
@@ -2985,7 +2985,7 @@ class coinex extends Exchange {
                     //         "message" => "OK"
                     //     }
                 } else {
-                    $response = $this->v2PrivatePostSpotCancelStopOrder (array_merge($request, $params));
+                    $response = $this->v2PrivatePostSpotCancelStopOrder ($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
                     //         "data" => array(
@@ -3010,7 +3010,7 @@ class coinex extends Exchange {
             } else {
                 $request['order_id'] = $this->parse_to_numeric($id);
                 if ($swap) {
-                    $response = $this->v2PrivatePostFuturesCancelOrder (array_merge($request, $params));
+                    $response = $this->v2PrivatePostFuturesCancelOrder ($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
                     //         "data" => array(
@@ -3038,7 +3038,7 @@ class coinex extends Exchange {
                     //         "message" => "OK"
                     //     }
                 } else {
-                    $response = $this->v2PrivatePostSpotCancelOrder (array_merge($request, $params));
+                    $response = $this->v2PrivatePostSpotCancelOrder ($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
                     //         "data" => array(
@@ -3100,7 +3100,7 @@ class coinex extends Exchange {
         $response = null;
         if ($market['swap']) {
             $request['market_type'] = 'FUTURES';
-            $response = $this->v2PrivatePostFuturesCancelAllOrder (array_merge($request, $params));
+            $response = $this->v2PrivatePostFuturesCancelAllOrder ($this->extend($request, $params));
             //
             // array("code":0,"data":array(),"message":"OK")
             //
@@ -3112,7 +3112,7 @@ class coinex extends Exchange {
             } else {
                 $request['market_type'] = 'SPOT';
             }
-            $response = $this->v2PrivatePostSpotCancelAllOrder (array_merge($request, $params));
+            $response = $this->v2PrivatePostSpotCancelAllOrder ($this->extend($request, $params));
             //
             // array("code":0,"data":array(),"message":"OK")
             //
@@ -3140,7 +3140,7 @@ class coinex extends Exchange {
         );
         $response = null;
         if ($market['swap']) {
-            $response = $this->v2PrivateGetFuturesOrderStatus (array_merge($request, $params));
+            $response = $this->v2PrivateGetFuturesOrderStatus ($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -3171,7 +3171,7 @@ class coinex extends Exchange {
             //     }
             //
         } else {
-            $response = $this->v2PrivateGetSpotOrderStatus (array_merge($request, $params));
+            $response = $this->v2PrivateGetSpotOrderStatus ($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -3242,7 +3242,7 @@ class coinex extends Exchange {
             $request['market_type'] = 'FUTURES';
             if ($isClosed) {
                 if ($stop) {
-                    $response = $this->v2PrivateGetFuturesFinishedStopOrder (array_merge($request, $params));
+                    $response = $this->v2PrivateGetFuturesFinishedStopOrder ($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -3270,7 +3270,7 @@ class coinex extends Exchange {
                     //     }
                     //
                 } else {
-                    $response = $this->v2PrivateGetFuturesFinishedOrder (array_merge($request, $params));
+                    $response = $this->v2PrivateGetFuturesFinishedOrder ($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -3304,7 +3304,7 @@ class coinex extends Exchange {
                 }
             } elseif ($isOpen) {
                 if ($stop) {
-                    $response = $this->v2PrivateGetFuturesPendingStopOrder (array_merge($request, $params));
+                    $response = $this->v2PrivateGetFuturesPendingStopOrder ($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -3333,7 +3333,7 @@ class coinex extends Exchange {
                     //     }
                     //
                 } else {
-                    $response = $this->v2PrivateGetFuturesPendingOrder (array_merge($request, $params));
+                    $response = $this->v2PrivateGetFuturesPendingOrder ($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -3380,7 +3380,7 @@ class coinex extends Exchange {
             }
             if ($isClosed) {
                 if ($stop) {
-                    $response = $this->v2PrivateGetSpotFinishedStopOrder (array_merge($request, $params));
+                    $response = $this->v2PrivateGetSpotFinishedStopOrder ($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -3409,7 +3409,7 @@ class coinex extends Exchange {
                     //     }
                     //
                 } else {
-                    $response = $this->v2PrivateGetSpotFinishedOrder (array_merge($request, $params));
+                    $response = $this->v2PrivateGetSpotFinishedOrder ($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -3445,7 +3445,7 @@ class coinex extends Exchange {
                 }
             } elseif ($status === 'pending') {
                 if ($stop) {
-                    $response = $this->v2PrivateGetSpotPendingStopOrder (array_merge($request, $params));
+                    $response = $this->v2PrivateGetSpotPendingStopOrder ($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -3475,7 +3475,7 @@ class coinex extends Exchange {
                     //     }
                     //
                 } else {
-                    $response = $this->v2PrivateGetSpotPendingOrder (array_merge($request, $params));
+                    $response = $this->v2PrivateGetSpotPendingOrder ($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -3573,7 +3573,7 @@ class coinex extends Exchange {
             'ccy' => $currency['id'],
             'chain' => $this->network_code_to_id($network, $currency['code']),
         );
-        $response = $this->v2PrivatePostAssetsRenewalDepositAddress (array_merge($request, $params));
+        $response = $this->v2PrivatePostAssetsRenewalDepositAddress ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -3616,7 +3616,7 @@ class coinex extends Exchange {
             'ccy' => $currency['id'],
             'chain' => $network,
         );
-        $response = $this->v2PrivateGetAssetsDepositAddress (array_merge($request, $params));
+        $response = $this->v2PrivateGetAssetsDepositAddress ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -3713,7 +3713,7 @@ class coinex extends Exchange {
         $response = null;
         if ($market['swap']) {
             $request['market_type'] = 'FUTURES';
-            $response = $this->v2PrivateGetFuturesUserDeals (array_merge($request, $params));
+            $response = $this->v2PrivateGetFuturesUserDeals ($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -3742,7 +3742,7 @@ class coinex extends Exchange {
             } else {
                 $request['market_type'] = 'SPOT';
             }
-            $response = $this->v2PrivateGetSpotUserDeals (array_merge($request, $params));
+            $response = $this->v2PrivateGetSpotUserDeals ($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -3803,9 +3803,9 @@ class coinex extends Exchange {
         }
         $response = null;
         if ($defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
-            $response = $this->v2PrivateGetFuturesPendingPosition (array_merge($request, $params));
+            $response = $this->v2PrivateGetFuturesPendingPosition ($this->extend($request, $params));
         } else {
-            $response = $this->v2PrivateGetFuturesFinishedPosition (array_merge($request, $params));
+            $response = $this->v2PrivateGetFuturesFinishedPosition ($this->extend($request, $params));
         }
         //
         //     {
@@ -3872,7 +3872,7 @@ class coinex extends Exchange {
             'market_type' => 'FUTURES',
             'market' => $market['id'],
         );
-        $response = $this->v2PrivateGetFuturesPendingPosition (array_merge($request, $params));
+        $response = $this->v2PrivateGetFuturesPendingPosition ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -4034,7 +4034,7 @@ class coinex extends Exchange {
             'leverage' => (string) $leverage,
             'position_type' => $positionType, // 1 => isolated, 2 => cross
         );
-        return $this->v1PerpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params));
+        return $this->v1PerpetualPrivatePostMarketAdjustLeverage ($this->extend($request, $params));
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
@@ -4073,7 +4073,7 @@ class coinex extends Exchange {
             'leverage' => (string) $leverage,
             'position_type' => $positionType, // 1 => isolated, 2 => cross
         );
-        return $this->v1PerpetualPrivatePostMarketAdjustLeverage (array_merge($request, $params));
+        return $this->v1PerpetualPrivatePostMarketAdjustLeverage ($this->extend($request, $params));
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
@@ -4135,7 +4135,7 @@ class coinex extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $addOrReduce,
         );
-        $response = $this->v1PerpetualPrivatePostPositionAdjustMargin (array_merge($request, $params));
+        $response = $this->v1PerpetualPrivatePostPositionAdjustMargin ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -4195,7 +4195,7 @@ class coinex extends Exchange {
         //
         $data = $this->safe_dict($response, 'data');
         $status = $this->safe_string($response, 'message');
-        return array_merge($this->parse_margin_modification($data, $market), array(
+        return $this->extend($this->parse_margin_modification($data, $market), array(
             'amount' => $this->parse_number($amount),
             'status' => $status,
         ));
@@ -4342,7 +4342,7 @@ class coinex extends Exchange {
         if ($since !== null) {
             $request['start_time'] = $since;
         }
-        $response = $this->v1PerpetualPrivateGetPositionFunding (array_merge($request, $params));
+        $response = $this->v1PerpetualPrivateGetPositionFunding ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -4407,7 +4407,7 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PerpetualPublicGetMarketTicker (array_merge($request, $params));
+        $response = $this->v1PerpetualPublicGetMarketTicker ($this->extend($request, $params));
         //
         //     {
         //          "code" => 0,
@@ -4599,7 +4599,7 @@ class coinex extends Exchange {
         if ($networkCode !== null) {
             $request['smart_contract_name'] = $this->network_code_to_id($networkCode);
         }
-        $response = $this->v1PrivatePostBalanceCoinWithdraw (array_merge($request, $params));
+        $response = $this->v1PrivatePostBalanceCoinWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -4671,7 +4671,7 @@ class coinex extends Exchange {
             $request['start_time'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-        $response = $this->v1PerpetualPublicGetMarketFundingHistory (array_merge($request, $params));
+        $response = $this->v1PerpetualPublicGetMarketFundingHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -4847,10 +4847,10 @@ class coinex extends Exchange {
         $response = null;
         if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
             $request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
-            $response = $this->v1PrivatePostContractBalanceTransfer (array_merge($request, $params));
+            $response = $this->v1PrivatePostContractBalanceTransfer ($this->extend($request, $params));
         } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
             $request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
-            $response = $this->v1PrivatePostContractBalanceTransfer (array_merge($request, $params));
+            $response = $this->v1PrivatePostContractBalanceTransfer ($this->extend($request, $params));
         } else {
             $accountsById = $this->safe_value($this->options, 'accountsById', array());
             $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
@@ -4859,19 +4859,19 @@ class coinex extends Exchange {
             // spot is 0, use fetchBalance() to find the margin account id
             $request['from_account'] = intval($fromId);
             $request['to_account'] = intval($toId);
-            $response = $this->v1PrivatePostMarginTransfer (array_merge($request, $params));
+            $response = $this->v1PrivatePostMarginTransfer ($this->extend($request, $params));
         }
         //
         //     array("code" => 0, "data" => null, "message" => "Success")
         //
-        return array_merge($this->parse_transfer($response, $currency), array(
+        return $this->extend($this->parse_transfer($response, $currency), array(
             'amount' => $this->parse_number($amountToPrecision),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
         ));
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '0' => 'ok',
             'SUCCESS' => 'ok',
@@ -4879,7 +4879,7 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // fetchTransfers Swap
         //
@@ -4927,7 +4927,7 @@ class coinex extends Exchange {
         $currencyCode = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transfer,
-            'id' => $this->safe_integer($transfer, 'id'),
+            'id' => $this->safe_string($transfer, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $currencyCode,
@@ -4938,7 +4938,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers made on an account
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
@@ -4980,9 +4980,9 @@ class coinex extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTransfers', $params);
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->v1PrivateGetMarginTransferHistory (array_merge($request, $params));
+            $response = $this->v1PrivateGetMarginTransferHistory ($this->extend($request, $params));
         } else {
-            $response = $this->v1PrivateGetContractTransferHistory (array_merge($request, $params));
+            $response = $this->v1PrivateGetContractTransferHistory ($this->extend($request, $params));
         }
         //
         // Swap
@@ -5053,7 +5053,7 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['Limit'] = $limit;
         }
-        $response = $this->v1PrivateGetBalanceCoinWithdraw (array_merge($request, $params));
+        $response = $this->v1PrivateGetBalanceCoinWithdraw ($this->extend($request, $params));
         //
         //    {
         //        "code" => 0,
@@ -5119,7 +5119,7 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['Limit'] = $limit;
         }
-        $response = $this->v1PrivateGetBalanceCoinDeposit (array_merge($request, $params));
+        $response = $this->v1PrivateGetBalanceCoinDeposit ($this->extend($request, $params));
         //
         //    {
         //        "code" => 0,
@@ -5212,7 +5212,7 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PrivateGetMarginConfig (array_merge($request, $params));
+        $response = $this->v1PrivateGetMarginConfig ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -5283,7 +5283,7 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetMarginLoanHistory (array_merge($request, $params));
+        $response = $this->v1PrivateGetMarginLoanHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -5379,7 +5379,7 @@ class coinex extends Exchange {
             'coin_type' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->v1PrivatePostMarginLoan (array_merge($request, $params));
+        $response = $this->v1PrivatePostMarginLoan ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -5391,7 +5391,7 @@ class coinex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $transaction = $this->parse_margin_loan($data, $currency);
-        return array_merge($transaction, array(
+        return $this->extend($transaction, array(
             'amount' => $amount,
             'symbol' => $symbol,
         ));
@@ -5416,7 +5416,7 @@ class coinex extends Exchange {
             'coin_type' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->v1PrivatePostMarginFlat (array_merge($request, $params));
+        $response = $this->v1PrivatePostMarginFlat ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -5425,7 +5425,7 @@ class coinex extends Exchange {
         //     }
         //
         $transaction = $this->parse_margin_loan($response, $currency);
-        return array_merge($transaction, array(
+        return $this->extend($transaction, array(
             'amount' => $amount,
             'symbol' => $symbol,
         ));
@@ -5474,7 +5474,7 @@ class coinex extends Exchange {
                 $request['coin_type'] = $this->safe_value($codes, 0);
             }
         }
-        $response = $this->v1PublicGetCommonAssetConfig (array_merge($request, $params));
+        $response = $this->v1PublicGetCommonAssetConfig ($this->extend($request, $params));
         //
         //    {
         //        "code" => 0,
@@ -5636,7 +5636,7 @@ class coinex extends Exchange {
             $request['start_time'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-        $response = $this->v2PrivateGetFuturesFinishedPosition (array_merge($request, $params));
+        $response = $this->v2PrivateGetFuturesFinishedPosition ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -5743,7 +5743,7 @@ class coinex extends Exchange {
         }
         if ($requestUrl === 'perpetualPrivate') {
             $this->check_required_credentials();
-            $query = array_merge(array(
+            $query = $this->extend(array(
                 'access_id' => $this->apiKey,
                 'timestamp' => $nonce,
             ), $query);
@@ -5767,7 +5767,7 @@ class coinex extends Exchange {
         } else {
             if ($version === 'v1') {
                 $this->check_required_credentials();
-                $query = array_merge(array(
+                $query = $this->extend(array(
                     'access_id' => $this->apiKey,
                     'tonce' => $nonce,
                 ), $query);
@@ -5866,7 +5866,7 @@ class coinex extends Exchange {
         if ($until !== null) {
             $request['end_time'] = $until;
         }
-        $response = $this->v1PerpetualPrivateGetPositionMarginHistory (array_merge($request, $params));
+        $response = $this->v1PerpetualPrivateGetPositionMarginHistory ($this->extend($request, $params));
         //
         //    {
         //        code => '0',

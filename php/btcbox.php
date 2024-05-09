@@ -171,7 +171,7 @@ class btcbox extends Exchange {
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetDepth (array_merge($request, $params));
+        $response = $this->publicGetDepth ($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
@@ -217,7 +217,7 @@ class btcbox extends Exchange {
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker ($this->extend($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -274,7 +274,7 @@ class btcbox extends Exchange {
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
-        $response = $this->publicGetOrders (array_merge($request, $params));
+        $response = $this->publicGetOrders ($this->extend($request, $params));
         //
         //     array(
         //          array(
@@ -309,7 +309,7 @@ class btcbox extends Exchange {
             'type' => $side,
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeAdd (array_merge($request, $params));
+        $response = $this->privatePostTradeAdd ($this->extend($request, $params));
         //
         //     {
         //         "result":true,
@@ -338,7 +338,7 @@ class btcbox extends Exchange {
             'id' => $id,
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeCancel (array_merge($request, $params));
+        $response = $this->privatePostTradeCancel ($this->extend($request, $params));
         //
         //     array("result":true, "id":"11")
         //
@@ -430,11 +430,11 @@ class btcbox extends Exchange {
             $symbol = 'BTC/JPY';
         }
         $market = $this->market($symbol);
-        $request = array_merge(array(
+        $request = $this->extend(array(
             'id' => $id,
             'coin' => $market['baseId'],
         ), $params);
-        $response = $this->privatePostTradeView (array_merge($request, $params));
+        $response = $this->privatePostTradeView ($this->extend($request, $params));
         //
         //      {
         //          "id":11,
@@ -461,7 +461,7 @@ class btcbox extends Exchange {
             'type' => $type, // 'open' or 'all'
             'coin' => $market['baseId'],
         );
-        $response = $this->privatePostTradeList (array_merge($request, $params));
+        $response = $this->privatePostTradeList ($this->extend($request, $params));
         //
         // array(
         //      array(
@@ -524,7 +524,7 @@ class btcbox extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $query = array_merge(array(
+            $query = $this->extend(array(
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params);

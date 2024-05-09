@@ -347,7 +347,7 @@ class btcturk extends Exchange {
             $request = array(
                 'pairSymbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetOrderbook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbook ($this->extend($request, $params)));
             //     {
             //       "data" => {
             //         "timestamp" => 1618827901241,
@@ -529,7 +529,7 @@ class btcturk extends Exchange {
             if ($limit !== null) {
                 $request['last'] = $limit;
             }
-            $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTrades ($this->extend($request, $params)));
             //
             //     {
             //       "data" => array(
@@ -613,7 +613,7 @@ class btcturk extends Exchange {
                     $request['from'] = $this->parse_to_int(0 / 1000) - $limitSeconds;
                 }
             }
-            $response = Async\await($this->graphGetKlinesHistory (array_merge($request, $params)));
+            $response = Async\await($this->graphGetKlinesHistory ($this->extend($request, $params)));
             //
             //    {
             //        "s" => "ok",
@@ -705,7 +705,7 @@ class btcturk extends Exchange {
             } elseif (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
                 $request['newClientOrderId'] = $this->uuid();
             }
-            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
         }) ();
@@ -724,7 +724,7 @@ class btcturk extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privateDeleteOrder (array_merge($request, $params)));
+            return Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
         }) ();
     }
 
@@ -746,7 +746,7 @@ class btcturk extends Exchange {
                 $market = $this->market($symbol);
                 $request['pairSymbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenOrders ($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data');
             $bids = $this->safe_value($data, 'bids', array());
             $asks = $this->safe_list($data, 'asks', array());
@@ -777,7 +777,7 @@ class btcturk extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = (int) floor($since / 1000);
             }
-            $response = Async\await($this->privateGetAllOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAllOrders ($this->extend($request, $params)));
             // {
             //   "data" => array(
             //     {

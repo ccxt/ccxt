@@ -2145,6 +2145,13 @@ export default class Exchange {
         const res = this.parseToNumeric((value % 1));
         return res === 0;
     }
+    safeIntegerOmitZero(obj, key, defaultValue = undefined) {
+        const timestamp = this.safeInteger(obj, key, defaultValue);
+        if (timestamp === undefined || timestamp === 0) {
+            return undefined;
+        }
+        return timestamp;
+    }
     afterConstruct() {
         this.createNetworksByIdObject();
     }
@@ -6289,6 +6296,31 @@ export default class Exchange {
             }
         }
         return marginModifications;
+    }
+    async fetchTransfer(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {[string]} code unified currency code
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        throw new NotSupported(this.id + ' fetchTransfer () is not supported yet');
+    }
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {int} [since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [limit] the maximum amount of transfers to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        throw new NotSupported(this.id + ' fetchTransfers () is not supported yet');
     }
 }
 export { Exchange, };

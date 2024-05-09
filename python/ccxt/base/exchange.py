@@ -316,7 +316,15 @@ class Exchange(object):
         'fetchCanceledOrders': None,
         'fetchClosedOrder': None,
         'fetchClosedOrders': None,
+        'fetchClosedOrdersWs': None,
+        'fetchConvertCurrencies': None,
+        'fetchConvertQuote': None,
+        'fetchConvertTrade': None,
+        'fetchConvertTradeHistory': None,
+        'fetchCrossBorrowRate': None,
+        'fetchCrossBorrowRates': None,
         'fetchCurrencies': 'emulated',
+        'fetchCurrenciesWs': 'emulated',
         'fetchDeposit': None,
         'fetchDepositAddress': None,
         'fetchDepositAddresses': None,
@@ -2183,7 +2191,7 @@ class Exchange(object):
     def parse_transaction(self, transaction, currency: Currency = None):
         raise NotSupported(self.id + ' parseTransaction() is not supported yet')
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None):
         raise NotSupported(self.id + ' parseTransfer() is not supported yet')
 
     def parse_account(self, account):
@@ -2329,6 +2337,12 @@ class Exchange(object):
         # i.e. isRoundNumber(1.000) returns True, while isInteger(1.000) returns False
         res = self.parse_to_numeric((value % 1))
         return res == 0
+
+    def safe_integer_omit_zero(self, obj: object, key: IndexType, defaultValue: Int = None):
+        timestamp = self.safe_integer(obj, key, defaultValue)
+        if timestamp is None or timestamp == 0:
+            return None
+        return timestamp
 
     def after_construct(self):
         self.create_networks_by_id_object()
@@ -5844,3 +5858,24 @@ class Exchange(object):
             if (symbols is None) or self.in_array(market['symbol'], symbols):
                 marginModifications.append(self.parse_margin_modification(info, market))
         return marginModifications
+
+    def fetch_transfer(self, id: str, code: Str = None, params={}):
+        """
+        fetches a transfer
+        :param str id: transfer id
+        :param [str] code: unified currency code
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        raise NotSupported(self.id + ' fetchTransfer() is not supported yet')
+
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches a transfer
+        :param str id: transfer id
+        :param int [since]: timestamp in ms of the earliest transfer to fetch
+        :param int [limit]: the maximum amount of transfers to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        raise NotSupported(self.id + ' fetchTransfers() is not supported yet')

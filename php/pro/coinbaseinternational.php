@@ -109,7 +109,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
                 'passphrase' => $this->password,
                 'signature' => $signature,
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($subscribe, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($subscribe, $params), $messageHash));
         }) ();
     }
 
@@ -154,7 +154,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
                 'passphrase' => $this->password,
                 'signature' => $signature,
             );
-            return Async\await($this->watch_multiple($url, $messageHashes, array_merge($subscribe, $params), $messageHashes));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($subscribe, $params), $messageHashes));
         }) ();
     }
 

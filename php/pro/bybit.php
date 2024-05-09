@@ -506,7 +506,7 @@ class bybit extends \ccxt\async\bybit {
             // update the info in place
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
-            $merged = array_merge($rawTicker, $data);
+            $merged = $this->extend($rawTicker, $data);
             $parsed = $this->parse_ticker($merged);
         }
         $timestamp = $this->safe_integer($message, 'ts');
@@ -1839,7 +1839,7 @@ class bybit extends \ccxt\async\bybit {
                 'req_id' => $this->request_id(),
                 'args' => $topics,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $message, $topics));
         }) ();
     }
@@ -1863,7 +1863,7 @@ class bybit extends \ccxt\async\bybit {
                         $this->apiKey, $expires, $signature,
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);

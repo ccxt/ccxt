@@ -138,7 +138,7 @@ class okx extends \ccxt\async\okx {
                     'channel' => $channel,
                     'instId' => $marketId,
                 );
-                $args[] = array_merge($arg, $params);
+                $args[] = $this->extend($arg, $params);
             }
             $request = array(
                 'op' => 'subscribe',
@@ -803,7 +803,7 @@ class okx extends \ccxt\async\okx {
                         ),
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);
@@ -946,7 +946,7 @@ class okx extends \ccxt\async\okx {
             $request = array(
                 'instType' => $uppercaseType,
             );
-            $orders = Async\await($this->subscribe('private', $messageHash, $channel, null, array_merge($request, $params)));
+            $orders = Async\await($this->subscribe('private', $messageHash, $channel, null, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -984,7 +984,7 @@ class okx extends \ccxt\async\okx {
                 $url = $this->get_url($channel, 'private');
                 $newPositions = Async\await($this->watch($url, $channel, $nonSymbolRequest, $channel));
             } else {
-                $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbols, array_merge($request, $params)));
+                $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbols, $this->extend($request, $params)));
             }
             if ($this->newUpdates) {
                 return $newPositions;
@@ -1130,7 +1130,7 @@ class okx extends \ccxt\async\okx {
                 'instType' => $uppercaseType,
             );
             $channel = $isStop ? 'orders-algo' : 'orders';
-            $orders = Async\await($this->subscribe('private', $channel, $channel, $symbol, array_merge($request, $params)));
+            $orders = Async\await($this->subscribe('private', $channel, $channel, $symbol, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -1414,7 +1414,7 @@ class okx extends \ccxt\async\okx {
                 'op' => $op,
                 'args' => array( $args ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -1449,7 +1449,7 @@ class okx extends \ccxt\async\okx {
             $request = array(
                 'id' => $messageHash,
                 'op' => 'cancel-order',
-                'args' => array( array_merge($arg, $params) ),
+                'args' => array( $this->extend($arg, $params) ),
             );
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
@@ -1516,7 +1516,7 @@ class okx extends \ccxt\async\okx {
             $request = array(
                 'id' => $messageHash,
                 'op' => 'mass-cancel',
-                'args' => [ array_merge(array(
+                'args' => [ $this->extend(array(
                     'instType' => 'OPTION',
                     'instFamily' => $market['id'],
                 ), $params) ],

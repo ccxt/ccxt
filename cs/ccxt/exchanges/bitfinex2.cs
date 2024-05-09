@@ -930,7 +930,9 @@ public partial class bitfinex2 : Exchange
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
             throw new ExchangeError ((string)add(add(this.id, " "), message)) ;
         }
-        return this.parseTransfer(response, currency);
+        return this.parseTransfer(new Dictionary<string, object>() {
+            { "result", response },
+        }, currency);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -958,12 +960,13 @@ public partial class bitfinex2 : Exchange
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        object timestamp = this.safeInteger(transfer, 0);
-        object info = this.safeValue(transfer, 4);
+        object result = this.safeList(transfer, "result");
+        object timestamp = this.safeInteger(result, 0);
+        object info = this.safeValue(result, 4);
         object fromAccount = this.safeString(info, 1);
         object toAccount = this.safeString(info, 2);
         object currencyId = this.safeString(info, 5);
-        object status = this.safeString(transfer, 6);
+        object status = this.safeString(result, 6);
         return new Dictionary<string, object>() {
             { "id", null },
             { "timestamp", timestamp },
@@ -973,7 +976,7 @@ public partial class bitfinex2 : Exchange
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
-            { "info", transfer },
+            { "info", result },
         };
     }
 

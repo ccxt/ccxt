@@ -279,7 +279,7 @@ class bit2c extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $orderbook = Async\await($this->publicGetExchangesPairOrderbook (array_merge($request, $params)));
+            $orderbook = Async\await($this->publicGetExchangesPairOrderbook ($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $symbol);
         }) ();
     }
@@ -327,7 +327,7 @@ class bit2c extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetExchangesPairTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetExchangesPairTicker ($this->extend($request, $params)));
             return $this->parse_ticker($response, $market);
         }) ();
     }
@@ -358,9 +358,9 @@ class bit2c extends Exchange {
             }
             $response = null;
             if ($method === 'public_get_exchanges_pair_trades') {
-                $response = Async\await($this->publicGetExchangesPairTrades (array_merge($request, $params)));
+                $response = Async\await($this->publicGetExchangesPairTrades ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetExchangesPairLasttrades (array_merge($request, $params)));
+                $response = Async\await($this->publicGetExchangesPairLasttrades ($this->extend($request, $params)));
             }
             //
             //     array(
@@ -455,7 +455,7 @@ class bit2c extends Exchange {
                 $request['Total'] = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
                 $request['IsBid'] = ($side === 'buy');
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -473,7 +473,7 @@ class bit2c extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privatePostOrderCancelOrder (array_merge($request, $params)));
+            return Async\await($this->privatePostOrderCancelOrder ($this->extend($request, $params)));
         }) ();
     }
 
@@ -496,7 +496,7 @@ class bit2c extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privateGetOrderMyOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrderMyOrders ($this->extend($request, $params)));
             $orders = $this->safe_value($response, $market['id'], array());
             $asks = $this->safe_value($orders, 'ask', array());
             $bids = $this->safe_list($orders, 'bid', array());
@@ -518,7 +518,7 @@ class bit2c extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateGetOrderGetById (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrderGetById ($this->extend($request, $params)));
             //
             //         {
             //             "pair" => "BtcNis",
@@ -678,7 +678,7 @@ class bit2c extends Exchange {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
             }
-            $response = Async\await($this->privateGetOrderOrderHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrderOrderHistory ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -851,7 +851,7 @@ class bit2c extends Exchange {
             $request = array(
                 'Coin' => $currency['id'],
             );
-            $response = Async\await($this->privatePostFundsAddCoinFundsRequest (array_merge($request, $params)));
+            $response = Async\await($this->privatePostFundsAddCoinFundsRequest ($this->extend($request, $params)));
             //
             //     {
             //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -892,7 +892,7 @@ class bit2c extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $query = array_merge(array(
+            $query = $this->extend(array(
                 'nonce' => $nonce,
             ), $params);
             $auth = $this->urlencode($query);

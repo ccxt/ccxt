@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, Leverage, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, Leverage, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2566,10 +2566,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         close = self.safe_string(ticker, 'lastPr')
-        timestampString = self.omit_zero(self.safe_string(ticker, 'ts'))  # exchange sometimes provided 0
-        timestamp = None
-        if timestampString is not None:
-            timestamp = self.parse_to_int(timestampString)
+        timestamp = self.safe_integer_omit_zero(ticker, 'ts')  # exchange bitget provided 0
         change = self.safe_string(ticker, 'change24h')
         open24 = self.safe_string(ticker, 'open24')
         open = self.safe_string(ticker, 'open')
@@ -6802,7 +6799,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords
@@ -6903,7 +6900,7 @@ class bitget(Exchange, ImplicitAPI):
         data['ts'] = self.safe_integer(response, 'requestTime')
         return self.parse_transfer(data, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -6948,7 +6945,7 @@ class bitget(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'successful': 'ok',
         }

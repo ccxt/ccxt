@@ -617,7 +617,7 @@ class okcoin extends Exchange {
         $request = array(
             'instType' => 'SPOT',
         );
-        $response = $this->publicGetPublicInstruments (array_merge($request, $params));
+        $response = $this->publicGetPublicInstruments ($this->extend($request, $params));
         $markets = $this->safe_value($response, 'data', array());
         return $this->parse_markets($markets);
     }
@@ -655,7 +655,7 @@ class okcoin extends Exchange {
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
-        return array_merge($fees, array(
+        return $this->extend($fees, array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -822,7 +822,7 @@ class okcoin extends Exchange {
         if ($limit !== null) {
             $request['sz'] = $limit; // max 400
         }
-        $response = $this->publicGetMarketBooks (array_merge($request, $params));
+        $response = $this->publicGetMarketBooks ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -919,7 +919,7 @@ class okcoin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $response = $this->publicGetMarketTicker (array_merge($request, $params));
+        $response = $this->publicGetMarketTicker ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0, array());
         //
@@ -963,7 +963,7 @@ class okcoin extends Exchange {
         $request = array(
             'instType' => 'SPOT',
         );
-        $response = $this->publicGetMarketTickers (array_merge($request, $params));
+        $response = $this->publicGetMarketTickers ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_tickers($data, $symbols, $params);
     }
@@ -1067,9 +1067,9 @@ class okcoin extends Exchange {
         list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
         $response = null;
         if ($method === 'publicGetMarketTrades') {
-            $response = $this->publicGetMarketTrades (array_merge($request, $params));
+            $response = $this->publicGetMarketTrades ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetMarketHistoryTrades (array_merge($request, $params));
+            $response = $this->publicGetMarketHistoryTrades ($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -1131,9 +1131,9 @@ class okcoin extends Exchange {
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'method', 'publicGetMarketCandles');
         $response = null;
         if ($method === 'publicGetMarketCandles') {
-            $response = $this->publicGetMarketCandles (array_merge($request, $params));
+            $response = $this->publicGetMarketCandles ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetMarketHistoryCandles (array_merge($request, $params));
+            $response = $this->publicGetMarketHistoryCandles ($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
@@ -1212,9 +1212,9 @@ class okcoin extends Exchange {
         );
         $response = null;
         if ($marketType === 'funding') {
-            $response = $this->privateGetAssetBalances (array_merge($request, $query));
+            $response = $this->privateGetAssetBalances ($this->extend($request, $query));
         } else {
-            $response = $this->privateGetAccountBalance (array_merge($request, $query));
+            $response = $this->privateGetAccountBalance ($this->extend($request, $query));
         }
         //
         //  {
@@ -1584,7 +1584,7 @@ class okcoin extends Exchange {
             $request['clOrdId'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1623,7 +1623,7 @@ class okcoin extends Exchange {
             $request['ordId'] = (string) $id;
         }
         $query = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
-        $response = $this->privatePostTradeCancelOrder (array_merge($request, $query));
+        $response = $this->privatePostTradeCancelOrder ($this->extend($request, $query));
         // array("code":"0","data":[array("clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":"")],"msg":"")
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_dict($data, 0);
@@ -1969,9 +1969,9 @@ class okcoin extends Exchange {
         $query = $this->omit($params, array( 'clientOrderId', 'stop', 'trigger' ));
         $response = null;
         if ($stop) {
-            $response = $this->privateGetTradeOrderAlgo (array_merge($request, $query));
+            $response = $this->privateGetTradeOrderAlgo ($this->extend($request, $query));
         } else {
-            $response = $this->privateGetTradeOrder (array_merge($request, $query));
+            $response = $this->privateGetTradeOrder ($this->extend($request, $query));
         }
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_dict($data, 0);
@@ -2016,9 +2016,9 @@ class okcoin extends Exchange {
         $params = $this->omit($params, array( 'stop' ));
         $response = null;
         if ($stop) {
-            $response = $this->privateGetTradeOrdersAlgoPending (array_merge($request, $params));
+            $response = $this->privateGetTradeOrdersAlgoPending ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetTradeOrdersPending (array_merge($request, $params));
+            $response = $this->privateGetTradeOrdersPending ($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
@@ -2055,14 +2055,14 @@ class okcoin extends Exchange {
         $params = $this->omit($params, array( 'stop' ));
         $response = null;
         if ($stop) {
-            $response = $this->privateGetTradeOrdersAlgoHistory (array_merge($request, $params));
+            $response = $this->privateGetTradeOrdersAlgoHistory ($this->extend($request, $params));
         } else {
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
             if ($method === 'privateGetTradeOrdersHistory') {
-                $response = $this->privateGetTradeOrdersHistory (array_merge($request, $params));
+                $response = $this->privateGetTradeOrdersHistory ($this->extend($request, $params));
             } else {
-                $response = $this->privateGetTradeOrdersHistoryArchive (array_merge($request, $params));
+                $response = $this->privateGetTradeOrdersHistoryArchive ($this->extend($request, $params));
             }
         }
         //     {
@@ -2236,7 +2236,7 @@ class okcoin extends Exchange {
         $request = array(
             'ccy' => $currency['id'],
         );
-        $response = $this->privateGetAssetDepositAddress (array_merge($request, $params));
+        $response = $this->privateGetAssetDepositAddress ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2302,7 +2302,7 @@ class okcoin extends Exchange {
             $request['from'] = $this->safe_string($params, 'from', '6');
             $request['to'] = $this->safe_string($params, 'to', '6');
         }
-        $response = $this->privatePostAssetTransfer (array_merge($request, $params));
+        $response = $this->privatePostAssetTransfer ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2323,7 +2323,7 @@ class okcoin extends Exchange {
         return $this->parse_transfer($rawTransfer, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -2401,7 +2401,7 @@ class okcoin extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'success' => 'ok',
         );
@@ -2448,7 +2448,7 @@ class okcoin extends Exchange {
             }
         }
         $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
-        $response = $this->privatePostAssetWithdrawal (array_merge($request, $params));
+        $response = $this->privatePostAssetWithdrawal ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2497,7 +2497,7 @@ class okcoin extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         list($request, $params) = $this->handle_until_option('after', $request, $params);
-        $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetDepositHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2570,7 +2570,7 @@ class okcoin extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         list($request, $params) = $this->handle_until_option('after', $request, $params);
-        $response = $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetWithdrawalHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2766,9 +2766,9 @@ class okcoin extends Exchange {
         list($method, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'method', 'privateGetTradeFillsHistory');
         $response = null;
         if ($method === 'privateGetTradeFillsHistory') {
-            $response = $this->privateGetTradeFillsHistory (array_merge($request, $params));
+            $response = $this->privateGetTradeFillsHistory ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetTradeFills (array_merge($request, $params));
+            $response = $this->privateGetTradeFills ($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -2791,7 +2791,7 @@ class okcoin extends Exchange {
             // 'before' => '1', // return the page before the specified page number
             // 'limit' => $limit, // optional, number of results per $request, default = maximum = 100
         );
-        return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2832,11 +2832,11 @@ class okcoin extends Exchange {
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = null;
         if ($method === 'privateGetAccountBillsArchive') {
-            $response = $this->privateGetAccountBillsArchive (array_merge($request, $params));
+            $response = $this->privateGetAccountBillsArchive ($this->extend($request, $params));
         } elseif ($method === 'privateGetAssetBills') {
-            $response = $this->privateGetAssetBills (array_merge($request, $params));
+            $response = $this->privateGetAssetBills ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetAccountBills (array_merge($request, $params));
+            $response = $this->privateGetAccountBills ($this->extend($request, $params));
         }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive

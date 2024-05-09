@@ -2148,14 +2148,14 @@ export default class bigone extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //     {
         //         "code": 0,
         //         "data": null
         //     }
         //
-        const code = this.safeNumber (transfer, 'code');
+        const code = this.safeString (transfer, 'code');
         return {
             'info': transfer,
             'id': undefined,
@@ -2169,7 +2169,7 @@ export default class bigone extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             '0': 'ok',
         };
