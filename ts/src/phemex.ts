@@ -3837,7 +3837,6 @@ export default class phemex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        this.verbose = true;
         if (market['settle'] === 'USDT') {
             response = await this.privateGetApiDataGFuturesFundingFees (this.extend (request, params));
         } else {
