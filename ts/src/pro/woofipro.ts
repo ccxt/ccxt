@@ -77,12 +77,10 @@ export default class woofipro extends woofiproRest {
     }
 
     async watchPublic (messageHash, message) {
-        // let id = 'bf6eb263984c964a0cda3e9a35aa486268eea085d9b90fe792c8f9ad7e129a2c';
-        let id = undefined;
+        // the default id
+        let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if (this.accountId !== undefined) {
             id = this.accountId;
-        } else {
-            throw new AuthenticationError (this.id + ' watchPublic requires this.accountId to be set'); // tmp until we find a valid public ID
         }
         const url = this.urls['api']['ws']['public'] + '/' + id;
         const requestId = this.requestId (url);
