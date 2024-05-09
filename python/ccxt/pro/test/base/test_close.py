@@ -54,6 +54,9 @@ async def test_close():
         assert False, "Expected Future rejected with ClosedByUser"
     except ExchangeClosedByUser:
         assert True
+    except Exception as e:
+        print(f"Unexpected exception: {e}")
+        assert False
     # --------------------------------------------
     print('---- Testing exchange.close(): Call watch_multiple unhandled futures are canceled')
     try:
@@ -61,6 +64,9 @@ async def test_close():
         assert False, "Expected ExchangeClosedByUser error"
     except ExchangeClosedByUser:
         assert True
+    except Exception as e:
+        print(f"Unexpected exception: {e}")
+        assert False
     exit(0)
 
 
