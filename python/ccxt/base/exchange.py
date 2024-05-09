@@ -199,7 +199,7 @@ class Exchange(object):
     secret = ''
     password = ''
     uid = ''
-    accountId = ''
+    accountId = None
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases

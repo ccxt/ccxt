@@ -210,7 +210,7 @@ class Exchange {
     public $password = '';
     public $login = '';
     public $uid = '';
-    public $accountId = '';
+    public $accountId = null;
     public $privateKey = '';
     public $walletAddress = '';
     public $token = ''; // reserved for HTTP auth in some cases
