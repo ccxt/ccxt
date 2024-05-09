@@ -790,7 +790,7 @@ class bitmex extends Exchange {
             $request = array(
                 'currency' => 'all',
             );
-            $response = Async\await($this->privateGetUserMargin (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserMargin ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -860,7 +860,7 @@ class bitmex extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderBookL2 (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderBookL2 ($this->extend($request, $params)));
             $result = array(
                 'symbol' => $symbol,
                 'bids' => array(),
@@ -1234,7 +1234,7 @@ class bitmex extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetUserWalletHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserWalletHistory ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1288,7 +1288,7 @@ class bitmex extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetUserWalletHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserWalletHistory ($this->extend($request, $params)));
             $transactions = $this->filter_by_array($response, 'transactType', array( 'Withdrawal', 'Deposit' ), false);
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         }) ();
@@ -1394,7 +1394,7 @@ class bitmex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetInstrument (array_merge($request, $params)));
+            $response = Async\await($this->publicGetInstrument ($this->extend($request, $params)));
             $ticker = $this->safe_value($response, 0);
             if ($ticker === null) {
                 throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
@@ -1547,7 +1547,7 @@ class bitmex extends Exchange {
             } else {
                 $request['reverse'] = true;
             }
-            $response = Async\await($this->publicGetTradeBucketed (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeBucketed ($this->extend($request, $params)));
             //
             //     array(
             //         array("timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
@@ -1843,7 +1843,7 @@ class bitmex extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['endTime'] = $this->iso8601($until);
             }
-            $response = Async\await($this->publicGetTrade (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTrade ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1960,7 +1960,7 @@ class bitmex extends Exchange {
                 $request['clOrdID'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
             }
-            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -2019,7 +2019,7 @@ class bitmex extends Exchange {
             }
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
             $request['text'] = $brokerId;
-            $response = Async\await($this->privatePutOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePutOrder ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -2044,7 +2044,7 @@ class bitmex extends Exchange {
                 $request['clOrdID'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
             }
-            $response = Async\await($this->privateDeleteOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
             $order = $this->safe_value($response, 0, array());
             $error = $this->safe_string($order, 'error');
             if ($error !== null) {
@@ -2077,7 +2077,7 @@ class bitmex extends Exchange {
                 $request['clOrdID'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
             }
-            $response = Async\await($this->privateDeleteOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
             return $this->parse_orders($response);
         }) ();
     }
@@ -2098,7 +2098,7 @@ class bitmex extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateDeleteOrderAll (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrderAll ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -2155,7 +2155,7 @@ class bitmex extends Exchange {
             $request = array(
                 'timeout' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
             );
-            $response = Async\await($this->privatePostOrderCancelAllAfter (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderCancelAllAfter ($this->extend($request, $params)));
             //
             //     {
             //         now => '2024-04-09T09:01:56.560Z',
@@ -2479,7 +2479,7 @@ class bitmex extends Exchange {
                 // 'otpToken' => '123456', // requires if two-factor auth (OTP) is enabled
                 // 'fee' => 0.001, // bitcoin network fee
             );
-            $response = Async\await($this->privatePostUserRequestWithdrawal (array_merge($request, $params)));
+            $response = Async\await($this->privatePostUserRequestWithdrawal ($this->extend($request, $params)));
             //
             //     {
             //         "transactID" => "3aece414-bb29-76c8-6c6d-16a477a51a1e",
@@ -2604,7 +2604,7 @@ class bitmex extends Exchange {
             if (($since === null) && ($until === null)) {
                 $request['reverse'] = true;
             }
-            $response = Async\await($this->publicGetFunding (array_merge($request, $params)));
+            $response = Async\await($this->publicGetFunding ($this->extend($request, $params)));
             //
             //    array(
             //        {
@@ -2666,7 +2666,7 @@ class bitmex extends Exchange {
                 'symbol' => $market['id'],
                 'leverage' => $leverage,
             );
-            return Async\await($this->privatePostPositionLeverage (array_merge($request, $params)));
+            return Async\await($this->privatePostPositionLeverage ($this->extend($request, $params)));
         }) ();
     }
 
@@ -2697,7 +2697,7 @@ class bitmex extends Exchange {
                 'symbol' => $market['id'],
                 'enabled' => $enabled,
             );
-            return Async\await($this->privatePostPositionIsolate (array_merge($request, $params)));
+            return Async\await($this->privatePostPositionIsolate ($this->extend($request, $params)));
         }) ();
     }
 
@@ -2723,7 +2723,7 @@ class bitmex extends Exchange {
                 'currency' => $currency['id'],
                 'network' => $this->network_code_to_id($networkCode, $currency['code']),
             );
-            $response = Async\await($this->privateGetUserDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserDepositAddress ($this->extend($request, $params)));
             //
             //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
             //
@@ -2888,7 +2888,7 @@ class bitmex extends Exchange {
                 $request['count'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->publicGetLiquidation (array_merge($request, $params)));
+            $response = Async\await($this->publicGetLiquidation ($this->extend($request, $params)));
             //
             //     array(
             //         {

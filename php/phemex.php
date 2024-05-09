@@ -946,15 +946,15 @@ class phemex extends Exchange {
             if (($type === 'perpetual') || ($type === 'perpetualv2')) {
                 $id = $this->safe_string($market, 'symbol');
                 $riskLimitValues = $this->safe_value($riskLimitsById, $id, array());
-                $market = array_merge($market, $riskLimitValues);
+                $market = $this->extend($market, $riskLimitValues);
                 $v1ProductsValues = $this->safe_value($v1ProductsById, $id, array());
-                $market = array_merge($market, $v1ProductsValues);
+                $market = $this->extend($market, $v1ProductsValues);
                 $market = $this->parse_swap_market($market);
             } else {
                 $baseCurrency = $this->safe_string($market, 'baseCurrency');
                 $currencyValues = $this->safe_value($currenciesByCode, $baseCurrency, array());
                 $valueScale = $this->safe_string($currencyValues, 'valueScale', '8');
-                $market = array_merge($market, array( 'valueScale' => $valueScale ));
+                $market = $this->extend($market, array( 'valueScale' => $valueScale ));
                 $market = $this->parse_spot_market($market);
             }
             $result[] = $market;
@@ -1085,12 +1085,12 @@ class phemex extends Exchange {
         );
         $response = null;
         if ($market['linear'] && $market['settle'] === 'USDT') {
-            $response = $this->v2GetMdV2Orderbook (array_merge($request, $params));
+            $response = $this->v2GetMdV2Orderbook ($this->extend($request, $params));
         } else {
             if (($limit !== null) && ($limit <= 30)) {
-                $response = $this->v1GetMdOrderbook (array_merge($request, $params));
+                $response = $this->v1GetMdOrderbook ($this->extend($request, $params));
             } else {
-                $response = $this->v1GetMdFullbook (array_merge($request, $params));
+                $response = $this->v1GetMdFullbook ($this->extend($request, $params));
             }
         }
         //
@@ -1262,9 +1262,9 @@ class phemex extends Exchange {
                     }
                     $request['to'] = $to;
                 }
-                $response = $this->publicGetMdV2KlineList (array_merge($request, $params));
+                $response = $this->publicGetMdV2KlineList ($this->extend($request, $params));
             } else {
-                $response = $this->publicGetMdV2KlineLast (array_merge($request, $params));
+                $response = $this->publicGetMdV2KlineLast ($this->extend($request, $params));
             }
         } else {
             if ($since !== null) {
@@ -1274,7 +1274,7 @@ class phemex extends Exchange {
                 $timeDelta = $this->milliseconds() - $since;
                 $limit = $this->parse_to_int($timeDelta / $duration); // setting $limit $to the number of candles after $since
             }
-            $response = $this->publicGetMdV2Kline (array_merge($request, $params));
+            $response = $this->publicGetMdV2Kline ($this->extend($request, $params));
         }
         //
         //     {
@@ -1401,12 +1401,12 @@ class phemex extends Exchange {
         $response = null;
         if ($market['swap']) {
             if ($market['inverse'] || $market['settle'] === 'USD') {
-                $response = $this->v1GetMdTicker24hr (array_merge($request, $params));
+                $response = $this->v1GetMdTicker24hr ($this->extend($request, $params));
             } else {
-                $response = $this->v2GetMdV2Ticker24hr (array_merge($request, $params));
+                $response = $this->v2GetMdV2Ticker24hr ($this->extend($request, $params));
             }
         } else {
-            $response = $this->v1GetMdSpotTicker24hr (array_merge($request, $params));
+            $response = $this->v1GetMdSpotTicker24hr ($this->extend($request, $params));
         }
         //
         // spot
@@ -1507,9 +1507,9 @@ class phemex extends Exchange {
         );
         $response = null;
         if ($market['linear'] && $market['settle'] === 'USDT') {
-            $response = $this->v2GetMdV2Trade (array_merge($request, $params));
+            $response = $this->v2GetMdV2Trade ($this->extend($request, $params));
         } else {
-            $response = $this->v1GetMdTrade (array_merge($request, $params));
+            $response = $this->v1GetMdTrade ($this->extend($request, $params));
         }
         //
         //     {
@@ -1930,19 +1930,19 @@ class phemex extends Exchange {
                 $currency = $this->currency($coin);
                 $request['currency'] = $currency['id'];
                 if ($currency['id'] === 'USDT') {
-                    $response = $this->privateGetGAccountsAccountPositions (array_merge($request, $params));
+                    $response = $this->privateGetGAccountsAccountPositions ($this->extend($request, $params));
                 } else {
-                    $response = $this->privateGetAccountsAccountPositions (array_merge($request, $params));
+                    $response = $this->privateGetAccountsAccountPositions ($this->extend($request, $params));
                 }
             } else {
                 $currency = $this->safe_string($params, 'currency');
                 if ($currency === null) {
                     throw new ArgumentsRequired($this->id . ' fetchBalance() requires a $code parameter or a $currency or $settle parameter for ' . $type . ' type');
                 }
-                $response = $this->privateGetSpotWallets (array_merge($request, $params));
+                $response = $this->privateGetSpotWallets ($this->extend($request, $params));
             }
         } else {
-            $response = $this->privateGetSpotWallets (array_merge($request, $params));
+            $response = $this->privateGetSpotWallets ($this->extend($request, $params));
         }
         //
         // usdt
@@ -2611,11 +2611,11 @@ class phemex extends Exchange {
         $params = $this->omit($params, 'reduceOnly');
         $response = null;
         if ($market['settle'] === 'USDT') {
-            $response = $this->privatePostGOrders (array_merge($request, $params));
+            $response = $this->privatePostGOrders ($this->extend($request, $params));
         } elseif ($market['contract']) {
-            $response = $this->privatePostOrders (array_merge($request, $params));
+            $response = $this->privatePostOrders ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostSpotOrders (array_merge($request, $params));
+            $response = $this->privatePostSpotOrders ($this->extend($request, $params));
         }
         //
         // spot
@@ -2758,11 +2758,11 @@ class phemex extends Exchange {
             if ($posSide === null) {
                 $request['posSide'] = 'Merged';
             }
-            $response = $this->privatePutGOrdersReplace (array_merge($request, $params));
+            $response = $this->privatePutGOrdersReplace ($this->extend($request, $params));
         } elseif ($market['swap']) {
-            $response = $this->privatePutOrdersReplace (array_merge($request, $params));
+            $response = $this->privatePutOrdersReplace ($this->extend($request, $params));
         } else {
-            $response = $this->privatePutSpotOrders (array_merge($request, $params));
+            $response = $this->privatePutSpotOrders ($this->extend($request, $params));
         }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
@@ -2799,11 +2799,11 @@ class phemex extends Exchange {
             if ($posSide === null) {
                 $request['posSide'] = 'Merged';
             }
-            $response = $this->privateDeleteGOrdersCancel (array_merge($request, $params));
+            $response = $this->privateDeleteGOrdersCancel ($this->extend($request, $params));
         } elseif ($market['swap']) {
-            $response = $this->privateDeleteOrdersCancel (array_merge($request, $params));
+            $response = $this->privateDeleteOrdersCancel ($this->extend($request, $params));
         } else {
-            $response = $this->privateDeleteSpotOrders (array_merge($request, $params));
+            $response = $this->privateDeleteSpotOrders ($this->extend($request, $params));
         }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
@@ -2834,11 +2834,11 @@ class phemex extends Exchange {
         }
         $response = null;
         if ($market['settle'] === 'USDT') {
-            $response = $this->privateDeleteGOrdersAll (array_merge($request, $params));
+            $response = $this->privateDeleteGOrdersAll ($this->extend($request, $params));
         } elseif ($market['swap']) {
-            $response = $this->privateDeleteOrdersAll (array_merge($request, $params));
+            $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
         } else {
-            $response = $this->privateDeleteSpotOrdersAll (array_merge($request, $params));
+            $response = $this->privateDeleteSpotOrdersAll ($this->extend($request, $params));
         }
         return $response;
     }
@@ -2870,9 +2870,9 @@ class phemex extends Exchange {
         }
         $response = null;
         if ($market['spot']) {
-            $response = $this->privateGetSpotOrdersActive (array_merge($request, $params));
+            $response = $this->privateGetSpotOrdersActive ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetExchangeOrder (array_merge($request, $params));
+            $response = $this->privateGetExchangeOrder ($this->extend($request, $params));
         }
         $data = $this->safe_value($response, 'data', array());
         $order = $data;
@@ -2917,11 +2917,11 @@ class phemex extends Exchange {
         $response = null;
         if ($market['settle'] === 'USDT') {
             $request['currency'] = $market['settle'];
-            $response = $this->privateGetExchangeOrderV2OrderList (array_merge($request, $params));
+            $response = $this->privateGetExchangeOrderV2OrderList ($this->extend($request, $params));
         } elseif ($market['swap']) {
-            $response = $this->privateGetExchangeOrderList (array_merge($request, $params));
+            $response = $this->privateGetExchangeOrderList ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetSpotOrders (array_merge($request, $params));
+            $response = $this->privateGetSpotOrders ($this->extend($request, $params));
         }
         $data = $this->safe_value($response, 'data', array());
         $rows = $this->safe_list($data, 'rows', $data);
@@ -2952,11 +2952,11 @@ class phemex extends Exchange {
         $response = null;
         try {
             if ($market['settle'] === 'USDT') {
-                $response = $this->privateGetGOrdersActiveList (array_merge($request, $params));
+                $response = $this->privateGetGOrdersActiveList ($this->extend($request, $params));
             } elseif ($market['swap']) {
-                $response = $this->privateGetOrdersActiveList (array_merge($request, $params));
+                $response = $this->privateGetOrdersActiveList ($this->extend($request, $params));
             } else {
-                $response = $this->privateGetSpotOrders (array_merge($request, $params));
+                $response = $this->privateGetSpotOrders ($this->extend($request, $params));
             }
         } catch (Exception $e) {
             if ($e instanceof OrderNotFound) {
@@ -3006,11 +3006,11 @@ class phemex extends Exchange {
         $response = null;
         if (($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT')) {
             $request['currency'] = $this->safe_string($params, 'settle', 'USDT');
-            $response = $this->privateGetExchangeOrderV2OrderList (array_merge($request, $params));
+            $response = $this->privateGetExchangeOrderV2OrderList ($this->extend($request, $params));
         } elseif ($market['swap']) {
-            $response = $this->privateGetExchangeOrderList (array_merge($request, $params));
+            $response = $this->privateGetExchangeOrderList ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetExchangeSpotOrder (array_merge($request, $params));
+            $response = $this->privateGetExchangeSpotOrder ($this->extend($request, $params));
         }
         //
         // spot
@@ -3094,11 +3094,11 @@ class phemex extends Exchange {
         }
         $response = null;
         if ($isUSDTSettled) {
-            $response = $this->privateGetExchangeOrderV2TradingList (array_merge($request, $params));
+            $response = $this->privateGetExchangeOrderV2TradingList ($this->extend($request, $params));
         } elseif ($market['swap']) {
-            $response = $this->privateGetExchangeOrderTrade (array_merge($request, $params));
+            $response = $this->privateGetExchangeOrderTrade ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetExchangeSpotOrderTrades (array_merge($request, $params));
+            $response = $this->privateGetExchangeSpotOrderTrades ($this->extend($request, $params));
         }
         //
         // spot
@@ -3237,7 +3237,7 @@ class phemex extends Exchange {
             $request['chainName'] = $network;
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privateGetPhemexUserWalletsV2DepositAddress (array_merge($request, $params));
+        $response = $this->privateGetPhemexUserWalletsV2DepositAddress ($this->extend($request, $params));
         //     {
         //         "code":0,
         //         "msg":"OK",
@@ -3521,12 +3521,12 @@ class phemex extends Exchange {
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
             if ($method === 'privateGetGAccountsAccountPositions') {
-                $response = $this->privateGetGAccountsAccountPositions (array_merge($request, $params));
+                $response = $this->privateGetGAccountsAccountPositions ($this->extend($request, $params));
             } else {
-                $response = $this->privateGetAccountsPositions (array_merge($request, $params));
+                $response = $this->privateGetAccountsPositions ($this->extend($request, $params));
             }
         } else {
-            $response = $this->privateGetAccountsAccountPositions (array_merge($request, $params));
+            $response = $this->privateGetAccountsAccountPositions ($this->extend($request, $params));
         }
         //
         //     {
@@ -3785,9 +3785,9 @@ class phemex extends Exchange {
         }
         $response = null;
         if ($market['settle'] === 'USDT') {
-            $response = $this->privateGetApiDataGFuturesFundingFees (array_merge($request, $params));
+            $response = $this->privateGetApiDataGFuturesFundingFees ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetApiDataFuturesFundingFees (array_merge($request, $params));
+            $response = $this->privateGetApiDataFuturesFundingFees ($this->extend($request, $params));
         }
         //
         //     {
@@ -3847,9 +3847,9 @@ class phemex extends Exchange {
         );
         $response = array();
         if (!$market['linear']) {
-            $response = $this->v1GetMdTicker24hr (array_merge($request, $params));
+            $response = $this->v1GetMdTicker24hr ($this->extend($request, $params));
         } else {
-            $response = $this->v2GetMdV2Ticker24hr (array_merge($request, $params));
+            $response = $this->v2GetMdV2Ticker24hr ($this->extend($request, $params));
         }
         //
         //     {
@@ -3955,7 +3955,7 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
             'posBalanceEv' => $this->to_ev($amount, $market),
         );
-        $response = $this->privatePostPositionsAssign (array_merge($request, $params));
+        $response = $this->privatePostPositionsAssign ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -3963,7 +3963,7 @@ class phemex extends Exchange {
         //         "data" => "OK"
         //     }
         //
-        return array_merge($this->parse_margin_modification($response, $market), array(
+        return $this->extend($this->parse_margin_modification($response, $market), array(
             'amount' => $amount,
         ));
     }
@@ -4031,7 +4031,7 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
             'leverage' => $leverage,
         );
-        return $this->privatePutPositionsLeverage (array_merge($request, $params));
+        return $this->privatePutPositionsLeverage ($this->extend($request, $params));
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
@@ -4057,7 +4057,7 @@ class phemex extends Exchange {
         } else {
             $request['targetPosMode'] = 'OneWay';
         }
-        return $this->privatePutGPositionsSwitchPosModeSync (array_merge($request, $params));
+        return $this->privatePutGPositionsSwitchPosModeSync ($this->extend($request, $params));
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
@@ -4275,10 +4275,10 @@ class phemex extends Exchange {
                 $request['longLeverageRr'] = $longVar;
                 $request['shortLeverageRr'] = $shortVar;
             }
-            $response = $this->privatePutGPositionsLeverage (array_merge($request, $params));
+            $response = $this->privatePutGPositionsLeverage ($this->extend($request, $params));
         } else {
             $request['leverage'] = $leverage;
-            $response = $this->privatePutPositionsLeverage (array_merge($request, $params));
+            $response = $this->privatePutPositionsLeverage ($this->extend($request, $params));
         }
         return $response;
     }
@@ -4313,7 +4313,7 @@ class phemex extends Exchange {
                 'moveOp' => $direction,
                 'amountEv' => $scaledAmmount,
             );
-            $response = $this->privatePostAssetsTransfer (array_merge($request, $params));
+            $response = $this->privatePostAssetsTransfer ($this->extend($request, $params));
             //
             //     {
             //         "code" => "0",
@@ -4338,7 +4338,7 @@ class phemex extends Exchange {
                 'currency' => $currency['id'],
                 'bizType' => $this->safe_string($params, 'bizType', 'SPOT'),
             );
-            $response = $this->privatePostAssetsUniversalTransfer (array_merge($request, $params));
+            $response = $this->privatePostAssetsUniversalTransfer ($this->extend($request, $params));
             //
             //     {
             //         "code" => "0",
@@ -4390,7 +4390,7 @@ class phemex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetAssetsTransfer (array_merge($request, $params));
+        $response = $this->privateGetAssetsTransfer ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -4526,9 +4526,9 @@ class phemex extends Exchange {
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = null;
         if ($isUsdtSettled) {
-            $response = $this->v2GetApiDataPublicDataFundingRateHistory (array_merge($request, $params));
+            $response = $this->v2GetApiDataPublicDataFundingRateHistory ($this->extend($request, $params));
         } else {
-            $response = $this->v1GetApiDataPublicDataFundingRateHistory (array_merge($request, $params));
+            $response = $this->v1GetApiDataPublicDataFundingRateHistory ($this->extend($request, $params));
         }
         //
         //    {
@@ -4603,7 +4603,7 @@ class phemex extends Exchange {
         if ($tag !== null) {
             $request['addressTag'] = $tag;
         }
-        $response = $this->privatePostPhemexWithdrawWalletsApiCreateWithdraw (array_merge($request, $params));
+        $response = $this->privatePostPhemexWithdrawWalletsApiCreateWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,

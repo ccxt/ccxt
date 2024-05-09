@@ -269,7 +269,7 @@ class tradeogre extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickerMarket (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickerMarket ($this->extend($request, $params)));
             //
             //   {
             //       "success":true,
@@ -337,7 +337,7 @@ class tradeogre extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetOrdersMarket (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrdersMarket ($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -387,7 +387,7 @@ class tradeogre extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetHistoryMarket (array_merge($request, $params)));
+            $response = Async\await($this->publicGetHistoryMarket ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -482,9 +482,9 @@ class tradeogre extends Exchange {
             }
             $response = null;
             if ($side === 'buy') {
-                $response = Async\await($this->privatePostOrderBuy (array_merge($request, $params)));
+                $response = Async\await($this->privatePostOrderBuy ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostOrderSell (array_merge($request, $params)));
+                $response = Async\await($this->privatePostOrderSell ($this->extend($request, $params)));
             }
             return $this->parse_order($response, $market);
         }) ();
@@ -503,7 +503,7 @@ class tradeogre extends Exchange {
             $request = array(
                 'uuid' => $id,
             );
-            $response = Async\await($this->privatePostOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -540,7 +540,7 @@ class tradeogre extends Exchange {
             if ($symbol !== null) {
                 $request['market'] = $market['id'];
             }
-            $response = Async\await($this->privatePostAccountOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -558,7 +558,7 @@ class tradeogre extends Exchange {
             $request = array(
                 'uuid' => $id,
             );
-            $response = Async\await($this->privateGetAccountOrderUuid (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountOrderUuid ($this->extend($request, $params)));
             return $this->parse_order($response, null);
         }) ();
     }

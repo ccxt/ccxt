@@ -640,7 +640,7 @@ public partial class latoken : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object last = this.safeString(ticker, "lastPrice");
-        object timestamp = this.safeInteger(ticker, "updateTimestamp");
+        object timestamp = this.safeIntegerOmitZero(ticker, "updateTimestamp"); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market) },
             { "timestamp", timestamp },

@@ -597,7 +597,7 @@ class kucoinfutures extends kucoin {
                 $request['from'] = $since;
             }
             $request['to'] = $endAt;
-            $response = Async\await($this->futuresPublicGetKlineQuery (array_merge($request, $params)));
+            $response = Async\await($this->futuresPublicGetKlineQuery ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -650,7 +650,7 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'currency' => $currencyId, // Currency,including XBT,USDT
             );
-            $response = Async\await($this->futuresPrivateGetDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetDepositAddress ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -704,7 +704,7 @@ class kucoinfutures extends kucoin {
             } else {
                 $request['limit'] = 20;
             }
-            $response = Async\await($this->futuresPublicGetLevel2DepthLimit (array_merge($request, $params)));
+            $response = Async\await($this->futuresPublicGetLevel2DepthLimit ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -745,7 +745,7 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->futuresPublicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->futuresPublicGetTicker ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -981,7 +981,7 @@ class kucoinfutures extends kucoin {
                 // * Since is ignored if $limit is defined
                 $request['maxCount'] = $limit;
             }
-            $response = Async\await($this->futuresPrivateGetFundingHistory (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetFundingHistory ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1042,7 +1042,7 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->futuresPrivateGetPosition (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetPosition ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1180,7 +1180,7 @@ class kucoinfutures extends kucoin {
                 $params = $this->omit($params, 'until');
                 $request['to'] = $until;
             }
-            $response = Async\await($this->futuresPrivateGetHistoryPositions (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetHistoryPositions ($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -1528,7 +1528,7 @@ class kucoinfutures extends kucoin {
             }
         }
         $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1554,10 +1554,10 @@ class kucoinfutures extends kucoin {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
                 $request['clientOid'] = $clientOrderId;
-                $response = Async\await($this->futuresPrivateDeleteOrdersClientOrderClientOid (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivateDeleteOrdersClientOrderClientOid ($this->extend($request, $params)));
             } else {
                 $request['orderId'] = $id;
-                $response = Async\await($this->futuresPrivateDeleteOrdersOrderId (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivateDeleteOrdersOrderId ($this->extend($request, $params)));
             }
             //
             //   {
@@ -1593,9 +1593,9 @@ class kucoinfutures extends kucoin {
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $response = null;
             if ($stop) {
-                $response = Async\await($this->futuresPrivateDeleteStopOrders (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivateDeleteStopOrders ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->futuresPrivateDeleteOrders (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivateDeleteOrders ($this->extend($request, $params)));
             }
             //
             //   {
@@ -1629,7 +1629,7 @@ class kucoinfutures extends kucoin {
                 'margin' => $this->amount_to_precision($symbol, $amount),
                 'bizNo' => $uuid,
             );
-            $response = Async\await($this->futuresPrivatePostPositionMarginDepositMargin (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivatePostPositionMarginDepositMargin ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -1680,7 +1680,7 @@ class kucoinfutures extends kucoin {
             //    }
             //
             $data = $this->safe_value($response, 'data');
-            return array_merge($this->parse_margin_modification($data, $market), array(
+            return $this->extend($this->parse_margin_modification($data, $market), array(
                 'amount' => $this->amount_to_precision($symbol, $amount),
                 'direction' => 'in',
             ));
@@ -1805,9 +1805,9 @@ class kucoinfutures extends kucoin {
             }
             $response = null;
             if ($stop) {
-                $response = Async\await($this->futuresPrivateGetStopOrders (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivateGetStopOrders ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->futuresPrivateGetOrders (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivateGetOrders ($this->extend($request, $params)));
             }
             //
             //     {
@@ -1937,10 +1937,10 @@ class kucoinfutures extends kucoin {
                 }
                 $request['clientOid'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-                $response = Async\await($this->futuresPrivateGetOrdersByClientOid (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivateGetOrdersByClientOid ($this->extend($request, $params)));
             } else {
                 $request['orderId'] = $id;
-                $response = Async\await($this->futuresPrivateGetOrdersOrderId (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivateGetOrdersOrderId ($this->extend($request, $params)));
             }
             //
             //     {
@@ -2141,7 +2141,7 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->futuresPublicGetFundingRateSymbolCurrent (array_merge($request, $params)));
+            $response = Async\await($this->futuresPublicGetFundingRateSymbolCurrent ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -2213,7 +2213,7 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->futuresPrivateGetAccountOverview (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetAccountOverview ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -2255,7 +2255,7 @@ class kucoinfutures extends kucoin {
                 'amount' => $amountToPrecision,
             );
             // transfer from usdm futures wallet to spot wallet
-            $response = Async\await($this->futuresPrivatePostTransferOut (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivatePostTransferOut ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -2265,7 +2265,7 @@ class kucoinfutures extends kucoin {
             //    }
             //
             $data = $this->safe_value($response, 'data');
-            return array_merge($this->parse_transfer($data, $currency), array(
+            return $this->extend($this->parse_transfer($data, $currency), array(
                 'amount' => $this->parse_number($amountToPrecision),
                 'fromAccount' => 'future',
                 'toAccount' => 'spot',
@@ -2338,7 +2338,7 @@ class kucoinfutures extends kucoin {
                 $request['startAt'] = $since;
             }
             list($request, $params) = $this->handle_until_option('endAt', $request, $params);
-            $response = Async\await($this->futuresPrivateGetFills (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetFills ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -2394,7 +2394,7 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->futuresPublicGetTradeHistory (array_merge($request, $params)));
+            $response = Async\await($this->futuresPublicGetTradeHistory ($this->extend($request, $params)));
             //
             //      {
             //          "code" => "200000",
@@ -2575,7 +2575,7 @@ class kucoinfutures extends kucoin {
             if ($since !== null) {
                 $request['startAt'] = $since;
             }
-            $response = Async\await($this->futuresPrivateGetDepositList (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetDepositList ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -2631,7 +2631,7 @@ class kucoinfutures extends kucoin {
             if ($since !== null) {
                 $request['startAt'] = $since;
             }
-            $response = Async\await($this->futuresPrivateGetWithdrawalList (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetWithdrawalList ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -2681,7 +2681,7 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->futuresPublicGetContractsRiskLimitSymbol (array_merge($request, $params)));
+            $response = Async\await($this->futuresPublicGetContractsRiskLimitSymbol ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "200000",
@@ -2773,7 +2773,7 @@ class kucoinfutures extends kucoin {
                     $request['to'] = $until - 1000 * 8 * 60 * 60 * 100;
                 }
             }
-            $response = Async\await($this->futuresPublicGetContractFundingRates (array_merge($request, $params)));
+            $response = Async\await($this->futuresPublicGetContractFundingRates ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -2830,9 +2830,9 @@ class kucoinfutures extends kucoin {
             );
             $response = null;
             if ($testOrder) {
-                $response = Async\await($this->futuresPrivatePostOrdersTest (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivatePostOrdersTest ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->futuresPrivatePostOrders (array_merge($request, $params)));
+                $response = Async\await($this->futuresPrivatePostOrders ($this->extend($request, $params)));
             }
             return $this->parse_order($response, $market);
         }) ();
@@ -2852,7 +2852,7 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'symbols' => $market['id'],
             );
-            $response = Async\await($this->privateGetTradeFees (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeFees ($this->extend($request, $params)));
             //
             //  {
             //      "code" => "200000",

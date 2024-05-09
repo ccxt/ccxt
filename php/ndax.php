@@ -291,7 +291,7 @@ class ndax extends Exchange {
         $request = array(
             'grant_type' => 'client_credentials', // the only supported value
         );
-        $response = $this->publicGetAuthenticate (array_merge($request, $params));
+        $response = $this->publicGetAuthenticate ($this->extend($request, $params));
         //
         //     {
         //         "Authenticated":true,
@@ -315,7 +315,7 @@ class ndax extends Exchange {
             $request = array(
                 'Code' => $this->totp($this->twofa),
             );
-            $responseInner = $this->publicGetAuthenticate2FA (array_merge($request, $params));
+            $responseInner = $this->publicGetAuthenticate2FA ($this->extend($request, $params));
             //
             //     {
             //         "Authenticated" => true,
@@ -341,7 +341,7 @@ class ndax extends Exchange {
         $request = array(
             'omsId' => $omsId,
         );
-        $response = $this->publicGetGetProducts (array_merge($request, $params));
+        $response = $this->publicGetGetProducts ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -410,7 +410,7 @@ class ndax extends Exchange {
         $request = array(
             'omsId' => $omsId,
         );
-        $response = $this->publicGetGetInstruments (array_merge($request, $params));
+        $response = $this->publicGetGetInstruments ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -576,7 +576,7 @@ class ndax extends Exchange {
             'InstrumentId' => $market['id'],
             'Depth' => $limit, // default 100
         );
-        $response = $this->publicGetGetL2Snapshot (array_merge($request, $params));
+        $response = $this->publicGetGetL2Snapshot ($this->extend($request, $params));
         //
         //     array(
         //         [
@@ -684,7 +684,7 @@ class ndax extends Exchange {
             'omsId' => $omsId,
             'InstrumentId' => $market['id'],
         );
-        $response = $this->publicGetGetLevel1 (array_merge($request, $params));
+        $response = $this->publicGetGetLevel1 ($this->extend($request, $params));
         //
         //     {
         //         "OMSId":1,
@@ -776,7 +776,7 @@ class ndax extends Exchange {
                 $request['ToDate'] = $this->ymdhms($this->sum($since, $duration * $limit * 1000));
             }
         }
-        $response = $this->publicGetGetTickerHistory (array_merge($request, $params));
+        $response = $this->publicGetGetTickerHistory ($this->extend($request, $params));
         //
         //     [
         //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
@@ -974,7 +974,7 @@ class ndax extends Exchange {
         if ($limit !== null) {
             $request['Count'] = $limit;
         }
-        $response = $this->publicGetGetLastTrades (array_merge($request, $params));
+        $response = $this->publicGetGetLastTrades ($this->extend($request, $params));
         //
         //     [
         //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
@@ -1002,7 +1002,7 @@ class ndax extends Exchange {
             'UserId' => $this->uid,
             'UserName' => $this->login,
         );
-        $response = $this->privateGetGetUserAccounts (array_merge($request, $params));
+        $response = $this->privateGetGetUserAccounts ($this->extend($request, $params));
         //
         //     array( 449 ) // comma-separated list of account ids
         //
@@ -1056,7 +1056,7 @@ class ndax extends Exchange {
             'omsId' => $omsId,
             'AccountId' => $accountId,
         );
-        $response = $this->privateGetGetAccountPositions (array_merge($request, $params));
+        $response = $this->privateGetGetAccountPositions ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1189,7 +1189,7 @@ class ndax extends Exchange {
         if ($limit !== null) {
             $request['Depth'] = $limit;
         }
-        $response = $this->privateGetGetAccountTransactions (array_merge($request, $params));
+        $response = $this->privateGetGetAccountTransactions ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1381,7 +1381,7 @@ class ndax extends Exchange {
         if ($triggerPrice !== null) {
             $request['StopPrice'] = $triggerPrice;
         }
-        $response = $this->privatePostSendOrder (array_merge($request, $params));
+        $response = $this->privatePostSendOrder ($this->extend($request, $params));
         //
         //     {
         //         "status":"Accepted",
@@ -1428,7 +1428,7 @@ class ndax extends Exchange {
         if ($clientOrderId !== null) {
             $request['ClientOrderId'] = $clientOrderId;
         }
-        $response = $this->privatePostCancelReplaceOrder (array_merge($request, $params));
+        $response = $this->privatePostCancelReplaceOrder ($this->extend($request, $params));
         //
         //     {
         //         "replacementOrderId" => 1234,
@@ -1480,7 +1480,7 @@ class ndax extends Exchange {
         if ($limit !== null) {
             $request['Depth'] = $limit;
         }
-        $response = $this->privateGetGetTradesHistory (array_merge($request, $params));
+        $response = $this->privateGetGetTradesHistory ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1549,7 +1549,7 @@ class ndax extends Exchange {
             $market = $this->market($symbol);
             $request['IntrumentId'] = $market['id'];
         }
-        $response = $this->privatePostCancelAllOrders (array_merge($request, $params));
+        $response = $this->privatePostCancelAllOrders ($this->extend($request, $params));
         //
         //     {
         //         "result":true,
@@ -1591,9 +1591,9 @@ class ndax extends Exchange {
             $request['OrderId'] = intval($id);
         }
         $params = $this->omit($params, array( 'clientOrderId', 'ClOrderId' ));
-        $response = $this->privatePostCancelOrder (array_merge($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
         $order = $this->parse_order($response, $market);
-        return array_merge($order, array(
+        return $this->extend($order, array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
         ));
@@ -1623,7 +1623,7 @@ class ndax extends Exchange {
             'omsId' => $omsId,
             'AccountId' => $accountId,
         );
-        $response = $this->privateGetGetOpenOrders (array_merge($request, $params));
+        $response = $this->privateGetGetOpenOrders ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1717,7 +1717,7 @@ class ndax extends Exchange {
         if ($limit !== null) {
             $request['Depth'] = $limit;
         }
-        $response = $this->privateGetGetOrdersHistory (array_merge($request, $params));
+        $response = $this->privateGetGetOrdersHistory ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1794,7 +1794,7 @@ class ndax extends Exchange {
             'AccountId' => $accountId,
             'OrderId' => intval($id),
         );
-        $response = $this->privateGetGetOrderStatus (array_merge($request, $params));
+        $response = $this->privateGetGetOrderStatus ($this->extend($request, $params));
         //
         //     {
         //         "Side":"Sell",
@@ -1872,7 +1872,7 @@ class ndax extends Exchange {
             // 'AccountId' => $accountId,
             'OrderId' => intval($id),
         );
-        $response = $this->privatePostGetOrderHistoryByOrderId (array_merge($request, $params));
+        $response = $this->privatePostGetOrderHistoryByOrderId ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1948,7 +1948,7 @@ class ndax extends Exchange {
             'ProductId' => $currency['id'],
             'GenerateNewKey' => false,
         );
-        $response = $this->privateGetGetDepositInfo (array_merge($request, $params));
+        $response = $this->privateGetGetDepositInfo ($this->extend($request, $params));
         //
         //     {
         //         "result":true,
@@ -2010,7 +2010,7 @@ class ndax extends Exchange {
         $request = array(
             'GenerateNewKey' => true,
         );
-        return $this->fetch_deposit_address($code, array_merge($request, $params));
+        return $this->fetch_deposit_address($code, $this->extend($request, $params));
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2037,7 +2037,7 @@ class ndax extends Exchange {
             'omsId' => $omsId,
             'AccountId' => $accountId,
         );
-        $response = $this->privateGetGetDeposits (array_merge($request, $params));
+        $response = $this->privateGetGetDeposits ($this->extend($request, $params));
         //
         //    "array(
         //        array(
@@ -2096,7 +2096,7 @@ class ndax extends Exchange {
             'omsId' => $omsId,
             'AccountId' => $accountId,
         );
-        $response = $this->privateGetGetWithdraws (array_merge($request, $params));
+        $response = $this->privateGetGetWithdraws ($this->extend($request, $params));
         //
         //     array(
         //         array(

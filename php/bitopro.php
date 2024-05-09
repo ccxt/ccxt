@@ -423,7 +423,7 @@ class bitopro extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTickersPair (array_merge($request, $params));
+        $response = $this->publicGetTickersPair ($this->extend($request, $params));
         $ticker = $this->safe_value($response, 'data', array());
         //
         //     {
@@ -487,7 +487,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderBookPair (array_merge($request, $params));
+        $response = $this->publicGetOrderBookPair ($this->extend($request, $params));
         //
         //     {
         //         "bids":array(
@@ -613,7 +613,7 @@ class bitopro extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradesPair (array_merge($request, $params));
+        $response = $this->publicGetTradesPair ($this->extend($request, $params));
         $trades = $this->safe_value($response, 'data', array());
         //
         //     {
@@ -765,7 +765,7 @@ class bitopro extends Exchange {
             $request['from'] = (int) floor($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $timeframeInSeconds);
         }
-        $response = $this->publicGetTradingHistoryPair (array_merge($request, $params));
+        $response = $this->publicGetTradingHistoryPair ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
         //
         //     {
@@ -1027,7 +1027,7 @@ class bitopro extends Exchange {
         if ($postOnly) {
             $request['timeInForce'] = 'POST_ONLY';
         }
-        $response = $this->privatePostOrdersPair (array_merge($request, $params));
+        $response = $this->privatePostOrdersPair ($this->extend($request, $params));
         //
         //     {
         //         "orderId" => "2220595581",
@@ -1059,7 +1059,7 @@ class bitopro extends Exchange {
             'id' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privateDeleteOrdersPairId (array_merge($request, $params));
+        $response = $this->privateDeleteOrdersPairId ($this->extend($request, $params));
         //
         //     {
         //         "orderId":"8777138788",
@@ -1089,7 +1089,7 @@ class bitopro extends Exchange {
         $id = $market['uppercaseId'];
         $request = array();
         $request[$id] = $ids;
-        $response = $this->privatePutOrders (array_merge($request, $params));
+        $response = $this->privatePutOrders ($this->extend($request, $params));
         //
         //     {
         //         "data":{
@@ -1119,9 +1119,9 @@ class bitopro extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
-            $response = $this->privateDeleteOrdersPair (array_merge($request, $params));
+            $response = $this->privateDeleteOrdersPair ($this->extend($request, $params));
         } else {
-            $response = $this->privateDeleteOrdersAll (array_merge($request, $params));
+            $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
         }
         $result = $this->safe_value($response, 'data', array());
         //
@@ -1154,7 +1154,7 @@ class bitopro extends Exchange {
             'orderId' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privateGetOrdersPairOrderId (array_merge($request, $params));
+        $response = $this->privateGetOrdersPairOrderId ($this->extend($request, $params));
         //
         //     {
         //         "id":"8777138788",
@@ -1209,7 +1209,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrdersAllPair (array_merge($request, $params));
+        $response = $this->privateGetOrdersAllPair ($this->extend($request, $params));
         $orders = $this->safe_value($response, 'data');
         if ($orders === null) {
             $orders = array();
@@ -1247,7 +1247,7 @@ class bitopro extends Exchange {
         $request = array(
             'statusKind' => 'OPEN',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1263,7 +1263,7 @@ class bitopro extends Exchange {
         $request = array(
             'statusKind' => 'DONE',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1284,7 +1284,7 @@ class bitopro extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->privateGetOrdersTradesPair (array_merge($request, $params));
+        $response = $this->privateGetOrdersTradesPair ($this->extend($request, $params));
         $trades = $this->safe_value($response, 'data', array());
         //
         //     {
@@ -1433,7 +1433,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetWalletDepositHistoryCurrency (array_merge($request, $params));
+        $response = $this->privateGetWalletDepositHistoryCurrency ($this->extend($request, $params));
         $result = $this->safe_value($response, 'data', array());
         //
         //     {
@@ -1484,7 +1484,7 @@ class bitopro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetWalletWithdrawHistoryCurrency (array_merge($request, $params));
+        $response = $this->privateGetWalletWithdrawHistoryCurrency ($this->extend($request, $params));
         $result = $this->safe_value($response, 'data', array());
         //
         //     {
@@ -1525,7 +1525,7 @@ class bitopro extends Exchange {
             'serial' => $id,
             'currency' => $currency['id'],
         );
-        $response = $this->privateGetWalletWithdrawCurrencySerial (array_merge($request, $params));
+        $response = $this->privateGetWalletWithdrawCurrencySerial ($this->extend($request, $params));
         $result = $this->safe_value($response, 'data', array());
         //
         //     {
@@ -1579,7 +1579,7 @@ class bitopro extends Exchange {
         if ($tag !== null) {
             $request['message'] = $tag;
         }
-        $response = $this->privatePostWalletWithdrawCurrency (array_merge($request, $params));
+        $response = $this->privatePostWalletWithdrawCurrency ($this->extend($request, $params));
         $result = $this->safe_value($response, 'data', array());
         //
         //     {

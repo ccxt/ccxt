@@ -992,7 +992,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
             //
             // spot
             //
@@ -1293,7 +1293,7 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetL2orderbookSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetL2orderbookSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -1433,7 +1433,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradesSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradesSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -1512,7 +1512,7 @@ class delta extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             $params = $this->omit($params, 'price');
-            $response = Async\await($this->publicGetHistoryCandles (array_merge($request, $params)));
+            $response = Async\await($this->publicGetHistoryCandles ($this->extend($request, $params)));
             //
             //     {
             //         "success":true,
@@ -1594,7 +1594,7 @@ class delta extends Exchange {
             $request = array(
                 'product_id' => $market['numericId'],
             );
-            $response = Async\await($this->privateGetPositions (array_merge($request, $params)));
+            $response = Async\await($this->privateGetPositions ($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -1855,7 +1855,7 @@ class delta extends Exchange {
                 $request['reduce_only'] = $reduceOnly;
                 $params = $this->omit($params, 'reduceOnly');
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -1925,7 +1925,7 @@ class delta extends Exchange {
             if ($price !== null) {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePutOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePutOrders ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -1967,7 +1967,7 @@ class delta extends Exchange {
                 'id' => intval($id),
                 'product_id' => $market['numericId'],
             );
-            $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -2028,7 +2028,7 @@ class delta extends Exchange {
                 // 'cancel_limit_orders' => 'true',
                 // 'cancel_stop_orders' => 'true',
             );
-            $response = $this->privateDeleteOrdersAll (array_merge($request, $params));
+            $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
             //
             //     {
             //         "result":array(),
@@ -2095,9 +2095,9 @@ class delta extends Exchange {
             }
             $response = null;
             if ($method === 'privateGetOrders') {
-                $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             } elseif ($method === 'privateGetOrdersHistory') {
-                $response = Async\await($this->privateGetOrdersHistory (array_merge($request, $params)));
+                $response = Async\await($this->privateGetOrdersHistory ($this->extend($request, $params)));
             }
             //
             //     {
@@ -2159,7 +2159,7 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetFills (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFills ($this->extend($request, $params)));
             //
             //     {
             //         "meta":array(
@@ -2237,7 +2237,7 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetWalletTransactions (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWalletTransactions ($this->extend($request, $params)));
             //
             //     {
             //         "meta":array("after":null,"before":null,"limit":10,"total_count":1),
@@ -2356,7 +2356,7 @@ class delta extends Exchange {
                 $request['network'] = $this->network_code_to_id($networkCode, $code);
                 $params = $this->omit($params, 'network');
             }
-            $response = Async\await($this->privateGetDepositsAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetDepositsAddress ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -2424,7 +2424,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2489,7 +2489,7 @@ class delta extends Exchange {
             $request = array(
                 'contract_types' => 'perpetual_futures',
             );
-            $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickers ($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2651,7 +2651,7 @@ class delta extends Exchange {
                 'product_id' => $market['numericId'],
                 'delta_margin' => $amount,
             );
-            $response = Async\await($this->privatePostPositionsChangeMargin (array_merge($request, $params)));
+            $response = Async\await($this->privatePostPositionsChangeMargin ($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2734,7 +2734,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2870,7 +2870,7 @@ class delta extends Exchange {
             $request = array(
                 'product_id' => $market['numericId'],
             );
-            $response = Async\await($this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params)));
+            $response = Async\await($this->privateGetProductsProductIdOrdersLeverage ($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2931,7 +2931,7 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            return Async\await($this->privatePostProductsProductIdOrdersLeverage (array_merge($request, $params)));
+            return Async\await($this->privatePostProductsProductIdOrdersLeverage ($this->extend($request, $params)));
         }) ();
     }
 
@@ -2957,7 +2957,7 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->publicGetProducts (array_merge($request, $params)));
+            $response = Async\await($this->publicGetProducts ($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -3110,7 +3110,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -3261,7 +3261,7 @@ class delta extends Exchange {
                 'close_all_isolated' => true,
                 // 'user_id' => 12345,
             );
-            $response = Async\await($this->privatePostPositionsCloseAll (array_merge($request, $params)));
+            $response = Async\await($this->privatePostPositionsCloseAll ($this->extend($request, $params)));
             //
             // array("result":array(),"success":true)
             //
@@ -3379,7 +3379,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(

@@ -884,7 +884,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     'authPayload' => $payload,
                     'event' => $event,
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);

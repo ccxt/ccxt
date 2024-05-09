@@ -1417,7 +1417,7 @@ class mexc extends Exchange {
             }
             $orderbook = null;
             if ($market['spot']) {
-                $response = Async\await($this->spotPublicGetDepth (array_merge($request, $params)));
+                $response = Async\await($this->spotPublicGetDepth ($this->extend($request, $params)));
                 //
                 //     {
                 //         "lastUpdateId" => "744267132",
@@ -1435,7 +1435,7 @@ class mexc extends Exchange {
                 $orderbook = $this->parse_order_book($response, $symbol, $spotTimestamp);
                 $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
             } elseif ($market['swap']) {
-                $response = Async\await($this->contractPublicGetDepthSymbol (array_merge($request, $params)));
+                $response = Async\await($this->contractPublicGetDepthSymbol ($this->extend($request, $params)));
                 //
                 //     {
                 //         "success":true,
@@ -1515,11 +1515,11 @@ class mexc extends Exchange {
                 $method = $this->safe_string($params, 'method', $method); // AggTrades, HistoricalTrades, Trades
                 $params = $this->omit($params, array( 'method' ));
                 if ($method === 'spotPublicGetAggTrades') {
-                    $trades = Async\await($this->spotPublicGetAggTrades (array_merge($request, $params)));
+                    $trades = Async\await($this->spotPublicGetAggTrades ($this->extend($request, $params)));
                 } elseif ($method === 'spotPublicGetHistoricalTrades') {
-                    $trades = Async\await($this->spotPublicGetHistoricalTrades (array_merge($request, $params)));
+                    $trades = Async\await($this->spotPublicGetHistoricalTrades ($this->extend($request, $params)));
                 } elseif ($method === 'spotPublicGetTrades') {
-                    $trades = Async\await($this->spotPublicGetTrades (array_merge($request, $params)));
+                    $trades = Async\await($this->spotPublicGetTrades ($this->extend($request, $params)));
                 } else {
                     throw new NotSupported($this->id . ' fetchTrades() not support this method');
                 }
@@ -1554,7 +1554,7 @@ class mexc extends Exchange {
                 //     )
                 //
             } elseif ($market['swap']) {
-                $response = Async\await($this->contractPublicGetDealsSymbol (array_merge($request, $params)));
+                $response = Async\await($this->contractPublicGetDealsSymbol ($this->extend($request, $params)));
                 //
                 //     {
                 //         "success" => true,
@@ -1797,7 +1797,7 @@ class mexc extends Exchange {
                     $params = $this->omit($params, array( 'until' ));
                     $request['endTime'] = $until;
                 }
-                $response = Async\await($this->spotPublicGetKlines (array_merge($request, $params)));
+                $response = Async\await($this->spotPublicGetKlines ($this->extend($request, $params)));
                 //
                 //     array(
                 //       array(
@@ -1826,11 +1826,11 @@ class mexc extends Exchange {
                 $params = $this->omit($params, 'price');
                 $response = null;
                 if ($priceType === 'default') {
-                    $response = Async\await($this->contractPublicGetKlineSymbol (array_merge($request, $params)));
+                    $response = Async\await($this->contractPublicGetKlineSymbol ($this->extend($request, $params)));
                 } elseif ($priceType === 'index') {
-                    $response = Async\await($this->contractPublicGetKlineIndexPriceSymbol (array_merge($request, $params)));
+                    $response = Async\await($this->contractPublicGetKlineIndexPriceSymbol ($this->extend($request, $params)));
                 } elseif ($priceType === 'mark') {
-                    $response = Async\await($this->contractPublicGetKlineFairPriceSymbol (array_merge($request, $params)));
+                    $response = Async\await($this->contractPublicGetKlineFairPriceSymbol ($this->extend($request, $params)));
                 } else {
                     throw new NotSupported($this->id . ' fetchOHLCV() not support this price type, [default, index, mark]');
                 }
@@ -1891,7 +1891,7 @@ class mexc extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             if ($marketType === 'spot') {
-                $tickers = Async\await($this->spotPublicGetTicker24hr (array_merge($request, $query)));
+                $tickers = Async\await($this->spotPublicGetTicker24hr ($this->extend($request, $query)));
                 //
                 //     array(
                 //         {
@@ -1917,7 +1917,7 @@ class mexc extends Exchange {
                 //     )
                 //
             } elseif ($marketType === 'swap') {
-                $response = Async\await($this->contractPublicGetTicker (array_merge($request, $query)));
+                $response = Async\await($this->contractPublicGetTicker ($this->extend($request, $query)));
                 //
                 //     {
                 //         "success":true,
@@ -1971,7 +1971,7 @@ class mexc extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($marketType === 'spot') {
-                $ticker = Async\await($this->spotPublicGetTicker24hr (array_merge($request, $query)));
+                $ticker = Async\await($this->spotPublicGetTicker24hr ($this->extend($request, $query)));
                 //
                 //     {
                 //         "symbol" => "BTCUSDT",
@@ -1995,7 +1995,7 @@ class mexc extends Exchange {
                 //     }
                 //
             } elseif ($marketType === 'swap') {
-                $response = Async\await($this->contractPublicGetTicker (array_merge($request, $query)));
+                $response = Async\await($this->contractPublicGetTicker ($this->extend($request, $query)));
                 //
                 //     {
                 //         "success":true,
@@ -2290,14 +2290,14 @@ class mexc extends Exchange {
         if ($postOnly) {
             $request['type'] = 'LIMIT_MAKER';
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
             Async\await($this->load_markets());
             $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $params);
-            $response = Async\await($this->spotPrivatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostOrder ($this->extend($request, $params)));
             //
             // spot
             //
@@ -2413,9 +2413,9 @@ class mexc extends Exchange {
                 $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
                 $request['trend'] = $this->safe_integer($params, 'trend', 1);
                 $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
-                $response = Async\await($this->contractPrivatePostPlanorderPlace (array_merge($request, $params)));
+                $response = Async\await($this->contractPrivatePostPlanorderPlace ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractPrivatePostOrderSubmit (array_merge($request, $params)));
+                $response = Async\await($this->contractPrivatePostOrderSubmit ($this->extend($request, $params)));
             }
             //
             // Swap
@@ -2524,9 +2524,9 @@ class mexc extends Exchange {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' fetchOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $data = Async\await($this->spotPrivateGetMarginOrder (array_merge($request, $query)));
+                    $data = Async\await($this->spotPrivateGetMarginOrder ($this->extend($request, $query)));
                 } else {
-                    $data = Async\await($this->spotPrivateGetOrder (array_merge($request, $query)));
+                    $data = Async\await($this->spotPrivateGetOrder ($this->extend($request, $query)));
                 }
                 //
                 // spot
@@ -2574,7 +2574,7 @@ class mexc extends Exchange {
                 //
             } elseif ($market['swap']) {
                 $request['order_id'] = $id;
-                $response = Async\await($this->contractPrivateGetOrderGetOrderId (array_merge($request, $params)));
+                $response = Async\await($this->contractPrivateGetOrderGetOrderId ($this->extend($request, $params)));
                 //
                 //     {
                 //         "success" => true,
@@ -2648,9 +2648,9 @@ class mexc extends Exchange {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' fetchOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $response = Async\await($this->spotPrivateGetMarginAllOrders (array_merge($request, $queryInner)));
+                    $response = Async\await($this->spotPrivateGetMarginAllOrders ($this->extend($request, $queryInner)));
                 } else {
-                    $response = Async\await($this->spotPrivateGetAllOrders (array_merge($request, $queryInner)));
+                    $response = Async\await($this->spotPrivateGetAllOrders ($this->extend($request, $queryInner)));
                 }
                 //
                 // spot
@@ -2717,7 +2717,7 @@ class mexc extends Exchange {
                 $ordersOfRegular = array();
                 $ordersOfTrigger = array();
                 if ($method === 'contractPrivateGetOrderListHistoryOrders') {
-                    $response = Async\await($this->contractPrivateGetOrderListHistoryOrders (array_merge($request, $query)));
+                    $response = Async\await($this->contractPrivateGetOrderListHistoryOrders ($this->extend($request, $query)));
                     //
                     //     {
                     //         "success" => true,
@@ -2755,7 +2755,7 @@ class mexc extends Exchange {
                     $ordersOfRegular = $this->safe_value($response, 'data');
                 } else {
                     // the Planorder endpoints work not only for stop-$market orders, but also for stop-$limit orders that were supposed to have a separate endpoint
-                    $response = Async\await($this->contractPrivateGetPlanorderListOrders (array_merge($request, $query)));
+                    $response = Async\await($this->contractPrivateGetPlanorderListOrders ($this->extend($request, $query)));
                     //
                     //     {
                     //         "success" => true,
@@ -2804,7 +2804,7 @@ class mexc extends Exchange {
                 throw new BadRequest($this->id . ' fetchOrdersByIds() is not supported for ' . $marketType);
             } else {
                 $request['order_ids'] = implode(',', $ids);
-                $response = Async\await($this->contractPrivateGetOrderBatchQuery (array_merge($request, $query)));
+                $response = Async\await($this->contractPrivateGetOrderBatchQuery ($this->extend($request, $query)));
                 //
                 //     {
                 //         "success" => true,
@@ -2875,9 +2875,9 @@ class mexc extends Exchange {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' fetchOpenOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $response = Async\await($this->spotPrivateGetMarginOpenOrders (array_merge($request, $query)));
+                    $response = Async\await($this->spotPrivateGetMarginOpenOrders ($this->extend($request, $query)));
                 } else {
-                    $response = Async\await($this->spotPrivateGetOpenOrders (array_merge($request, $query)));
+                    $response = Async\await($this->spotPrivateGetOpenOrders ($this->extend($request, $query)));
                 }
                 //
                 // spot
@@ -2976,7 +2976,7 @@ class mexc extends Exchange {
                 throw new NotSupported($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
             } else {
                 $request['states'] = $state;
-                return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+                return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
             }
         }) ();
     }
@@ -3020,9 +3020,9 @@ class mexc extends Exchange {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $data = Async\await($this->spotPrivateDeleteMarginOrder (array_merge($requestInner, $query)));
+                    $data = Async\await($this->spotPrivateDeleteMarginOrder ($this->extend($requestInner, $query)));
                 } else {
-                    $data = Async\await($this->spotPrivateDeleteOrder (array_merge($requestInner, $query)));
+                    $data = Async\await($this->spotPrivateDeleteOrder ($this->extend($requestInner, $query)));
                 }
                 //
                 // spot
@@ -3154,9 +3154,9 @@ class mexc extends Exchange {
                     if ($marginMode !== 'isolated') {
                         throw new BadRequest($this->id . ' cancelAllOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                     }
-                    $response = Async\await($this->spotPrivateDeleteMarginOpenOrders (array_merge($request, $query)));
+                    $response = Async\await($this->spotPrivateDeleteMarginOpenOrders ($this->extend($request, $query)));
                 } else {
-                    $response = Async\await($this->spotPrivateDeleteOpenOrders (array_merge($request, $query)));
+                    $response = Async\await($this->spotPrivateDeleteOpenOrders ($this->extend($request, $query)));
                 }
                 //
                 // spot
@@ -3205,9 +3205,9 @@ class mexc extends Exchange {
                 $method = $this->safe_string($query, 'method', $method);
                 $response = null;
                 if ($method === 'contractPrivatePostOrderCancelAll') {
-                    $response = Async\await($this->contractPrivatePostOrderCancelAll (array_merge($request, $query)));
+                    $response = Async\await($this->contractPrivatePostOrderCancelAll ($this->extend($request, $query)));
                 } elseif ($method === 'contractPrivatePostPlanorderCancelAll') {
-                    $response = Async\await($this->contractPrivatePostPlanorderCancelAll (array_merge($request, $query)));
+                    $response = Async\await($this->contractPrivatePostPlanorderCancelAll ($this->extend($request, $query)));
                 }
                 //
                 //     {
@@ -3749,11 +3749,11 @@ class mexc extends Exchange {
                 $marketType = 'margin';
                 $request['symbols'] = $parsedSymbols;
                 $params = $this->omit($params, array( 'symbol', 'symbols' ));
-                $response = Async\await($this->spotPrivateGetMarginIsolatedAccount (array_merge($request, $params)));
+                $response = Async\await($this->spotPrivateGetMarginIsolatedAccount ($this->extend($request, $params)));
             } elseif ($marketType === 'spot') {
-                $response = Async\await($this->spotPrivateGetAccount (array_merge($request, $params)));
+                $response = Async\await($this->spotPrivateGetAccount ($this->extend($request, $params)));
             } elseif ($marketType === 'swap') {
-                $response = Async\await($this->contractPrivateGetAccountAssets (array_merge($request, $params)));
+                $response = Async\await($this->contractPrivateGetAccountAssets ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchBalance() not support this method');
             }
@@ -3872,7 +3872,7 @@ class mexc extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $trades = Async\await($this->spotPrivateGetMyTrades (array_merge($request, $query)));
+                $trades = Async\await($this->spotPrivateGetMyTrades ($this->extend($request, $query)));
                 //
                 // spot
                 //
@@ -3905,7 +3905,7 @@ class mexc extends Exchange {
                 if ($limit !== null) {
                     $request['page_size'] = $limit;
                 }
-                $response = Async\await($this->contractPrivateGetOrderListOrderDeals (array_merge($request, $query)));
+                $response = Async\await($this->contractPrivateGetOrderListOrderDeals ($this->extend($request, $query)));
                 //
                 //     {
                 //         "success" => true,
@@ -3960,7 +3960,7 @@ class mexc extends Exchange {
                 }
                 $request['symbol'] = $market['id'];
                 $request['orderId'] = $id;
-                $trades = Async\await($this->spotPrivateGetMyTrades (array_merge($request, $query)));
+                $trades = Async\await($this->spotPrivateGetMyTrades ($this->extend($request, $query)));
                 //
                 // spot
                 //
@@ -3984,7 +3984,7 @@ class mexc extends Exchange {
                 //
             } else {
                 $request['order_id'] = $id;
-                $response = Async\await($this->contractPrivateGetOrderDealDetailsOrderId (array_merge($request, $query)));
+                $response = Async\await($this->contractPrivateGetOrderDealDetailsOrderId ($this->extend($request, $query)));
                 //
                 //     {
                 //         "success" => true,
@@ -4026,7 +4026,7 @@ class mexc extends Exchange {
                 'amount' => $amount,
                 'type' => $addOrReduce,
             );
-            $response = Async\await($this->contractPrivatePostPositionChangeMargin (array_merge($request, $params)));
+            $response = Async\await($this->contractPrivatePostPositionChangeMargin ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -4090,7 +4090,7 @@ class mexc extends Exchange {
             } else {
                 $request['positionId'] = $positionId;
             }
-            return Async\await($this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params)));
+            return Async\await($this->contractPrivatePostPositionChangeLeverage ($this->extend($request, $params)));
         }) ();
     }
 
@@ -4119,7 +4119,7 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->contractPrivateGetPositionFundingRecords (array_merge($request, $params)));
+            $response = Async\await($this->contractPrivateGetPositionFundingRecords ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -4224,7 +4224,7 @@ class mexc extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractPublicGetFundingRateSymbol (array_merge($request, $params)));
+            $response = Async\await($this->contractPublicGetFundingRateSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -4268,7 +4268,7 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->contractPublicGetFundingRateHistory (array_merge($request, $params)));
+            $response = Async\await($this->contractPublicGetFundingRateHistory ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -4500,7 +4500,7 @@ class mexc extends Exchange {
                 $request['network'] = $networkId;
             }
             $params = $this->omit($params, 'network');
-            $response = Async\await($this->spotPrivateGetCapitalDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivateGetCapitalDepositAddress ($this->extend($request, $params)));
             //
             //    array(
             //        {
@@ -4541,7 +4541,7 @@ class mexc extends Exchange {
                 $request['network'] = $networkId;
             }
             $params = $this->omit($params, 'network');
-            $response = Async\await($this->spotPrivatePostCapitalDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostCapitalDepositAddress ($this->extend($request, $params)));
             //     {
             //        "coin" => "EOS",
             //        "network" => "EOS",
@@ -4626,7 +4626,7 @@ class mexc extends Exchange {
                 }
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->spotPrivateGetCapitalDepositHisrec (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivateGetCapitalDepositHisrec ($this->extend($request, $params)));
             //
             // array(
             //     {
@@ -4680,7 +4680,7 @@ class mexc extends Exchange {
                 }
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->spotPrivateGetCapitalWithdrawHistory (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivateGetCapitalWithdrawHistory ($this->extend($request, $params)));
             //
             // array(
             //     {
@@ -4840,7 +4840,7 @@ class mexc extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->fetch_positions(null, array_merge($request, $params)));
+            $response = Async\await($this->fetch_positions(null, $this->extend($request, $params)));
             return $this->safe_value($response, 0);
         }) ();
     }
@@ -5002,7 +5002,7 @@ class mexc extends Exchange {
                 $request = array(
                     'transact_id' => $id,
                 );
-                $response = Async\await($this->spot2PrivateGetAssetInternalTransferInfo (array_merge($request, $query)));
+                $response = Async\await($this->spot2PrivateGetAssetInternalTransferInfo ($this->extend($request, $query)));
                 //
                 //     {
                 //         "code" => "200",
@@ -5054,7 +5054,7 @@ class mexc extends Exchange {
                     }
                     $request['page-size'] = $limit;
                 }
-                $response = Async\await($this->spot2PrivateGetAssetInternalTransferRecord (array_merge($request, $query)));
+                $response = Async\await($this->spot2PrivateGetAssetInternalTransferRecord ($this->extend($request, $query)));
                 //
                 //     {
                 //         "code" => "200",
@@ -5080,7 +5080,7 @@ class mexc extends Exchange {
                 if ($limit !== null) {
                     $request['page_size'] = $limit;
                 }
-                $response = Async\await($this->contractPrivateGetAccountTransferRecord (array_merge($request, $query)));
+                $response = Async\await($this->contractPrivateGetAccountTransferRecord ($this->extend($request, $query)));
                 $data = $this->safe_value($response, 'data');
                 $resultList = $this->safe_value($data, 'resultList');
                 //
@@ -5157,14 +5157,14 @@ class mexc extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->spotPrivatePostCapitalTransfer (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostCapitalTransfer ($this->extend($request, $params)));
             //
             //     {
             //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
             //     }
             //
             $transaction = $this->parse_transfer($response, $currency);
-            return array_merge($transaction, array(
+            return $this->extend($transaction, array(
                 'amount' => $amount,
                 'fromAccount' => $fromAccount,
                 'toAccount' => $toAccount,
@@ -5279,7 +5279,7 @@ class mexc extends Exchange {
                 $request['network'] = $network;
                 $params = $this->omit($params, array( 'network', 'chain' ));
             }
-            $response = Async\await($this->spotPrivatePostCapitalWithdrawApply (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostCapitalWithdrawApply ($this->extend($request, $params)));
             //
             //     {
             //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -5294,7 +5294,7 @@ class mexc extends Exchange {
             $request = array(
                 'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
             );
-            $response = Async\await($this->contractPrivatePostPositionChangePositionMode (array_merge($request, $params)));
+            $response = Async\await($this->contractPrivatePostPositionChangePositionMode ($this->extend($request, $params)));
             //
             //     {
             //         "success":true,
@@ -5529,7 +5529,7 @@ class mexc extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractPrivateGetPositionLeverage (array_merge($request, $params)));
+            $response = Async\await($this->contractPrivateGetPositionLeverage ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -5634,7 +5634,7 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->contractPrivateGetPositionListHistoryPositions (array_merge($request, $params)));
+            $response = Async\await($this->contractPrivateGetPositionListHistoryPositions ($this->extend($request, $params)));
             //
             //    {
             //        success => true,

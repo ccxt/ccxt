@@ -242,9 +242,9 @@ class exmo extends Exchange {
         );
         $response = null;
         if ($type === 'add') {
-            $response = $this->privatePostMarginUserPositionMarginAdd (array_merge($request, $params));
+            $response = $this->privatePostMarginUserPositionMarginAdd ($this->extend($request, $params));
         } elseif ($type === 'reduce') {
-            $response = $this->privatePostMarginUserPositionMarginRemove (array_merge($request, $params));
+            $response = $this->privatePostMarginUserPositionMarginRemove ($this->extend($request, $params));
         }
         //
         //      array()
@@ -878,7 +878,7 @@ class exmo extends Exchange {
             $to = $this->sum($since, $limit * $duration * 1000);
             $request['to'] = $this->parse_to_int($to / 1000);
         }
-        $response = $this->publicGetCandlesHistory (array_merge($request, $params));
+        $response = $this->publicGetCandlesHistory ($this->extend($request, $params));
         //
         //     {
         //         "candles":array(
@@ -1012,7 +1012,7 @@ class exmo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderBook (array_merge($request, $params));
+        $response = $this->publicGetOrderBook ($this->extend($request, $params));
         $result = $this->safe_dict($response, $market['id']);
         return $this->parse_order_book($result, $market['symbol'], null, 'bid', 'ask');
     }
@@ -1045,7 +1045,7 @@ class exmo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderBook (array_merge($request, $params));
+        $response = $this->publicGetOrderBook ($this->extend($request, $params));
         $result = array();
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -1255,7 +1255,7 @@ class exmo extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTrades (array_merge($request, $params));
+        $response = $this->publicGetTrades ($this->extend($request, $params));
         //
         //     {
         //         "ETH_BTC":array(
@@ -1324,7 +1324,7 @@ class exmo extends Exchange {
         $request['offset'] = $offset;
         $response = null;
         if ($isSpot) {
-            $response = $this->privatePostUserTrades (array_merge($request, $params));
+            $response = $this->privatePostUserTrades ($this->extend($request, $params));
             //
             //    {
             //        "BTC_USD" => array(
@@ -1349,7 +1349,7 @@ class exmo extends Exchange {
             //    }
             //
         } else {
-            $responseFromExchange = $this->privatePostMarginTrades (array_merge($request, $params));
+            $responseFromExchange = $this->privatePostMarginTrades ($this->extend($request, $params));
             //
             //    {
             //        "trades" => {
@@ -1447,7 +1447,7 @@ class exmo extends Exchange {
                     $request['type'] = $side;
                     $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
-                $response = $this->privatePostStopMarketOrderCreate (array_merge($request, $params));
+                $response = $this->privatePostStopMarketOrderCreate ($this->extend($request, $params));
             } else {
                 $execType = $this->safe_string($params, 'exec_type');
                 $isPostOnly = null;
@@ -1464,7 +1464,7 @@ class exmo extends Exchange {
                 } elseif ($timeInForce !== null) {
                     $request['exec_type'] = $timeInForce;
                 }
-                $response = $this->privatePostOrderCreate (array_merge($request, $params));
+                $response = $this->privatePostOrderCreate ($this->extend($request, $params));
             }
         } else {
             if ($triggerPrice !== null) {
@@ -1483,7 +1483,7 @@ class exmo extends Exchange {
                     $request['type'] = $type;
                 }
             }
-            $response = $this->privatePostMarginUserOrderCreate (array_merge($request, $params));
+            $response = $this->privatePostMarginUserOrderCreate ($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
@@ -1513,20 +1513,20 @@ class exmo extends Exchange {
         $response = null;
         if (($marginMode === 'isolated')) {
             $request['order_id'] = $id;
-            $response = $this->privatePostMarginUserOrderCancel (array_merge($request, $params));
+            $response = $this->privatePostMarginUserOrderCancel ($this->extend($request, $params));
             //
             //    array()
             //
         } else {
             if ($stop) {
                 $request['parent_order_id'] = $id;
-                $response = $this->privatePostStopMarketOrderCancel (array_merge($request, $params));
+                $response = $this->privatePostStopMarketOrderCancel ($this->extend($request, $params));
                 //
                 //    array()
                 //
             } else {
                 $request['order_id'] = $id;
-                $response = $this->privatePostOrderCancel (array_merge($request, $params));
+                $response = $this->privatePostOrderCancel ($this->extend($request, $params));
                 //
                 //    {
                 //        "error" => '',
@@ -1550,7 +1550,7 @@ class exmo extends Exchange {
         $request = array(
             'order_id' => (string) $id,
         );
-        $response = $this->privatePostOrderTrades (array_merge($request, $params));
+        $response = $this->privatePostOrderTrades ($this->extend($request, $params));
         //
         //     {
         //         "type" => "buy",
@@ -1604,7 +1604,7 @@ class exmo extends Exchange {
         );
         $response = null;
         if ($marginMode === 'isolated') {
-            $response = $this->privatePostMarginUserOrderTrades (array_merge($request, $params));
+            $response = $this->privatePostMarginUserOrderTrades ($this->extend($request, $params));
             //
             //    {
             //        "trades" => array(
@@ -1622,7 +1622,7 @@ class exmo extends Exchange {
             //    }
             //
         } else {
-            $response = $this->privatePostOrderTrades (array_merge($request, $params));
+            $response = $this->privatePostOrderTrades ($this->extend($request, $params));
             //
             //     {
             //         "type" => "buy",
@@ -1705,7 +1705,7 @@ class exmo extends Exchange {
             //        )
             //    }
             //
-            $params = array_merge($params, array(
+            $params = $this->extend($params, array(
                 'status' => 'open',
             ));
             $responseOrders = $this->safe_value($response, 'orders');
@@ -1733,7 +1733,7 @@ class exmo extends Exchange {
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $marketInner = $this->safe_market($marketId);
-                $params = array_merge($params, array(
+                $params = $this->extend($params, array(
                     'status' => 'open',
                 ));
                 $parsedOrders = $this->parse_orders($response[$marketId], $marketInner, $since, $limit, $params);
@@ -1953,7 +1953,7 @@ class exmo extends Exchange {
         }
         $response = null;
         if ($isSpot) {
-            $response = $this->privatePostUserCancelledOrders (array_merge($request, $params));
+            $response = $this->privatePostUserCancelledOrders ($this->extend($request, $params));
             //
             //    array(
             //        {
@@ -1968,12 +1968,12 @@ class exmo extends Exchange {
             //        }
             //    )
             //
-            $params = array_merge($params, array(
+            $params = $this->extend($params, array(
                 'status' => 'canceled',
             ));
             return $this->parse_orders($response, $market, $since, $limit, $params);
         } else {
-            $responseSwap = $this->privatePostMarginUserOrderHistory (array_merge($request, $params));
+            $responseSwap = $this->privatePostMarginUserOrderHistory ($this->extend($request, $params));
             //
             //    {
             //        "items" => array(
@@ -2052,7 +2052,7 @@ class exmo extends Exchange {
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($market['symbol'], $triggerPrice);
         }
-        $response = $this->privatePostMarginUserOrderUpdate (array_merge($request, $params));
+        $response = $this->privatePostMarginUserOrderUpdate ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -2132,7 +2132,7 @@ class exmo extends Exchange {
             $request['transport'] = $network;
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privatePostWithdrawCrypt (array_merge($request, $params));
+        $response = $this->privatePostWithdrawCrypt ($this->extend($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 
@@ -2302,7 +2302,7 @@ class exmo extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->privatePostWalletHistory (array_merge($request, $params));
+        $response = $this->privatePostWalletHistory ($this->extend($request, $params));
         //
         //     {
         //       "result" => true,
@@ -2358,7 +2358,7 @@ class exmo extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privatePostWalletOperations (array_merge($request, $params));
+        $response = $this->privatePostWalletOperations ($this->extend($request, $params));
         //
         //     {
         //         "items" => array(
@@ -2408,7 +2408,7 @@ class exmo extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privatePostWalletOperations (array_merge($request, $params));
+        $response = $this->privatePostWalletOperations ($this->extend($request, $params));
         //
         //     {
         //         "items" => array(
@@ -2459,7 +2459,7 @@ class exmo extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privatePostWalletOperations (array_merge($request, $params));
+        $response = $this->privatePostWalletOperations ($this->extend($request, $params));
         //
         //     {
         //         "items" => array(
@@ -2513,7 +2513,7 @@ class exmo extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privatePostWalletOperations (array_merge($request, $params));
+        $response = $this->privatePostWalletOperations ($this->extend($request, $params));
         //
         //     {
         //         "items" => array(
@@ -2557,7 +2557,7 @@ class exmo extends Exchange {
         } elseif ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $params));
+            $body = $this->urlencode($this->extend(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,

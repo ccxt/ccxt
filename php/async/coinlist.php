@@ -510,7 +510,7 @@ class coinlist extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $tickers = Async\await($this->publicGetV1SymbolsSummary (array_merge($request, $params)));
+            $tickers = Async\await($this->publicGetV1SymbolsSummary ($this->extend($request, $params)));
             //
             //     {
             //         "MATIC-USD" => array(
@@ -551,7 +551,7 @@ class coinlist extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetV1SymbolsSymbolSummary (array_merge($request, $params)));
+            $ticker = Async\await($this->publicGetV1SymbolsSymbolSummary ($this->extend($request, $params)));
             //
             //     {
             //         "type":"spot",
@@ -645,7 +645,7 @@ class coinlist extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetV1SymbolsSymbolBook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV1SymbolsSymbolBook ($this->extend($request, $params)));
             //
             //     {
             //         "bids" => array(
@@ -704,7 +704,7 @@ class coinlist extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_time'] = $this->iso8601($until);
             }
-            $response = Async\await($this->publicGetV1SymbolsSymbolCandles (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV1SymbolsSymbolCandles ($this->extend($request, $params)));
             //
             //     {
             //         "candles" => array(
@@ -784,7 +784,7 @@ class coinlist extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_time'] = $this->iso8601($until);
             }
-            $response = Async\await($this->publicGetV1SymbolsSymbolAuctions (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV1SymbolsSymbolAuctions ($this->extend($request, $params)));
             //
             //     {
             //         "auctions" => array(
@@ -1192,7 +1192,7 @@ class coinlist extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_time'] = $this->iso8601($until);
             }
-            $response = Async\await($this->privateGetV1Fills (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV1Fills ($this->extend($request, $params)));
             //
             //     {
             //         "fills" => array(
@@ -1241,7 +1241,7 @@ class coinlist extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            return Async\await($this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1282,7 +1282,7 @@ class coinlist extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_time'] = $this->iso8601($until);
             }
-            $response = Async\await($this->privateGetV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "orders":array(
@@ -1328,7 +1328,7 @@ class coinlist extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetV1OrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV1OrdersOrderId ($this->extend($request, $params)));
             //
             //     {
             //         "order_id" => "93101167-9065-4b9c-b98b-5d789a3ed9fe",
@@ -1373,7 +1373,7 @@ class coinlist extends Exchange {
             $request = array(
                 'status' => 'accepted',
             );
-            return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+            return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
         }) ();
     }
 
@@ -1393,7 +1393,7 @@ class coinlist extends Exchange {
             $request = array(
                 'status' => 'done',
             );
-            return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+            return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
         }) ();
     }
 
@@ -1413,7 +1413,7 @@ class coinlist extends Exchange {
             $request = array(
                 'status' => 'canceled',
             );
-            return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+            return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
         }) ();
     }
 
@@ -1433,7 +1433,7 @@ class coinlist extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateDeleteV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "Order cancellation $request received.",
@@ -1459,7 +1459,7 @@ class coinlist extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateDeleteV1OrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteV1OrdersOrderId ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "Cancel order $request received.",
@@ -1543,7 +1543,7 @@ class coinlist extends Exchange {
                 $request['client_id'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             }
-            $response = Async\await($this->privatePostV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "New $order $request received.",
@@ -1590,7 +1590,7 @@ class coinlist extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePatchV1OrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privatePatchV1OrdersOrderId ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -1770,13 +1770,13 @@ class coinlist extends Exchange {
             $toAcc = $this->safe_string($accountsByType, $toAccount, $toAccount);
             $response = null;
             if (($fromAcc === 'funding') && ($toAcc === 'trading')) {
-                $response = Async\await($this->privatePostV1TransfersFromWallet (array_merge($request, $params)));
+                $response = Async\await($this->privatePostV1TransfersFromWallet ($this->extend($request, $params)));
             } elseif (($fromAcc === 'trading') && ($toAcc === 'funding')) {
-                $response = Async\await($this->privatePostV1TransfersToWallet (array_merge($request, $params)));
+                $response = Async\await($this->privatePostV1TransfersToWallet ($this->extend($request, $params)));
             } else {
                 $request['from_trader_id'] = $fromAcc;
                 $request['to_trader_id'] = $toAcc;
-                $response = Async\await($this->privatePostV1TransfersInternalTransfer (array_merge($request, $params)));
+                $response = Async\await($this->privatePostV1TransfersInternalTransfer ($this->extend($request, $params)));
             }
             //
             // privatePostV1TransfersInternalTransfer
@@ -1826,7 +1826,7 @@ class coinlist extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_time'] = $this->iso8601($until);
             }
-            $response = Async\await($this->privateGetV1Transfers (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV1Transfers ($this->extend($request, $params)));
             //
             //     {
             //         "transfers" => array(
@@ -1947,7 +1947,7 @@ class coinlist extends Exchange {
                 $request['count'] = $limit;
             }
             $params = $this->omit($params, array( 'trader_id', 'traderId' ));
-            $response = Async\await($this->privateGetV1AccountsTraderIdWalletLedger (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV1AccountsTraderIdWalletLedger ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -2016,7 +2016,7 @@ class coinlist extends Exchange {
                 'amount' => $this->currency_to_precision($code, $amount),
                 'destination_address' => $address,
             );
-            $response = Async\await($this->privatePostV1TransfersWithdrawalRequest (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV1TransfersWithdrawalRequest ($this->extend($request, $params)));
             //
             //     {
             //         "transfer_id" => "d4a2d8dd-7def-4545-a062-761683b9aa05"
@@ -2134,7 +2134,7 @@ class coinlist extends Exchange {
                 $request['end_time'] = $this->iso8601($until);
             }
             $params = $this->omit($params, array( 'trader_id', 'traderId' ));
-            $response = Async\await($this->privateGetV1AccountsTraderIdLedger (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV1AccountsTraderIdLedger ($this->extend($request, $params)));
             //
             //     {
             //         "transactions" => array(

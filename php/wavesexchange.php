@@ -377,7 +377,7 @@ class wavesexchange extends Exchange {
         $market = $this->market($symbol);
         $amount = $this->custom_amount_to_precision($symbol, $amount);
         $price = $this->custom_price_to_precision($symbol, $price);
-        $request = array_merge(array(
+        $request = $this->extend(array(
             'baseId' => $market['baseId'],
             'quoteId' => $market['quoteId'],
             'orderType' => $side,
@@ -599,7 +599,7 @@ class wavesexchange extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array_merge(array(
+        $request = $this->extend(array(
             'baseId' => $market['baseId'],
             'quoteId' => $market['quoteId'],
         ), $params);
@@ -857,7 +857,7 @@ class wavesexchange extends Exchange {
         $request = array(
             'pairs' => $market['id'],
         );
-        $response = $this->publicGetPairs (array_merge($request, $params));
+        $response = $this->publicGetPairs ($this->extend($request, $params));
         //
         //     {
         //         "__type":"list",
@@ -960,7 +960,7 @@ class wavesexchange extends Exchange {
             $timeEnd = $this->sum($since, $duration * $limit);
             $request['timeEnd'] = (string) $timeEnd;
         }
-        $response = $this->publicGetCandlesBaseIdQuoteId (array_merge($request, $params));
+        $response = $this->publicGetCandlesBaseIdQuoteId ($this->extend($request, $params));
         //
         //     {
         //         "__type" => "list",
@@ -1118,7 +1118,7 @@ class wavesexchange extends Exchange {
             $request = array(
                 'currency' => $code,
             );
-            $response = $this->privateGetDepositAddressesCurrency (array_merge($request, $params));
+            $response = $this->privateGetDepositAddressesCurrency ($this->extend($request, $params));
         } else {
             $supportedNetworks = $networksByCurrency[$code];
             if (!(is_array($supportedNetworks) && array_key_exists($network, $supportedNetworks))) {
@@ -1129,7 +1129,7 @@ class wavesexchange extends Exchange {
                 $request = array(
                     'publicKey' => $this->apiKey,
                 );
-                $responseInner = $this->nodeGetAddressesPublicKeyPublicKey (array_merge($request, $request));
+                $responseInner = $this->nodeGetAddressesPublicKeyPublicKey ($this->extend($request, $request));
                 $addressInner = $this->safe_string($response, 'address');
                 return array(
                     'address' => $addressInner,
@@ -1144,7 +1144,7 @@ class wavesexchange extends Exchange {
                     'currency' => $code,
                     'platform' => $network,
                 );
-                $response = $this->privateGetDepositAddressesCurrencyPlatform (array_merge($request, $params));
+                $response = $this->privateGetDepositAddressesCurrencyPlatform ($this->extend($request, $params));
             }
         }
         //
@@ -1541,7 +1541,7 @@ class wavesexchange extends Exchange {
             'publicKey' => $this->apiKey,
             'orderId' => $id,
         );
-        $response = $this->matcherGetMatcherOrderbookPublicKeyOrderId (array_merge($request, $params));
+        $response = $this->matcherGetMatcherOrderbookPublicKeyOrderId ($this->extend($request, $params));
         return $this->parse_order($response, $market);
     }
 
@@ -1577,7 +1577,7 @@ class wavesexchange extends Exchange {
             'baseId' => $market['baseId'],
             'quoteId' => $market['quoteId'],
         );
-        $response = $this->matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (array_merge($request, $params));
+        $response = $this->matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey ($this->extend($request, $params));
         // array( array( id => "3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa",
         //     "type" => "sell",
         //     "orderType" => "limit",

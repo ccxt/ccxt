@@ -469,7 +469,7 @@ class bitrue extends \ccxt\async\bitrue {
                 'listenKey' => $listenKey,
             );
             try {
-                Async\await($this->openPrivatePutPoseidonApiV1ListenKeyListenKey (array_merge($request, $params)));
+                Async\await($this->openPrivatePutPoseidonApiV1ListenKeyListenKey ($this->extend($request, $params)));
                 //
                 // ಠ_ಠ
                 //     {

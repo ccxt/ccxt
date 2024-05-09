@@ -222,7 +222,7 @@ class coinspot extends Exchange {
             $request = array(
                 'cointype' => $market['id'],
             );
-            $orderbook = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $orderbook = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'buyorders', 'sellorders', 'rate', 'amount');
         }) ();
     }
@@ -355,7 +355,7 @@ class coinspot extends Exchange {
             $request = array(
                 'cointype' => $market['id'],
             );
-            $response = Async\await($this->privatePostOrdersHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrdersHistory ($this->extend($request, $params)));
             //
             //     {
             //         "status":"ok",
@@ -389,7 +389,7 @@ class coinspot extends Exchange {
             if ($since !== null) {
                 $request['startdate'] = $this->yyyymmdd($since);
             }
-            $response = Async\await($this->privatePostRoMyTransactions (array_merge($request, $params)));
+            $response = Async\await($this->privatePostRoMyTransactions ($this->extend($request, $params)));
             //  {
             //   "status" => "ok",
             //   "buyorders" => array(
@@ -523,7 +523,7 @@ class coinspot extends Exchange {
                 'amount' => $amount,
                 'rate' => $price,
             );
-            return Async\await($this->$method (array_merge($request, $params)));
+            return Async\await($this->$method ($this->extend($request, $params)));
         }) ();
     }
 
@@ -547,7 +547,7 @@ class coinspot extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->$method (array_merge($request, $params)));
+            return Async\await($this->$method ($this->extend($request, $params)));
         }) ();
     }
 
@@ -556,7 +556,7 @@ class coinspot extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->json(array_merge(array( 'nonce' => $nonce ), $params));
+            $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,

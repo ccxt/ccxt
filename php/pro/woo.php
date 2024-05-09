@@ -85,7 +85,7 @@ class woo extends \ccxt\async\woo {
             $subscribe = array(
                 'id' => $requestId,
             );
-            $request = array_merge($subscribe, $message);
+            $request = $this->extend($subscribe, $message);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
         }) ();
     }
@@ -108,7 +108,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch_public($topic, $message));
             return $orderbook->limit ();
         }) ();
@@ -168,7 +168,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_public($topic, $message));
         }) ();
     }
@@ -257,7 +257,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $tickers = Async\await($this->watch_public($topic, $message));
             return $this->filter_by_array($tickers, 'symbol', $symbols);
         }) ();
@@ -300,7 +300,7 @@ class woo extends \ccxt\async\woo {
         for ($i = 0; $i < count($data); $i++) {
             $marketId = $this->safe_string($data[$i], 'symbol');
             $market = $this->safe_market($marketId);
-            $ticker = $this->parse_ws_ticker(array_merge($data[$i], array( 'date' => $timestamp )), $market);
+            $ticker = $this->parse_ws_ticker($this->extend($data[$i], array( 'date' => $timestamp )), $market);
             $this->tickers[$market['symbol']] = $ticker;
             $result[] = $ticker;
         }
@@ -331,7 +331,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $ohlcv = Async\await($this->watch_public($topic, $message));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($market['symbol'], $limit);
@@ -404,7 +404,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch_public($topic, $message));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
@@ -433,7 +433,7 @@ class woo extends \ccxt\async\woo {
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $trade = $this->parse_ws_trade(array_merge($data, array( 'timestamp' => $timestamp )), $market);
+        $trade = $this->parse_ws_trade($this->extend($data, array( 'timestamp' => $timestamp )), $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -555,7 +555,7 @@ class woo extends \ccxt\async\woo {
                         'timestamp' => $ts,
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);
@@ -570,7 +570,7 @@ class woo extends \ccxt\async\woo {
             $subscribe = array(
                 'id' => $requestId,
             );
-            $request = array_merge($subscribe, $message);
+            $request = $this->extend($subscribe, $message);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
         }) ();
     }
@@ -599,7 +599,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orders = Async\await($this->watch_private($messageHash, $message));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
@@ -631,7 +631,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch_private($messageHash, $message));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -974,7 +974,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_private($messageHash, $message));
         }) ();
     }

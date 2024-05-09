@@ -644,7 +644,7 @@ class kraken extends Exchange {
             // array( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
         );
         for ($i = 0; $i < count($markets); $i++) {
-            $result[] = array_merge($defaults, $markets[$i]);
+            $result[] = $this->extend($defaults, $markets[$i]);
         }
         return $result;
     }
@@ -729,7 +729,7 @@ class kraken extends Exchange {
                 'pair' => $market['id'],
                 'fee-info' => true,
             );
-            $response = Async\await($this->privatePostTradeVolume (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeVolume ($this->extend($request, $params)));
             //
             //     {
             //        "error" => array(),
@@ -807,7 +807,7 @@ class kraken extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // 100
             }
-            $response = Async\await($this->publicGetDepth (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDepth ($this->extend($request, $params)));
             //
             //     {
             //         "error":array(),
@@ -913,7 +913,7 @@ class kraken extends Exchange {
                 }
                 $request['pair'] = implode(',', $marketIds);
             }
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             $tickers = $response['result'];
             $ids = is_array($tickers) ? array_keys($tickers) : array();
             $result = array();
@@ -946,7 +946,7 @@ class kraken extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             $ticker = $response['result'][$market['id']];
             return $this->parse_ticker($ticker, $market);
         }) ();
@@ -1009,7 +1009,7 @@ class kraken extends Exchange {
                 // the adding of '000000' is copied from the fetchTrades function
                 $request['since'] = $this->number_to_string($since) . '000000'; // expected to be in nanoseconds
             }
-            $response = Async\await($this->publicGetOHLC (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOHLC ($this->extend($request, $params)));
             //
             //     {
             //         "error":array(),
@@ -1117,7 +1117,7 @@ class kraken extends Exchange {
                 $request['start'] = $this->parse_to_int($since / 1000);
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->privatePostLedgers (array_merge($request, $params)));
+            $response = Async\await($this->privatePostLedgers ($this->extend($request, $params)));
             // {  error => array(),
             //   "result" => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(   refid => "A2B4HBV-L4MDIE-JU4N3N",
             //                                                   "time" =>  1520103488.314,
@@ -1146,7 +1146,7 @@ class kraken extends Exchange {
             // https://www.kraken.com/features/api#query-ledgers
             Async\await($this->load_markets());
             $ids = implode(',', $ids);
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'id' => $ids,
             ), $params);
             $response = Async\await($this->privatePostQueryLedgers ($request));
@@ -1307,7 +1307,7 @@ class kraken extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTrades ($this->extend($request, $params)));
             //
             //     {
             //         "error" => array(),
@@ -1413,7 +1413,7 @@ class kraken extends Exchange {
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
             $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $price, $params);
-            $response = Async\await($this->privatePostAddOrder (array_merge($orderRequest[0], $orderRequest[1])));
+            $response = Async\await($this->privatePostAddOrder ($this->extend($orderRequest[0], $orderRequest[1])));
             //
             //     {
             //         "error" => array(),
@@ -1779,7 +1779,7 @@ class kraken extends Exchange {
         }
         $close = $this->safe_value($params, 'close');
         if ($close !== null) {
-            $close = array_merge(array(), $close);
+            $close = $this->extend(array(), $close);
             $closePrice = $this->safe_value($close, 'price');
             if ($closePrice !== null) {
                 $close['price'] = $this->price_to_precision($symbol, $closePrice);
@@ -1837,7 +1837,7 @@ class kraken extends Exchange {
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
             $orderRequest = $this->order_request('editOrder', $symbol, $type, $request, $price, $params);
-            $response = Async\await($this->privatePostEditOrder (array_merge($orderRequest[0], $orderRequest[1])));
+            $response = Async\await($this->privatePostEditOrder ($this->extend($orderRequest[0], $orderRequest[1])));
             //
             //     {
             //         "error" => array(),
@@ -1882,7 +1882,7 @@ class kraken extends Exchange {
             } else {
                 $request['txid'] = $id;
             }
-            $response = Async\await($this->privatePostQueryOrders (array_merge($request, $query)));
+            $response = Async\await($this->privatePostQueryOrders ($this->extend($request, $query)));
             //
             //     {
             //         "error":array(),
@@ -1924,7 +1924,7 @@ class kraken extends Exchange {
             if (!(is_array($result) && array_key_exists($id, $result))) {
                 throw new OrderNotFound($this->id . ' fetchOrder() could not find order $id ' . $id);
             }
-            return $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
+            return $this->parse_order($this->extend(array( 'id' => $id ), $result[$id]));
         }) ();
     }
 
@@ -2020,7 +2020,7 @@ class kraken extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostQueryOrders (array_merge(array(
+            $response = Async\await($this->privatePostQueryOrders ($this->extend(array(
                 'trades' => true, // whether or not to include trades in output (optional, default false)
                 'txid' => implode(',', $ids), // comma delimited list of transaction $ids to query info about (20 maximum)
             ), $params)));
@@ -2030,7 +2030,7 @@ class kraken extends Exchange {
             for ($i = 0; $i < count($orderIds); $i++) {
                 $id = $orderIds[$i];
                 $item = $result[$id];
-                $order = $this->parse_order(array_merge(array( 'id' => $id ), $item));
+                $order = $this->parse_order($this->extend(array( 'id' => $id ), $item));
                 $orders[] = $order;
             }
             return $orders;
@@ -2059,7 +2059,7 @@ class kraken extends Exchange {
             if ($since !== null) {
                 $request['start'] = $this->parse_to_int($since / 1000);
             }
-            $response = Async\await($this->privatePostTradesHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradesHistory ($this->extend($request, $params)));
             //
             //     {
             //         "error" => array(),
@@ -2116,7 +2116,7 @@ class kraken extends Exchange {
             );
             $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
             try {
-                $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+                $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
             } catch (Exception $e) {
                 if ($this->last_http_response) {
                     if (mb_strpos($this->last_http_response, 'EOrder:Unknown order') !== false) {
@@ -2142,7 +2142,7 @@ class kraken extends Exchange {
             $request = array(
                 'orders' => $ids,
             );
-            $response = Async\await($this->privatePostCancelOrderBatch (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelOrderBatch ($this->extend($request, $params)));
             //
             //     {
             //         "error" => array(),
@@ -2185,7 +2185,7 @@ class kraken extends Exchange {
             $request = array(
                 'timeout' => ($timeout > 0) ? ($this->parse_to_int($timeout / 1000)) : 0,
             );
-            $response = Async\await($this->privatePostCancelAllOrdersAfter (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelAllOrdersAfter ($this->extend($request, $params)));
             //
             //     {
             //         "error" => [ ],
@@ -2221,7 +2221,7 @@ class kraken extends Exchange {
                 $request['userref'] = $clientOrderId;
                 $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
             }
-            $response = Async\await($this->privatePostOpenOrders (array_merge($request, $query)));
+            $response = Async\await($this->privatePostOpenOrders ($this->extend($request, $query)));
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2256,7 +2256,7 @@ class kraken extends Exchange {
                 $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->privatePostClosedOrders (array_merge($request, $query)));
+            $response = Async\await($this->privatePostClosedOrders ($this->extend($request, $query)));
             //
             //     {
             //         "error":array(),
@@ -2437,7 +2437,7 @@ class kraken extends Exchange {
     public function parse_transactions_by_type($type, $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
-            $transaction = $this->parse_transaction(array_merge(array(
+            $transaction = $this->parse_transaction($this->extend(array(
                 'type' => $type,
             ), $transactions[$i]));
             $result[] = $transaction;
@@ -2468,7 +2468,7 @@ class kraken extends Exchange {
             if ($since !== null) {
                 $request['start'] = $since;
             }
-            $response = Async\await($this->privatePostDepositStatus (array_merge($request, $params)));
+            $response = Async\await($this->privatePostDepositStatus ($this->extend($request, $params)));
             //
             //     {  error => array(),
             //       "result" => array( { "method" => "Ether (Hex)",
@@ -2538,7 +2538,7 @@ class kraken extends Exchange {
             if ($since !== null) {
                 $request['since'] = (string) $since;
             }
-            $response = Async\await($this->privatePostWithdrawStatus (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawStatus ($this->extend($request, $params)));
             //
             // with no pagination
             //     {  error => array(),
@@ -2612,7 +2612,7 @@ class kraken extends Exchange {
             $request = array(
                 'new' => 'true',
             );
-            return Async\await($this->fetch_deposit_address($code, array_merge($request, $params)));
+            return Async\await($this->fetch_deposit_address($code, $this->extend($request, $params)));
         }) ();
     }
 
@@ -2630,7 +2630,7 @@ class kraken extends Exchange {
             $request = array(
                 'asset' => $currency['id'],
             );
-            $response = Async\await($this->privatePostDepositMethods (array_merge($request, $params)));
+            $response = Async\await($this->privatePostDepositMethods ($this->extend($request, $params)));
             //
             //     {
             //         "error":array(),
@@ -2703,7 +2703,7 @@ class kraken extends Exchange {
                 'asset' => $currency['id'],
                 'method' => $depositMethod,
             );
-            $response = Async\await($this->privatePostDepositAddresses (array_merge($request, $params)));
+            $response = Async\await($this->privatePostDepositAddresses ($this->extend($request, $params)));
             //
             //     {
             //         "error":array(),
@@ -2764,7 +2764,7 @@ class kraken extends Exchange {
                     'amount' => $amount,
                     'address' => $address,
                 );
-                $response = Async\await($this->privatePostWithdraw (array_merge($request, $params)));
+                $response = Async\await($this->privatePostWithdraw ($this->extend($request, $params)));
                 //
                 //     {
                 //         "error" => array(),
@@ -2795,7 +2795,7 @@ class kraken extends Exchange {
                 'docalcs' => 'true', // whether or not to include profit/loss calculations
                 'consolidation' => 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
             );
-            $response = Async\await($this->privatePostOpenPositions (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOpenPositions ($this->extend($request, $params)));
             //
             // no consolidation
             //
@@ -2945,7 +2945,7 @@ class kraken extends Exchange {
             if ($fromAccount !== 'Spot Wallet') {
                 throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount . '. Use krakenfutures instead to $transfer from the futures account.');
             }
-            $response = Async\await($this->privatePostWalletTransfer (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWalletTransfer ($this->extend($request, $params)));
             //
             //   {
             //       "error":array(
@@ -2956,7 +2956,7 @@ class kraken extends Exchange {
             //   }
             //
             $transfer = $this->parse_transfer($response, $currency);
-            return array_merge($transfer, array(
+            return $this->extend($transfer, array(
                 'amount' => $amount,
                 'fromAccount' => $fromAccount,
                 'toAccount' => $toAccount,
@@ -3004,9 +3004,9 @@ class kraken extends Exchange {
             $nonce = (string) $this->nonce();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if ($isCancelOrderBatch) {
-                $body = $this->json(array_merge(array( 'nonce' => $nonce ), $params));
+                $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {
-                $body = $this->urlencode_nested(array_merge(array( 'nonce' => $nonce ), $params));
+                $body = $this->urlencode_nested($this->extend(array( 'nonce' => $nonce ), $params));
             }
             $auth = $this->encode($nonce . $body);
             $hash = $this->hash($auth, 'sha256', 'binary');

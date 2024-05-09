@@ -538,7 +538,7 @@ class woo extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->v1PublicGetMarketTrades (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetMarketTrades ($this->extend($request, $params)));
             //
             // {
             //     "success" => true,
@@ -1073,9 +1073,9 @@ class woo extends Exchange {
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ));
             $response = null;
             if ($isStop) {
-                $response = Async\await($this->v3PrivatePostAlgoOrder (array_merge($request, $params)));
+                $response = Async\await($this->v3PrivatePostAlgoOrder ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->v1PrivatePostOrder (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivatePostOrder ($this->extend($request, $params)));
             }
             // {
             //     "success" => true,
@@ -1178,16 +1178,16 @@ class woo extends Exchange {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 if ($isStop) {
-                    $response = Async\await($this->v3PrivatePutAlgoOrderClientClientOrderId (array_merge($request, $params)));
+                    $response = Async\await($this->v3PrivatePutAlgoOrderClientClientOrderId ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->v3PrivatePutOrderClientClientOrderId (array_merge($request, $params)));
+                    $response = Async\await($this->v3PrivatePutOrderClientClientOrderId ($this->extend($request, $params)));
                 }
             } else {
                 $request['oid'] = $id;
                 if ($isStop) {
-                    $response = Async\await($this->v3PrivatePutAlgoOrderOid (array_merge($request, $params)));
+                    $response = Async\await($this->v3PrivatePutAlgoOrderOid ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->v3PrivatePutOrderOid (array_merge($request, $params)));
+                    $response = Async\await($this->v3PrivatePutOrderOid ($this->extend($request, $params)));
                 }
             }
             //
@@ -1237,16 +1237,16 @@ class woo extends Exchange {
             $response = null;
             if ($stop) {
                 $request['order_id'] = $id;
-                $response = Async\await($this->v3PrivateDeleteAlgoOrderOrderId (array_merge($request, $params)));
+                $response = Async\await($this->v3PrivateDeleteAlgoOrderOrderId ($this->extend($request, $params)));
             } else {
                 $request['symbol'] = $market['id'];
                 if ($isByClientOrder) {
                     $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                     $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                    $response = Async\await($this->v1PrivateDeleteClientOrder (array_merge($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteClientOrder ($this->extend($request, $params)));
                 } else {
                     $request['order_id'] = $id;
-                    $response = Async\await($this->v1PrivateDeleteOrder (array_merge($request, $params)));
+                    $response = Async\await($this->v1PrivateDeleteOrder ($this->extend($request, $params)));
                 }
             }
             //
@@ -1258,7 +1258,7 @@ class woo extends Exchange {
             } else {
                 $extendParams['id'] = $id;
             }
-            return array_merge($this->parse_order($response), $extendParams);
+            return $this->extend($this->parse_order($response), $extendParams);
         }) ();
     }
 
@@ -1287,7 +1287,7 @@ class woo extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1PrivateDeleteOrders (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteOrders ($this->extend($request, $params)));
             //
             //     {
             //         "success":true,
@@ -1312,7 +1312,7 @@ class woo extends Exchange {
             $request = array(
                 'trigger_after' => ($timeout > 0) ? $timeout : 0,
             );
-            $response = Async\await($this->v1PrivatePostOrderCancelAllAfter (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostOrderCancelAllAfter ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -1346,13 +1346,13 @@ class woo extends Exchange {
             $response = null;
             if ($stop) {
                 $request['oid'] = $id;
-                $response = Async\await($this->v3PrivateGetAlgoOrderOid (array_merge($request, $params)));
+                $response = Async\await($this->v3PrivateGetAlgoOrderOid ($this->extend($request, $params)));
             } elseif ($clientOrderId) {
                 $request['client_order_id'] = $clientOrderId;
-                $response = Async\await($this->v1PrivateGetClientOrderClientOrderId (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivateGetClientOrderClientOrderId ($this->extend($request, $params)));
             } else {
                 $request['oid'] = $id;
-                $response = Async\await($this->v1PrivateGetOrderOid (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivateGetOrderOid ($this->extend($request, $params)));
             }
             //
             // {
@@ -1445,9 +1445,9 @@ class woo extends Exchange {
             }
             $response = null;
             if ($stop || $trailing) {
-                $response = Async\await($this->v3PrivateGetAlgoOrders (array_merge($request, $params)));
+                $response = Async\await($this->v3PrivateGetAlgoOrders ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->v1PrivateGetOrders (array_merge($request, $params)));
+                $response = Async\await($this->v1PrivateGetOrders ($this->extend($request, $params)));
             }
             //
             //     {
@@ -1504,7 +1504,7 @@ class woo extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $extendedParams = array_merge($params, array( 'status' => 'INCOMPLETE' ));
+            $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
         }) ();
     }
@@ -1527,7 +1527,7 @@ class woo extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $extendedParams = array_merge($params, array( 'status' => 'COMPLETED' ));
+            $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
         }) ();
     }
@@ -1690,7 +1690,7 @@ class woo extends Exchange {
                 $limit = min ($limit, 1000);
                 $request['max_level'] = $limit;
             }
-            $response = Async\await($this->v1PublicGetOrderbookSymbol (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetOrderbookSymbol ($this->extend($request, $params)));
             //
             // {
             //   "success" => true,
@@ -1744,7 +1744,7 @@ class woo extends Exchange {
             }
             $response = null;
             if (!$useHistEndpoint) {
-                $response = Async\await($this->v1PublicGetKline (array_merge($request, $params)));
+                $response = Async\await($this->v1PublicGetKline ($this->extend($request, $params)));
                 //
                 //    {
                 //        "success" => true,
@@ -1766,7 +1766,7 @@ class woo extends Exchange {
                 //    }
                 //
             } else {
-                $response = Async\await($this->v1PubGetHistKline (array_merge($request, $params)));
+                $response = Async\await($this->v1PubGetHistKline ($this->extend($request, $params)));
                 $response = $this->safe_dict($response, 'data');
                 //
                 //    {
@@ -1828,7 +1828,7 @@ class woo extends Exchange {
             $request = array(
                 'oid' => $id,
             );
-            $response = Async\await($this->v1PrivateGetOrderOidTrades (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetOrderOidTrades ($this->extend($request, $params)));
             // {
             //     "success" => true,
             //     "rows" => array(
@@ -1884,7 +1884,7 @@ class woo extends Exchange {
             } else {
                 $request['size'] = 500;
             }
-            $response = Async\await($this->v1PrivateGetClientTrades (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetClientTrades ($this->extend($request, $params)));
             // {
             //     "success" => true,
             //     "meta" => array(
@@ -2034,7 +2034,7 @@ class woo extends Exchange {
             $request = array(
                 'token' => $codeForExchange,
             );
-            $response = Async\await($this->v1PrivateGetAssetDeposit (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetAssetDeposit ($this->extend($request, $params)));
             // {
             //     "success" => true,
             //     "address" => "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
@@ -2073,7 +2073,7 @@ class woo extends Exchange {
             if ($transactionType !== null) {
                 $request['type'] = $transactionType;
             }
-            $response = Async\await($this->v1PrivateGetAssetHistory (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetAssetHistory ($this->extend($request, $params)));
             // {
             //     "rows" => array(
             //       {
@@ -2194,7 +2194,7 @@ class woo extends Exchange {
             $request = array(
                 'token_side' => 'DEPOSIT',
             );
-            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -2212,7 +2212,7 @@ class woo extends Exchange {
             $request = array(
                 'token_side' => 'WITHDRAW',
             );
-            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -2230,7 +2230,7 @@ class woo extends Exchange {
             $request = array(
                 'type' => 'BALANCE',
             );
-            list($currency, $rows) = Async\await($this->get_asset_history_rows($code, $since, $limit, array_merge($request, $params)));
+            list($currency, $rows) = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
             //
             //     {
             //         "rows":array(),
@@ -2314,7 +2314,7 @@ class woo extends Exchange {
                 'from_application_id' => $fromAccount,
                 'to_application_id' => $toAccount,
             );
-            $response = Async\await($this->v1PrivatePostAssetMainSubTransfer (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostAssetMainSubTransfer ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -2357,7 +2357,7 @@ class woo extends Exchange {
             if ($until !== null) {
                 $request['end_t'] = $until;
             }
-            $response = Async\await($this->v1PrivateGetAssetMainSubTransferHistory (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetAssetMainSubTransferHistory ($this->extend($request, $params)));
             //
             //     {
             //         "rows" => array(
@@ -2475,7 +2475,7 @@ class woo extends Exchange {
                 throw new BadRequest($this->id . ' withdraw() require $network parameter');
             }
             $request['token'] = $coinNetworkId;
-            $response = Async\await($this->v1PrivatePostAssetWithdraw (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostAssetWithdraw ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -2508,14 +2508,14 @@ class woo extends Exchange {
                 'token' => $currency['id'], // interest token that you want to repay
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->v1PrivatePostInterestRepay (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostInterestRepay ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
             //     }
             //
             $transaction = $this->parse_margin_loan($response, $currency);
-            return array_merge($transaction, array(
+            return $this->extend($transaction, array(
                 'amount' => $amount,
                 'symbol' => $symbol,
             ));
@@ -2672,7 +2672,7 @@ class woo extends Exchange {
             if ($since !== null) {
                 $request['start_t'] = $since;
             }
-            $response = Async\await($this->v1PrivateGetFundingFeeHistory (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetFundingFeeHistory ($this->extend($request, $params)));
             //
             //     {
             //         "rows":array(
@@ -2746,7 +2746,7 @@ class woo extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1PublicGetFundingRateSymbol (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetFundingRateSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "success":true,
@@ -2819,7 +2819,7 @@ class woo extends Exchange {
                 $request['start_t'] = $this->parse_to_int($since / 1000);
             }
             list($request, $params) = $this->handle_until_option('end_t', $request, $params, 0.001);
-            $response = Async\await($this->v1PublicGetFundingRateHistory (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetFundingRateHistory ($this->extend($request, $params)));
             //
             //     {
             //         "success":true,
@@ -2877,7 +2877,7 @@ class woo extends Exchange {
             $request = array(
                 'position_mode' => $hedgeMode,
             );
-            $response = Async\await($this->v1PrivatePostClientPositionMode (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivatePostClientPositionMode ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -2954,7 +2954,7 @@ class woo extends Exchange {
             $request = array(
                 'leverage' => $leverage,
             );
-            return Async\await($this->v1PrivatePostClientLeverage (array_merge($request, $params)));
+            return Async\await($this->v1PrivatePostClientLeverage ($this->extend($request, $params)));
         }) ();
     }
 
@@ -2965,7 +2965,7 @@ class woo extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1PrivateGetPositionSymbol (array_merge($request, $params)));
+            $response = Async\await($this->v1PrivateGetPositionSymbol ($this->extend($request, $params)));
             //
             //     {
             //         "symbol":"PERP_ETC_USDT",
@@ -3100,7 +3100,7 @@ class woo extends Exchange {
                 'buyToken' => strtoupper($toCode),
                 'sellQuantity' => $this->number_to_string($amount),
             );
-            $response = Async\await($this->v3PrivateGetConvertRfq (array_merge($request, $params)));
+            $response = Async\await($this->v3PrivateGetConvertRfq ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -3142,7 +3142,7 @@ class woo extends Exchange {
             $request = array(
                 'quoteId' => $id,
             );
-            $response = Async\await($this->v3PrivatePostConvertRft (array_merge($request, $params)));
+            $response = Async\await($this->v3PrivatePostConvertRft ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -3172,7 +3172,7 @@ class woo extends Exchange {
             $request = array(
                 'quoteId' => $id,
             );
-            $response = Async\await($this->v3PrivateGetConvertTrade (array_merge($request, $params)));
+            $response = Async\await($this->v3PrivateGetConvertTrade ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -3223,7 +3223,7 @@ class woo extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
-            $response = Async\await($this->v3PrivateGetConvertTrades (array_merge($request, $params)));
+            $response = Async\await($this->v3PrivateGetConvertTrades ($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,

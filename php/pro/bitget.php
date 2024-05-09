@@ -1581,7 +1581,7 @@ class bitget extends \ccxt\async\bitget {
                 'op' => 'subscribe',
                 'args' => array( $args ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -1593,7 +1593,7 @@ class bitget extends \ccxt\async\bitget {
                 'op' => 'subscribe',
                 'args' => $argsArray,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
     }
@@ -1622,7 +1622,7 @@ class bitget extends \ccxt\async\bitget {
                         ),
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);
@@ -1637,7 +1637,7 @@ class bitget extends \ccxt\async\bitget {
                 'op' => 'subscribe',
                 'args' => array( $args ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash));
         }) ();
     }

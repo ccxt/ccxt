@@ -214,7 +214,7 @@ class coinspot extends Exchange {
         $request = array(
             'cointype' => $market['id'],
         );
-        $orderbook = $this->privatePostOrders (array_merge($request, $params));
+        $orderbook = $this->privatePostOrders ($this->extend($request, $params));
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
@@ -341,7 +341,7 @@ class coinspot extends Exchange {
         $request = array(
             'cointype' => $market['id'],
         );
-        $response = $this->privatePostOrdersHistory (array_merge($request, $params));
+        $response = $this->privatePostOrdersHistory ($this->extend($request, $params));
         //
         //     {
         //         "status":"ok",
@@ -373,7 +373,7 @@ class coinspot extends Exchange {
         if ($since !== null) {
             $request['startdate'] = $this->yyyymmdd($since);
         }
-        $response = $this->privatePostRoMyTransactions (array_merge($request, $params));
+        $response = $this->privatePostRoMyTransactions ($this->extend($request, $params));
         //  {
         //   "status" => "ok",
         //   "buyorders" => array(
@@ -505,7 +505,7 @@ class coinspot extends Exchange {
             'amount' => $amount,
             'rate' => $price,
         );
-        return $this->$method (array_merge($request, $params));
+        return $this->$method ($this->extend($request, $params));
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -527,7 +527,7 @@ class coinspot extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->$method (array_merge($request, $params));
+        return $this->$method ($this->extend($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -535,7 +535,7 @@ class coinspot extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->json(array_merge(array( 'nonce' => $nonce ), $params));
+            $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,

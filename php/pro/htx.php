@@ -368,7 +368,7 @@ class htx extends \ccxt\async\htx {
             $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
             $method = array($this, 'handle_order_book_subscription');
             if (!$market['spot']) {
-                $params = array_merge($params);
+                $params = $this->extend($params);
                 $params['data_type'] = 'incremental';
                 $method = null;
             }
@@ -2153,7 +2153,7 @@ class htx extends \ccxt\async\htx {
                     $trade = $rawTrades[$i];
                     $parsedTrade = $this->parse_trade($trade, $market);
                     // add extra params (side, type, ...) coming from the order
-                    $parsedTrade = array_merge($parsedTrade, $extendParams);
+                    $parsedTrade = $this->extend($parsedTrade, $extendParams);
                     $cachedTrades->append ($parsedTrade);
                 }
                 // $messageHash here is the orders one, so
@@ -2284,7 +2284,7 @@ class htx extends \ccxt\async\htx {
             if ($method !== null) {
                 $subscription['method'] = $method;
             }
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
         }) ();
     }
 
@@ -2296,7 +2296,7 @@ class htx extends \ccxt\async\htx {
                 'messageHash' => $messageHash,
                 'params' => $params,
             );
-            $extendedSubsription = array_merge($subscription, $subscriptionParams);
+            $extendedSubsription = $this->extend($subscription, $subscriptionParams);
             $request = null;
             if ($type === 'spot') {
                 $request = array(
@@ -2322,7 +2322,7 @@ class htx extends \ccxt\async\htx {
                 $this->options['ws']['gunzip'] = false;
             }
             Async\await($this->authenticate($authParams));
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel, $extendedSubsription));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel, $extendedSubsription));
         }) ();
     }
 

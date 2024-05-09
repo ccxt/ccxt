@@ -359,7 +359,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $market['id'],
         );
-        $orderbook = $this->publicGetGetboard (array_merge($request, $params));
+        $orderbook = $this->publicGetGetboard ($this->extend($request, $params));
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
     }
 
@@ -404,7 +404,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $market['id'],
         );
-        $response = $this->publicGetGetticker (array_merge($request, $params));
+        $response = $this->publicGetGetticker ($this->extend($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -491,7 +491,7 @@ class bitflyer extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->publicGetGetexecutions (array_merge($request, $params));
+        $response = $this->publicGetGetexecutions ($this->extend($request, $params));
         //
         //    array(
         //     array(
@@ -521,7 +521,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $market['id'],
         );
-        $response = $this->privateGetGettradingcommission (array_merge($request, $params));
+        $response = $this->privateGetGettradingcommission ($this->extend($request, $params));
         //
         //   {
         //       commission_rate => '0.0020'
@@ -558,7 +558,7 @@ class bitflyer extends Exchange {
             'price' => $price,
             'size' => $amount,
         );
-        $result = $this->privatePostSendchildorder (array_merge($request, $params));
+        $result = $this->privatePostSendchildorder ($this->extend($request, $params));
         // array( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
         $id = $this->safe_string($result, 'child_order_acceptance_id');
         return $this->safe_order(array(
@@ -584,7 +584,7 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
             'child_order_acceptance_id' => $id,
         );
-        return $this->privatePostCancelchildorder (array_merge($request, $params));
+        return $this->privatePostCancelchildorder ($this->extend($request, $params));
     }
 
     public function parse_order_status($status) {
@@ -664,7 +664,7 @@ class bitflyer extends Exchange {
             'product_code' => $market['id'],
             'count' => $limit,
         );
-        $response = $this->privateGetGetchildorders (array_merge($request, $params));
+        $response = $this->privateGetGetchildorders ($this->extend($request, $params));
         $orders = $this->parse_orders($response, $market, $since, $limit);
         if ($symbol !== null) {
             $orders = $this->filter_by($orders, 'symbol', $symbol);
@@ -685,7 +685,7 @@ class bitflyer extends Exchange {
         $request = array(
             'child_order_state' => 'ACTIVE',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): array {
@@ -701,7 +701,7 @@ class bitflyer extends Exchange {
         $request = array(
             'child_order_state' => 'COMPLETED',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -744,7 +744,7 @@ class bitflyer extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->privateGetGetexecutions (array_merge($request, $params));
+        $response = $this->privateGetGetexecutions ($this->extend($request, $params));
         //
         //    array(
         //     array(
@@ -777,7 +777,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $this->market_ids($symbols),
         );
-        $response = $this->privateGetGetpositions (array_merge($request, $params));
+        $response = $this->privateGetGetpositions ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -821,7 +821,7 @@ class bitflyer extends Exchange {
             'amount' => $amount,
             // 'bank_account_id' => 1234,
         );
-        $response = $this->privatePostWithdraw (array_merge($request, $params));
+        $response = $this->privatePostWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "message_id" => "69476620-5056-4003-bcbe-42658a2b041b"
@@ -849,7 +849,7 @@ class bitflyer extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 100
         }
-        $response = $this->privateGetGetcoinins (array_merge($request, $params));
+        $response = $this->privateGetGetcoinins ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -886,7 +886,7 @@ class bitflyer extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 100
         }
-        $response = $this->privateGetGetcoinouts (array_merge($request, $params));
+        $response = $this->privateGetGetcoinouts ($this->extend($request, $params));
         //
         //     array(
         //         {
