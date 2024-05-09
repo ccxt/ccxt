@@ -6738,11 +6738,11 @@ export default class Exchange {
         });
     }
 
-    parseLiquidation (liquidation, market: Market = undefined): Liquidation {
+    parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
     }
 
-    parseLiquidations (liquidations: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+    parseLiquidations (liquidations: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
         /**
          * @ignore
          * @method

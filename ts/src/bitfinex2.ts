@@ -3519,7 +3519,29 @@ export default class bitfinex2 extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market: Market = undefined) {
+    parseLiquidations (liquidations: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+        /**
+         * @ignore
+         * @method
+         * @description parses liquidation info from the exchange response
+         * @param {object[]} liquidations each item describes an instance of a liquidation event
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         */
+        const result = [];
+        for (let i = 0; i < liquidations.length; i++) {
+            const entry = { 'result': liquidations[i] };
+            const parsed = this.parseLiquidation (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         //     [
         //         [
@@ -3538,7 +3560,8 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        const entry = liquidation[0];
+        const result = this.safeList (liquidation, 'result');
+        const entry = result[0];
         const timestamp = this.safeInteger (entry, 2);
         const marketId = this.safeString (entry, 4);
         const contracts = Precise.stringAbs (this.safeString (entry, 5));
