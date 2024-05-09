@@ -3837,6 +3837,7 @@ export default class phemex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
+        this.verbose = true;
         if (market['settle'] === 'USDT') {
             response = await this.privateGetApiDataGFuturesFundingFees (this.extend (request, params));
         } else {
@@ -3851,13 +3852,13 @@ export default class phemex extends Exchange {
         //                 {
         //                     "symbol": "BTCUSD",
         //                     "currency": "BTC",
-        //                     "execQty": 18,
+        //                     "execQty": 18, // "execQty" v1, but "execQtyRq" in v2
         //                     "side": "Buy",
-        //                     "execPriceEp": 360086455,
-        //                     "execValueEv": 49987,
-        //                     "fundingRateEr": 10000,
-        //                     "feeRateEr": 10000,
-        //                     "execFeeEv": 5,
+        //                     "execPriceEp": 360086455, // "execPriceEp" v1, but "execPriceRp" in v2
+        //                     "execValueEv": 49987, // "execValueEv" v1, but "execValueRv" in v2
+        //                     "fundingRateEr": 10000, // "fundingRateEr" v1, but "fundingRateRr" in v2
+        //                     "feeRateEr": 10000, // "feeRateEr" v1, but "feeRateRr" in v2
+        //                     "execFeeEv": 5, // "execFeeEv" v1, but "execFeeRv" in v2
         //                     "createTime": 1651881600000
         //                 }
         //             ]
@@ -3870,6 +3871,7 @@ export default class phemex extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const timestamp = this.safeInteger (entry, 'createTime');
+            const execFee = this.safeString2 (entry, 'execFeeEv', 'execFeeRv');
             result.push ({
                 'info': entry,
                 'symbol': this.safeString (entry, 'symbol'),
@@ -3877,7 +3879,7 @@ export default class phemex extends Exchange {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': undefined,
-                'amount': this.fromEv (this.safeString (entry, 'execFeeEv'), market),
+                'amount': this.fromEv (execFee, market),
             });
         }
         return result as FundingHistory[];
