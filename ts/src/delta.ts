@@ -3160,7 +3160,7 @@ export default class delta extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "close": 6793.0,

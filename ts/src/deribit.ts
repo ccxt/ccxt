@@ -3386,7 +3386,7 @@ export default class deribit extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "estimated_delivery_price": 36552.72,

@@ -12163,7 +12163,7 @@ export default class binance extends Exchange {
         return this.parseGreeks (response[0], market);
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "symbol": "BTC-231229-40000-C",

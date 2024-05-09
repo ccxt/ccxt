@@ -6961,7 +6961,7 @@ export default class gate extends Exchange {
         return undefined;
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "vega": "1.78992",
