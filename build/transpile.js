@@ -1161,7 +1161,6 @@ class Transpiler {
     transpileClass (contents) {
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
         const methods = classBody.trim ().split (/\n\s*\n/)
-         
         const {
             python2,
             python3,
