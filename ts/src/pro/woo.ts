@@ -765,7 +765,7 @@ export default class woo extends wooRest {
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
                 const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
-                if ((tradeId !== undefined) && (tradeId !== '0')) {
+                if (tradeId !== undefined) {
                     this.handleMyTrade (client, order);
                 }
                 this.handleOrder (client, order, topic);
@@ -773,7 +773,7 @@ export default class woo extends wooRest {
         } else {
             // executionreport
             const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
-            if ((tradeId !== undefined) && (tradeId !== '0')) {
+            if (tradeId !== undefined) {
                 this.handleMyTrade (client, data);
             }
             this.handleOrder (client, data, topic);
