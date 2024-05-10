@@ -618,15 +618,19 @@ export default class woo extends wooRest {
          * @method
          * @name woo#watchOrders
          * @see https://docs.woo.org/#executionreport
+         * @see https://docs.woo.org/#algoexecutionreportv2
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.trigger] true if trigger order
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const topic = 'executionreport';
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
+        const topic = (trigger) ? 'algoexecutionreportv2' : 'executionreport';
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -761,7 +765,7 @@ export default class woo extends wooRest {
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
                 const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
-                if (tradeId !== undefined) {
+                if ((tradeId !== undefined) && (tradeId !== '0')) {
                     this.handleMyTrade (client, order);
                 }
                 this.handleOrder (client, order, topic);
