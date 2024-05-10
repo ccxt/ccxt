@@ -3838,7 +3838,8 @@ export default class phemex extends Exchange {
         }
         let response = undefined;
         this.verbose = true;
-        if (market['settle'] === 'USDT') {
+        const isUsdt = market['settle'] === 'USDT';
+        if (isUsdt) {
             response = await this.privateGetApiDataGFuturesFundingFees (this.extend (request, params));
         } else {
             response = await this.privateGetApiDataFuturesFundingFees (this.extend (request, params));
@@ -3873,7 +3874,7 @@ export default class phemex extends Exchange {
             const timestamp = this.safeInteger (entry, 'createTime');
             let execFee = this.safeString2 (entry, 'execFeeEv', 'execFeeRv');
             const currencyCode = this.safeCurrencyCode (this.safeString (entry, 'currency'));
-            if (currencyCode === 'USD') {
+            if (!isUsdt) {
                 const currency = this.safeCurrency (currencyCode);
                 const scale = this.safeString (currency['info'], 'valueScale');
                 const tickPrecision = this.parsePrecision (scale);
