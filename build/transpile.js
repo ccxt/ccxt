@@ -53,10 +53,10 @@ class Transpiler {
         }
         // remove JS space between method name and (
         // example: this.myMethod ( -> this.myMethod() 
-        word = word.replace(' ', '');
+        word = word.replace(' ', '').replace ('(', '');
         // unCamelCase needs to have an input of plain word, so, remove and re-add the parentheses
-        const uncameled = unCamelCase (word.replace ('(', '')) + '(';
-        return word.replace(/v[0-9]+/, uncameled);
+        const uncameled = unCamelCase (word) + '(';
+        return uncameled;
     }
 
     getCommonRegexes () {
