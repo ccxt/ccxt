@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, TransferEntries } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, TransferEntries, LeverageTier } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -8245,7 +8245,7 @@ export default class bybit extends Exchange {
         return tiers;
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //  [
         //      {

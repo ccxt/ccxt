@@ -2362,7 +2362,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): object {
+    parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 

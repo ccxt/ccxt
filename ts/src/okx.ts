@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, TransferEntries } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, TransferEntries, LeverageTier } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6840,7 +6840,7 @@ export default class okx extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         /**
          * @ignore
          * @method

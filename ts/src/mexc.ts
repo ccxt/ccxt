@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, TransferEntries } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, TransferEntries, LeverageTier } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -4356,7 +4356,7 @@ export default class mexc extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -4409,8 +4409,8 @@ export default class mexc extends Exchange {
                 {
                     'tier': 0,
                     'currency': this.safeCurrencyCode (quoteId),
-                    'notionalFloor': undefined,
-                    'notionalCap': undefined,
+                    'minNotional': undefined,
+                    'maxNotional': undefined,
                     'maintenanceMarginRate': undefined,
                     'maxLeverage': this.safeNumber (info, 'maxLeverage'),
                     'info': info,
@@ -4422,8 +4422,8 @@ export default class mexc extends Exchange {
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
                 'currency': this.safeCurrencyCode (quoteId),
-                'notionalFloor': this.parseNumber (floor),
-                'notionalCap': this.parseNumber (cap),
+                'minNotional': this.parseNumber (floor),
+                'maxNotional': this.parseNumber (cap),
                 'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
                 'info': info,
