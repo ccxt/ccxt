@@ -145,6 +145,8 @@ class Exchange {
     public $quote_currencies = null;
     public $balance = array();
     public $orderbooks = array();
+    public $fundingRates = array();
+
     public $tickers = array();
     public $bidsasks = array();
     public $fees = array('trading' => array(), 'funding' => array());
