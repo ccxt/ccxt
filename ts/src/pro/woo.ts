@@ -588,10 +588,13 @@ export default class woo extends wooRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.trigger] true if trigger order
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const topic = 'executionreport';
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
+        const topic = (trigger) ? 'algoexecutionreportv2' : 'executionreport';
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -751,16 +754,29 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const order = this.safeDict (message, 'data');
-        const tradeId = this.safeString (order, 'tradeId');
-        if ((tradeId !== undefined) && (tradeId !== '0')) {
-            this.handleMyTrade (client, order);
+        const topic = this.safeString (message, 'topic');
+        const data = this.safeValue (message, 'data');
+        if (Array.isArray (data)) {
+            // algoexecutionreportv2
+            for (let i = 0; i < data.length; i++) {
+                const order = data[i];
+                const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+                if (tradeId !== undefined) {
+                    this.handleMyTrade (client, order);
+                }
+                this.handleOrder (client, order, topic);
+            }
+        } else {
+            // executionreport
+            const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+            if ((tradeId !== undefined) && (tradeId !== '0')) {
+                this.handleMyTrade (client, data);
+            }
+            this.handleOrder (client, data, topic);
         }
-        this.handleOrder (client, order);
     }
 
-    handleOrder (client: Client, message) {
-        const topic = 'executionreport';
+    handleOrder (client: Client, message, topic) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -1072,6 +1088,7 @@ export default class woo extends wooRest {
             'kline': this.handleOHLCV,
             'auth': this.handleAuth,
             'executionreport': this.handleOrderUpdate,
+            'algoexecutionreportv2': this.handleOrderUpdate,
             'trade': this.handleTrade,
             'balance': this.handleBalance,
             'position': this.handlePositions,
