@@ -1109,7 +1109,7 @@ export default class bybit extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    addPaginationCursorToResult (response): any[] {
+    addPaginationCursorToResult (response) {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeValueN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
         const paginationCursor = this.safeString2 (result, 'nextPageCursor', 'cursor');
@@ -8173,10 +8173,12 @@ export default class bybit extends Exchange {
         const response = await this.publicGetV5MarketRiskLimit (this.extend (request, params));
         const result = this.addPaginationCursorToResult (response);
         const first = this.safeDict (result, 0);
-        const lastIndex = result.length - 1;
+        const total = result.length;
+        const lastIndex = total - 1;
         const last = this.safeDict (result, lastIndex);
+        const cursorValue = this.safeString (first, 'nextPageCursor');
         last['info'] = {
-            'nextPageCursor': first['nextPageCursor'],
+            'nextPageCursor': cursorValue,
         };
         result[lastIndex] = last;
         return result;
@@ -8231,9 +8233,13 @@ export default class bybit extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const entry = grouped[marketId];
+            for (let j = 0; j < entry.length; j++) {
+                const id = this.safeInteger (entry[j], 'id');
+                entry[j]['id'] = id;
+            }
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
             const symbol = market['symbol'];
-            tiers[symbol] = this.parseMarketLeverageTiers (entry, market);
+            tiers[symbol] = this.parseMarketLeverageTiers (this.sortBy (entry, 'id'), market);
         }
         return tiers;
     }
@@ -8271,7 +8277,7 @@ export default class bybit extends Exchange {
                 'info': tier,
             });
         }
-        return this.sortBy (tiers, 'tier');
+        return tiers;
     }
 
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
