@@ -477,8 +477,7 @@ class Exchange(object):
         if is_sandbox:
             self.set_sandbox_mode(is_sandbox)
 
-        # convert all properties from underscore notation foo_bar to camelcase notation fooBar.
-        # instead of runtime (as Python does not have magic caller) we have to predefine the functions in advance
+        # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
@@ -4645,7 +4644,7 @@ class Exchange(object):
 
     def fetch_deposit_address(self, code: str, params={}):
         if self.has['fetchDepositAddresses']:
-            depositAddresses = self.fetch_deposit_addresses([code], params)
+            depositAddresses = self.fetchDepositAddresses([code], params)
             depositAddress = self.safe_value(depositAddresses, code)
             if depositAddress is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
@@ -5162,7 +5161,7 @@ class Exchange(object):
             symbol = market['symbol']
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
-            rates = self.fetch_funding_rates([symbol], params)
+            rates = self.fetchFundingRates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
                 raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
