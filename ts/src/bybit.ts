@@ -8171,7 +8171,7 @@ export default class bybit extends Exchange {
             'category': subType,
         };
         const response = await this.publicGetV5MarketRiskLimit (this.extend (request, params));
-        const result = this.addPaginationCursorToResult(response);
+        const result = this.addPaginationCursorToResult (response);
         const first = this.safeDict (result, 0);
         const lastIndex = result.length - 1;
         const last = this.safeDict (result, lastIndex);
