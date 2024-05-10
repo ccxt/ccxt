@@ -490,11 +490,6 @@ class Exchange {
         'zonda',
     );
 
-<<<<<<< HEAD
-    public static $camelcase_methods = array();
-
-=======
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     public static function split($string, $delimiters = array(' ')) {
         return explode($delimiters[0], str_replace($delimiters, $delimiters[0], $string));
     }
@@ -1231,75 +1226,12 @@ class Exchange {
         }
     }
 
-<<<<<<< HEAD
-    public function define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config = array()) {
-        $split_path = mb_split('[^a-zA-Z0-9]', $path);
-        $camelcase_suffix = implode(array_map(get_called_class() . '::capitalize', $split_path));
-        $lowercase_path = array_map('trim', array_map('strtolower', $split_path));
-        $underscore_suffix = implode('_', array_filter($lowercase_path));
-        $camelcase_prefix = implode('', array_merge(
-            array($paths[0]),
-            array_map(get_called_class() . '::capitalize', array_slice($paths, 1))
-        ));
-        $underscore_prefix = implode('_', array_merge(
-            array($paths[0]),
-            array_filter(array_map('trim', array_slice($paths, 1)))
-        ));
-        $camelcase = $camelcase_prefix . $camelcase_method . static::capitalize($camelcase_suffix);
-        $underscore = $underscore_prefix . '_' . $lowercase_method . '_' . mb_strtolower($underscore_suffix);
-        $uncamelcased = $this->un_camel_case($camelcase);
-        $api_argument = (count($paths) > 1) ? $paths : $paths[0];
-        $finalArray = array($path, $api_argument, $uppercase_method, $method_name, $config);
-        $this->defined_rest_api[$camelcase] = $finalArray;
-        $this->defined_rest_api[$underscore] = $finalArray;
-        if ($uncamelcased != $underscore) {
-            $this->defined_rest_api[$uncamelcased] = $finalArray;
-        }
-    }
-
-    public function define_rest_api($api, $method_name, $paths = array()) {
-        foreach ($api as $key => $value) {
-            $uppercase_method = mb_strtoupper($key);
-            $lowercase_method = mb_strtolower($key);
-            $camelcase_method = static::capitalize($lowercase_method);
-            if (static::is_associative($value)) {
-                // the options HTTP method conflicts with the 'options' API url path
-                // if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
-                if (preg_match('/^(?:get|post|put|delete|head|patch)$/i', $key)) {
-                    foreach ($value as $endpoint => $config) {
-                        $path = trim($endpoint);
-                        if (static::is_associative($config)) {
-                            $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config);
-                        } elseif (is_numeric($config)) {
-                            $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, array('cost' => $config));
-                        } else {
-                            throw new NotSupported($this->id . ' define_rest_api() API format not supported, API leafs must strings, objects or numbers');
-                        }
-                    }
-                } else {
-                    $copy = $paths;
-                    array_push($copy, $key);
-                    $this->define_rest_api($value, $method_name, $copy);
-                }
-            } else {
-                foreach ($value as $path) {
-                    $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths);
-                }
-            }
-        }
-    }
-
-    public function underscore($camelcase) {
-        // todo: write conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
-        throw new NotSupported($this->id . ' underscore() is not supported yet');
-=======
     public static function underscore($camelcase) {
         // conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
         $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
             return $x[0][0] . '_' . $x[0][1];
         }, $camelcase);
         return strtolower($underscore);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     }
 
     public function camelcase($underscore) {
@@ -1760,42 +1692,11 @@ class Exchange {
     }
 
     public function __call($function, $params) {
-<<<<<<< HEAD
-        if (array_key_exists($function, $this->defined_rest_api)) {
-            $partial = $this->defined_rest_api[$function];
-            $entry = $partial[3];
-            $config = $partial[4];
-            $partial[3] = $params ? $params[0] : $params;
-            $partial[4] = null;
-            $partial[5] = null;
-            $partial[6] = $config;
-            $partial[7] = ($params && (count($params) > 1)) ? $params[1] : array();
-            return call_user_func_array(array($this, $entry), $partial);
-        // } elseif (array_key_exists($function, static::$camelcase_methods)) {
-        //    $underscore = static::$camelcase_methods[$function];
-        //    return call_user_func_array(array($this, $underscore), $params);
-        } elseif (!preg_match('/^[A-Z0-9_]+$/', $function)) {
-            $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
-                return $x[0][0] . '_' . $x[0][1];
-            }, $function);
-            $underscore = strtolower($underscore);
-            if (method_exists($this, $underscore)) {
-                return call_user_func_array(array($this, $underscore), $params);
-            } else {
-                $unCamelCase = $this->un_camel_case($function);
-                if (method_exists($this, $unCamelCase)) {
-                    return call_user_func_array(array($this, $unCamelCase), $params);
-                } else {
-                    /* handle errors */
-                    throw new ExchangeError($function . ' method not found');
-                }
-=======
         // support camelCase & snake_case functions
         if (!preg_match('/^[A-Z0-9_]+$/', $function)) {
             $underscore = static::underscore($function);
             if (method_exists($this, $underscore)) {
                 return call_user_func_array(array($this, $underscore), $params);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
             }
         }
         /* handle errors */
@@ -1812,20 +1713,6 @@ class Exchange {
         if (is_callable($this->overriden_methods[$function_name])) {
             return call_user_func_array($this->overriden_methods[$function_name], $params);
         }
-    }
-
-    public function un_camel_case($str) {
-        if (!preg_match('/[A-Z]/', $str)) {
-            return $str;
-        }
-        $char = function ($input, $num) {
-            return substr($input[0], $num, $num + 1);
-        };
-        $str = preg_replace_callback('/[a-z0-9][A-Z]/', function($x) use ($char){ return $char($x, 0) . '_' . $char($x, 1); }, $str);
-        $str = preg_replace_callback('/[A-Z0-9][A-Z0-9][a-z][^$]/', function($x) use ($char){ return $char($x, 0) . '_' . $char($x, 1) . $char($x, 2) . $char($x, 3); }, $str);
-        $str = preg_replace_callback('/[a-z][0-9]$/', function($x) use ($char){ return $char($x, 0) . '_' . $char($x, 1); }, $str);
-        $str = strToLower($str);
-        return $str;
     }
 
     public function __sleep() {
@@ -3348,10 +3235,6 @@ class Exchange {
         return $this->markets;
     }
 
-<<<<<<< HEAD
-    public function safe_balance($balance) {
-        $balances = $this->omit($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
-=======
     public function get_describe_for_extended_ws_exchange(mixed $currentRestInstance, mixed $parentRestInstance, array $wsBaseDescribe) {
         $extendedRestDescribe = $this->deep_extend($parentRestInstance->describe (), $currentRestInstance->describe ());
         $superWithRestDescribe = $this->deep_extend($extendedRestDescribe, $wsBaseDescribe);
@@ -3360,7 +3243,6 @@ class Exchange {
 
     public function safe_balance(array $balance) {
         $balances = $this->omit ($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         $codes = is_array($balances) ? array_keys($balances) : array();
         $balance['free'] = array();
         $balance['used'] = array();
@@ -3996,30 +3878,8 @@ class Exchange {
         ));
     }
 
-<<<<<<< HEAD
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
-        }
-        $this->load_markets();
-        $trades = $this->fetch_trades($symbol, $since, $limit, $params);
-        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-        $result = array();
-        for ($i = 0; $i < count($ohlcvc); $i++) {
-            $result[] = [
-                $this->safe_integer($ohlcvc[$i], 0),
-                $this->safe_number($ohlcvc[$i], 1),
-                $this->safe_number($ohlcvc[$i], 2),
-                $this->safe_number($ohlcvc[$i], 3),
-                $this->safe_number($ohlcvc[$i], 4),
-                $this->safe_number($ohlcvc[$i], 5),
-            ];
-        }
-        return $result;
-=======
     public function fetch_borrow_rate(string $code, $amount, $params = array ()) {
         throw new NotSupported($this->id . ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead');
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     }
 
     public function repay_cross_margin(string $code, $amount, $params = array ()) {
@@ -4176,11 +4036,7 @@ class Exchange {
         }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
-<<<<<<< HEAD
-            $result[] = $this->symbol($symbols[$i]);
-=======
             $result[] = $this->market ($symbols[$i]);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         }
         return $result;
     }
@@ -4249,15 +4105,9 @@ class Exchange {
 
     public function fetch_l2_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         $orderbook = $this->fetch_order_book($symbol, $limit, $params);
-<<<<<<< HEAD
-        return array_merge($orderbook, array(
-            'asks' => $this->sort_by($this->aggregate($orderbook['asks']), 0),
-            'bids' => $this->sort_by($this->aggregate($orderbook['bids']), 0, true),
-=======
         return $this->extend ($orderbook, array(
             'asks' => $this->sort_by($this->aggregate ($orderbook['asks']), 0),
             'bids' => $this->sort_by($this->aggregate ($orderbook['bids']), 0, true),
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         ));
     }
 
@@ -4621,26 +4471,16 @@ class Exchange {
         return $headers;
     }
 
-<<<<<<< HEAD
-    public function market_id($symbol) {
-        $market = $this->market($symbol);
-=======
     public function market_id(string $symbol) {
         $market = $this->market ($symbol);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         if ($market !== null) {
             return $market['id'];
         }
         return $symbol;
     }
 
-<<<<<<< HEAD
-    public function symbol($symbol) {
-        $market = $this->market($symbol);
-=======
     public function symbol(string $symbol) {
         $market = $this->market ($symbol);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         return $this->safe_string($market, 'symbol', $symbol);
     }
 
@@ -4713,13 +4553,8 @@ class Exchange {
 
     public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         if ($this->enableRateLimit) {
-<<<<<<< HEAD
-            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
-            $this->throttle($cost);
-=======
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle ($cost);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         }
         $this->lastRestRequestTimestamp = $this->milliseconds ();
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
@@ -4729,13 +4564,8 @@ class Exchange {
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-<<<<<<< HEAD
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        return $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
-=======
     public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body, $config);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     }
 
     public function load_accounts($reload = false, $params = array ()) {
@@ -4798,13 +4628,7 @@ class Exchange {
                 $ohlcvs[$candle][$i_count] = $this->sum ($ohlcvs[$candle][$i_count], 1);
             }
         }
-<<<<<<< HEAD
-        $this->load_markets();
-        $trades = $this->fetch_trades($symbol, $since, $limit, $params);
-        return $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-=======
         return $ohlcvs;
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     }
 
     public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null) {
@@ -4824,13 +4648,8 @@ class Exchange {
         return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-<<<<<<< HEAD
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $this->cancel_order($id, $symbol);
-=======
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->cancelOrder ($id, $symbol);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -5049,17 +4868,7 @@ class Exchange {
     }
 
     public function fetch_status($params = array ()) {
-<<<<<<< HEAD
-        if ($this->has['fetchTime']) {
-            $time = $this->fetch_time($params);
-            $this->status = array_merge($this->status, array(
-                'updated' => $time,
-            ));
-        }
-        return $this->status;
-=======
         throw new NotSupported($this->id . ' fetchStatus() is not supported yet');
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     }
 
     public function fetch_transaction_fee(string $code, $params = array ()) {
@@ -5773,13 +5582,8 @@ class Exchange {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
-<<<<<<< HEAD
-    public function cancel_unified_order($order, $params = array ()) {
-        return $this->cancel_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
-=======
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrderWs() is not supported yet');
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     }
 
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
@@ -6087,17 +5891,12 @@ class Exchange {
         return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
-<<<<<<< HEAD
-    public function cost_to_precision($symbol, $cost) {
-        $market = $this->market($symbol);
-=======
     public function create_market_sell_order_ws(string $symbol, float $amount, $params = array ()) {
         return $this->createOrderWs ($symbol, 'market', 'sell', $amount, null, $params);
     }
 
     public function cost_to_precision(string $symbol, $cost) {
         $market = $this->market ($symbol);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         return $this->decimal_to_precision($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
@@ -6119,13 +5918,8 @@ class Exchange {
         return $result;
     }
 
-<<<<<<< HEAD
-    public function fee_to_precision($symbol, $fee) {
-        $market = $this->market($symbol);
-=======
     public function fee_to_precision(string $symbol, $fee) {
         $market = $this->market ($symbol);
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         return $this->decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
@@ -6218,11 +6012,7 @@ class Exchange {
 
     public function load_time_difference($params = array ()) {
         $serverTime = $this->fetch_time($params);
-<<<<<<< HEAD
-        $after = $this->milliseconds();
-=======
         $after = $this->milliseconds ();
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
     }

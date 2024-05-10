@@ -471,17 +471,14 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
-<<<<<<< HEAD
-        # convert all properties from underscore notation foo_bar to camelcase notation fooBar. as we don't have magic __call in Python (as opposed to PHP), instead of runtime we have to predefine the functions in advance
-=======
         self.after_construct()
 
         is_sandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
         if is_sandbox:
             self.set_sandbox_mode(is_sandbox)
 
-        # convert all properties from underscore notation foo_bar to camelcase notation fooBar
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
+        # convert all properties from underscore notation foo_bar to camelcase notation fooBar.
+        # instead of runtime (as Python does not have magic caller) we have to predefine the functions in advance
         cls = type(self)
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
@@ -527,97 +524,6 @@ class Exchange(object):
     def describe(self):
         return {}
 
-<<<<<<< HEAD
-    def set_sandbox_mode(self, enabled):
-        if enabled:
-            if 'test' in self.urls:
-                self.urls['apiBackup'] = self.urls['api']
-                self.urls['api'] = self.urls['test']
-            else:
-                raise NotSupported(self.id + ' does not have a sandbox URL')
-        elif 'apiBackup' in self.urls:
-            self.urls['api'] = self.urls['apiBackup']
-            del self.urls['apiBackup']
-
-    def define_rest_api_endpoint(self, method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config={}):
-        cls = type(self)
-        entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
-        delimiters = re.compile('[^a-zA-Z0-9]')
-        split_path = delimiters.split(path)
-        lowercase_path = [x.strip().lower() for x in split_path]
-        camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
-        underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
-        camelcase_prefix = ''
-        underscore_prefix = ''
-        if len(paths):
-            camelcase_prefix = paths[0]
-            underscore_prefix = paths[0]
-            if len(paths) > 1:
-                camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
-                underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
-                api_argument = paths
-            else:
-                api_argument = paths[0]
-        camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
-        underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
-        uncamelcased = self.un_camel_case(camelcase)
-
-        def partialer():
-            outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
-
-            @functools.wraps(entry)
-            def inner(_self, params=None, context=None):
-                """
-                Inner is called when a generated method (publicGetX) is called.
-                _self is a reference to self created by function.__get__(exchange, type(exchange))
-                https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
-                """
-                inner_kwargs = dict(outer_kwargs)  # avoid mutation
-                if params is not None:
-                    inner_kwargs['params'] = params
-                if context is not None:
-                    inner_kwargs['context'] = params
-                return entry(_self, **inner_kwargs)
-            return inner
-        to_bind = partialer()
-        setattr(cls, camelcase, to_bind)
-        setattr(cls, underscore, to_bind)
-        if uncamelcased != underscore:
-            setattr(cls, uncamelcased, to_bind)
-
-    def define_rest_api(self, api, method_name, paths=[]):
-        for key, value in api.items():
-            uppercase_method = key.upper()
-            lowercase_method = key.lower()
-            camelcase_method = lowercase_method.capitalize()
-            if isinstance(value, list):
-                for path in value:
-                    self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths)
-            # the options HTTP method conflicts with the 'options' API url path
-            # elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
-            elif re.search(r'^(?:get|post|put|delete|head|patch)$', key, re.IGNORECASE) is not None:
-                for [endpoint, config] in value.items():
-                    path = endpoint.strip()
-                    if isinstance(config, dict):
-                        self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config)
-                    elif isinstance(config, Number):
-                        self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, {'cost': config})
-                    else:
-                        raise NotSupported(self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
-            else:
-                self.define_rest_api(value, method_name, paths + [key])
-
-    def un_camel_case(self, str):
-        if not re.search(r'[A-Z]', str):
-            return str
-        str = re.sub('([a-z0-9])([A-Z])', r'\1_\2', str)
-        str = re.sub('([A-Z0-9])([A-Z0-9])([a-z])([^$])', r'\1_\2\3\4', str)
-        str = re.sub('([a-z])([0-9])$', r'\1_\2', str)
-        str = str.lower()
-        return str
-
-=======
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     def throttle(self, cost=None):
         now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
