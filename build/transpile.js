@@ -61,11 +61,14 @@ class Transpiler {
 
     getCommonRegexes () {
         return [
+            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /\'use strict\';?\s+/g, '' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase ],
             [ /super\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase ],
+            [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
+            [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
         ].concat(this.getTypescriptRemovalRegexes())
     }
