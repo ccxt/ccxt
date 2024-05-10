@@ -606,7 +606,7 @@ export default class woofipro extends woofiproRest {
         await this.loadMarkets ();
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, 'stop');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
         if (symbol !== undefined) {
             const market = this.market (symbol);
