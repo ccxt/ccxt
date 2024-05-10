@@ -316,6 +316,7 @@ public partial class bybit : Exchange
                         { "v5/asset/coin/query-info", 28 },
                         { "v5/asset/withdraw/query-record", 10 },
                         { "v5/asset/withdraw/withdrawable-amount", 5 },
+                        { "v5/asset/withdraw/vasp/list", 5 },
                         { "v5/user/query-sub-members", 5 },
                         { "v5/user/query-api", 5 },
                         { "v5/user/sub-apikeys", 5 },

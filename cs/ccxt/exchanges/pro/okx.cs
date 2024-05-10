@@ -24,6 +24,8 @@ public partial class okx : ccxt.okx
                 { "watchOrders", true },
                 { "watchMyTrades", true },
                 { "watchPositions", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", true },
                 { "createOrderWs", true },
                 { "editOrderWs", true },
                 { "cancelOrderWs", true },
@@ -240,6 +242,99 @@ public partial class okx : ccxt.okx
             }
             callDynamically(stored, "append", new object[] {trade});
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        }
+    }
+
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#watchFundingRate
+        * @description watch the current funding rate
+        * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        symbol = this.symbol(symbol);
+        object fr = await this.watchFundingRates(new List<object>() {symbol}, parameters);
+        return getValue(fr, symbol);
+    }
+
+    public async override Task<object> watchFundingRates(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbaseinternational#watchFundingRates
+        * @description watch the funding rate for multiple markets
+        * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+        * @param {string[]} symbols list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object channel = "funding-rate";
+        object topics = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            ((IList<object>)messageHashes).Add(add(add(channel, ":"), symbol));
+            object marketId = this.marketId(symbol);
+            object topic = new Dictionary<string, object>() {
+                { "channel", channel },
+                { "instId", marketId },
+            };
+            ((IList<object>)topics).Add(topic);
+        }
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", topics },
+        };
+        object url = this.getUrl(channel, "public");
+        object fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object symbol = this.safeString(fundingRate, "symbol");
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, "symbol", symbols);
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        // "data":[
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
+        // ]
+        //
+        object data = this.safeList(message, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object rawfr = getValue(data, i);
+            object fundingRate = this.parseFundingRate(rawfr);
+            object symbol = getValue(fundingRate, "symbol");
+            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, add(add("funding-rate", ":"), getValue(fundingRate, "symbol"))});
         }
     }
 
@@ -1812,6 +1907,7 @@ public partial class okx : ccxt.okx
                 { "block-tickers", this.handleTicker },
                 { "trades", this.handleTrades },
                 { "account", this.handleBalance },
+                { "funding-rate", this.handleFundingRate },
                 { "orders", this.handleOrders },
                 { "orders-algo", this.handleOrders },
             };

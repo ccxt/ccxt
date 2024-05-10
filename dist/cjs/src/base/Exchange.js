@@ -83,6 +83,7 @@ class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
+        this.fundingRates = {};
         this.bidsasks = {};
         this.orders = undefined;
         this.triggerOrders = undefined;
