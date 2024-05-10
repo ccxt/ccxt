@@ -1156,6 +1156,21 @@
                   }
                 ]
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Swap set the margin mode and leverage of a trading pair",
+                "method": "setMarginMode",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-leverage",
+                "input": [
+                  "isolated",
+                  "BTC/USDT:USDT",
+                  {
+                    "leverage": 1
+                  }
+                ],
+                "output": "{\"leverage\":1,\"margin_mode\":\"isolated\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
         ]
     },
     "disabledTests": {}

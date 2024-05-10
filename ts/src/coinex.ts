@@ -4053,10 +4053,11 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+         * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} params.leverage the rate of leverage
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -4071,30 +4072,31 @@ export default class coinex extends Exchange {
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
-        let defaultPositionType = undefined;
-        if (marginMode === 'isolated') {
-            defaultPositionType = 1;
-        } else if (marginMode === 'cross') {
-            defaultPositionType = 2;
-        }
         const leverage = this.safeInteger (params, 'leverage');
         const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 100);
-        const positionType = this.safeInteger (params, 'position_type', defaultPositionType);
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
-        if (positionType === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair');
-        }
-        if ((leverage < 3) || (leverage > maxLeverage)) {
-            throw new BadRequest (this.id + ' setMarginMode() leverage should be between 3 and ' + maxLeverage.toString () + ' for ' + symbol);
+        if ((leverage < 1) || (leverage > maxLeverage)) {
+            throw new BadRequest (this.id + ' setMarginMode() leverage should be between 1 and ' + maxLeverage.toString () + ' for ' + symbol);
         }
         const request = {
             'market': market['id'],
-            'leverage': leverage.toString (),
-            'position_type': positionType, // 1: isolated, 2: cross
+            'market_type': 'FUTURES',
+            'margin_mode': marginMode,
+            'leverage': leverage,
         };
-        return await this.v1PerpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
+        return await this.v2PrivatePostFuturesAdjustPositionLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "leverage": 1,
+        //             "margin_mode": "isolated"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
     }
 
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
