@@ -1109,7 +1109,7 @@ export default class bybit extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    addPaginationCursorToResult (response) {
+    addPaginationCursorToResult (response): any[] {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeValueN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
         const paginationCursor = this.safeString2 (result, 'nextPageCursor', 'cursor');
@@ -8154,6 +8154,34 @@ export default class bybit extends Exchange {
         });
     }
 
+    async getLeverageTiersPaginated (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'getLeverageTiersPaginated', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('getLeverageTiersPaginated', symbol, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 100);
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('getLeverageTiersPaginated', market, params, 'linear');
+        const request = {
+            'category': subType,
+        };
+        const response = await this.publicGetV5MarketRiskLimit (this.extend (request, params));
+        const result = this.addPaginationCursorToResult(response);
+        const first = this.safeDict (result, 0);
+        const lastIndex = result.length - 1;
+        const last = this.safeDict (result, lastIndex);
+        last['info'] = {
+            'nextPageCursor': first['nextPageCursor'],
+        };
+        result[lastIndex] = last;
+        return result;
+    }
+
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
@@ -8163,24 +8191,20 @@ export default class bybit extends Exchange {
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         let market = undefined;
+        let symbol = undefined;
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
             if (market['spot']) {
                 throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
+            symbol = market['symbol'];
         }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
-        const request = {
-            'category': subType,
-        };
-        const response = await this.publicGetV5MarketRiskLimit (this.extend (request, params));
-        const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data = await this.getLeverageTiersPaginated (symbol, params);
         symbols = this.marketSymbols (symbols);
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
@@ -8247,7 +8271,7 @@ export default class bybit extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return this.sortBy (tiers, 'tier');
     }
 
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
