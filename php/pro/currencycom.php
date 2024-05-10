@@ -8,10 +8,9 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class currencycom extends \ccxt\async\currencycom {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -66,41 +65,41 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_balance($client, $message, $subscription) {
+    public function handle_balance(Client $client, $message, $subscription) {
         //
         //     {
-        //         status => 'OK',
-        //         correlationId => '1',
-        //         $payload => {
-        //             makerCommission => 0.2,
-        //             takerCommission => 0.2,
-        //             buyerCommission => 0.2,
-        //             sellerCommission => 0.2,
-        //             canTrade => true,
-        //             canWithdraw => true,
-        //             canDeposit => true,
-        //             updateTime => 1596742699,
-        //             balances => array(
+        //         "status" => "OK",
+        //         "correlationId" => "1",
+        //         "payload" => {
+        //             "makerCommission" => 0.2,
+        //             "takerCommission" => 0.2,
+        //             "buyerCommission" => 0.2,
+        //             "sellerCommission" => 0.2,
+        //             "canTrade" => true,
+        //             "canWithdraw" => true,
+        //             "canDeposit" => true,
+        //             "updateTime" => 1596742699,
+        //             "balances" => array(
         //                 array(
-        //                     accountId => 5470306579272968,
-        //                     collateralCurrency => true,
-        //                     asset => 'ETH',
-        //                     free => 0,
-        //                     locked => 0,
-        //                     default => false
+        //                     "accountId" => 5470306579272968,
+        //                     "collateralCurrency" => true,
+        //                     "asset" => "ETH",
+        //                     "free" => 0,
+        //                     "locked" => 0,
+        //                     "default" => false
         //                 ),
         //                 array(
-        //                     accountId => 5470310874305732,
-        //                     collateralCurrency => true,
-        //                     asset => 'USD',
-        //                     free => 47.82576735,
-        //                     locked => 1.187925,
-        //                     default => true
+        //                     "accountId" => 5470310874305732,
+        //                     "collateralCurrency" => true,
+        //                     "asset" => "USD",
+        //                     "free" => 47.82576736,
+        //                     "locked" => 1.187925,
+        //                     "default" => true
         //                 ),
         //             )
         //         }
@@ -108,7 +107,7 @@ class currencycom extends \ccxt\async\currencycom {
         //
         $payload = $this->safe_value($message, 'payload');
         $balance = $this->parse_balance($payload);
-        $this->balance = array_merge($this->balance, $balance);
+        $this->balance = $this->extend($this->balance, $balance);
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $client->resolve ($this->balance, $messageHash);
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
@@ -116,30 +115,30 @@ class currencycom extends \ccxt\async\currencycom {
         }
     }
 
-    public function handle_ticker($client, $message, $subscription) {
+    public function handle_ticker(Client $client, $message, $subscription) {
         //
         //     {
-        //         status => 'OK',
-        //         correlationId => '1',
-        //         $payload => {
-        //             $tickers => array(
+        //         "status" => "OK",
+        //         "correlationId" => "1",
+        //         "payload" => {
+        //             "tickers" => array(
         //                 {
-        //                     $symbol => 'BTC/USD_LEVERAGE',
-        //                     priceChange => '484.05',
-        //                     priceChangePercent => '4.14',
-        //                     weightedAvgPrice => '11682.83',
-        //                     prevClosePrice => '11197.70',
-        //                     lastPrice => '11682.80',
-        //                     lastQty => '0.25',
-        //                     bidPrice => '11682.80',
-        //                     askPrice => '11682.85',
-        //                     openPrice => '11197.70',
-        //                     highPrice => '11734.05',
-        //                     lowPrice => '11080.95',
-        //                     volume => '299.133',
-        //                     quoteVolume => '3488040.3465',
-        //                     openTime => 1596585600000,
-        //                     closeTime => 1596654452674
+        //                     "symbol" => "BTC/USD_LEVERAGE",
+        //                     "priceChange" => "484.05",
+        //                     "priceChangePercent" => "4.14",
+        //                     "weightedAvgPrice" => "11682.83",
+        //                     "prevClosePrice" => "11197.70",
+        //                     "lastPrice" => "11682.80",
+        //                     "lastQty" => "0.25",
+        //                     "bidPrice" => "11682.80",
+        //                     "askPrice" => "11682.85",
+        //                     "openPrice" => "11197.70",
+        //                     "highPrice" => "11734.05",
+        //                     "lowPrice" => "11080.95",
+        //                     "volume" => "299.133",
+        //                     "quoteVolume" => "3488040.3465",
+        //                     "openTime" => 1596585600000,
+        //                     "closeTime" => 1596654452674
         //                 }
         //             )
         //         }
@@ -163,14 +162,14 @@ class currencycom extends \ccxt\async\currencycom {
     public function handle_trade($trade, $market = null) {
         //
         //     {
-        //         $price => 11668.55,
-        //         size => 0.001,
-        //         $id => 1600300736,
-        //         ts => 1596653426822,
-        //         $symbol => 'BTC/USD_LEVERAGE',
-        //         $orderId => '00a02503-0079-54c4-0000-00004020163c',
-        //         clientOrderId => '00a02503-0079-54c4-0000-482f0000754f',
-        //         $buyer => false
+        //         "price" => 11668.55,
+        //         "size" => 0.001,
+        //         "id" => 1600300736,
+        //         "ts" => 1596653426822,
+        //         "symbol" => "BTC/USD_LEVERAGE",
+        //         "orderId" => "00a02503-0079-54c4-0000-00004020163c",
+        //         "clientOrderId" => "00a02503-0079-54c4-0000-482f0000754f",
+        //         "buyer" => false
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -181,7 +180,7 @@ class currencycom extends \ccxt\async\currencycom {
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
-        $id = $this->safe_string_2($trade, 'id');
+        $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $buyer = $this->safe_value($trade, 'buyer');
         $side = $buyer ? 'buy' : 'sell';
@@ -202,20 +201,20 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_trades($client, $message, $subscription) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         status => 'OK',
-        //         $destination => 'internal.trade',
-        //         $payload => {
-        //             price => 11668.55,
-        //             size => 0.001,
-        //             id => 1600300736,
-        //             ts => 1596653426822,
-        //             $symbol => 'BTC/USD_LEVERAGE',
-        //             orderId => '00a02503-0079-54c4-0000-00004020163c',
-        //             clientOrderId => '00a02503-0079-54c4-0000-482f0000754f',
-        //             buyer => false
+        //         "status" => "OK",
+        //         "destination" => "internal.trade",
+        //         "payload" => {
+        //             "price" => 11668.55,
+        //             "size" => 0.001,
+        //             "id" => 1600300736,
+        //             "ts" => 1596653426822,
+        //             "symbol" => "BTC/USD_LEVERAGE",
+        //             "orderId" => "00a02503-0079-54c4-0000-00004020163c",
+        //             "clientOrderId" => "00a02503-0079-54c4-0000-482f0000754f",
+        //             "buyer" => false
         //         }
         //     }
         //
@@ -235,8 +234,8 @@ class currencycom extends \ccxt\async\currencycom {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function find_timeframe($timeframe) {
-        $timeframes = $this->safe_value($this->options, 'timeframes');
+    public function find_timeframe($timeframe, $defaultTimeframes = null) {
+        $timeframes = $this->safe_value($this->options, 'timeframes', $defaultTimeframes);
         $keys = is_array($timeframes) ? array_keys($timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -247,19 +246,19 @@ class currencycom extends \ccxt\async\currencycom {
         return null;
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         status => 'OK',
-        //         $destination => 'ohlc.event',
-        //         $payload => {
-        //             $interval => 'M1',
-        //             $symbol => 'BTC/USD_LEVERAGE',
-        //             t => 1596650940000,
-        //             h => 11670.05,
-        //             l => 11658.1,
-        //             o => 11668.55,
-        //             c => 11666.05
+        //         "status" => "OK",
+        //         "destination" => "ohlc.event",
+        //         "payload" => {
+        //             "interval" => "M1",
+        //             "symbol" => "BTC/USD_LEVERAGE",
+        //             "t" => 1596650940000,
+        //             "h" => 11670.05,
+        //             "l" => 11658.1,
+        //             "o" => 11668.55,
+        //             "c" => 11666.05
         //         }
         //     }
         //
@@ -312,7 +311,7 @@ class currencycom extends \ccxt\async\currencycom {
                     'symbols' => [ $market['id'] ],
                 ),
             ), $params);
-            $subscription = array_merge($request, array(
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
                 'symbol' => $symbol,
             ));
@@ -336,33 +335,33 @@ class currencycom extends \ccxt\async\currencycom {
                 'correlationId' => $requestId,
                 'payload' => $payload,
             ), $params);
-            $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
-            $subscription = array_merge($request, array(
+            $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
             ));
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
         }) ();
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             return Async\await($this->watch_private('/api/v1/account', $params));
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -378,7 +377,7 @@ class currencycom extends \ccxt\async\currencycom {
                     'symbol' => $market['id'],
                 ),
             ), $params);
-            $subscription = array_merge($request, array(
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
                 'symbol' => $symbol,
             ));
@@ -386,15 +385,15 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -406,14 +405,14 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -422,16 +421,16 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the currencycom api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -446,7 +445,7 @@ class currencycom extends \ccxt\async\currencycom {
                     ],
                 ),
             );
-            $ohlcv = Async\await($this->watch_public($messageHash, $symbol, array_merge($request, $params)));
+            $ohlcv = Async\await($this->watch_public($messageHash, $symbol, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -463,14 +462,14 @@ class currencycom extends \ccxt\async\currencycom {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         status => 'OK',
-        //         $destination => 'marketdepth.event',
-        //         $payload => {
-        //             $data => 'array("ts":1596235401337,"bid":array("11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000),"ofr":array("11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000))',
-        //             $symbol => 'BTC/USD_LEVERAGE'
+        //         "status" => "OK",
+        //         "destination" => "marketdepth.event",
+        //         "payload" => {
+        //             "data" => "array("ts":1596235401337,"bid":array("11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000),"ofr":array("11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000))",
+        //             "symbol" => "BTC/USD_LEVERAGE"
         //         }
         //     }
         //
@@ -487,6 +486,7 @@ class currencycom extends \ccxt\async\currencycom {
             $orderbook = $this->order_book();
         }
         $orderbook->reset (array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
@@ -498,50 +498,50 @@ class currencycom extends \ccxt\async\currencycom {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
-        //         $status => 'OK',
-        //         correlationId => '1',
-        //         payload => {
-        //             tickers => array(
+        //         "status" => "OK",
+        //         "correlationId" => "1",
+        //         "payload" => {
+        //             "tickers" => array(
         //                 {
-        //                     symbol => '1COV',
-        //                     priceChange => '-0.29',
-        //                     priceChangePercent => '-0.80',
-        //                     prevClosePrice => '36.33',
-        //                     lastPrice => '36.04',
-        //                     openPrice => '36.33',
-        //                     highPrice => '36.46',
-        //                     lowPrice => '35.88',
-        //                     openTime => 1595548800000,
-        //                     closeTime => 1595795305401
+        //                     "symbol" => "1COV",
+        //                     "priceChange" => "-0.29",
+        //                     "priceChangePercent" => "-0.80",
+        //                     "prevClosePrice" => "36.33",
+        //                     "lastPrice" => "36.04",
+        //                     "openPrice" => "36.33",
+        //                     "highPrice" => "36.46",
+        //                     "lowPrice" => "35.88",
+        //                     "openTime" => 1595548800000,
+        //                     "closeTime" => 1595795305401
         //                 }
         //             )
         //         }
         //     }
         //
         //     {
-        //         $status => 'OK',
-        //         $destination => 'marketdepth.event',
-        //         payload => {
-        //             data => 'array("ts":1596235401337,"bid":array("11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000),"ofr":array("11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000))',
-        //             symbol => 'BTC/USD_LEVERAGE'
+        //         "status" => "OK",
+        //         "destination" => "marketdepth.event",
+        //         "payload" => {
+        //             "data" => "array("ts":1596235401337,"bid":array("11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000),"ofr":array("11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000))",
+        //             "symbol" => "BTC/USD_LEVERAGE"
         //         }
         //     }
         //
         //     {
-        //         $status => 'OK',
-        //         $destination => 'internal.trade',
-        //         payload => {
-        //             price => 11634.75,
-        //             size => 0.001,
-        //             id => 1605492357,
-        //             ts => 1596263802399,
-        //             instrumentId => 45076691096786110,
-        //             orderId => '00a02503-0079-54c4-0000-0000401fff51',
-        //             clientOrderId => '00a02503-0079-54c4-0000-482b00002f17',
-        //             buyer => false
+        //         "status" => "OK",
+        //         "destination" => "internal.trade",
+        //         "payload" => {
+        //             "price" => 11634.75,
+        //             "size" => 0.001,
+        //             "id" => 1605492357,
+        //             "ts" => 1596263802399,
+        //             "instrumentId" => 45076691096786110,
+        //             "orderId" => "00a02503-0079-54c4-0000-0000401fff51",
+        //             "clientOrderId" => "00a02503-0079-54c4-0000-482b00002f17",
+        //             "buyer" => false
         //         }
         //     }
         //
@@ -552,17 +552,18 @@ class currencycom extends \ccxt\async\currencycom {
             $subscription = $this->safe_value($subscriptionsById, $requestId);
             if ($subscription !== null) {
                 if ($status === 'OK') {
-                    $destination = $this->safe_string($subscription, 'destination');
-                    if ($destination !== null) {
+                    $subscriptionDestination = $this->safe_string($subscription, 'destination');
+                    if ($subscriptionDestination !== null) {
                         $methods = array(
                             '/api/v1/ticker/24hr' => array($this, 'handle_ticker'),
                             '/api/v1/account' => array($this, 'handle_balance'),
                         );
-                        $method = $this->safe_value($methods, $destination);
+                        $method = $this->safe_value($methods, $subscriptionDestination);
                         if ($method === null) {
-                            return $message;
+                            return;
                         } else {
-                            return $method($client, $message, $subscription);
+                            $method($client, $message, $subscription);
+                            return;
                         }
                     }
                 }
@@ -577,10 +578,8 @@ class currencycom extends \ccxt\async\currencycom {
                 'ping' => array($this, 'handle_pong'),
             );
             $method = $this->safe_value($methods, $destination);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

@@ -6,9 +6,12 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\latoken as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class latoken extends Exchange {
 
@@ -23,19 +26,31 @@ class latoken extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but unimplemented
-                'future' => null,
+                'swap' => false,
+                'future' => false,
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
+                'createPostOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
+                'fetchDepositsWithdrawals' => true,
+                'fetchDepositWithdrawFees' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -43,14 +58,20 @@ class latoken extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => true,
+                'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
                 'transfer' => true,
@@ -192,13 +213,14 @@ class latoken extends Exchange {
                     'Unable to resolve currency by tag' => '\\ccxt\\BadSymbol', // array("message":"Unable to resolve currency by tag (null)","error":"NOT_FOUND","status":"FAILURE")
                     "Can't find currency with tag" => '\\ccxt\\BadSymbol', // array("status":"FAILURE","message":"Can't find currency with tag = null","error":"NOT_FOUND","errors":null,"result":false)
                     'Unable to place order because pair is in inactive state' => '\\ccxt\\BadSymbol', // array("message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE")
-                    'API keys are not available for FROZEN user' => '\\ccxt\\AccountSuspended', // array("result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE")
+                    'API keys are not available for' => '\\ccxt\\AccountSuspended', // array("result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE")
                 ),
             ),
             'options' => array(
                 'defaultType' => 'spot',
                 'types' => array(
                     'wallet' => 'ACCOUNT_TYPE_WALLET',
+                    'funding' => 'ACCOUNT_TYPE_WALLET',
                     'spot' => 'ACCOUNT_TYPE_SPOT',
                 ),
                 'accounts' => array(
@@ -220,7 +242,8 @@ class latoken extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} $params extra parameters specific to the latoken api endpoint
+             * @see https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetTime ($params));
@@ -233,12 +256,13 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for latoken
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @see https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing $market data
              */
             $currencies = Async\await($this->fetch_currencies_from_cache($params));
             //
@@ -359,6 +383,7 @@ class latoken extends Exchange {
                                 'max' => $this->safe_number($market, 'maxOrderCost' . $capitalizedQuote),
                             ),
                         ),
+                        'created' => $this->safe_integer($market, 'created'),
                         'info' => $market,
                     );
                 }
@@ -377,7 +402,7 @@ class latoken extends Exchange {
             $now = $this->milliseconds();
             if (($timestamp === null) || (($now - $timestamp) > $expires)) {
                 $response = Async\await($this->publicGetCurrency ($params));
-                $this->options['fetchCurrencies'] = array_merge($options, array(
+                $this->options['fetchCurrencies'] = $this->extend($options, array(
                     'response' => $response,
                     'timestamp' => $now,
                 ));
@@ -386,11 +411,11 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
-             * @param {array} $params extra parameters specific to the latoken api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
             $response = Async\await($this->fetch_currencies_from_cache($params));
@@ -434,10 +459,13 @@ class latoken extends Exchange {
                 $code = $this->safe_currency_code($tag);
                 $fee = $this->safe_number($currency, 'fee');
                 $currencyType = $this->safe_string($currency, 'type');
-                $parts = explode('_', $currencyType);
-                $numParts = count($parts);
-                $lastPart = $this->safe_value($parts, $numParts - 1);
-                $type = strtolower($lastPart);
+                $type = null;
+                if ($currencyType === 'CURRENCY_TYPE_ALTERNATIVE') {
+                    $type = 'other';
+                } else {
+                    // CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
+                    $type = 'crypto';
+                }
                 $status = $this->safe_string($currency, 'status');
                 $active = ($status === 'CURRENCY_STATUS_ACTIVE');
                 $name = $this->safe_string($currency, 'name');
@@ -462,40 +490,42 @@ class latoken extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
         }) ();
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for $balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+             * @see https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetAuthAccount ($params));
             //
             //     array(
             //         array(
-            //             id => "e5852e02-8711-431c-9749-a6f5503c6dbe",
-            //             status => "ACCOUNT_STATUS_ACTIVE",
-            //             $type => "ACCOUNT_TYPE_WALLET",
-            //             $timestamp => "1635920106506",
-            //             currency => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-            //             available => "100.000000",
-            //             blocked => "0.000000"
+            //             "id" => "e5852e02-8711-431c-9749-a6f5503c6dbe",
+            //             "status" => "ACCOUNT_STATUS_ACTIVE",
+            //             "type" => "ACCOUNT_TYPE_WALLET",
+            //             "timestamp" => "1635920106506",
+            //             "currency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //             "available" => "100.000000",
+            //             "blocked" => "0.000000"
             //         ),
             //         {
-            //             id => "369df204-acbc-467e-a25e-b16e3cc09cf6",
-            //             status => "ACCOUNT_STATUS_ACTIVE",
-            //             $type => "ACCOUNT_TYPE_SPOT",
-            //             $timestamp => "1635920106504",
-            //             currency => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-            //             available => "100.000000",
-            //             blocked => "0.000000"
+            //             "id" => "369df204-acbc-467e-a25e-b16e3cc09cf6",
+            //             "status" => "ACCOUNT_STATUS_ACTIVE",
+            //             "type" => "ACCOUNT_TYPE_SPOT",
+            //             "timestamp" => "1635920106504",
+            //             "currency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //             "available" => "100.000000",
+            //             "blocked" => "0.000000"
             //         }
             //     )
             //
@@ -534,14 +564,15 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -552,7 +583,7 @@ class latoken extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // max 1000
             }
-            $response = Async\await($this->publicGetBookCurrencyQuote (array_merge($request, $params)));
+            $response = Async\await($this->publicGetBookCurrencyQuote ($this->extend($request, $params)));
             //
             //     {
             //         "ask":array(
@@ -573,55 +604,62 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        //     {
-        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "volume24h":"76411867.852585600000000000",
-        //         "volume7d":"637809926.759451100000000000",
-        //         "change24h":"2.5300",
-        //         "change7d":"5.1300",
-        //         "lastPrice":"4426.9"
-        //     }
+        //    {
+        //        "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        //        "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "volume24h" => "165723597.189022176000000000",
+        //        "volume7d" => "934505768.625109571000000000",
+        //        "change24h" => "0.0200",
+        //        "change7d" => "-6.4200",
+        //        "amount24h" => "6438.457663100000000000",
+        //        "amount7d" => "35657.785013800000000000",
+        //        "lastPrice" => "25779.16",
+        //        "lastQuantity" => "0.248403300000000000",
+        //        "bestBid" => "25778.74",
+        //        "bestBidQuantity" => "0.6520232",
+        //        "bestAsk" => "25779.17",
+        //        "bestAskQuantity" => "0.4956043",
+        //        "updateTimestamp" => "1693965231406"
+        //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string($ticker, 'lastPrice');
-        $change = $this->safe_string($ticker, 'change24h');
-        $timestamp = $this->nonce();
+        $timestamp = $this->safe_integer_omit_zero($ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $this->safe_symbol($marketId, $market),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'low' => $this->safe_string($ticker, 'low'),
-            'high' => $this->safe_string($ticker, 'high'),
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'low' => null,
+            'high' => null,
+            'bid' => $this->safe_string($ticker, 'bestBid'),
+            'bidVolume' => $this->safe_string($ticker, 'bestBidQuantity'),
+            'ask' => $this->safe_string($ticker, 'bestAsk'),
+            'askVolume' => $this->safe_string($ticker, 'bestAskQuantity'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_string($ticker, 'change24h'),
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $this->safe_string($ticker, 'amount24h'),
             'quoteVolume' => $this->safe_string($ticker, 'volume24h'),
             'info' => $ticker,
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -629,52 +667,69 @@ class latoken extends Exchange {
                 'base' => $market['baseId'],
                 'quote' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetTickerBaseQuote (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickerBaseQuote ($this->extend($request, $params)));
             //
-            //     {
-            //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-            //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-            //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-            //         "volume24h":"76411867.852585600000000000",
-            //         "volume7d":"637809926.759451100000000000",
-            //         "change24h":"2.5300",
-            //         "change7d":"5.1300",
-            //         "lastPrice":"4426.9"
-            //     }
+            //    {
+            //        "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //        "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
+            //        "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //        "volume24h" => "165723597.189022176000000000",
+            //        "volume7d" => "934505768.625109571000000000",
+            //        "change24h" => "0.0200",
+            //        "change7d" => "-6.4200",
+            //        "amount24h" => "6438.457663100000000000",
+            //        "amount7d" => "35657.785013800000000000",
+            //        "lastPrice" => "25779.16",
+            //        "lastQuantity" => "0.248403300000000000",
+            //        "bestBid" => "25778.74",
+            //        "bestBidQuantity" => "0.6520232",
+            //        "bestAsk" => "25779.17",
+            //        "bestAskQuantity" => "0.4956043",
+            //        "updateTimestamp" => "1693965231406"
+            //    }
             //
             return $this->parse_ticker($response, $market);
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             * @see https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker ($params));
             //
-            //     array(
-            //         array(
-            //             "symbol":"DASH/BTC",
-            //             "baseCurrency":"ed75c263-4ab9-494b-8426-031dab1c7cc1",
-            //             "quoteCurrency":"92151d82-df98-4d88-9a4d-284fa9eca49f",
-            //             "volume24h":"1.977753278000000000",
-            //             "volume7d":"18.964342670000000000",
-            //             "change24h":"-1.4800",
-            //             "change7d":"-5.5200",
-            //             "lastPrice":"0.003066"
-            //         ),
-            //     )
+            //    array(
+            //        {
+            //            "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //            "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
+            //            "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //            "volume24h" => "165723597.189022176000000000",
+            //            "volume7d" => "934505768.625109571000000000",
+            //            "change24h" => "0.0200",
+            //            "change7d" => "-6.4200",
+            //            "amount24h" => "6438.457663100000000000",
+            //            "amount7d" => "35657.785013800000000000",
+            //            "lastPrice" => "25779.16",
+            //            "lastQuantity" => "0.248403300000000000",
+            //            "bestBid" => "25778.74",
+            //            "bestBidQuantity" => "0.6520232",
+            //            "bestAsk" => "25779.17",
+            //            "bestAskQuantity" => "0.4956043",
+            //            "updateTimestamp" => "1693965231406"
+            //        }
+            //    )
             //
             return $this->parse_tickers($response, $symbols);
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -760,15 +815,16 @@ class latoken extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -776,12 +832,12 @@ class latoken extends Exchange {
                 'currency' => $market['baseId'],
                 'quote' => $market['quoteId'],
                 // 'from' => (string) $since, // milliseconds
-                // 'limit' => $limit, // default 100, max 1000
+                // 'limit' => $limit, // default 100, $limit 100
             );
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 1000
+                $request['limit'] = min ($limit, 100); // default 100, $limit 100
             }
-            $response = Async\await($this->publicGetTradeHistoryCurrencyQuote (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeHistoryCurrencyQuote ($this->extend($request, $params)));
             //
             //     array(
             //         array("id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.56","quantity":"0.32534","cost":"1443.0650904","timestamp":1635854642725,"makerBuyer":false),
@@ -793,25 +849,31 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a market
+             * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
+             * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
              * @param {string} $symbol unified market $symbol
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'fetchTradingFee', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchTradingFee', array());
-                $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
+            if ($method === 'fetchPrivateTradingFee') {
+                return Async\await($this->fetch_private_trading_fee($symbol, $params));
+            } elseif ($method === 'fetchPublicTradingFee') {
+                return Async\await($this->fetch_public_trading_fee($symbol, $params));
+            } else {
+                throw new NotSupported($this->id . ' not support this method');
             }
-            return Async\await($this->$method ($symbol, $params));
         }) ();
     }
 
-    public function fetch_public_trading_fee($symbol, $params = array ()) {
+    public function fetch_public_trading_fee(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -819,13 +881,13 @@ class latoken extends Exchange {
                 'currency' => $market['baseId'],
                 'quote' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetTradeFeeCurrencyQuote (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeFeeCurrencyQuote ($this->extend($request, $params)));
             //
             //     {
-            //         makerFee => '0.004900000000000000',
-            //         takerFee => '0.004900000000000000',
-            //         type => 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
-            //         take => 'FEE_SCHEME_TAKE_PROPORTION'
+            //         "makerFee" => "0.004900000000000000",
+            //         "takerFee" => "0.004900000000000000",
+            //         "type" => "FEE_SCHEME_TYPE_PERCENT_QUOTE",
+            //         "take" => "FEE_SCHEME_TAKE_PROPORTION"
             //     }
             //
             return array(
@@ -833,11 +895,13 @@ class latoken extends Exchange {
                 'symbol' => $market['symbol'],
                 'maker' => $this->safe_number($response, 'makerFee'),
                 'taker' => $this->safe_number($response, 'takerFee'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }) ();
     }
 
-    public function fetch_private_trading_fee($symbol, $params = array ()) {
+    public function fetch_private_trading_fee(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -845,13 +909,13 @@ class latoken extends Exchange {
                 'currency' => $market['baseId'],
                 'quote' => $market['quoteId'],
             );
-            $response = Async\await($this->privateGetAuthTradeFeeCurrencyQuote (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAuthTradeFeeCurrencyQuote ($this->extend($request, $params)));
             //
             //     {
-            //         makerFee => '0.004900000000000000',
-            //         takerFee => '0.004900000000000000',
-            //         type => 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
-            //         take => 'FEE_SCHEME_TAKE_PROPORTION'
+            //         "makerFee" => "0.004900000000000000",
+            //         "takerFee" => "0.004900000000000000",
+            //         "type" => "FEE_SCHEME_TYPE_PERCENT_QUOTE",
+            //         "take" => "FEE_SCHEME_TAKE_PROPORTION"
             //     }
             //
             return array(
@@ -859,19 +923,23 @@ class latoken extends Exchange {
                 'symbol' => $market['symbol'],
                 'maker' => $this->safe_number($response, 'makerFee'),
                 'taker' => $this->safe_number($response, 'takerFee'),
+                'percentage' => null,
+                'tierBased' => null,
             );
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
-             * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch trades for
-             * @param {int|null} $limit the maximum number of trades structures to retrieve
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader
+             * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -880,18 +948,19 @@ class latoken extends Exchange {
                 // 'from' => $this->milliseconds(),
                 // 'limit' => $limit, // default '100'
             );
-            $method = 'privateGetAuthTrade';
             $market = null;
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 100
+            }
+            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['currency'] = $market['baseId'];
                 $request['quote'] = $market['quoteId'];
-                $method = 'privateGetAuthTradePairCurrencyQuote';
+                $response = Async\await($this->privateGetAuthTradePairCurrencyQuote ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetAuthTrade ($this->extend($request, $params)));
             }
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     array(
             //         {
@@ -940,20 +1009,20 @@ class latoken extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
-        //     {
-        //         "orderId":"1563460093.134037.704945@0370:2",
-        //         "cliOrdId":"",
-        //         "pairId":370,
-        //         "symbol":"ETHBTC",
-        //         "side":"sell",
-        //         "orderType":"limit",
-        //         "price":1.0,
-        //         "amount":1.0
-        //     }
+        //    {
+        //        "baseCurrency" => "f7dac554-8139-4ff6-841f-0e586a5984a0",
+        //        "quoteCurrency" => "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
+        //        "side" => "BID",
+        //        "clientOrderId" => "my-wonderful-$order-number-71566",
+        //        "price" => "10103.19",
+        //        "stopPrice" => "10103.19",
+        //        "quantity" => "3.21",
+        //        "timestamp" => 1568185507
+        //    }
         //
         // fetchOrder, fetchOpenOrders, fetchOrders
         //
@@ -1020,6 +1089,7 @@ class latoken extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'condition'));
+        $triggerPrice = $this->safe_string($order, 'stopPrice');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1034,8 +1104,8 @@ class latoken extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1046,26 +1116,37 @@ class latoken extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
+             * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  // stop
              * @param {string} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if fetching trigger orders
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
+            $response = null;
+            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+            $params = $this->omit($params, 'stop');
+            // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
             $market = $this->market($symbol);
             $request = array(
                 'currency' => $market['baseId'],
                 'quote' => $market['quoteId'],
             );
-            $response = Async\await($this->privateGetAuthOrderPairCurrencyQuoteActive (array_merge($request, $params)));
+            if ($isTrigger) {
+                $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuoteActive ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetAuthOrderPairCurrencyQuoteActive ($this->extend($request, $params)));
+            }
             //
             //     array(
             //         {
@@ -1092,15 +1173,20 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
+             * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
+             * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       // stop
+             * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair // stop
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if fetching trigger orders
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1109,18 +1195,29 @@ class latoken extends Exchange {
                 // 'from' => $this->milliseconds(),
                 // 'limit' => $limit, // default '100'
             );
-            $method = 'privateGetAuthOrder';
             $market = null;
+            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 100
+            }
+            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['currency'] = $market['baseId'];
                 $request['quote'] = $market['quoteId'];
-                $method = 'privateGetAuthOrderPairCurrencyQuote';
+                if ($isTrigger) {
+                    $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuote ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->privateGetAuthOrderPairCurrencyQuote ($this->extend($request, $params)));
+                }
+            } else {
+                if ($isTrigger) {
+                    $response = Async\await($this->privateGetAuthStopOrder ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->privateGetAuthOrder ($this->extend($request, $params)));
+                }
             }
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     array(
             //         {
@@ -1147,19 +1244,29 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @param {string|null} $symbol not used by latoken fetchOrder
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+             * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+             * @param {string} [$symbol] not used by latoken fetchOrder
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if fetching a trigger order
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateGetAuthOrderGetOrderId (array_merge($request, $params)));
+            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            $response = null;
+            if ($isTrigger) {
+                $response = Async\await($this->privateGetAuthStopOrderGetOrderId ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetAuthOrderGetOrderId ($this->extend($request, $params)));
+            }
             //
             //     {
             //         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
@@ -1184,17 +1291,24 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+             * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  // stop
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} [$params->condition] "GTC", "IOC", or  "FOK"
+             * @param {string} [$params->clientOrderId] array( 0 .. 50 ) characters, client's custom order id (free field for your convenience)
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1208,43 +1322,61 @@ class latoken extends Exchange {
                 'clientOrderId' => $this->uuid(), // 50 characters max
                 // 'price' => $this->price_to_precision($symbol, $price),
                 // 'quantity' => $this->amount_to_precision($symbol, $amount),
+                'quantity' => $this->amount_to_precision($symbol, $amount),
+                'timestamp' => $this->seconds(),
             );
             if ($uppercaseType === 'LIMIT') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            $request['timestamp'] = $this->seconds();
-            $response = Async\await($this->privatePostAuthOrderPlace (array_merge($request, $params)));
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+            $response = null;
+            if ($triggerPrice !== null) {
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                $response = Async\await($this->privatePostAuthStopOrderPlace ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostAuthOrderPlace ($this->extend($request, $params)));
+            }
             //
-            //     {
-            //         "orderId":"1563460093.134037.704945@0370:2",
-            //         "cliOrdId":"",
-            //         "pairId":370,
-            //         "symbol":"ETHBTC",
-            //         "side":"sell",
-            //         "orderType":"limit",
-            //         "price":1.0,
-            //         "amount":1.0
-            //     }
+            //    {
+            //        "baseCurrency" => "f7dac554-8139-4ff6-841f-0e586a5984a0",
+            //        "quoteCurrency" => "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
+            //        "side" => "BID",
+            //        "clientOrderId" => "my-wonderful-order-number-71566",
+            //        "price" => "10103.19",
+            //        "stopPrice" => "10103.19",
+            //        "quantity" => "3.21",
+            //        "timestamp" => 1568185507
+            //    }
             //
             return $this->parse_order($response, $market);
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+             * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
              * @param {string} $id order $id
-             * @param {string|null} $symbol not used by latoken cancelOrder ()
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @param {string} $symbol not used by latoken cancelOrder ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if cancelling a trigger order
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privatePostAuthOrderCancel (array_merge($request, $params)));
+            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            $response = null;
+            if ($isTrigger) {
+                $response = Async\await($this->privatePostAuthStopOrderCancel ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostAuthOrderCancel ($this->extend($request, $params)));
+            }
             //
             //     {
             //         "id" => "12345678-1234-1244-1244-123456789012",
@@ -1258,28 +1390,42 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+             * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->trigger] true if cancelling trigger orders
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
                 // 'currency' => $market['baseId'],
                 // 'quote' => $market['quoteId'],
             );
-            $method = 'privatePostAuthOrderCancelAll';
             $market = null;
+            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
+            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['currency'] = $market['baseId'];
                 $request['quote'] = $market['quoteId'];
-                $method = 'privatePostAuthOrderCancelAllCurrencyQuote';
+                if ($isTrigger) {
+                    $response = Async\await($this->privatePostAuthStopOrderCancelAllCurrencyQuote ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->privatePostAuthOrderCancelAllCurrencyQuote ($this->extend($request, $params)));
+                }
+            } else {
+                if ($isTrigger) {
+                    $response = Async\await($this->privatePostAuthStopOrderCancelAll ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->privatePostAuthOrderCancelAll ($this->extend($request, $params)));
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "message":"cancellation $request successfully submitted",
@@ -1290,22 +1436,24 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch history of deposits and withdrawals
-             * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
-             * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
-             * @param {int|null} $limit max number of transactions to return, default is null
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @deprecated
+             * use fetchDepositsWithdrawals instead
+             * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions
+             * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
+             * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
+             * @param {int} [$limit] max number of transactions to return, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $request = array(
                 // 'page' => '1',
                 // 'size' => 100,
             );
-            $response = Async\await($this->privateGetAuthTransaction (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAuthTransaction ($this->extend($request, $params)));
             //
             //     {
             //         "hasNext":false,
@@ -1336,12 +1484,12 @@ class latoken extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $content = $this->safe_value($response, 'content', array());
+            $content = $this->safe_list($response, 'content', array());
             return $this->parse_transactions($content, $currency, $since, $limit);
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -1370,13 +1518,15 @@ class latoken extends Exchange {
         $addressTo = $this->safe_string($transaction, 'recipientAddress');
         $txid = $this->safe_string($transaction, 'transactionHash');
         $tagTo = $this->safe_string($transaction, 'memo');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         $feeCost = $this->safe_number($transaction, 'transactionFee');
         if ($feeCost !== null) {
-            $fee = array(
-                'cost' => $feeCost,
-                'currency' => $code,
-            );
+            $fee['cost'] = $feeCost;
+            $fee['currency'] = $code;
         }
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         return array(
@@ -1397,6 +1547,8 @@ class latoken extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
+            'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }
@@ -1418,15 +1570,16 @@ class latoken extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
-             * @param {string|null} $code unified $currency $code of the $currency transferred
-             * @param {int|null} $since the earliest time in ms to fetch $transfers for
-             * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+             * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
+             * @param {string} $code unified $currency $code of the $currency transferred
+             * @param {int} [$since] the earliest time in ms to fetch $transfers for
+             * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1462,38 +1615,40 @@ class latoken extends Exchange {
             //         "hasContent" => true
             //     }
             //
-            $transfers = $this->safe_value($response, 'content', array());
+            $transfers = $this->safe_list($response, 'content', array());
             return $this->parse_transfers($transfers, $currency, $since, $limit);
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail
+             * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById
+             * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
-             * @param {array} $params extra parameters specific to the latoken api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $method = null;
-            if (mb_strpos($toAccount, '@') !== false) {
-                $method = 'privatePostAuthTransferEmail';
-            } elseif (strlen($toAccount) === 36) {
-                $method = 'privatePostAuthTransferId';
-            } else {
-                $method = 'privatePostAuthTransferPhone';
-            }
             $request = array(
                 'currency' => $currency['id'],
                 'recipient' => $toAccount,
                 'value' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if (mb_strpos($toAccount, '@') !== false) {
+                $response = Async\await($this->privatePostAuthTransferEmail ($this->extend($request, $params)));
+            } elseif (strlen($toAccount) === 36) {
+                $response = Async\await($this->privatePostAuthTransferId ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostAuthTransferPhone ($this->extend($request, $params)));
+            }
             //
             //     {
             //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -1520,7 +1675,7 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -1559,7 +1714,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'TRANSFER_STATUS_COMPLETED' => 'ok',
             'TRANSFER_STATUS_PENDING' => 'pending',
@@ -1600,7 +1755,7 @@ class latoken extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return;
+            return null;
         }
         //
         // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
@@ -1621,5 +1776,6 @@ class latoken extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

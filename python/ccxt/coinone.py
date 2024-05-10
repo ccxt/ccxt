@@ -4,7 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -15,7 +18,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class coinone(Exchange):
+class coinone(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinone, self).describe(), {
@@ -25,6 +28,7 @@ class coinone(Exchange):
             # 'enableRateLimit': False,
             'rateLimit': 667,
             'version': 'v2',
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -34,25 +38,29 @@ class coinone(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'closeAllPositions': False,
+                'closePosition': False,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
-                'fetchClosedOrders': None,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders': False,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddresses': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -64,8 +72,11 @@ class coinone(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -75,11 +86,15 @@ class coinone(Exchange):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'ws': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
                 'api': {
                     'rest': 'https://api.coinone.co.kr',
+                    'v2Public': 'https://api.coinone.co.kr/public/v2',
+                    'v2Private': 'https://api.coinone.co.kr/v2',
+                    'v2_1Private': 'https://api.coinone.co.kr/v2.1',
                 },
                 'www': 'https://coinone.co.kr',
                 'doc': 'https://doc.coinone.co.kr',
@@ -91,31 +106,85 @@ class coinone(Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'orderbook/',
-                        'trades/',
-                        'ticker/',
+                        'orderbook',
+                        'ticker',
+                        'ticker_utc',
+                        'trades',
+                    ],
+                },
+                'v2Public': {
+                    'get': [
+                        'range_units',
+                        'markets/{quote_currency}',
+                        'markets/{quote_currency}/{target_currency}',
+                        'orderbook/{quote_currency}/{target_currency}',
+                        'trades/{quote_currency}/{target_currency}',
+                        'ticker_new/{quote_currency}',
+                        'ticker_new/{quote_currency}/{target_currency}',
+                        'ticker_utc_new/{quote_currency}',
+                        'ticker_utc_new/{quote_currency}/{target_currency}',
+                        'currencies',
+                        'currencies/{currency}',
+                        'chart/{quote_currency}/{target_currency}',
                     ],
                 },
                 'private': {
                     'post': [
-                        'account/deposit_address/',
-                        'account/btc_deposit_address/',
-                        'account/balance/',
-                        'account/daily_balance/',
-                        'account/user_info/',
-                        'account/virtual_account/',
-                        'order/cancel_all/',
-                        'order/cancel/',
-                        'order/limit_buy/',
-                        'order/limit_sell/',
-                        'order/complete_orders/',
-                        'order/limit_orders/',
-                        'order/order_info/',
-                        'transaction/auth_number/',
-                        'transaction/history/',
-                        'transaction/krw/history/',
-                        'transaction/btc/',
-                        'transaction/coin/',
+                        'account/deposit_address',
+                        'account/btc_deposit_address',
+                        'account/balance',
+                        'account/daily_balance',
+                        'account/user_info',
+                        'account/virtual_account',
+                        'order/cancel_all',
+                        'order/cancel',
+                        'order/limit_buy',
+                        'order/limit_sell',
+                        'order/complete_orders',
+                        'order/limit_orders',
+                        'order/order_info',
+                        'transaction/auth_number',
+                        'transaction/history',
+                        'transaction/krw/history',
+                        'transaction/btc',
+                        'transaction/coin',
+                    ],
+                },
+                'v2Private': {
+                    'post': [
+                        'account/balance',
+                        'account/deposit_address',
+                        'account/user_info',
+                        'account/virtual_account',
+                        'order/cancel',
+                        'order/limit_buy',
+                        'order/limit_sell',
+                        'order/limit_orders',
+                        'order/complete_orders',
+                        'order/query_order',
+                        'transaction/auth_number',
+                        'transaction/btc',
+                        'transaction/history',
+                        'transaction/krw/history',
+                    ],
+                },
+                'v2_1Private': {
+                    'post': [
+                        'account/balance/all',
+                        'account/balance',
+                        'account/trade_fee',
+                        'account/trade_fee/{quote_currency}/{target_currency}',
+                        'order/limit',
+                        'order/cancel',
+                        'order/cancel/all',
+                        'order/open_orders',
+                        'order/open_orders/all',
+                        'order/complete_orders',
+                        'order/complete_orders/all',
+                        'order/info',
+                        'transaction/krw/history',
+                        'transaction/coin/history',
+                        'transaction/coin/withdrawal/limit',
                     ],
                 },
             },
@@ -139,50 +208,124 @@ class coinone(Exchange):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+        :see: https://docs.coinone.co.kr/reference/currencies
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        response = self.v2PublicGetCurrencies(params)
+        #
+        #     {
+        #         "result": "success",
+        #         "error_code": "0",
+        #         "server_time": 1701054555578,
+        #         "currencies": [
+        #           {
+        #             "name": "Polygon",
+        #             "symbol": "MATIC",
+        #             "deposit_status": "normal",
+        #             "withdraw_status": "normal",
+        #             "deposit_confirm_count": 150,
+        #             "max_precision": 8,
+        #             "deposit_fee": "0.0",
+        #             "withdrawal_min_amount": "1.0",
+        #             "withdrawal_fee": "3.0"
+        #           }
+        #         ]
+        #     }
+        #
+        result = {}
+        currencies = self.safe_value(response, 'currencies', [])
+        for i in range(0, len(currencies)):
+            entry = currencies[i]
+            id = self.safe_string(entry, 'symbol')
+            name = self.safe_string(entry, 'name')
+            code = self.safe_currency_code(id)
+            withdrawStatus = self.safe_string(entry, 'withdraw_status', '')
+            depositStatus = self.safe_string(entry, 'deposit_status', '')
+            isWithdrawEnabled = withdrawStatus == 'normal'
+            isDepositEnabled = depositStatus == 'normal'
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': entry,
+                'name': name,
+                'active': isWithdrawEnabled and isDepositEnabled,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'fee': self.safe_number(entry, 'withdrawal_fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'max_precision'))),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(entry, 'withdrawal_min_amount'),
+                        'max': None,
+                    },
+                },
+                'networks': {},
+            }
+        return result
+
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinone
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :see: https://docs.coinone.co.kr/v1.0/reference/tickers
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
         request = {
-            'currency': 'all',
+            'quote_currency': 'KRW',
         }
-        response = self.publicGetTicker(request)
+        response = self.v2PublicGetTickerNewQuoteCurrency(request)
         #
-        #    {
-        #        "result": "success",
-        #        "errorCode": "0",
-        #        "timestamp": "1643676668",
-        #        "xec": {
-        #          "currency": "xec",
-        #          "first": "0.0914",
-        #          "low": "0.0894",
-        #          "high": "0.096",
-        #          "last": "0.0937",
-        #          "volume": "1673283662.9797",
-        #          "yesterday_first": "0.0929",
-        #          "yesterday_low": "0.0913",
-        #          "yesterday_high": "0.0978",
-        #          "yesterday_last": "0.0913",
-        #          "yesterday_volume": "1167285865.4571"
-        #        },
-        #        ...
-        #    }
+        #     {
+        #         "result": "success",
+        #         "error_code": "0",
+        #         "server_time": 1701067923060,
+        #         "tickers": [
+        #             {
+        #                 "quote_currency": "krw",
+        #                 "target_currency": "stg",
+        #                 "timestamp": 1701067920001,
+        #                 "high": "667.5",
+        #                 "low": "667.5",
+        #                 "first": "667.5",
+        #                 "last": "667.5",
+        #                 "quote_volume": "0.0",
+        #                 "target_volume": "0.0",
+        #                 "best_asks": [
+        #                     {
+        #                         "price": "777.0",
+        #                         "qty": "73.9098"
+        #                     }
+        #                 ],
+        #                 "best_bids": [
+        #                     {
+        #                         "price": "690.8",
+        #                         "qty": "40.7768"
+        #                     }
+        #                 ],
+        #                 "id": "1701067920001001"
+        #             }
+        #         ]
+        #     }
         #
+        tickers = self.safe_value(response, 'tickers', [])
         result = []
-        quoteId = 'krw'
-        quote = self.safe_currency_code(quoteId)
-        baseIds = list(response.keys())
-        for i in range(0, len(baseIds)):
-            baseId = baseIds[i]
-            ticker = self.safe_value(response, baseId, {})
-            currency = self.safe_value(ticker, 'currency')
-            if currency is None:
-                continue
+        for i in range(0, len(tickers)):
+            entry = self.safe_value(tickers, i)
+            id = self.safe_string(entry, 'id')
+            baseId = self.safe_string_upper(entry, 'target_currency')
+            quoteId = self.safe_string_upper(entry, 'quote_currency')
             base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             result.append({
-                'id': baseId,
+                'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -228,11 +371,12 @@ class coinone(Exchange):
                         'max': None,
                     },
                 },
-                'info': ticker,
+                'created': None,
+                'info': entry,
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
@@ -250,129 +394,241 @@ class coinone(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :see: https://docs.coinone.co.kr/v1.0/reference/v21
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.privatePostAccountBalance(params)
+        response = self.v2PrivatePostAccountBalance(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.coinone.co.kr/v1.0/reference/orderbook
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         }
-        response = self.publicGetOrderbook(self.extend(request, params))
-        timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty')
+        if limit is not None:
+            request['size'] = limit  # only support 5, 10, 15, 16
+        response = self.v2PublicGetOrderbookQuoteCurrencyTargetCurrency(self.extend(request, params))
+        #
+        #     {
+        #         "result": "success",
+        #         "error_code": "0",
+        #         "timestamp": 1701071108673,
+        #         "id": "1701071108673001",
+        #         "quote_currency": "KRW",
+        #         "target_currency": "BTC",
+        #         "order_book_unit": "0.0",
+        #         "bids": [
+        #             {
+        #                 "price": "50048000",
+        #                 "qty": "0.01080229"
+        #             }
+        #         ],
+        #         "asks": [
+        #             {
+        #                 "price": "50058000",
+        #                 "qty": "0.00272592"
+        #             }
+        #         ]
+        #     }
+        #
+        timestamp = self.safe_integer(response, 'timestamp')
+        return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'qty')
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://docs.coinone.co.kr/v1.0/reference/tickers
+        :see: https://docs.coinone.co.kr/v1.0/reference/ticker
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
-            'currency': 'all',
-            'format': 'json',
+            'quote_currency': 'KRW',
         }
-        response = self.publicGetTicker(self.extend(request, params))
-        result = {}
-        ids = list(response.keys())
-        timestamp = self.safe_timestamp(response, 'timestamp')
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.safe_market(id)
-            symbol = market['symbol']
-            ticker = response[id]
-            result[symbol] = self.parse_ticker(ticker, market)
-            result[symbol]['timestamp'] = timestamp
-        return self.filter_by_array(result, 'symbol', symbols)
+        market = None
+        response = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+            request['quote_currency'] = market['quote']
+            request['target_currency'] = market['base']
+            response = self.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(self.extend(request, params))
+        else:
+            response = self.v2PublicGetTickerNewQuoteCurrency(self.extend(request, params))
+        #
+        #     {
+        #         "result": "success",
+        #         "error_code": "0",
+        #         "server_time": 1701073358487,
+        #         "tickers": [
+        #             {
+        #                 "quote_currency": "krw",
+        #                 "target_currency": "btc",
+        #                 "timestamp": 1701073357818,
+        #                 "high": "50543000.0",
+        #                 "low": "49945000.0",
+        #                 "first": "50487000.0",
+        #                 "last": "50062000.0",
+        #                 "quote_volume": "11349804285.3859",
+        #                 "target_volume": "226.07268994",
+        #                 "best_asks": [
+        #                     {
+        #                         "price": "50081000.0",
+        #                         "qty": "0.18471358"
+        #                     }
+        #                 ],
+        #                 "best_bids": [
+        #                     {
+        #                         "price": "50062000.0",
+        #                         "qty": "0.04213455"
+        #                     }
+        #                 ],
+        #                 "id": "1701073357818001"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'tickers', [])
+        return self.parse_tickers(data, symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://docs.coinone.co.kr/v1.0/reference/ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         }
-        response = self.publicGetTicker(self.extend(request, params))
-        return self.parse_ticker(response, market)
-
-    def parse_ticker(self, ticker, market=None):
+        response = self.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(self.extend(request, params))
         #
         #     {
-        #         "currency":"xec",
-        #         "first":"0.1069",
-        #         "low":"0.09",
-        #         "high":"0.1069",
-        #         "last":"0.0911",
-        #         "volume":"4591217267.4974",
-        #         "yesterday_first":"0.1128",
-        #         "yesterday_low":"0.1035",
-        #         "yesterday_high":"0.1167",
-        #         "yesterday_last":"0.1069",
-        #         "yesterday_volume":"4014832231.5102"
+        #         "result": "success",
+        #         "error_code": "0",
+        #         "server_time": 1701073358487,
+        #         "tickers": [
+        #             {
+        #                 "quote_currency": "krw",
+        #                 "target_currency": "btc",
+        #                 "timestamp": 1701073357818,
+        #                 "high": "50543000.0",
+        #                 "low": "49945000.0",
+        #                 "first": "50487000.0",
+        #                 "last": "50062000.0",
+        #                 "quote_volume": "11349804285.3859",
+        #                 "target_volume": "226.07268994",
+        #                 "best_asks": [
+        #                     {
+        #                         "price": "50081000.0",
+        #                         "qty": "0.18471358"
+        #                     }
+        #                 ],
+        #                 "best_bids": [
+        #                     {
+        #                         "price": "50062000.0",
+        #                         "qty": "0.04213455"
+        #                     }
+        #                 ],
+        #                 "id": "1701073357818001"
+        #             }
+        #         ]
         #     }
         #
-        timestamp = self.safe_timestamp(ticker, 'timestamp')
-        open = self.safe_string(ticker, 'first')
+        data = self.safe_value(response, 'tickers', [])
+        ticker = self.safe_dict(data, 0, {})
+        return self.parse_ticker(ticker, market)
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "quote_currency": "krw",
+        #         "target_currency": "btc",
+        #         "timestamp": 1701073357818,
+        #         "high": "50543000.0",
+        #         "low": "49945000.0",
+        #         "first": "50487000.0",
+        #         "last": "50062000.0",
+        #         "quote_volume": "11349804285.3859",
+        #         "target_volume": "226.07268994",
+        #         "best_asks": [
+        #             {
+        #                 "price": "50081000.0",
+        #                 "qty": "0.18471358"
+        #             }
+        #         ],
+        #         "best_bids": [
+        #             {
+        #                 "price": "50062000.0",
+        #                 "qty": "0.04213455"
+        #             }
+        #         ],
+        #         "id": "1701073357818001"
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
-        previousClose = self.safe_string(ticker, 'yesterday_last')
-        symbol = self.safe_symbol(None, market)
+        asks = self.safe_value(ticker, 'best_asks')
+        bids = self.safe_value(ticker, 'best_bids')
+        baseId = self.safe_string(ticker, 'target_currency')
+        quoteId = self.safe_string(ticker, 'quote_currency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
-            'bid': None,
-            'bidVolume': None,
-            'ask': None,
-            'askVolume': None,
+            'bid': self.safe_string(bids, 'price'),
+            'bidVolume': self.safe_string(bids, 'qty'),
+            'ask': self.safe_string(asks, 'price'),
+            'askVolume': self.safe_string(asks, 'qty'),
             'vwap': None,
-            'open': open,
+            'open': self.safe_string(ticker, 'first'),
             'close': last,
             'last': last,
-            'previousClose': previousClose,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': None,
+            'baseVolume': self.safe_string(ticker, 'target_volume'),
+            'quoteVolume': self.safe_string(ticker, 'quote_volume'),
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
         #     {
-        #         "timestamp": "1416893212",
-        #         "price": "420000.0",
-        #         "qty": "0.1",
-        #         "is_ask": "1"
+        #         "id": "1701075265708001",
+        #         "timestamp": 1701075265708,
+        #         "price": "50020000",
+        #         "qty": "0.00155177",
+        #         "is_seller_maker": False
         #     }
         #
         # fetchMyTrades(private)
@@ -387,20 +643,12 @@ class coinone(Exchange):
         #         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
         #     }
         #
-        timestamp = self.safe_timestamp(trade, 'timestamp')
+        timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(None, market)
-        is_ask = self.safe_string(trade, 'is_ask')
-        side = self.safe_string(trade, 'type')
-        if is_ask is not None:
-            if is_ask == '1':
-                side = 'sell'
-            elif is_ask == '0':
-                side = 'buy'
-        else:
-            if side == 'ask':
-                side = 'sell'
-            elif side == 'bid':
-                side = 'buy'
+        isSellerMaker = self.safe_value(trade, 'is_seller_maker')
+        side = None
+        if isSellerMaker is not None:
+            side = 'sell' if isSellerMaker else 'buy'
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
         orderId = self.safe_string(trade, 'orderId')
@@ -432,51 +680,58 @@ class coinone(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         }
-        response = self.publicGetTrades(self.extend(request, params))
+        if limit is not None:
+            request['size'] = min(limit, 200)
+        response = self.v2PublicGetTradesQuoteCurrencyTargetCurrency(self.extend(request, params))
         #
         #     {
         #         "result": "success",
-        #         "errorCode": "0",
-        #         "timestamp": "1416895635",
-        #         "currency": "btc",
-        #         "completeOrders": [
+        #         "error_code": "0",
+        #         "server_time": 1701075315771,
+        #         "quote_currency": "KRW",
+        #         "target_currency": "BTC",
+        #         "transactions": [
         #             {
-        #                 "timestamp": "1416893212",
-        #                 "price": "420000.0",
-        #                 "qty": "0.1",
-        #                 "is_ask": "1"
+        #                 "id": "1701075265708001",
+        #                 "timestamp": 1701075265708,
+        #                 "price": "50020000",
+        #                 "qty": "0.00155177",
+        #                 "is_seller_maker": False
         #             }
         #         ]
         #     }
         #
-        completeOrders = self.safe_value(response, 'completeOrders', [])
-        return self.parse_trades(completeOrders, market, since, limit)
+        data = self.safe_list(response, 'transactions', [])
+        return self.parse_trades(data, market, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -498,12 +753,12 @@ class coinone(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -513,38 +768,41 @@ class coinone(Exchange):
             'order_id': id,
             'currency': market['id'],
         }
-        response = self.privatePostOrderOrderInfo(self.extend(request, params))
+        response = self.v2PrivatePostOrderQueryOrder(self.extend(request, params))
         #
         #     {
         #         "result": "success",
         #         "errorCode": "0",
-        #         "status": "live",
-        #         "info": {
-        #             "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
-        #             "currency": "BTC",
-        #             "type": "bid",
-        #             "price": "2922000.0",
-        #             "qty": "115.4950",
-        #             "remainQty": "45.4950",
-        #             "feeRate": "0.0003",
-        #             "fee": "0",
-        #             "timestamp": "1499340941"
-        #         }
+        #         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        #         "baseCurrency": "KRW",
+        #         "targetCurrency": "BTC",
+        #         "price": "10011000.0",
+        #         "originalQty": "3.0",
+        #         "executedQty": "0.62",
+        #         "canceledQty": "1.125",
+        #         "remainQty": "1.255",
+        #         "status": "partially_filled",
+        #         "side": "bid",
+        #         "orderedAt": 1499340941,
+        #         "updatedAt": 1499341142,
+        #         "feeRate": "0.002",
+        #         "fee": "0.00124",
+        #         "averageExecutedPrice": "10011000.0"
         #     }
         #
-        info = self.safe_value(response, 'info', {})
-        info['status'] = self.safe_string(info, 'status')
-        return self.parse_order(info, market)
+        return self.parse_order(response, market)
 
     def parse_order_status(self, status):
         statuses = {
             'live': 'open',
             'partially_filled': 'open',
+            'partially_canceled': 'open',
             'filled': 'closed',
+            'canceled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -557,16 +815,23 @@ class coinone(Exchange):
         # fetchOrder
         #
         #     {
-        #         "status": "live",  # injected in fetchOrder
-        #         "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
-        #         "currency": "BTC",
-        #         "type": "bid",
-        #         "price": "2922000.0",
-        #         "qty": "115.4950",
-        #         "remainQty": "45.4950",
-        #         "feeRate": "0.0003",
-        #         "fee": "0",
-        #         "timestamp": "1499340941"
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        #         "baseCurrency": "KRW",
+        #         "targetCurrency": "BTC",
+        #         "price": "10011000.0",
+        #         "originalQty": "3.0",
+        #         "executedQty": "0.62",
+        #         "canceledQty": "1.125",
+        #         "remainQty": "1.255",
+        #         "status": "partially_filled",
+        #         "side": "bid",
+        #         "orderedAt": 1499340941,
+        #         "updatedAt": 1499341142,
+        #         "feeRate": "0.002",
+        #         "fee": "0.00124",
+        #         "averageExecutedPrice": "10011000.0"
         #     }
         #
         # fetchOpenOrders
@@ -582,15 +847,26 @@ class coinone(Exchange):
         #     }
         #
         id = self.safe_string(order, 'orderId')
-        priceString = self.safe_string(order, 'price')
-        timestamp = self.safe_timestamp(order, 'timestamp')
-        side = self.safe_string(order, 'type')
+        baseId = self.safe_string(order, 'baseCurrency')
+        quoteId = self.safe_string(order, 'targetCurrency')
+        base = None
+        quote = None
+        if baseId is not None:
+            base = self.safe_currency_code(baseId)
+        if quoteId is not None:
+            quote = self.safe_currency_code(quoteId)
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+            market = self.safe_market(symbol, market, '/')
+        timestamp = self.safe_timestamp_2(order, 'timestamp', 'updatedAt')
+        side = self.safe_string_2(order, 'type', 'side')
         if side == 'ask':
             side = 'sell'
         elif side == 'bid':
             side = 'buy'
         remainingString = self.safe_string(order, 'remainQty')
-        amountString = self.safe_string(order, 'qty')
+        amountString = self.safe_string_2(order, 'originalQty', 'qty')
         status = self.safe_string(order, 'status')
         # https://github.com/ccxt/ccxt/pull/7067
         if status == 'live':
@@ -599,9 +875,6 @@ class coinone(Exchange):
                 if isLessThan:
                     status = 'canceled'
         status = self.parse_order_status(status)
-        symbol = market['symbol']
-        base = market['base']
-        quote = market['quote']
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
@@ -623,29 +896,29 @@ class coinone(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': priceString,
+            'price': self.safe_string(order, 'price'),
             'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
-            'average': None,
+            'average': self.safe_string(order, 'averageExecutedPrice'),
             'amount': amountString,
-            'filled': None,
+            'filled': self.safe_string(order, 'executedQty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+        # The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
@@ -672,17 +945,17 @@ class coinone(Exchange):
         #         ]
         #     }
         #
-        limitOrders = self.safe_value(response, 'limitOrders', [])
+        limitOrders = self.safe_list(response, 'limitOrders', [])
         return self.parse_orders(limitOrders, market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -691,7 +964,7 @@ class coinone(Exchange):
         request = {
             'currency': market['id'],
         }
-        response = self.privatePostOrderCompleteOrders(self.extend(request, params))
+        response = self.v2PrivatePostOrderCompleteOrders(self.extend(request, params))
         #
         # despite the name of the endpoint it returns trades which may have a duplicate orderId
         # https://github.com/ccxt/ccxt/pull/7067
@@ -712,16 +985,16 @@ class coinone(Exchange):
         #         ]
         #     }
         #
-        completeOrders = self.safe_value(response, 'completeOrders', [])
+        completeOrders = self.safe_list(response, 'completeOrders', [])
         return self.parse_trades(completeOrders, market, since, limit)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             # eslint-disable-next-line quotes
@@ -740,7 +1013,7 @@ class coinone(Exchange):
             'is_ask': isAsk,
             'currency': self.market_id(symbol),
         }
-        response = self.privatePostOrderCancel(self.extend(request, params))
+        response = self.v2PrivatePostOrderCancel(self.extend(request, params))
         #
         #     {
         #         "result": "success",
@@ -749,26 +1022,26 @@ class coinone(Exchange):
         #
         return response
 
-    def fetch_deposit_addresses(self, codes=None, params={}):
+    def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
         fetch deposit addresses for multiple currencies and chain types
-        :param [str]|None codes: list of unified currency codes, default is None
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: a list of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :param str[]|None codes: list of unified currency codes, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
-        response = self.privatePostAccountDepositAddress(params)
+        response = self.v2PrivatePostAccountDepositAddress(params)
         #
         #     {
-        #         result: 'success',
-        #         errorCode: '0',
-        #         walletAddress: {
-        #             matic: null,
-        #             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        #             xrp: null,
-        #             xrp_tag: '-1',
-        #             kava: null,
-        #             kava_memo: null,
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "walletAddress": {
+        #             "matic": null,
+        #             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        #             "xrp": null,
+        #             "xrp_tag": "-1",
+        #             "kava": null,
+        #             "kava_memo": null,
         #         }
         #     }
         #
@@ -806,22 +1079,29 @@ class coinone(Exchange):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/'
+        if api == 'v2Public':
+            url = self.urls['api']['v2Public'] + '/'
+            api = 'public'
+        elif api == 'v2Private':
+            url = self.urls['api']['v2Private'] + '/'
+        elif api == 'v2_1Private':
+            url = self.urls['api']['v2_1Private'] + '/'
         if api == 'public':
             url += request
             if query:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            url += self.version + '/' + request
+            url += request
             nonce = str(self.nonce())
             json = self.json(self.extend({
                 'access_token': self.apiKey,
                 'nonce': nonce,
             }, params))
             payload = self.string_to_base64(json)
-            body = self.decode(payload)
+            body = payload
             secret = self.secret.upper()
-            signature = self.hmac(payload, self.encode(secret), hashlib.sha512)
+            signature = self.hmac(self.encode(payload), self.encode(secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
@@ -831,7 +1111,7 @@ class coinone(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if 'result' in response:
             result = response['result']
             if result != 'success':
@@ -844,3 +1124,4 @@ class coinone(Exchange):
                 raise ExchangeError(feedback)
         else:
             raise ExchangeError(self.id + ' ' + body)
+        return None

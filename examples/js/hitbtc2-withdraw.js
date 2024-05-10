@@ -1,8 +1,9 @@
-"use strict";
 
-const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog').configure ({ locate: false })
+
+import ccxt from '../../js/ccxt.js';
+import asTable from 'as-table';
+import ololog from 'ololog';
+const log       = ololog.configure ({ locate: false })
 
 require ('ansicolor').nice
 

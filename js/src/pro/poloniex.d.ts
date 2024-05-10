@@ -1,0 +1,42 @@
+import poloniexRest from '../poloniex.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class poloniex extends poloniexRest {
+    describe(): any;
+    authenticate(params?: {}): Promise<any>;
+    subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
+    tradeRequest(name: string, params?: {}): Promise<any>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
+    handleOrderRequest(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchBalance(params?: {}): Promise<Balances>;
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    handleOHLCV(client: Client, message: any): any;
+    handleTrade(client: Client, message: any): any;
+    parseWsTrade(trade: any, market?: any): Trade;
+    parseStatus(status: any): string;
+    parseWsOrderTrade(trade: any, market?: any): Trade;
+    handleOrder(client: Client, message: any): any;
+    parseWsOrder(order: any, market?: any): Order;
+    handleTicker(client: Client, message: any): any;
+    handleOrderBook(client: Client, message: any): void;
+    handleBalance(client: Client, message: any): void;
+    parseWsBalance(response: any): Balances;
+    handleMyTrades(client: Client, parsedTrade: any): void;
+    handlePong(client: Client): void;
+    handleMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): boolean;
+    handleAuthenticate(client: Client, message: any): any;
+    ping(client: any): {
+        event: string;
+    };
+}

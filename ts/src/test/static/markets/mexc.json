@@ -1,0 +1,1306 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": false,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "BTCUSDT",
+            "status": "ENABLED",
+            "baseAsset": "BTC",
+            "baseAssetPrecision": "6",
+            "quoteAsset": "USDT",
+            "quotePrecision": "2",
+            "quoteAssetPrecision": "2",
+            "baseCommissionPrecision": "6",
+            "quoteCommissionPrecision": "2",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER"
+            ],
+            "isSpotTradingAllowed": false,
+            "isMarginTradingAllowed": false,
+            "quoteAmountPrecision": "5.000000000000000000",
+            "baseSizePrecision": "0.000001",
+            "permissions": [
+                "SPOT"
+            ],
+            "filters": [],
+            "maxQuoteAmount": "2000000.000000000000000000",
+            "makerCommission": "0",
+            "takerCommission": "0",
+            "quoteAmountPrecisionMarket": "5.000000000000000000",
+            "maxQuoteAmountMarket": "100000.000000000000000000",
+            "fullName": "Bitcoin"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0,
+        "maker": 0
+    },
+    "LTC/USDT": {
+        "id": "LTCUSDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": false,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "LTCUSDT",
+            "status": "ENABLED",
+            "baseAsset": "LTC",
+            "baseAssetPrecision": "4",
+            "quoteAsset": "USDT",
+            "quotePrecision": "2",
+            "quoteAssetPrecision": "2",
+            "baseCommissionPrecision": "4",
+            "quoteCommissionPrecision": "2",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER"
+            ],
+            "isSpotTradingAllowed": false,
+            "isMarginTradingAllowed": false,
+            "quoteAmountPrecision": "5.000000000000000000",
+            "baseSizePrecision": "0.001",
+            "permissions": [
+                "SPOT"
+            ],
+            "filters": [],
+            "maxQuoteAmount": "2000000.000000000000000000",
+            "makerCommission": "0",
+            "takerCommission": "0",
+            "quoteAmountPrecisionMarket": "5.000000000000000000",
+            "maxQuoteAmountMarket": "100000.000000000000000000",
+            "fullName": "Litecoin"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0,
+        "maker": 0
+    },
+    "ADA/USDT": {
+        "id": "ADAUSDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": false,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "ADAUSDT",
+            "status": "ENABLED",
+            "baseAsset": "ADA",
+            "baseAssetPrecision": "2",
+            "quoteAsset": "USDT",
+            "quotePrecision": "4",
+            "quoteAssetPrecision": "4",
+            "baseCommissionPrecision": "2",
+            "quoteCommissionPrecision": "4",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER"
+            ],
+            "isSpotTradingAllowed": false,
+            "isMarginTradingAllowed": false,
+            "quoteAmountPrecision": "5.000000000000000000",
+            "baseSizePrecision": "0.1",
+            "permissions": [
+                "SPOT"
+            ],
+            "filters": [],
+            "maxQuoteAmount": "2000000.000000000000000000",
+            "makerCommission": "0",
+            "takerCommission": "0",
+            "quoteAmountPrecisionMarket": "5.000000000000000000",
+            "maxQuoteAmountMarket": "100000.000000000000000000",
+            "fullName": "Cardano"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0,
+        "maker": 0
+    },
+    "XRP/USDT": {
+        "id": "XRPUSDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": false,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "XRPUSDT",
+            "status": "ENABLED",
+            "baseAsset": "XRP",
+            "baseAssetPrecision": "2",
+            "quoteAsset": "USDT",
+            "quotePrecision": "4",
+            "quoteAssetPrecision": "4",
+            "baseCommissionPrecision": "2",
+            "quoteCommissionPrecision": "4",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER"
+            ],
+            "isSpotTradingAllowed": false,
+            "isMarginTradingAllowed": false,
+            "quoteAmountPrecision": "5.000000000000000000",
+            "baseSizePrecision": "0.1",
+            "permissions": [
+                "SPOT"
+            ],
+            "filters": [],
+            "maxQuoteAmount": "2000000.000000000000000000",
+            "makerCommission": "0",
+            "takerCommission": "0",
+            "quoteAmountPrecisionMarket": "5.000000000000000000",
+            "maxQuoteAmountMarket": "100000.000000000000000000",
+            "fullName": "Ripple"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0,
+        "maker": 0
+    },
+    "SOL/USDT": {
+        "id": "SOLUSDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": false,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "SOLUSDT",
+            "status": "ENABLED",
+            "baseAsset": "SOL",
+            "baseAssetPrecision": "2",
+            "quoteAsset": "USDT",
+            "quotePrecision": "2",
+            "quoteAssetPrecision": "2",
+            "baseCommissionPrecision": "2",
+            "quoteCommissionPrecision": "2",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER"
+            ],
+            "isSpotTradingAllowed": false,
+            "isMarginTradingAllowed": false,
+            "quoteAmountPrecision": "5.000000000000000000",
+            "baseSizePrecision": "0.01",
+            "permissions": [
+                "SPOT"
+            ],
+            "filters": [],
+            "maxQuoteAmount": "2000000.000000000000000000",
+            "makerCommission": "0",
+            "takerCommission": "0",
+            "quoteAmountPrecisionMarket": "5.000000000000000000",
+            "maxQuoteAmountMarket": "100000.000000000000000000",
+            "fullName": "Solana"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0,
+        "maker": 0
+    },
+    "TRX/USDT": {
+        "id": "TRXUSDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": false,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "TRXUSDT",
+            "status": "ENABLED",
+            "baseAsset": "TRX",
+            "baseAssetPrecision": "2",
+            "quoteAsset": "USDT",
+            "quotePrecision": "5",
+            "quoteAssetPrecision": "5",
+            "baseCommissionPrecision": "2",
+            "quoteCommissionPrecision": "5",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER"
+            ],
+            "isSpotTradingAllowed": false,
+            "isMarginTradingAllowed": false,
+            "quoteAmountPrecision": "5.000000000000000000",
+            "baseSizePrecision": "1",
+            "permissions": [
+                "SPOT"
+            ],
+            "filters": [],
+            "maxQuoteAmount": "2000000.000000000000000000",
+            "makerCommission": "0",
+            "takerCommission": "0",
+            "quoteAmountPrecisionMarket": "5.000000000000000000",
+            "maxQuoteAmountMarket": "100000.000000000000000000",
+            "fullName": "Tron"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0,
+        "maker": 0
+    },
+    "LTC/USDT:USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.01,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 4500000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 200
+            }
+        },
+        "info": {
+            "symbol": "LTC_USDT",
+            "displayName": "LTC_USDT永续",
+            "displayNameEn": "LTC_USDT PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "LTC",
+            "quoteCoin": "USDT",
+            "baseCoinName": "LTC",
+            "quoteCoinName": "USDT",
+            "futureType": "1",
+            "settleCoin": "USDT",
+            "contractSize": "0.01",
+            "minLeverage": "1",
+            "maxLeverage": "200",
+            "priceScale": "2",
+            "volScale": "0",
+            "amountScale": "4",
+            "priceUnit": "0.01",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "4500000",
+            "bidLimitPriceRate": "0.2",
+            "askLimitPriceRate": "0.2",
+            "takerFeeRate": "0.0001",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.005",
+            "riskBaseVol": "4500000",
+            "riskIncrVol": "4500000",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "1",
+            "priceCoefficientVariation": "0.2",
+            "indexOrigin": [
+                "BYBIT",
+                "BINANCE",
+                "OKX",
+                "MEXC"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": false,
+            "isHidden": false,
+            "conceptPlate": [
+                "mc-trade-zone-pow"
+            ],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.01",
+                "0.1",
+                "1",
+                "10"
+            ],
+            "limitMaxVol": "4500000",
+            "threshold": "0",
+            "baseCoinIconUrl": ""
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0001,
+        "maker": 0
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.0001,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 2625000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 200
+            }
+        },
+        "info": {
+            "symbol": "BTC_USDT",
+            "displayName": "BTC_USDT永续",
+            "displayNameEn": "BTC_USDT PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "BTC",
+            "quoteCoin": "USDT",
+            "baseCoinName": "BTC",
+            "quoteCoinName": "USDT",
+            "futureType": "1",
+            "settleCoin": "USDT",
+            "contractSize": "0.0001",
+            "minLeverage": "1",
+            "maxLeverage": "200",
+            "priceScale": "1",
+            "volScale": "0",
+            "amountScale": "4",
+            "priceUnit": "0.1",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "2625000",
+            "bidLimitPriceRate": "0.1",
+            "askLimitPriceRate": "0.1",
+            "takerFeeRate": "0.0001",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.005",
+            "riskBaseVol": "525000",
+            "riskIncrVol": "525000",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "5",
+            "priceCoefficientVariation": "0.001",
+            "indexOrigin": [
+                "BITGET",
+                "BYBIT",
+                "BINANCE",
+                "HUOBI",
+                "OKX",
+                "MEXC",
+                "KUCOIN"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": false,
+            "isHidden": false,
+            "conceptPlate": [
+                "mc-trade-zone-pow"
+            ],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.1",
+                "1",
+                "10",
+                "100"
+            ],
+            "limitMaxVol": "2625000",
+            "threshold": "0",
+            "baseCoinIconUrl": "https://public.mocortech.com/coin/F20231101111813257Xc6zrYWjKjAiNW.png"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0001,
+        "maker": 0
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 15000000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 200
+            }
+        },
+        "info": {
+            "symbol": "ADA_USDT",
+            "displayName": "ADA_USDT永续",
+            "displayNameEn": "ADA_USDT PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "ADA",
+            "quoteCoin": "USDT",
+            "baseCoinName": "ADA",
+            "quoteCoinName": "USDT",
+            "futureType": "1",
+            "settleCoin": "USDT",
+            "contractSize": "1",
+            "minLeverage": "1",
+            "maxLeverage": "200",
+            "priceScale": "4",
+            "volScale": "0",
+            "amountScale": "4",
+            "priceUnit": "0.0001",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "15000000",
+            "bidLimitPriceRate": "0.2",
+            "askLimitPriceRate": "0.2",
+            "takerFeeRate": "0.0001",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.005",
+            "riskBaseVol": "15000000",
+            "riskIncrVol": "15000000",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "1",
+            "priceCoefficientVariation": "0.2",
+            "indexOrigin": [
+                "BITGET",
+                "BYBIT",
+                "BINANCE",
+                "OKX",
+                "MEXC",
+                "KUCOIN"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": false,
+            "isHidden": false,
+            "conceptPlate": [],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.0001",
+                "0.001",
+                "0.01",
+                "0.1"
+            ],
+            "limitMaxVol": "15000000",
+            "threshold": "0",
+            "baseCoinIconUrl": ""
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0001,
+        "maker": 0
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 14500000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 200
+            }
+        },
+        "info": {
+            "symbol": "XRP_USDT",
+            "displayName": "XRP_USDT永续",
+            "displayNameEn": "XRP_USDT PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "XRP",
+            "quoteCoin": "USDT",
+            "baseCoinName": "XRP",
+            "quoteCoinName": "USDT",
+            "futureType": "1",
+            "settleCoin": "USDT",
+            "contractSize": "1",
+            "minLeverage": "1",
+            "maxLeverage": "200",
+            "priceScale": "4",
+            "volScale": "0",
+            "amountScale": "4",
+            "priceUnit": "0.0001",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "14500000",
+            "bidLimitPriceRate": "0.2",
+            "askLimitPriceRate": "0.2",
+            "takerFeeRate": "0.0001",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.005",
+            "riskBaseVol": "14500000",
+            "riskIncrVol": "14500000",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "1",
+            "priceCoefficientVariation": "0.2",
+            "indexOrigin": [
+                "BITGET",
+                "BYBIT",
+                "BINANCE",
+                "HUOBI",
+                "OKX",
+                "MEXC",
+                "KUCOIN"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": true,
+            "isHidden": false,
+            "conceptPlate": [],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.0001",
+                "0.001",
+                "0.01",
+                "0.1"
+            ],
+            "limitMaxVol": "14500000",
+            "threshold": "0",
+            "baseCoinIconUrl": ""
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0001,
+        "maker": 0
+    },
+    "TRX/USDT:USDT": {
+        "id": "TRX_USDT",
+        "symbol": "TRX/USDT:USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 10,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 3000000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 200
+            }
+        },
+        "info": {
+            "symbol": "TRX_USDT",
+            "displayName": "TRX_USDT永续",
+            "displayNameEn": "TRX_USDT PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "TRX",
+            "quoteCoin": "USDT",
+            "baseCoinName": "TRX",
+            "quoteCoinName": "USDT",
+            "futureType": "1",
+            "settleCoin": "USDT",
+            "contractSize": "10",
+            "minLeverage": "1",
+            "maxLeverage": "200",
+            "priceScale": "5",
+            "volScale": "0",
+            "amountScale": "4",
+            "priceUnit": "0.00001",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "3000000",
+            "bidLimitPriceRate": "0.2",
+            "askLimitPriceRate": "0.2",
+            "takerFeeRate": "0.0001",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.005",
+            "riskBaseVol": "3000000",
+            "riskIncrVol": "3000000",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "1",
+            "priceCoefficientVariation": "0.2",
+            "indexOrigin": [
+                "BITGET",
+                "BYBIT",
+                "BINANCE",
+                "HUOBI",
+                "OKX",
+                "MEXC",
+                "KUCOIN"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": false,
+            "isHidden": false,
+            "conceptPlate": [],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.00001",
+                "0.0001",
+                "0.001"
+            ],
+            "limitMaxVol": "3000000",
+            "threshold": "0",
+            "baseCoinIconUrl": ""
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0001,
+        "maker": 0
+    },
+    "ATLAS/USDT": {
+        "id": "ATLASUSDT",
+        "symbol": "ATLAS/USDT",
+        "base": "ATLAS",
+        "quote": "USDT",
+        "baseId": "ATLAS",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0,
+        "maker": 0,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2000000
+            }
+        },
+        "info": {
+            "symbol": "ATLASUSDT",
+            "status": "ENABLED",
+            "baseAsset": "ATLAS",
+            "baseAssetPrecision": "2",
+            "quoteAsset": "USDT",
+            "quotePrecision": "6",
+            "quoteAssetPrecision": "6",
+            "baseCommissionPrecision": "2",
+            "quoteCommissionPrecision": "6",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER"
+            ],
+            "isSpotTradingAllowed": true,
+            "isMarginTradingAllowed": false,
+            "quoteAmountPrecision": "5.000000000000000000",
+            "baseSizePrecision": "0.0001",
+            "permissions": [
+                "SPOT"
+            ],
+            "filters": [],
+            "maxQuoteAmount": "2000000.000000000000000000",
+            "makerCommission": "0",
+            "takerCommission": "0",
+            "quoteAmountPrecisionMarket": "5.000000000000000000",
+            "maxQuoteAmountMarket": "100000.000000000000000000",
+            "fullName": "Star Atlas"
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": false,
+        "contract": false,
+        "taker": 0,
+        "maker": 0,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 5,
+                "max": 2000000
+            }
+        },
+        "info": {
+            "symbol": "ETHUSDT",
+            "status": "ENABLED",
+            "baseAsset": "ETH",
+            "baseAssetPrecision": "5",
+            "quoteAsset": "USDT",
+            "quotePrecision": "2",
+            "quoteAssetPrecision": "2",
+            "baseCommissionPrecision": "5",
+            "quoteCommissionPrecision": "2",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER"
+            ],
+            "isSpotTradingAllowed": false,
+            "isMarginTradingAllowed": false,
+            "quoteAmountPrecision": "5.000000000000000000",
+            "baseSizePrecision": "0.0001",
+            "permissions": [
+                "SPOT"
+            ],
+            "filters": [],
+            "maxQuoteAmount": "2000000.000000000000000000",
+            "makerCommission": "0",
+            "takerCommission": "0",
+            "quoteAmountPrecisionMarket": "5.000000000000000000",
+            "maxQuoteAmountMarket": "100000.000000000000000000",
+            "fullName": "Ethereum"
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0001,
+        "maker": 0,
+        "contractSize": 0.01,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 200
+            },
+            "amount": {
+                "min": 1,
+                "max": 37700
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "ETH_USDT",
+            "displayName": "ETH_USDT永续",
+            "displayNameEn": "ETH_USDT PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "ETH",
+            "quoteCoin": "USDT",
+            "baseCoinName": "ETH",
+            "quoteCoinName": "USDT",
+            "futureType": "1",
+            "settleCoin": "USDT",
+            "contractSize": "0.01",
+            "minLeverage": "1",
+            "maxLeverage": "200",
+            "priceScale": "2",
+            "volScale": "0",
+            "amountScale": "4",
+            "priceUnit": "0.01",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "37700",
+            "bidLimitPriceRate": "0.1",
+            "askLimitPriceRate": "0.1",
+            "takerFeeRate": "0.0001",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.005",
+            "riskBaseVol": "37700",
+            "riskIncrVol": "37700",
+            "riskLongShortSwitch": "0",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "1",
+            "priceCoefficientVariation": "0.004",
+            "indexOrigin": [
+                "BITGET",
+                "BYBIT",
+                "BINANCE",
+                "HUOBI",
+                "OKX",
+                "MEXC",
+                "KUCOIN"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": false,
+            "isHidden": false,
+            "conceptPlate": [],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.01",
+                "0.1",
+                "1",
+                "10"
+            ],
+            "limitMaxVol": "37700",
+            "threshold": "0",
+            "baseCoinIconUrl": "",
+            "id": "11"
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "SOL/USDT:USDT": {
+        "id": "SOL_USDT",
+        "symbol": "SOL/USDT:USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0002,
+        "maker": 0,
+        "contractSize": 0.1,
+        "precision": {
+            "amount": 1,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 200
+            },
+            "amount": {
+                "min": 1,
+                "max": 34500
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "SOL_USDT",
+            "displayName": "SOL_USDT永续",
+            "displayNameEn": "SOL_USDT PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "SOL",
+            "quoteCoin": "USDT",
+            "baseCoinName": "SOL",
+            "quoteCoinName": "USDT",
+            "futureType": "1",
+            "settleCoin": "USDT",
+            "contractSize": "0.1",
+            "minLeverage": "1",
+            "maxLeverage": "200",
+            "priceScale": "3",
+            "volScale": "0",
+            "amountScale": "4",
+            "priceUnit": "0.001",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "34500",
+            "bidLimitPriceRate": "0.2",
+            "askLimitPriceRate": "0.2",
+            "takerFeeRate": "0.0002",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.005",
+            "riskBaseVol": "34500",
+            "riskIncrVol": "34500",
+            "riskLongShortSwitch": "0",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "1",
+            "priceCoefficientVariation": "0.2",
+            "indexOrigin": [
+                "BITGET",
+                "BYBIT",
+                "BINANCE",
+                "HUOBI",
+                "OKX",
+                "MEXC",
+                "KUCOIN"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": true,
+            "isHidden": false,
+            "conceptPlate": [
+                "mc-trade-zone-SOL"
+            ],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.001",
+                "0.01",
+                "0.1",
+                "1"
+            ],
+            "limitMaxVol": "34500",
+            "threshold": "0",
+            "baseCoinIconUrl": "",
+            "id": "51"
+        },
+        "tierBased": false,
+        "percentage": true
+    }
+}

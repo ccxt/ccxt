@@ -1,0 +1,43 @@
+import mexcRest from '../mexc.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class mexc extends mexcRest {
+    describe(): any;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    handleTicker(client: Client, message: any): void;
+    parseWsTicker(ticker: any, market?: any): Ticker;
+    watchSpotPublic(channel: any, messageHash: any, params?: {}): Promise<any>;
+    watchSpotPrivate(channel: any, messageHash: any, params?: {}): Promise<any>;
+    watchSwapPublic(channel: any, messageHash: any, requestParams: any, params?: {}): Promise<any>;
+    watchSwapPrivate(messageHash: any, params?: {}): Promise<any>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBookSubscription(client: Client, message: any): void;
+    getCacheIndex(orderbook: any, cache: any): any;
+    handleOrderBook(client: Client, message: any): void;
+    handleBooksideDelta(bookside: any, bidasks: any): void;
+    handleDelta(orderbook: any, delta: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleMyTrade(client: Client, message: any, subscription?: any): void;
+    parseWsTrade(trade: any, market?: any): Trade;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrder(client: Client, message: any): void;
+    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrderStatus(status: any, market?: any): string;
+    parseWsOrderType(type: any): string;
+    parseWsTimeInForce(timeInForce: any): string;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
+    authenticate(subscriptionHash: any, params?: {}): Promise<string>;
+    keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
+    handlePong(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): void;
+    ping(client: any): {
+        method: string;
+    };
+}

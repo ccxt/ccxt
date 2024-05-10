@@ -1,0 +1,281 @@
+{
+    "exchange": "cryptocom",
+    "skipKeys": [
+        "id",
+        "sig",
+        "api_key",
+        "nonce"
+    ],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot limit buy order with postOnly flag",
+                "method": "createOrder",
+                "url": "https://api.crypto.com/exchange/v1/private/create-order",
+                "input": [
+                    "XRP/USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.3,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"id\":\"1698774044965\",\"method\":\"private/create-order\",\"params\":{\"instrument_name\":\"XRP_USDT\",\"side\":\"BUY\",\"quantity\":\"10\",\"price\":\"0.3\",\"broker_id\":\"CCXT\",\"spot_margin\":\"SPOT\",\"exec_inst\":[\"POST_ONLY\"],\"time_in_force\":\"GOOD_TILL_CANCEL\",\"type\":\"LIMIT\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"e34858fedcefb80c98cfbfafd00d82cade37cc939763eb460bf8c6c6b7bff479\",\"nonce\":\"1698774044965\"}"
+            },
+            {
+                "description": "Swap market sell",
+                "method": "createOrder",
+                "url": "https://api.crypto.com/exchange/v1/private/create-order",
+                "input": [
+                    "BTC/USD:USD",
+                    "market",
+                    "sell",
+                    0.1
+                ],
+                "output": "{\"id\":\"1698774364019\",\"method\":\"private/create-order\",\"params\":{\"instrument_name\":\"BTCUSD-PERP\",\"side\":\"SELL\",\"quantity\":\"0.1\",\"broker_id\":\"CCXT\",\"type\":\"MARKET\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"ee43b073165ccc2af6d783d0515658b4c45b241229c1369673c8bdef62764162\",\"nonce\":\"1698774364019\"}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "create spot orders",
+                "method": "createOrders",
+                "url": "https://api.crypto.com/exchange/v1/private/create-order-list",
+                "input": [
+                    [
+                        {
+                            "symbol": "LTC/USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60
+                        },
+                        {
+                            "symbol": "LTC/USDT",
+                            "amount": 0.11,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61
+                        }
+                    ]
+                ],
+                "output": "{\"id\":\"1702484106341\",\"method\":\"private/create-order-list\",\"params\":{\"contingency_type\":\"LIST\",\"order_list\":[{\"instrument_name\":\"LTC_USDT\",\"side\":\"BUY\",\"price\":\"60\",\"broker_id\":\"CCXT\",\"type\":\"LIMIT\",\"quantity\":\"0.1\"},{\"instrument_name\":\"LTC_USDT\",\"side\":\"BUY\",\"price\":\"61\",\"broker_id\":\"CCXT\",\"type\":\"LIMIT\",\"quantity\":\"0.11\"}]},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"2af32b11570d391ff83bfc0619fa1ed4589e70cb39dd4b9c11da5d228d203ef0\",\"nonce\":\"1702484106341\"}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://api.crypto.com/exchange/v1/private/get-order-history",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"id\":\"1699458294278\",\"method\":\"private/get-order-history\",\"params\":{\"instrument_name\":\"LTC_USDT\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"68df556a1a7005b813ff3f014f04c027f45efde4e668e364d357f1e365e09878\",\"nonce\":\"1699458294278\"}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.crypto.com/exchange/v1/private/get-trades",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ],
+                "output": "{\"id\":\"1699458294645\",\"method\":\"private/get-trades\",\"params\":{\"instrument_name\":\"LTC_USDT\",\"start_time\":1699457638000,\"limit\":5},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"59297c92fe4fe00e5a1a6803aca858651afb128ca17ba7fa07774fdc36a01752\",\"nonce\":\"1699458294645\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.crypto.com/exchange/v1/private/get-open-orders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"id\":\"1699458295036\",\"method\":\"private/get-open-orders\",\"params\":{\"instrument_name\":\"LTC_USDT\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"16d6337d77028ff7f35aed9d4a6a097ba0adebe5d9f8c1e118346f9c2e365ef7\",\"nonce\":\"1699458295036\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.crypto.com/exchange/v1/private/cancel-all-orders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"id\":\"1699458295371\",\"method\":\"private/cancel-all-orders\",\"params\":{\"instrument_name\":\"LTC_USDT\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"0196ac28e1f10f0792150cdb51e3537f94cca1185abb5fa8a21a0ebf02296859\",\"nonce\":\"1699458295371\"}"
+            }
+        ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://api.crypto.com/exchange/v1/private/cancel-order-list",
+                "input": [
+                  [
+                    {
+                      "id": "6142909902150128699",
+                      "symbol": "LTC/USDT"
+                    },
+                    {
+                      "id": "6142909902150139975",
+                      "symbol": "ADA/USDT"
+                    }
+                  ]
+                ],
+                "output": "{\"id\":\"1713879348181\",\"method\":\"private/cancel-order-list\",\"params\":{\"contingency_type\":\"LIST\",\"order_list\":[{\"instrument_name\":\"LTC_USDT\",\"order_id\":\"6142909902150128699\"},{\"instrument_name\":\"ADA_USDT\",\"order_id\":\"6142909902150139975\"}]},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"3018f8bcb146d4533b42887cf56e168af05c6ac826759ba1e4d24979f621be40\",\"nonce\":\"1713879348181\"}"
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "closes open positions for a market",
+                "method": "closePosition",
+                "url": "https://api.crypto.com/exchange/v1/private/close-position",
+                "input": [
+                    "ADA/USD:USD"
+                ],
+                "output": "{\"id\":\"1701948075543\",\"method\":\"private/close-position\",\"params\":{\"instrument_name\":\"ADAUSD-PERP\",\"type\":\"MARKET\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"45b23b02046e0f5382fa54c3684090e5ca0b4d74ec27df7045c9cb5a9332dc98\",\"nonce\":\"1701948075543\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.crypto.com/exchange/v1/private/user-balance",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": "{\"id\":\"1699458295734\",\"method\":\"private/user-balance\",\"params\":{\"type\":\"spot\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"d1d4e83aa396352ace91563926f569fa62cfaac4cd5dc10a3cb162a4fa7f1d2b\",\"nonce\":\"1699458295734\"}"
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.crypto.com/exchange/v1/private/user-balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{\"id\":\"1699458296069\",\"method\":\"private/user-balance\",\"params\":{\"type\":\"swap\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"5d515f1e8ddcea084b67d6ab35c37ac3032ba49776b3a84f63157a44a13ad2ea\",\"nonce\":\"1699458296069\"}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.crypto.com/exchange/v1/private/get-deposit-history",
+                "input": [],
+                "output": "{\"id\":\"1699458296454\",\"method\":\"private/get-deposit-history\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"e38ac3b85e7ad6e4c4657a95e70f0d464e2655a9ebd087c69a8dc5e5b27ae75b\",\"nonce\":\"1699458296454\"}"
+            },
+            {
+                "description": "fetch USDC deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.crypto.com/exchange/v1/private/get-deposit-history",
+                "input": [
+                  "USDC"
+                ],
+                "output": "{\"id\":\"1713525419306\",\"method\":\"private/get-deposit-history\",\"params\":{\"currency\":\"USDC\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"fca37d53c3eaa302b88121c87ce4146916061a968488a3d2da304196f3f93ea6\",\"nonce\":\"1713525419306\"}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.crypto.com/exchange/v1/private/get-withdrawal-history",
+                "input": [],
+                "output": "{\"id\":\"1699460637323\",\"method\":\"private/get-withdrawal-history\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"f18a44d5e027b5611f3b5d5c1020e45e89fa583500b2d3016bc2768677acb90e\",\"nonce\":\"1699460637323\"}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://api.crypto.com/exchange/v1/private/get-transactions",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{\"id\":\"1699460638142\",\"method\":\"private/get-transactions\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"68e034d03273e4874ba8f751f21c7ca44403e7854fe05ba8a07e6441872b0b55\",\"nonce\":\"1699460638142\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.crypto.com/exchange/v1/private/get-deposit-address",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{\"id\":\"1699460638700\",\"method\":\"private/get-deposit-address\",\"params\":{\"currency\":\"USDT\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"adb838a3899b4b89ad210f33326498b3b6d0cb8265525c450f38d7a706ff6eb1\",\"nonce\":\"1699460638700\"}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api.crypto.com/exchange/v1/private/get-positions",
+                "input": [],
+                "output": "{\"id\":\"1700840923278\",\"method\":\"private/get-positions\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"c8406ac9040f04fbbc337b956a50c3bf030f24b4249717e03eac6f905ea3c4a5\",\"nonce\":\"1700840923278\"}"
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit and withdraw fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.crypto.com/exchange/v1/private/get-currency-networks",
+                "input": [
+                    [
+                        "USDT",
+                        "BTC"
+                    ]
+                ],
+                "output": "{\"id\":\"1708079230296\",\"method\":\"private/get-currency-networks\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"2b1eac4ba696b41ce2726139c63a145368f2c66ca97e090cf3361ab60b7637da\",\"nonce\":\"1708079230296\"}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.crypto.com/exchange/v1/public/get-trades?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.crypto.com/exchange/v1/public/get-tickers?instrument_name=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.crypto.com/exchange/v1/public/get-candlestick?instrument_name=BTC_USDT&timeframe=1m",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
+}

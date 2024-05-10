@@ -4,9 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.binance import binance
+from ccxt.abstract.binanceusdm import ImplicitAPI
+from ccxt.base.errors import InvalidOrder
 
 
-class binanceusdm(binance):
+class binanceusdm(binance, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(binanceusdm, self).describe(), {
@@ -37,12 +39,20 @@ class binanceusdm(binance):
                 'marginTypes': {},
                 'marginModes': {},
             },
+            # https://binance-docs.github.io/apidocs/futures/en/#error-codes
+            'exceptions': {
+                'exact': {
+                    '-5021': InvalidOrder,  # {"code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
+                    '-5022': InvalidOrder,  # {"code":-5022,"msg":"Due to the order could not be executed, the Post Only order will be rejected."}
+                    '-5028': InvalidOrder,  # {"code":-5028,"msg":"Timestamp for self request is outside of the ME recvWindow."}
+                },
+            },
         })
 
-    async def transfer_in(self, code, amount, params={}):
+    async def transfer_in(self, code: str, amount, params={}):
         # transfer from spot wallet to usdm futures wallet
         return await self.futuresTransfer(code, amount, 1, params)
 
-    async def transfer_out(self, code, amount, params={}):
+    async def transfer_out(self, code: str, amount, params={}):
         # transfer from usdm futures wallet to spot wallet
         return await self.futuresTransfer(code, amount, 2, params)

@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\tokocrypto as Exchange;
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
@@ -15,6 +16,7 @@ use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class tokocrypto extends Exchange {
 
@@ -40,34 +42,39 @@ class tokocrypto extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => null,
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
-                'createStopLimitOrder' => false,
-                'createStopMarketOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => null,
-                'fetchBorrowRate' => null,
                 'fetchBorrowRateHistories' => null,
                 'fetchBorrowRateHistory' => null,
-                'fetchBorrowRates' => null,
-                'fetchBorrowRatesPerSymbol' => null,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => false,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => null,
                 'fetchLeverage' => false,
@@ -105,14 +112,15 @@ class tokocrypto extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => false,
                 'transfer' => false,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -212,6 +220,7 @@ class tokocrypto extends Exchange {
             'precisionMode' => DECIMAL_PLACES,
             'options' => array(
                 // 'fetchTradesMethod' => 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
+                'createMarketBuyOrderRequiresPrice' => true,
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 // 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
@@ -603,11 +612,12 @@ class tokocrypto extends Exchange {
     public function fetch_time($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#check-server-time
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetTime ($params));
+            $response = Async\await($this->publicGetOpenV1CommonTime ($params));
             //
             //
             //
@@ -615,12 +625,13 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-$symbol
              * retrieves $data on all markets for tokocrypto
-             * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market $data
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing $market $data
              */
             $response = Async\await($this->publicGetOpenV1CommonSymbols ($params));
             //
@@ -678,8 +689,8 @@ class tokocrypto extends Exchange {
                 $symbol = $base . '/' . $quote;
                 $filters = $this->safe_value($market, 'filters', array());
                 $filtersByType = $this->index_by($filters, 'filterType');
-                $status = $this->safe_string_2($market, 'status', 'contractStatus');
-                $active = ($status === 'TRADING');
+                $status = $this->safe_string($market, 'spotTradingEnable');
+                $active = ($status === '1');
                 $permissions = $this->safe_value($market, 'permissions', array());
                 for ($j = 0; $j < count($permissions); $j++) {
                     if ($permissions[$j] === 'TRD_GRP_003') {
@@ -687,7 +698,7 @@ class tokocrypto extends Exchange {
                         break;
                     }
                 }
-                $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
+                $isMarginTradingAllowed = $this->safe_bool($market, 'isMarginTradingAllowed', false);
                 $entry = array(
                     'id' => $id,
                     'lowercaseId' => $lowercaseId,
@@ -738,6 +749,7 @@ class tokocrypto extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
                 if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
@@ -780,24 +792,30 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://www.tokocrypto.com/apidocs/#order-book
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['baseId'] . $market['quoteId'],
-            );
+            $request = array();
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
-            $response = Async\await($this->binanceGetDepth (array_merge($request, $params)));
+            $response = null;
+            if ($market['quote'] === 'USDT') {
+                $request['symbol'] = $market['baseId'] . $market['quoteId'];
+                $response = Async\await($this->binanceGetDepth ($this->extend($request, $params)));
+            } else {
+                $request['symbol'] = $market['id'];
+                $response = Async\await($this->publicGetOpenV1MarketDepth ($this->extend($request, $params)));
+            }
             //
             // future
             //
@@ -816,14 +834,26 @@ class tokocrypto extends Exchange {
             //             ["2493.71","12.054"],
             //         ]
             //     }
-            $timestamp = $this->safe_integer($response, 'T');
-            $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
-            $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+            // type not 1
+            //     {
+            //         "code":0,
+            //         "msg":"Success",
+            //         "data":array(
+            //            "lastUpdateId":3204783,
+            //            "bids":array(),
+            //            "asks" => array()
+            //         ),
+            //         "timestamp":1692262634599
+            //     }
+            $data = $this->safe_value($response, 'data', $response);
+            $timestamp = $this->safe_integer_2($response, 'T', 'timestamp');
+            $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
+            $orderbook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
             return $orderbook;
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -969,35 +999,69 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent trades for a particular $symbol
+             * @see https://www.tokocrypto.com/apidocs/#recent-trades-$list
+             * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-$list
+             * get the $list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a $list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['baseId'] . $market['quoteId'],
+                'symbol' => $this->get_market_id_by_type($market),
                 // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
                 // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
                 // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
                 // 'limit' => 500,     // default = 500, maximum = 1000
             );
-            $defaultMethod = 'binanceGetTrades';
-            $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
-            if (($method === 'binanceGetAggTrades') && ($since !== null)) {
-                $request['startTime'] = $since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                $request['endTime'] = $this->sum($since, 3600000);
+            if ($market['quote'] !== 'USDT') {
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                $responseInner = $this->publicGetOpenV1MarketTrades ($this->extend($request, $params));
+                //
+                //    {
+                //       "code" => 0,
+                //       "msg" => "success",
+                //       "data" => {
+                //           "list" => array(
+                //                array(
+                //                    "id" => 28457,
+                //                    "price" => "4.00000100",
+                //                    "qty" => "12.00000000",
+                //                    "time" => 1499865549590,
+                //                    "isBuyerMaker" => true,
+                //                    "isBestMatch" => true
+                //                }
+                //            )
+                //        ),
+                //        "timestamp" => 1571921637091
+                //    }
+                //
+                $data = $this->safe_dict($responseInner, 'data', array());
+                $list = $this->safe_list($data, 'list', array());
+                return $this->parse_trades($list, $market, $since, $limit);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit; // default = 500, maximum = 1000
+            }
+            $defaultMethod = 'binanceGetTrades';
+            $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
+            $response = null;
+            if (($method === 'binanceGetAggTrades') && ($since !== null)) {
+                $request['startTime'] = $since;
+                // https://github.com/ccxt/ccxt/issues/6400
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-$list
+                $request['endTime'] = $this->sum($since, 3600000);
+                $response = Async\await($this->binanceGetAggTrades ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->binanceGetTrades ($this->extend($request, $params)));
             }
             //
             // Caveats:
@@ -1008,7 +1072,6 @@ class tokocrypto extends Exchange {
             // - 'tradeId' accepted and returned by this $method is "aggregate" trade id
             //   which is different from actual trade id
             // - setting both fromId and time window results in error
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // aggregate trades
             //
@@ -1042,51 +1105,51 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         $symbol => 'ETHBTC',
-        //         priceChange => '0.00068700',
-        //         priceChangePercent => '2.075',
-        //         weightedAvgPrice => '0.03342681',
-        //         prevClosePrice => '0.03310300',
-        //         lastPrice => '0.03378900',
-        //         lastQty => '0.07700000',
-        //         bidPrice => '0.03378900',
-        //         bidQty => '7.16800000',
-        //         askPrice => '0.03379000',
-        //         askQty => '24.00000000',
-        //         openPrice => '0.03310200',
-        //         highPrice => '0.03388900',
-        //         lowPrice => '0.03306900',
-        //         volume => '205478.41000000',
-        //         $quoteVolume => '6868.48826294',
-        //         openTime => 1601469986932,
-        //         closeTime => 1601556386932,
-        //         firstId => 196098772,
-        //         lastId => 196186315,
-        //         count => 87544
+        //         "symbol" => "ETHBTC",
+        //         "priceChange" => "0.00068700",
+        //         "priceChangePercent" => "2.075",
+        //         "weightedAvgPrice" => "0.03342681",
+        //         "prevClosePrice" => "0.03310300",
+        //         "lastPrice" => "0.03378900",
+        //         "lastQty" => "0.07700000",
+        //         "bidPrice" => "0.03378900",
+        //         "bidQty" => "7.16800000",
+        //         "askPrice" => "0.03379000",
+        //         "askQty" => "24.00000000",
+        //         "openPrice" => "0.03310200",
+        //         "highPrice" => "0.03388900",
+        //         "lowPrice" => "0.03306900",
+        //         "volume" => "205478.41000000",
+        //         "quoteVolume" => "6868.48826294",
+        //         "openTime" => 1601469986932,
+        //         "closeTime" => 1601556386932,
+        //         "firstId" => 196098772,
+        //         "lastId" => 196186315,
+        //         "count" => 87544
         //     }
         //
         // coinm
         //     {
-        //         $baseVolume => '214549.95171161',
-        //         closeTime => '1621965286847',
-        //         count => '1283779',
-        //         firstId => '152560106',
-        //         highPrice => '39938.3',
-        //         lastId => '153843955',
-        //         lastPrice => '37993.4',
-        //         lastQty => '1',
-        //         lowPrice => '36457.2',
-        //         openPrice => '37783.4',
-        //         openTime => '1621878840000',
-        //         pair => 'BTCUSD',
-        //         priceChange => '210.0',
-        //         priceChangePercent => '0.556',
-        //         $symbol => 'BTCUSD_PERP',
-        //         volume => '81990451',
-        //         weightedAvgPrice => '38215.08713747'
+        //         "baseVolume" => "214549.95171161",
+        //         "closeTime" => "1621965286847",
+        //         "count" => "1283779",
+        //         "firstId" => "152560106",
+        //         "highPrice" => "39938.3",
+        //         "lastId" => "153843955",
+        //         "lastPrice" => "37993.4",
+        //         "lastQty" => "1",
+        //         "lowPrice" => "36457.2",
+        //         "openPrice" => "37783.4",
+        //         "openTime" => "1621878840000",
+        //         "pair" => "BTCUSD",
+        //         "priceChange" => "210.0",
+        //         "priceChangePercent" => "0.556",
+        //         "symbol" => "BTCUSD_PERP",
+        //         "volume" => "81990451",
+        //         "weightedAvgPrice" => "38215.08713747"
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
@@ -1127,51 +1190,59 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $defaultMethod = 'binanceGetTicker24hr';
-            $method = $this->safe_string($this->options, 'fetchTickersMethod', $defaultMethod);
-            $response = Async\await($this->$method ($params));
+            $response = Async\await($this->binanceGetTicker24hr ($params));
             return $this->parse_tickers($response, $symbols);
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function get_market_id_by_type($market) {
+        if ($market['quote'] === 'USDT') {
+            return $market['baseId'] . $market['quoteId'];
+        }
+        return $market['id'];
+    }
+
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['baseId'] . $market['quoteId'],
             );
-            $response = Async\await($this->binanceGetTicker24hr (array_merge($request, $params)));
+            $response = Async\await($this->binanceGetTicker24hr ($this->extend($request, $params)));
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-                $firstTicker = $this->safe_value($response, 0, array());
+                $firstTicker = $this->safe_dict($response, 0, array());
                 return $this->parse_ticker($firstTicker, $market);
             }
             return $this->parse_ticker($response, $market);
         }) ();
     }
 
-    public function fetch_bids_asks($symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
              * fetches the bid and ask price and volume for multiple markets
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->binanceGetTickerBookTicker ($params));
@@ -1179,7 +1250,7 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
         //         1591478520000, // open time
@@ -1224,18 +1295,19 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-$data
+             * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
-             * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1248,13 +1320,13 @@ class tokocrypto extends Exchange {
             $params = $this->omit($params, array( 'price', 'until' ));
             $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
             $request = array(
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'limit' => $limit,
             );
             if ($price === 'index') {
                 $request['pair'] = $market['id'];   // Index $price takes this argument instead of $symbol
             } else {
-                $request['symbol'] = $market['baseId'] . $market['quoteId'];
+                $request['symbol'] = $this->get_market_id_by_type($market);
             }
             // $duration = $this->parse_timeframe($timeframe);
             if ($since !== null) {
@@ -1263,7 +1335,12 @@ class tokocrypto extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->binanceGetKlines (array_merge($request, $params)));
+            $response = null;
+            if ($market['quote'] === 'USDT') {
+                $response = Async\await($this->binanceGetKlines ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetOpenV1MarketKlines ($this->extend($request, $params)));
+            }
             //
             //     [
             //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -1271,19 +1348,21 @@ class tokocrypto extends Exchange {
             //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
             //     ]
             //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            $data = $this->safe_list($response, 'data', $response);
+            return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#account-information-signed
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @param {string|null} $params->type 'future', 'delivery', 'savings', 'funding', or 'spot'
-             * @param {string|null} $params->marginMode 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
-             * @param {[string]|null} $params->symbols unified market symbols, only used in isolated margin mode
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
+             * @param {string[]|null} [$params->symbols] unified market symbols, only used in isolated margin mode
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
@@ -1291,7 +1370,7 @@ class tokocrypto extends Exchange {
             $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
             $marginMode = $this->safe_string_lower($params, 'marginMode', $defaultMarginMode);
             $request = array();
-            $response = Async\await($this->privateGetOpenV1AccountSpot (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1AccountSpot ($this->extend($request, $params)));
             //
             // spot
             //
@@ -1316,11 +1395,11 @@ class tokocrypto extends Exchange {
             //         "timestamp":1659666786943
             //     }
             //
-            return $this->parse_balance($response, $type, $marginMode);
+            return $this->parse_balance_custom($response, $type, $marginMode);
         }) ();
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null) {
+    public function parse_balance_custom($response, $type = null, $marginMode = null) {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
@@ -1362,7 +1441,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot
         //
@@ -1386,25 +1465,25 @@ class tokocrypto extends Exchange {
         //     }
         // createOrder
         //     {
-        //         orderId => '145265071',
-        //         bOrderListId => '0',
-        //         clientId => '49c09c3c2cd54419a59c05441f517b3c',
-        //         bOrderId => '35247529',
-        //         $symbol => 'USDT_BIDR',
-        //         symbolType => '1',
-        //         $side => '0',
-        //         $type => '1',
-        //         $price => '11915',
-        //         origQty => '2',
-        //         origQuoteQty => '23830.00',
-        //         executedQty => '0.00000000',
-        //         executedPrice => '0',
-        //         executedQuoteQty => '0.00',
-        //         $timeInForce => '1',
-        //         $stopPrice => '0',
-        //         icebergQty => '0',
-        //         $status => '0',
-        //         createTime => '1662711074372'
+        //         "orderId" => "145265071",
+        //         "bOrderListId" => "0",
+        //         "clientId" => "49c09c3c2cd54419a59c05441f517b3c",
+        //         "bOrderId" => "35247529",
+        //         "symbol" => "USDT_BIDR",
+        //         "symbolType" => "1",
+        //         "side" => "0",
+        //         "type" => "1",
+        //         "price" => "11915",
+        //         "origQty" => "2",
+        //         "origQuoteQty" => "23830.00",
+        //         "executedQty" => "0.00000000",
+        //         "executedPrice" => "0",
+        //         "executedQuoteQty" => "0.00",
+        //         "timeInForce" => "1",
+        //         "stopPrice" => "0",
+        //         "icebergQty" => "0",
+        //         "status" => "0",
+        //         "createTime" => "1662711074372"
         //     }
         //
         // createOrder with array( "newOrderRespType" => "FULL" )
@@ -1467,14 +1546,13 @@ class tokocrypto extends Exchange {
         $filled = $this->safe_string($order, 'executedQty', '0');
         $timestamp = $this->safe_integer($order, 'createTime');
         $average = $this->safe_string($order, 'avgPrice');
-        $price = $this->safe_string($order, 'price');
+        $price = $this->safe_string_2($order, 'price', 'executedPrice');
         $amount = $this->safe_string($order, 'origQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
-        $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
-        $cost = $this->safe_string($order, 'cumBase', $cost);
+        $cost = $this->safe_string_n($order, array( 'cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase' ));
         $id = $this->safe_string($order, 'orderId');
-        $type = $this->safe_string_lower($order, 'type');
+        $type = $this->parse_order_type($this->safe_string_lower($order, 'type'));
         $side = $this->safe_string_lower($order, 'side');
         if ($side === '0') {
             $side = 'buy';
@@ -1482,16 +1560,13 @@ class tokocrypto extends Exchange {
             $side = 'sell';
         }
         $fills = $this->safe_value($order, 'fills', array());
-        $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             $timeInForce = 'PO';
         }
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'PO');
-        if ($type === 'limit_maker') {
-            $type = 'limit';
-        }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
@@ -1521,22 +1596,36 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function parse_order_type($status) {
+        $statuses = array(
+            '2' => 'market',
+            '1' => 'limit',
+            '4' => 'limit',
+            '7' => 'limit',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://www.tokocrypto.com/apidocs/#new-order--signed
+             * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
+             * @param {float} [$params->cost] for spot $market buy orders, the quote quantity that can be used alternative for the $amount
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $postOnly = $this->safe_bool($params, 'postOnly', false);
             // only supported for spot/margin api
             if ($postOnly) {
                 $type = 'LIMIT_MAKER';
@@ -1598,7 +1687,7 @@ class tokocrypto extends Exchange {
             // spot/margin
             //
             //     LIMIT                timeInForce, quantity, $price
-            //     MARKET               quantity or $quoteOrderQty
+            //     MARKET               quantity or quoteOrderQty
             //     STOP_LOSS            quantity, $stopPrice
             //     STOP_LOSS_LIMIT      timeInForce, quantity, $price, $stopPrice
             //     TAKE_PROFIT          quantity, $stopPrice
@@ -1606,18 +1695,27 @@ class tokocrypto extends Exchange {
             //     LIMIT_MAKER          quantity, $price
             //
             if ($uppercaseType === 'MARKET') {
-                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
-                if ($quoteOrderQty) {
-                    $quoteOrderQty = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+                if ($side === 'buy') {
                     $precision = $market['precision']['price'];
-                    if ($quoteOrderQty !== null) {
-                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
-                        $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
-                    } elseif ($price !== null) {
-                        $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
+                    $quoteAmount = null;
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
+                    $params = $this->omit($params, array( 'cost', 'quoteOrderQty' ));
+                    if ($cost !== null) {
+                        $quoteAmount = $cost;
+                    } elseif ($createMarketBuyOrderRequiresPrice) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        }
                     } else {
-                        $quantityIsRequired = true;
+                        $quoteAmount = $amount;
                     }
+                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteAmount, TRUNCATE, $precision, $this->precisionMode);
                 } else {
                     $quantityIsRequired = true;
                 }
@@ -1654,7 +1752,7 @@ class tokocrypto extends Exchange {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 }
             }
-            $response = Async\await($this->privatePostOpenV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOpenV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1683,23 +1781,24 @@ class tokocrypto extends Exchange {
             //         "timestamp" => 1662710994975
             //     }
             //
-            $rawOrder = $this->safe_value($response, 'data', array());
+            $rawOrder = $this->safe_dict($response, 'data', array());
             return $this->parse_order($rawOrder, $market);
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
              * fetches information on an order made by the user
              * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateGetOpenV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1732,20 +1831,21 @@ class tokocrypto extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $list = $this->safe_value($data, 'list', array());
-            $rawOrder = $this->safe_value($list, 0, array());
+            $rawOrder = $this->safe_dict($list, 0, array());
             return $this->parse_order($rawOrder);
         }) ();
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#all-$orders-signed
              * fetches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -1768,7 +1868,7 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1803,54 +1903,57 @@ class tokocrypto extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $orders = $this->safe_value($data, 'list', array());
+            $orders = $this->safe_list($data, 'list', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
              * fetch all unfilled currently open orders
-             * @param {string|null} $symbol unified market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array( 'type' => 1 ); // -1 = all, 1 = open, 2 = closed
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array( 'type' => 2 ); // -1 = all, 1 = open, 2 = closed
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#cancel-order-signed
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privatePostOpenV1OrdersCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOpenV1OrdersCancel ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1878,20 +1981,21 @@ class tokocrypto extends Exchange {
             //         "timestamp" => 1662710683634
             //     }
             //
-            $rawOrder = $this->safe_value($response, 'data', array());
+            $rawOrder = $this->safe_dict($response, 'data', array());
             return $this->parse_order($rawOrder);
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
              * fetch all $trades made by the user
              * @param {string} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch $trades for
-             * @param {int|null} $limit the maximum number of $trades structures to retrieve
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of $trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1903,8 +2007,7 @@ class tokocrypto extends Exchange {
             );
             $endTime = $this->safe_integer_2($params, 'until', 'endTime');
             if ($since !== null) {
-                $startTime = intval($since);
-                $request['startTime'] = $startTime;
+                $request['startTime'] = $since;
             }
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
@@ -1913,7 +2016,7 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenV1OrdersTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1OrdersTrades ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1940,18 +2043,19 @@ class tokocrypto extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $trades = $this->safe_value($data, 'list', array());
+            $trades = $this->safe_list($data, 'list', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#deposit-$address-signed
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1968,7 +2072,7 @@ class tokocrypto extends Exchange {
             }
             // has support for the 'network' parameter
             // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
-            $response = Async\await($this->privateGetOpenV1DepositsAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1DepositsAddress ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -2001,16 +2105,17 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#deposit-history-signed
              * fetch all $deposits made to an account
-             * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch $deposits for
-             * @param {int|null} $limit the maximum number of $deposits structures to retrieve
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @param {int|null} $params->until the latest time in ms to fetch $deposits for
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch $deposits for
+             * @param {int} [$limit] the maximum number of $deposits structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch $deposits for
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2032,7 +2137,7 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenV1Deposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1Deposits ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -2057,20 +2162,21 @@ class tokocrypto extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $deposits = $this->safe_value($data, 'list', array());
+            $deposits = $this->safe_list($data, 'list', array());
             return $this->parse_transactions($deposits, $currency, $since, $limit);
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
              * fetch all $withdrawals made from an account
-             * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
-             * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
-             * @param {array} $params extra parameters specific to the tokocrypto api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
+             * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -2087,7 +2193,7 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenV1Withdraws (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1Withdraws ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -2114,7 +2220,7 @@ class tokocrypto extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $withdrawals = $this->safe_value($data, 'list', array());
+            $withdrawals = $this->safe_list($data, 'list', array());
             return $this->parse_transactions($withdrawals, $currency, $since, $limit);
         }) ();
     }
@@ -2139,7 +2245,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2173,6 +2279,17 @@ class tokocrypto extends Exchange {
         //         "createTime" => 1659521314413
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "成功",
+        //         "data" => array(
+        //             "withdrawId":"12"
+        //         ),
+        //         "timestamp" => 1571745049095
+        //     }
+        //
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
         if ($tag !== null) {
@@ -2188,7 +2305,7 @@ class tokocrypto extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $insertTime = $this->safe_integer($transaction, 'insertTime');
-        $createTime = $this->safe_integer($transaction, 'createTime');
+        $createTime = $this->safe_integer_2($transaction, 'createTime', 'timestamp');
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
             if (($insertTime !== null) && ($createTime === null)) {
@@ -2209,13 +2326,20 @@ class tokocrypto extends Exchange {
             $fee['currency'] = $code;
             $fee['cost'] = $feeCost;
         }
-        $internal = $this->safe_integer($transaction, 'transferType');
-        if ($internal !== null) {
-            $internal = $internal ? true : false;
+        $internalRaw = $this->safe_integer($transaction, 'transferType');
+        $internal = false;
+        if ($internalRaw !== null) {
+            $internal = true;
+        }
+        $id = $this->safe_string($transaction, 'id');
+        if ($id === null) {
+            $data = $this->safe_value($transaction, 'data', array());
+            $id = $this->safe_string($data, 'withdrawId');
+            $type = 'withdrawal';
         }
         return array(
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $id,
             'txid' => $txid,
             'type' => $type,
             'currency' => $code,
@@ -2235,6 +2359,53 @@ class tokocrypto extends Exchange {
             'internal' => $internal,
             'fee' => $fee,
         );
+    }
+
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $request = array(
+                'asset' => $currency['id'],
+                // 'clientId' => 'string', // // client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
+                // 'network' => 'string',
+                'address' => $address,
+                // 'addressTag' => 'string', // for coins like XRP, XMR, etc
+                'amount' => $this->number_to_string($amount),
+            );
+            if ($tag !== null) {
+                $request['addressTag'] = $tag;
+            }
+            list($networkCode, $query) = $this->handle_network_code_and_params($params);
+            $networkId = $this->network_code_to_id($networkCode);
+            if ($networkId !== null) {
+                $request['network'] = strtoupper($networkId);
+            }
+            $response = Async\await($this->privatePostOpenV1Withdraws ($this->extend($request, $query)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "成功",
+            //         "data" => array(
+            //             "withdrawId":"12"
+            //         ),
+            //         "timestamp" => 1571745049095
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2264,7 +2435,7 @@ class tokocrypto extends Exchange {
             $this->check_required_credentials();
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-            $extendedParams = array_merge(array(
+            $extendedParams = $this->extend(array(
                 'timestamp' => $this->nonce(),
             ), $params);
             if ($defaultRecvWindow !== null) {
@@ -2281,7 +2452,7 @@ class tokocrypto extends Exchange {
             } else {
                 $query = $this->urlencode($extendedParams);
             }
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             $query .= '&' . 'signature=' . $signature;
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,
@@ -2319,17 +2490,17 @@ class tokocrypto extends Exchange {
             }
         }
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
-            $message = $this->safe_string($response, 'msg');
+            $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;
-            if ($message !== null) {
+            if ($messageInner !== null) {
                 try {
-                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                    $parsedMessage = json_decode($messageInner, $as_associative_array = true);
                 } catch (Exception $e) {
                     // do nothing
                     $parsedMessage = null;
@@ -2373,9 +2544,10 @@ class tokocrypto extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         if ((is_array($config) && array_key_exists('noCoin', $config)) && !(is_array($params) && array_key_exists('coin', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {

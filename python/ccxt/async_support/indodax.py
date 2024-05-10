@@ -4,7 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
+import math
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -15,7 +19,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class indodax(Exchange):
+class indodax(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(indodax, self).describe(), {
@@ -36,52 +40,59 @@ class indodax(Exchange):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchDeposit': False,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
                 'fetchTransactionFees': False,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
@@ -94,11 +105,11 @@ class indodax(Exchange):
                 'transfer': False,
                 'withdraw': True,
             },
-            'version': '2.0',  # as of 9 April 2018
+            'version': '2.0',  # 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
-                    'public': 'https://indodax.com/api',
+                    'public': 'https://indodax.com',
                     'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
@@ -108,14 +119,15 @@ class indodax(Exchange):
             'api': {
                 'public': {
                     'get': {
-                        'server_time': 5,
-                        'pairs': 5,
-                        'price_increments': 5,
-                        'summaries': 5,
-                        'ticker_all': 5,
-                        '{pair}/ticker': 5,
-                        '{pair}/trades': 5,
-                        '{pair}/depth': 5,
+                        'api/server_time': 5,
+                        'api/pairs': 5,
+                        'api/price_increments': 5,
+                        'api/summaries': 5,
+                        'api/ticker/{pair}': 5,
+                        'api/ticker_all': 5,
+                        'api/trades/{pair}': 5,
+                        'api/depth/{pair}': 5,
+                        'tradingview/history_v2': 5,
                     },
                 },
                 'private': {
@@ -162,6 +174,34 @@ class indodax(Exchange):
                 'recvWindow': 5 * 1000,  # default 5 sec
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'networks': {
+                    'XLM': 'Stellar Token',
+                    'BSC': 'bep20',
+                    'TRC20': 'trc20',
+                    'MATIC': 'polygon',
+                    # 'BEP2': 'bep2',
+                    # 'ARB': 'arb',
+                    # 'ERC20': 'erc20',
+                    # 'KIP7': 'kip7',
+                    # 'MAINNET': 'mainnet',  # TODO: does mainnet just mean the default?
+                    # 'OEP4': 'oep4',
+                    # 'OP': 'op',
+                    # 'SPL': 'spl',
+                    # 'TRC10': 'trc10',
+                    # 'ZRC2': 'zrc2'
+                    # 'ETH': 'eth'
+                    # 'BASE': 'base'
+                },
+                'timeframes': {
+                    '1m': '1',
+                    '15m': '15',
+                    '30m': '30',
+                    '1h': '60',
+                    '4h': '240',
+                    '1d': '1D',
+                    '3d': '3D',
+                    '1w': '1W',
+                },
             },
             'commonCurrencies': {
                 'STR': 'XLM',
@@ -179,10 +219,11 @@ class indodax(Exchange):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict params: extra parameters specific to the indodax api endpoint
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = await self.publicGetServerTime(params)
+        response = await self.publicGetApiServerTime(params)
         #
         #     {
         #         "timezone": "UTC",
@@ -191,13 +232,14 @@ class indodax(Exchange):
         #
         return self.safe_integer(response, 'server_time')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for indodax
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetPairs(params)
+        response = await self.publicGetApiPairs(params)
         #
         #     [
         #         {
@@ -282,11 +324,12 @@ class indodax(Exchange):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'return', {})
         free = self.safe_value(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
@@ -306,11 +349,12 @@ class indodax(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privatePostGetInfo(params)
@@ -346,23 +390,24 @@ class indodax(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         }
-        orderbook = await self.publicGetPairDepth(self.extend(request, params))
+        orderbook = await self.publicGetApiDepthPair(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'buy', 'sell')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "high":"0.01951",
@@ -403,19 +448,20 @@ class indodax(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         }
-        response = await self.publicGetPairTicker(self.extend(request, params))
+        response = await self.publicGetApiTickerPair(self.extend(request, params))
         #
         #     {
         #         "ticker": {
@@ -430,16 +476,16 @@ class indodax(Exchange):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'ticker', {})
+        ticker = self.safe_dict(response, 'ticker', {})
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         #
@@ -458,11 +504,11 @@ class indodax(Exchange):
         #     }
         # }
         #
-        response = await self.publicGetTickerAll(params)
-        tickers = self.safe_value(response, 'tickers')
+        response = await self.publicGetApiTickerAll(params)
+        tickers = self.safe_dict(response, 'tickers', {})
         return self.parse_tickers(tickers, symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'date')
         return self.safe_trade({
             'id': self.safe_string(trade, 'tid'),
@@ -480,22 +526,88 @@ class indodax(Exchange):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         }
-        response = await self.publicGetPairTrades(self.extend(request, params))
+        response = await self.publicGetApiTradesPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+        #
+        #     {
+        #         "Time": 1708416900,
+        #         "Open": 51707.52,
+        #         "High": 51707.52,
+        #         "Low": 51707.52,
+        #         "Close": 51707.52,
+        #         "Volume": "0"
+        #     }
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'Time'),
+            self.safe_number(ohlcv, 'Open'),
+            self.safe_number(ohlcv, 'High'),
+            self.safe_number(ohlcv, 'Low'),
+            self.safe_number(ohlcv, 'Close'),
+            self.safe_number(ohlcv, 'Volume'),
+        ]
+
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        timeframes = self.options['timeframes']
+        selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        now = self.seconds()
+        until = self.safe_integer(params, 'until', now)
+        params = self.omit(params, ['until'])
+        request = {
+            'to': until,
+            'tf': selectedTimeframe,
+            'symbol': market['base'] + market['quote'],
+        }
+        if limit is None:
+            limit = 1000
+        if since is not None:
+            request['from'] = int(math.floor(since / 1000))
+        else:
+            duration = self.parse_timeframe(timeframe)
+            request['from'] = now - limit * duration - 1
+        response = await self.publicGetTradingviewHistoryV2(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "Time": 1708416900,
+        #             "Open": 51707.52,
+        #             "High": 51707.52,
+        #             "Low": 51707.52,
+        #             "Close": 51707.52,
+        #             "Volume": "0"
+        #         }
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {
@@ -505,7 +617,7 @@ class indodax(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         "order_id": "12345",
@@ -578,15 +690,16 @@ class indodax(Exchange):
             'trades': None,
         })
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -596,16 +709,18 @@ class indodax(Exchange):
         response = await self.privatePostGetOrder(self.extend(request, params))
         orders = response['return']
         order = self.parse_order(self.extend({'id': id}, orders['order']), market)
-        return self.extend({'info': response}, order)
+        order['info'] = response
+        return order
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -632,39 +747,39 @@ class indodax(Exchange):
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
         return exchangeOrders
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
-        request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
-            request['pair'] = market['id']
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
         response = await self.privatePostOrderHistory(self.extend(request, params))
         orders = self.parse_orders(response['return']['orders'], market)
         orders = self.filter_by(orders, 'status', 'closed')
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -684,18 +799,19 @@ class indodax(Exchange):
         result = await self.privatePostTrade(self.extend(request, params))
         data = self.safe_value(result, 'return', {})
         id = self.safe_string(data, 'order_id')
-        return {
+        return self.safe_order({
             'info': result,
             'id': id,
-        }
+        }, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -711,12 +827,13 @@ class indodax(Exchange):
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
 
-    async def fetch_transaction_fee(self, code, params={}):
+    async def fetch_transaction_fee(self, code: str, params={}):
         """
         fetch the fee for a transaction
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -742,14 +859,15 @@ class indodax(Exchange):
             'currency': self.safe_currency_code(currencyId, currency),
         }
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|None limit: max number of transactions to return, default is None
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {}
@@ -836,15 +954,16 @@ class indodax(Exchange):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -883,7 +1002,7 @@ class indodax(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -954,6 +1073,7 @@ class indodax(Exchange):
             'tag': None,
             'tagTo': None,
             'comment': self.safe_string(transaction, 'withdraw_memo'),
+            'internal': None,
             'fee': fee,
             'info': transaction,
         }
@@ -964,10 +1084,91 @@ class indodax(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
+        """
+        fetch deposit addresses for multiple currencies and chain types
+        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+        :param str[] [codes]: list of unified currency codes, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        response = await self.privatePostGetInfo(params)
+        #
+        #    {
+        #        success: '1',
+        #        return: {
+        #            server_time: '1708031570',
+        #            balance: {
+        #                idr: '29952',
+        #                ...
+        #            },
+        #            balance_hold: {
+        #                idr: '0',
+        #                ...
+        #            },
+        #            address: {
+        #                btc: '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
+        #                ...
+        #            },
+        #            memo_is_required: {
+        #                btc: {mainnet: False},
+        #                ...
+        #            },
+        #            network: {
+        #                btc: 'mainnet',
+        #                ...
+        #            },
+        #            user_id: '276011',
+        #            name: '',
+        #            email: 'testbitcoincoid@mailforspam.com',
+        #            profile_picture: null,
+        #            verification_status: 'unverified',
+        #            gauth_enable: True,
+        #            withdraw_status: '0'
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'return')
+        addresses = self.safe_dict(data, 'address', {})
+        networks = self.safe_dict(data, 'network', {})
+        addressKeys = list(addresses.keys())
+        result = {
+            'info': data,
+        }
+        for i in range(0, len(addressKeys)):
+            marketId = addressKeys[i]
+            code = self.safe_currency_code(marketId)
+            address = self.safe_string(addresses, marketId)
+            if (address is not None) and ((codes is None) or (self.in_array(code, codes))):
+                self.check_address(address)
+                network = None
+                if marketId in networks:
+                    networkId = self.safe_string(networks, marketId)
+                    if networkId.find(',') >= 0:
+                        network = []
+                        networkIds = networkId.split(',')
+                        for j in range(0, len(networkIds)):
+                            network.append(self.network_id_to_code(networkIds[j]).upper())
+                    else:
+                        network = self.network_id_to_code(networkId).upper()
+                result[code] = {
+                    'info': {},
+                    'currency': code,
+                    'address': address,
+                    'network': network,
+                    'tag': None,
+                }
+        return result
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
-            url += '/' + self.implode_params(path, params)
+            query = self.omit(params, self.extract_params(path))
+            requestPath = '/' + self.implode_params(path, params)
+            url = url + requestPath
+            if query:
+                url += '?' + self.urlencode_with_array_repeat(query)
         else:
             self.check_required_credentials()
             body = self.urlencode(self.extend({
@@ -984,21 +1185,21 @@ class indodax(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]
         if isinstance(response, list):
-            return  # public endpoints may return []-arrays
+            return None  # public endpoints may return []-arrays
         error = self.safe_value(response, 'error', '')
         if not ('success' in response) and error == '':
-            return  # no 'success' property on public responses
+            return None  # no 'success' property on public responses
         if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
             if not ('return' in response):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:
-                return
+                return None
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)

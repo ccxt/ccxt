@@ -21,19 +21,22 @@ async def main():
     })
     await exchange.load_markets()
     market_id = 'ETH-221028-1700-C'
+    symbol = 'ETH/USDT:USDT-221028-1700-C'
     timeframe = '1m'
     since = 1592317127349
     limit = 10
     try:
-        response = await exchange.eapiPublicGetKlines({
-            'symbol': market_id,
-            'interval': timeframe,
-            # 'startTime': since,  # optional
-            # 'limit': limit,  # optional
-        })
+        response = await exchange.fetch_OHLCV(symbol, timeframe, since, limit)
+        # Implicit API:
+        # response = await exchange.eapiPublicGetKlines({
+        #     'symbol': market_id,
+        #     'interval': timeframe,
+        #     # 'startTime': since,  # optional
+        #     # 'limit': limit,  # optional
+        # })
         pprint(response)
     except Exception as e:
-        print('eapiPublicGetKlines() failed')
+        print('fetch_OHLCV() failed')
         print(e)
     await exchange.close()
 

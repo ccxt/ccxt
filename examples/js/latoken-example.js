@@ -1,12 +1,13 @@
-"use strict";
 
-const ccxt      = require ('../../ccxt.js')
-    , asTable   = require ('as-table').configure ({ delimiter: ' | ' })
-    , log       = require ('ololog').unlimited.noLocate.handleNodeErrors ()
 
-//-----------------------------------------------------------------------------
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
+import asTable from 'as-table';
 
-;(async function main () {
+
+const table   = asTable.configure ({ delimiter: ' | ' }),
+      //-----------------------------------------------------------------------------
+      log       = ololog.unlimited.noLocate.handleNodeErrors ();(async function main () {
 
     const symbol = 'BTC/USDT'
 
@@ -29,13 +30,13 @@ const ccxt      = require ('../../ccxt.js')
 
     const markets = Object.values (exchange.markets)
     log ('Loaded', markets.length, exchange.id, 'markets:')
-    log (asTable (markets.map (x => exchange.omit (x, [ 'info', 'limits', 'precision' ]))))
+    log (table (markets.map (x => exchange.omit (x, [ 'info', 'limits', 'precision' ]))))
 
     log ('-------------------------------------------------------------------')
 
     const currencies = Object.values (exchange.currencies)
     log ('Loaded', currencies.length, exchange.id, 'currencies:')
-    log (asTable (currencies.map (x => exchange.omit (x, [ 'info', 'limits' ]))))
+    log (table (currencies.map (x => exchange.omit (x, [ 'info', 'limits' ]))))
 
     log ('-------------------------------------------------------------------')
 
@@ -50,7 +51,7 @@ const ccxt      = require ('../../ccxt.js')
     log ('-------------------------------------------------------------------')
 
     const tickers = await exchange.fetchTickers ()
-    log (asTable (Object.values (tickers).map (x =>
+    log (table (Object.values (tickers).map (x =>
         exchange.omit (x, [ 'info', 'bid', 'ask', 'bidVolume', 'askVolume', 'timestamp' ]))))
 
     log ('-------------------------------------------------------------------')
@@ -61,7 +62,7 @@ const ccxt      = require ('../../ccxt.js')
     log ('-------------------------------------------------------------------')
 
     const trades = await exchange.fetchTrades (symbol)
-    log (asTable (trades.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
+    log (table (trades.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
 
     log ('-------------------------------------------------------------------')
 
@@ -80,7 +81,7 @@ const ccxt      = require ('../../ccxt.js')
         log ('-------------------------------------------------------------------')
 
         const openOrders = await exchange.fetchOpenOrders (symbol)
-        log (asTable (openOrders.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
+        log (table (openOrders.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
 
         log ('-------------------------------------------------------------------')
 
@@ -90,17 +91,17 @@ const ccxt      = require ('../../ccxt.js')
         log ('-------------------------------------------------------------------')
 
         const closedOrders = await exchange.fetchClosedOrders (symbol)
-        log (asTable (closedOrders.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
+        log (table (closedOrders.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
 
         log ('-------------------------------------------------------------------')
 
         const canceledOrders = await exchange.fetchCanceledOrders (symbol)
-        log (asTable (canceledOrders.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
+        log (table (canceledOrders.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
 
         log ('-------------------------------------------------------------------')
 
         const myTrades = await exchange.fetchMyTrades (symbol)
-        log (asTable (myTrades.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
+        log (table (myTrades.map (x => exchange.omit (x, [ 'info', 'timestamp' ]))))
 
     }
 

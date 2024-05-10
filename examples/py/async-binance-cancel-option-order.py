@@ -20,16 +20,19 @@ async def main():
         # 'verbose': True,  # for debug output
     })
     await exchange.load_markets()
-    market_id = 'ETH-221028-1700-C'
+    market_id = 'ETH-230214-1525-C'
+    symbol = 'ETH/USDT:USDT-230214-1525-C'
     order_id = 4612100534317768959
     try:
-        response = await exchange.eapiPrivateDeleteOrder({
-            'symbol': market_id,
-            'orderId': order_id,
-        })
+        response = await exchange.cancel_order(order_id, symbol)
+        # Implicit API:
+        # response = await exchange.eapiPrivateDeleteOrder({
+        #     'symbol': market_id,
+        #     'orderId': order_id,
+        # })
         pprint(response)
     except Exception as e:
-        print('eapiPrivateDeleteOrder() failed')
+        print('cancel_order() failed')
         print(e)
     await exchange.close()
 

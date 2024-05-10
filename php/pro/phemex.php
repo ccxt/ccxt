@@ -6,12 +6,12 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class phemex extends \ccxt\async\phemex {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -24,13 +24,18 @@ class phemex extends \ccxt\async\phemex {
                 'watchOrders' => true,
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
+                'watchPositions' => null, // TODO
+                // mutli-endpoints are not supported => https://github.com/ccxt/ccxt/pull/21490
+                'watchOrderBookForSymbols' => false,
+                'watchTradesForSymbols' => false,
+                'watchOHLCVForSymbols' => false,
             ),
             'urls' => array(
                 'test' => array(
-                    'ws' => 'wss://testnet.phemex.com/ws',
+                    'ws' => 'wss://testnet-api.phemex.com/ws',
                 ),
                 'api' => array(
-                    'ws' => 'wss://phemex.com/ws',
+                    'ws' => 'wss://ws.phemex.com',
                 ),
             ),
             'options' => array(
@@ -38,7 +43,7 @@ class phemex extends \ccxt\async\phemex {
                 'OHLCVLimit' => 1000,
             ),
             'streaming' => array(
-                'keepAlive' => 20000,
+                'keepAlive' => 10000,
             ),
         ));
     }
@@ -83,18 +88,18 @@ class phemex extends \ccxt\async\phemex {
     public function parse_swap_ticker($ticker, $market = null) {
         //
         //     {
-        //         close => 442800,
-        //         fundingRate => 10000,
-        //         high => 445400,
-        //         indexPrice => 442621,
-        //         low => 428400,
-        //         markPrice => 442659,
-        //         $open => 432200,
-        //         openInterest => 744183,
-        //         predFundingRate => 10000,
-        //         $symbol => 'LTCUSD',
-        //         turnover => 8133238294,
-        //         volume => 934292
+        //         "close" => 442800,
+        //         "fundingRate" => 10000,
+        //         "high" => 445400,
+        //         "indexPrice" => 442621,
+        //         "low" => 428400,
+        //         "markPrice" => 442659,
+        //         "open" => 432200,
+        //         "openInterest" => 744183,
+        //         "predFundingRate" => 10000,
+        //         "symbol" => "LTCUSD",
+        //         "turnover" => 8133238294,
+        //         "volume" => 934292
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -140,109 +145,231 @@ class phemex extends \ccxt\async\phemex {
         return $result;
     }
 
-    public function handle_ticker($client, $message) {
+    public function parse_perpetual_ticker($ticker, $market = null) {
+        //
+        //    array(
+        //        "STXUSDT",
+        //        "0.64649",
+        //        "0.8628",
+        //        "0.61215",
+        //        "0.71737",
+        //        "4519387",
+        //        "3210827.98166",
+        //        "697635",
+        //        "0.71720205",
+        //        "0.71720205",
+        //        "0.0001",
+        //        "0.0001",
+        //    )
+        //
+        $marketId = $this->safe_string($ticker, 0);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $lastString = $this->from_ep($this->safe_string($ticker, 4), $market);
+        $last = $this->parse_number($lastString);
+        $quoteVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 6), $market));
+        $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 5), $market));
+        $change = null;
+        $percentage = null;
+        $average = null;
+        $openString = $this->omit_zero($this->from_ep($this->safe_string($ticker, 1), $market));
+        $open = $this->parse_number($openString);
+        if (($openString !== null) && ($lastString !== null)) {
+            $change = $this->parse_number(Precise::string_sub($lastString, $openString));
+            $average = $this->parse_number(Precise::string_div(Precise::string_add($lastString, $openString), '2'));
+            $percentage = $this->parse_number(Precise::string_mul(Precise::string_sub(Precise::string_div($lastString, $openString), '1'), '100'));
+        }
+        $result = array(
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'high' => $this->parse_number($this->from_ep($this->safe_string($ticker, 2), $market)),
+            'low' => $this->parse_number($this->from_ep($this->safe_string($ticker, 3), $market)),
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $open,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null, // previous day close
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
+            'info' => $ticker,
+        );
+        return $result;
+    }
+
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         spot_market24h => array(
-        //             askEp => 958148000000,
-        //             bidEp => 957884000000,
-        //             highEp => 962000000000,
-        //             lastEp => 958220000000,
-        //             lowEp => 928049000000,
-        //             openEp => 935597000000,
-        //             $symbol => 'sBTCUSDT',
-        //             turnoverEv => 146074214388978,
-        //             volumeEv => 15492228900
+        //         "spot_market24h" => array(
+        //             "askEp" => 958148000000,
+        //             "bidEp" => 957884000000,
+        //             "highEp" => 962000000000,
+        //             "lastEp" => 958220000000,
+        //             "lowEp" => 928049000000,
+        //             "openEp" => 935597000000,
+        //             "symbol" => "sBTCUSDT",
+        //             "turnoverEv" => 146074214388978,
+        //             "volumeEv" => 15492228900
         //         ),
-        //         $timestamp => 1592847265888272100
+        //         "timestamp" => 1592847265888272100
         //     }
         //
         // swap
         //
         //     {
-        //         market24h => array(
-        //             close => 442800,
-        //             fundingRate => 10000,
-        //             high => 445400,
-        //             indexPrice => 442621,
-        //             low => 428400,
-        //             markPrice => 442659,
-        //             open => 432200,
-        //             openInterest => 744183,
-        //             predFundingRate => 10000,
-        //             $symbol => 'LTCUSD',
-        //             turnover => 8133238294,
-        //             volume => 934292
+        //         "market24h" => array(
+        //             "close" => 442800,
+        //             "fundingRate" => 10000,
+        //             "high" => 445400,
+        //             "indexPrice" => 442621,
+        //             "low" => 428400,
+        //             "markPrice" => 442659,
+        //             "open" => 432200,
+        //             "openInterest" => 744183,
+        //             "predFundingRate" => 10000,
+        //             "symbol" => "LTCUSD",
+        //             "turnover" => 8133238294,
+        //             "volume" => 934292
         //         ),
-        //         $timestamp => 1592845585373374500
+        //         "timestamp" => 1592845585373374500
         //     }
         //
-        $name = 'market24h';
-        $ticker = $this->safe_value($message, $name);
-        $result = null;
-        if ($ticker === null) {
-            $name = 'spot_market24h';
-            $ticker = $this->safe_value($message, $name);
-            $result = $this->parse_ticker($ticker);
-        } else {
-            $result = $this->parse_swap_ticker($ticker);
+        // perpetual
+        //
+        //    {
+        //        "data" => array(
+        //            array(
+        //                "STXUSDT",
+        //                "0.64649",
+        //                "0.8628",
+        //                "0.61215",
+        //                "0.71737",
+        //                "4519387",
+        //                "3210827.98166",
+        //                "697635",
+        //                "0.71720205",
+        //                "0.71720205",
+        //                "0.0001",
+        //                "0.0001",
+        //            ),
+        //            ...
+        //        ),
+        //        "fields" => array(
+        //            "symbol",
+        //            "openRp",
+        //            "highRp",
+        //            "lowRp",
+        //            "lastRp",
+        //            "volumeRq",
+        //            "turnoverRv",
+        //            "openInterestRv",
+        //            "indexRp",
+        //            "markRp",
+        //            "fundingRateRr",
+        //            "predFundingRateRr",
+        //        ),
+        //        "method" => "perp_market24h_pack_p.update",
+        //        "timestamp" => "1677094918686806209",
+        //        "type" => "snapshot",
+        //    }
+        //
+        $tickers = array();
+        if (is_array($message) && array_key_exists('market24h', $message)) {
+            $ticker = $this->safe_value($message, 'market24h');
+            $tickers[] = $this->parse_swap_ticker($ticker);
+        } elseif (is_array($message) && array_key_exists('spot_market24h', $message)) {
+            $ticker = $this->safe_value($message, 'spot_market24h');
+            $tickers[] = $this->parse_ticker($ticker);
+        } elseif (is_array($message) && array_key_exists('data', $message)) {
+            $data = $this->safe_value($message, 'data', array());
+            for ($i = 0; $i < count($data); $i++) {
+                $tickers[] = $this->parse_perpetual_ticker($data[$i]);
+            }
         }
-        $symbol = $result['symbol'];
-        $messageHash = $name . ':' . $symbol;
-        $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        $this->tickers[$symbol] = $result;
-        $client->resolve ($result, $messageHash);
+        for ($i = 0; $i < count($tickers); $i++) {
+            $ticker = $tickers[$i];
+            $symbol = $ticker['symbol'];
+            $messageHash = 'ticker:' . $symbol;
+            $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
+            $ticker['timestamp'] = $timestamp;
+            $ticker['datetime'] = $this->iso8601($timestamp);
+            $this->tickers[$symbol] = $ticker;
+            $client->resolve ($ticker, $messageHash);
+        }
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * $query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-account-order-position-aop
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-account-order-position-aop
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-wallet-order-messages
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->settle] set to USDT to use hedged perpetual api
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            list($type, $query) = $this->handle_market_type_and_params('watchBalance', null, $params);
-            $messageHash = $type . ':balance';
-            return Async\await($this->subscribe_private($type, $messageHash, $query));
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+            $usePerpetualApi = $this->safe_string($params, 'settle') === 'USDT';
+            $messageHash = ':balance';
+            $messageHash = $usePerpetualApi ? 'perpetual' . $messageHash : $type . $messageHash;
+            return Async\await($this->subscribe_private($type, $messageHash, $params));
         }) ();
     }
 
     public function handle_balance($type, $client, $message) {
         // spot
-        //  array(
-        //     array(
-        //         balanceEv => 0,
-        //         $currency => 'BTC',
-        //         lastUpdateTimeNs => '1650442638722099092',
-        //         $lockedTradingBalanceEv => 0,
-        //         $lockedWithdrawEv => 0,
-        //         userID => 2647224
-        //       ),
-        //       {
-        //         balanceEv => 1154232337,
-        //         $currency => 'USDT',
-        //         lastUpdateTimeNs => '1650442617610017597',
-        //         $lockedTradingBalanceEv => 0,
-        //         $lockedWithdrawEv => 0,
-        //         userID => 2647224
-        //       }
+        //    array(
+        //       array(
+        //           "balanceEv" => 0,
+        //           "currency" => "BTC",
+        //           "lastUpdateTimeNs" => "1650442638722099092",
+        //           "lockedTradingBalanceEv" => 0,
+        //           "lockedWithdrawEv" => 0,
+        //           "userID" => 2647224
+        //         ),
+        //         {
+        //           "balanceEv" => 1154232337,
+        //           "currency" => "USDT",
+        //           "lastUpdateTimeNs" => "1650442617610017597",
+        //           "lockedTradingBalanceEv" => 0,
+        //           "lockedWithdrawEv" => 0,
+        //           "userID" => 2647224
+        //         }
+        //    )
+        // swap
+        //    array(
+        //        {
+        //            "accountBalanceEv" => 0,
+        //            "accountID" => 26472240001,
+        //            "bonusBalanceEv" => 0,
+        //            "currency" => "BTC",
+        //            "totalUsedBalanceEv" => 0,
+        //            "userID" => 2647224
+        //        }
+        //    )
+        // perpetual
+        //    array(
+        //        {
+        //            "accountBalanceRv" => "1508.452588802237",
+        //            "accountID" => 9328670003,
+        //            "bonusBalanceRv" => "0",
+        //            "currency" => "USDT",
+        //            "totalUsedBalanceRv" => "343.132599666883",
+        //            "userID" => 932867
+        //        }
         //    )
         //
-        // swap
-        //  array(
-        //       {
-        //         accountBalanceEv => 0,
-        //         accountID => 26472240001,
-        //         bonusBalanceEv => 0,
-        //         $currency => 'BTC',
-        //         totalUsedBalanceEv => 0,
-        //         userID => 2647224
-        //       }
-        //  )
-        //
+        $this->balance['info'] = $message;
         for ($i = 0; $i < count($message); $i++) {
             $balance = $message[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -250,15 +377,23 @@ class phemex extends \ccxt\async\phemex {
             $currency = $this->safe_value($this->currencies, $code, array());
             $scale = $this->safe_integer($currency, 'valueScale', 8);
             $account = $this->account();
-            $usedEv = $this->safe_string($balance, 'totalUsedBalanceEv');
-            if ($usedEv === null) {
-                $lockedTradingBalanceEv = $this->safe_string($balance, 'lockedTradingBalanceEv');
-                $lockedWithdrawEv = $this->safe_string($balance, 'lockedWithdrawEv');
-                $usedEv = Precise::string_add($lockedTradingBalanceEv, $lockedWithdrawEv);
+            $used = $this->safe_string($balance, 'totalUsedBalanceRv');
+            if ($used === null) {
+                $usedEv = $this->safe_string($balance, 'totalUsedBalanceEv');
+                if ($usedEv === null) {
+                    $lockedTradingBalanceEv = $this->safe_string($balance, 'lockedTradingBalanceEv');
+                    $lockedWithdrawEv = $this->safe_string_2($balance, 'lockedWithdrawEv', 'lockedWithdrawRv');
+                    $usedEv = Precise::string_add($lockedTradingBalanceEv, $lockedWithdrawEv);
+                }
+                $used = $this->from_en($usedEv, $scale);
             }
-            $totalEv = $this->safe_string_2($balance, 'accountBalanceEv', 'balanceEv');
-            $account['used'] = $this->from_en($usedEv, $scale);
-            $account['total'] = $this->from_en($totalEv, $scale);
+            $total = $this->safe_string($balance, 'accountBalanceRv');
+            if ($total === null) {
+                $totalEv = $this->safe_string_2($balance, 'accountBalanceEv', 'balanceEv');
+                $total = $this->from_en($totalEv, $scale);
+            }
+            $account['used'] = $used;
+            $account['total'] = $total;
             $this->balance[$code] = $account;
             $this->balance = $this->safe_balance($this->balance);
         }
@@ -266,17 +401,31 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         sequence => 1795484727,
-        //         $symbol => 'sBTCUSDT',
-        //         $trades => array(
-        //             array( 1592891002064516600, 'Buy', 964020000000, 1431000 ),
-        //             array( 1592890978987934500, 'Sell', 963704000000, 1401800 ),
-        //             array( 1592890972918701800, 'Buy', 963938000000, 2018600 ),
+        //         "sequence" => 1795484727,
+        //         "symbol" => "sBTCUSDT",
+        //         "trades" => array(
+        //             array( 1592891002064516600, "Buy", 964020000000, 1431000 ),
+        //             array( 1592890978987934500, "Sell", 963704000000, 1401800 ),
+        //             array( 1592890972918701800, "Buy", 963938000000, 2018600 ),
         //         ),
-        //         type => 'snapshot'
+        //         "type" => "snapshot"
+        //     }
+        //  perpetual
+        //     {
+        //         "sequence" => 1230197759,
+        //         "symbol" => "BTCUSDT",
+        //         "trades_p" => array(
+        //             array(
+        //                 1677094244729433000,
+        //                 "Buy",
+        //                 "23800.4",
+        //                 "2.455",
+        //             ),
+        //         ),
+        //         "type" => "snapshot",
         //     }
         //
         $name = 'trade';
@@ -290,7 +439,7 @@ class phemex extends \ccxt\async\phemex {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        $trades = $this->safe_value($message, 'trades', array());
+        $trades = $this->safe_value_2($message, 'trades', 'trades_p', array());
         $parsed = $this->parse_trades($trades, $market);
         for ($i = 0; $i < count($parsed); $i++) {
             $stored->append ($parsed[$i]);
@@ -298,29 +447,47 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         kline => array(
+        //         "kline" => array(
         //             array( 1592905200, 60, 960688000000, 960709000000, 960709000000, 960400000000, 960400000000, 848100, 8146756046 ),
         //             array( 1592905140, 60, 960718000000, 960716000000, 960717000000, 960560000000, 960688000000, 4284900, 41163743512 ),
         //             array( 1592905080, 60, 960513000000, 960684000000, 960718000000, 960684000000, 960718000000, 4880500, 46887494349 ),
         //         ),
-        //         sequence => 1804401474,
-        //         $symbol => 'sBTCUSDT',
-        //         type => 'snapshot'
+        //         "sequence" => 1804401474,
+        //         "symbol" => "sBTCUSDT",
+        //         "type" => "snapshot"
+        //     }
+        // perpetual
+        //     {
+        //         "kline_p" => array(
+        //             array(
+        //                 1677094560,
+        //                 60,
+        //                 "23746.2",
+        //                 "23746.1",
+        //                 "23757.6",
+        //                 "23736.9",
+        //                 "23754.8",
+        //                 "34.273",
+        //                 "813910.208",
+        //             ),
+        //         ),
+        //         "sequence" => 1230786017,
+        //         "symbol" => "BTCUSDT",
+        //         "type" => "incremental",
         //     }
         //
-        $name = 'kline';
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $candles = $this->safe_value($message, $name, array());
+        $candles = $this->safe_value_2($message, 'kline', 'kline_p', array());
         $first = $this->safe_value($candles, 0, array());
         $interval = $this->safe_string($first, 1);
         $timeframe = $this->find_timeframe($interval);
         if ($timeframe !== null) {
-            $messageHash = $name . ':' . $timeframe . ':' . $symbol;
+            $messageHash = 'kline:' . $timeframe . ':' . $symbol;
             $ohlcvs = $this->parse_ohlcvs($candles, $market);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
@@ -337,22 +504,30 @@ class phemex extends \ccxt\async\phemex {
         }
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#$subscribe-24-hours-ticker
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#$subscribe-24-hours-ticker
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#$subscribe-24-hours-ticker
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $name = $market['spot'] ? 'spot_market24h' : 'market24h';
+            $isSwap = $market['swap'];
+            $settleIsUSDT = $market['settle'] === 'USDT';
+            $name = 'spot_market24h';
+            if ($isSwap) {
+                $name = $settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
+            }
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
             $subscriptionHash = $name . '.subscribe';
-            $messageHash = $name . ':' . $symbol;
+            $messageHash = 'ticker:' . $symbol;
             $subscribe = array(
                 'method' => $subscriptionHash,
                 'id' => $requestId,
@@ -363,23 +538,28 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#$subscribe-trade
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#$subscribe-trade
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#$subscribe-trade
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
-            $name = 'trade';
-            $messageHash = $name . ':' . $symbol;
+            $isSwap = $market['swap'];
+            $settleIsUSDT = $market['settle'] === 'USDT';
+            $name = ($isSwap && $settleIsUSDT) ? 'trade_p' : 'trade';
+            $messageHash = 'trade:' . $symbol;
             $method = $name . '.subscribe';
             $subscribe = array(
                 'method' => $method,
@@ -397,22 +577,28 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#$subscribe-$orderbook
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#$subscribe-$orderbook-for-new-model
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#$subscribe-30-levels-$orderbook
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#$subscribe-full-$orderbook
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
-            $name = 'orderbook';
-            $messageHash = $name . ':' . $symbol;
+            $isSwap = $market['swap'];
+            $settleIsUSDT = $market['settle'] === 'USDT';
+            $name = ($isSwap && $settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+            $messageHash = 'orderbook:' . $symbol;
             $method = $name . '.subscribe';
             $subscribe = array(
                 'method' => $method,
@@ -427,24 +613,29 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#$subscribe-kline
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#$subscribe-kline
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#$subscribe-kline
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
-            $name = 'kline';
-            $messageHash = $name . ':' . $timeframe . ':' . $symbol;
+            $isSwap = $market['swap'];
+            $settleIsUSDT = $market['settle'] === 'USDT';
+            $name = ($isSwap && $settleIsUSDT) ? 'kline_p' : 'kline';
+            $messageHash = 'kline:' . $timeframe . ':' . $symbol;
             $method = $name . '.subscribe';
             $subscribe = array(
                 'method' => $method,
@@ -463,38 +654,60 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function handle_delta($bookside, $delta, $market = null) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1, $market);
+    public function custom_handle_delta($bookside, $delta, $market = null) {
+        $bidAsk = $this->custom_parse_bid_ask($delta, 0, 1, $market);
         $bookside->storeArray ($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas, $market = null) {
+    public function custom_handle_deltas($bookside, $deltas, $market = null) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i], $market);
+            $this->custom_handle_delta($bookside, $deltas[$i], $market);
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         $book => array(
-        //             $asks => array(
+        //         "book" => array(
+        //             "asks" => array(
         //                 array( 960316000000, 6993800 ),
         //                 array( 960318000000, 13183000 ),
         //                 array( 960319000000, 9170200 ),
         //             ),
-        //             $bids => array(
+        //             "bids" => array(
         //                 array( 959941000000, 8385300 ),
         //                 array( 959939000000, 10296600 ),
         //                 array( 959930000000, 3672400 ),
         //             )
         //         ),
-        //         $depth => 30,
-        //         sequence => 1805784701,
-        //         $symbol => 'sBTCUSDT',
-        //         $timestamp => 1592908460404461600,
-        //         $type => 'snapshot'
+        //         "depth" => 30,
+        //         "sequence" => 1805784701,
+        //         "symbol" => "sBTCUSDT",
+        //         "timestamp" => 1592908460404461600,
+        //         "type" => "snapshot"
         //     }
+        //  perpetual
+        //    {
+        //        "depth" => 30,
+        //        "orderbook_p" => array(
+        //            "asks" => array(
+        //                array(
+        //                    "23788.5",
+        //                    "0.13",
+        //                ),
+        //            ),
+        //            "bids" => array(
+        //                array(
+        //                    "23787.8",
+        //                    "1.836",
+        //                ),
+        //            ),
+        //        ),
+        //        "sequence" => 1230347368,
+        //        "symbol" => "BTCUSDT",
+        //        "timestamp" => "1677093457306978852",
+        //        "type" => "snapshot",
+        //    }
         //
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
@@ -506,8 +719,8 @@ class phemex extends \ccxt\async\phemex {
         $nonce = $this->safe_integer($message, 'sequence');
         $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
         if ($type === 'snapshot') {
-            $book = $this->safe_value($message, 'book', array());
-            $snapshot = $this->parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
+            $book = $this->safe_value_2($message, 'book', 'orderbook_p', array());
+            $snapshot = $this->custom_parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
             $snapshot['nonce'] = $nonce;
             $orderbook = $this->order_book($snapshot, $depth);
             $this->orderbooks[$symbol] = $orderbook;
@@ -515,11 +728,11 @@ class phemex extends \ccxt\async\phemex {
         } else {
             $orderbook = $this->safe_value($this->orderbooks, $symbol);
             if ($orderbook !== null) {
-                $changes = $this->safe_value($message, 'book', array());
+                $changes = $this->safe_value_2($message, 'book', 'orderbook_p', array());
                 $asks = $this->safe_value($changes, 'asks', array());
                 $bids = $this->safe_value($changes, 'bids', array());
-                $this->handle_deltas($orderbook['asks'], $asks, $market);
-                $this->handle_deltas($orderbook['bids'], $bids, $market);
+                $this->custom_handle_deltas($orderbook['asks'], $asks, $market);
+                $this->custom_handle_deltas($orderbook['bids'], $bids, $market);
                 $orderbook['nonce'] = $nonce;
                 $orderbook['timestamp'] = $timestamp;
                 $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -529,28 +742,33 @@ class phemex extends \ccxt\async\phemex {
         }
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
-            $messageHash = 'trades';
             $market = null;
             $type = null;
+            $messageHash = 'trades:';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
-                $messageHash = $messageHash . ':' . $market['symbol'];
+                $messageHash = $messageHash . $market['symbol'];
+                if ($market['settle'] === 'USDT') {
+                    $params = $this->extend($params);
+                    $params['settle'] = 'USDT';
+                }
             }
             list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
             if ($symbol === null) {
-                $messageHash = $messageHash . ':' . $type;
+                $settle = $this->safe_string($params, 'settle');
+                $messageHash = ($settle === 'USDT') ? ($messageHash . 'perpetual') : ($messageHash . $type);
             }
             $trades = Async\await($this->subscribe_private($type, $messageHash, $params));
             if ($this->newUpdates) {
@@ -560,34 +778,99 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
-        // array(
-        //    {
-        //       "avgPriceEp":4138763000000,
-        //       "baseCurrency":"BTC",
-        //       "baseQtyEv":0,
-        //       "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
-        //       "execBaseQtyEv":30100,
-        //       "execFeeEv":31,
-        //       "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
-        //       "execPriceEp":4138763000000,
-        //       "execQuoteQtyEv":1245767663,
-        //       "feeCurrency":"BTC",
-        //       "lastLiquidityInd":"RemovedLiquidity",
-        //       "ordType":"Market",
-        //       "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
-        //       "priceEp":4549022000000,
-        //       "qtyType":"ByQuote",
-        //       "quoteCurrency":"USDT",
-        //       "quoteQtyEv":1248000000,
-        //       "side":"Buy",
-        //       "symbol":"sBTCUSDT",
-        //       "tradeType":"Trade",
-        //       "transactTimeNs":"1650442617609928764",
-        //       "userID":2647224
-        //    }
-        //  )
+        // swap
+        //    array(
+        //        {
+        //            "avgPriceEp":4138763000000,
+        //            "baseCurrency":"BTC",
+        //            "baseQtyEv":0,
+        //            "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        //            "execBaseQtyEv":30100,
+        //            "execFeeEv":31,
+        //            "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
+        //            "execPriceEp":4138763000000,
+        //            "execQuoteQtyEv":1245767663,
+        //            "feeCurrency":"BTC",
+        //            "lastLiquidityInd":"RemovedLiquidity",
+        //            "ordType":"Market",
+        //            "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        //            "priceEp":4549022000000,
+        //            "qtyType":"ByQuote",
+        //            "quoteCurrency":"USDT",
+        //            "quoteQtyEv":1248000000,
+        //            "side":"Buy",
+        //            "symbol":"sBTCUSDT",
+        //            "tradeType":"Trade",
+        //            "transactTimeNs":"1650442617609928764",
+        //            "userID":2647224
+        //        }
+        //    )
+        // perpetual
+        //    array(
+        //        array(
+        //            "accountID" => 9328670003,
+        //            "action" => "New",
+        //            "actionBy" => "ByUser",
+        //            "actionTimeNs" => 1666858780876924611,
+        //            "addedSeq" => 77751555,
+        //            "apRp" => "0",
+        //            "bonusChangedAmountRv" => "0",
+        //            "bpRp" => "0",
+        //            "clOrdID" => "c0327a7d-9064-62a9-28f6-2db9aaaa04e0",
+        //            "closedPnlRv" => "0",
+        //            "closedSize" => "0",
+        //            "code" => 0,
+        //            "cumFeeRv" => "0",
+        //            "cumQty" => "0",
+        //            "cumValueRv" => "0",
+        //            "curAccBalanceRv" => "1508.489893982237",
+        //            "curAssignedPosBalanceRv" => "24.62786650928",
+        //            "curBonusBalanceRv" => "0",
+        //            "curLeverageRr" => "-10",
+        //            "curPosSide" => "Buy",
+        //            "curPosSize" => "0.043",
+        //            "curPosTerm" => 1,
+        //            "curPosValueRv" => "894.0689",
+        //            "curRiskLimitRv" => "1000000",
+        //            "currency" => "USDT",
+        //            "cxlRejReason" => 0,
+        //            "displayQty" => "0.003",
+        //            "execFeeRv" => "0",
+        //            "execID" => "00000000-0000-0000-0000-000000000000",
+        //            "execPriceRp" => "20723.7",
+        //            "execQty" => "0",
+        //            "execSeq" => 77751555,
+        //            "execStatus" => "New",
+        //            "execValueRv" => "0",
+        //            "feeRateRr" => "0",
+        //            "leavesQty" => "0.003",
+        //            "leavesValueRv" => "63.4503",
+        //            "message" => "No error",
+        //            "ordStatus" => "New",
+        //            "ordType" => "Market",
+        //            "orderID" => "fa64c6f2-47a4-4929-aab4-b7fa9bbc4323",
+        //            "orderQty" => "0.003",
+        //            "pegOffsetValueRp" => "0",
+        //            "posSide" => "Long",
+        //            "priceRp" => "21150.1",
+        //            "relatedPosTerm" => 1,
+        //            "relatedReqNum" => 11,
+        //            "side" => "Buy",
+        //            "slTrigger" => "ByMarkPrice",
+        //            "stopLossRp" => "0",
+        //            "stopPxRp" => "0",
+        //            "symbol" => "BTCUSDT",
+        //            "takeProfitRp" => "0",
+        //            "timeInForce" => "ImmediateOrCancel",
+        //            "tpTrigger" => "ByLastPrice",
+        //            "tradeType" => "Amend",
+        //            "transactTimeNs" => 1666858780881545305,
+        //            "userID" => 932867
+        //        ),
+        //        ...
+        //    )
         //
         $channel = 'trades';
         $tradesLength = count($message);
@@ -609,7 +892,7 @@ class phemex extends \ccxt\async\phemex {
             $cachedTrades->append ($parsed);
             $symbol = $parsed['symbol'];
             if ($type === null) {
-                $type = $market['type'];
+                $type = ($market['settle'] === 'USDT') ? 'perpetual' : $market['type'];
             }
             $marketIds[$symbol] = true;
         }
@@ -624,28 +907,33 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve ($cachedTrades, $messageHash);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $messageHash = 'orders';
+            $messageHash = 'orders:';
             $market = null;
             $type = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
-                $messageHash = $messageHash . ':' . $market['symbol'];
+                $messageHash = $messageHash . $market['symbol'];
+                if ($market['settle'] === 'USDT') {
+                    $params = $this->extend($params);
+                    $params['settle'] = 'USDT';
+                }
             }
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $isUSDTSettled = $this->safe_string($params, 'settle') === 'USDT';
             if ($symbol === null) {
-                $messageHash = $messageHash . ':' . $type;
+                $messageHash = ($isUSDTSettled) ? ($messageHash . 'perpetual') : ($messageHash . $type);
             }
             $orders = Async\await($this->subscribe_private($type, $messageHash, $params));
             if ($this->newUpdates) {
@@ -655,7 +943,7 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         // spot $update
         // {
         //        "closed":array(
@@ -746,6 +1034,73 @@ class phemex extends \ccxt\async\phemex {
         //            }
         //        )
         //  ),
+        // perpetual
+        //    array(
+        //        array(
+        //          "accountID" => 40183400003,
+        //          "action" => "New",
+        //          "actionBy" => "ByUser",
+        //          "actionTimeNs" => "1674110665380190869",
+        //          "addedSeq" => 678760103,
+        //          "apRp" => "0",
+        //          "bonusChangedAmountRv" => "0",
+        //          "bpRp" => "0",
+        //          "clOrdID" => '',
+        //          "cl_req_code" => 0,
+        //          "closedPnlRv" => "0",
+        //          "closedSize" => "0",
+        //          "code" => 0,
+        //          "cumFeeRv" => "0",
+        //          "cumQty" => "0.001",
+        //          "cumValueRv" => "20.849",
+        //          "curAccBalanceRv" => "19.9874906",
+        //          "curAssignedPosBalanceRv" => "0",
+        //          "curBonusBalanceRv" => "0",
+        //          "curLeverageRr" => "-10",
+        //          "curPosSide" => "Buy",
+        //          "curPosSize" => "0.001",
+        //          "curPosTerm" => 1,
+        //          "curPosValueRv" => "20.849",
+        //          "curRiskLimitRv" => "1000000",
+        //          "currency" => "USDT",
+        //          "cxlRejReason" => 0,
+        //          "displayQty" => "0.001",
+        //          "execFeeRv" => "0.0125094",
+        //          "execID" => "b88d2950-04a2-52d8-8927-346059900242",
+        //          "execPriceRp" => "20849",
+        //          "execQty" => "0.001",
+        //          "execSeq" => 678760103,
+        //          "execStatus" => "TakerFill",
+        //          "execValueRv" => "20.849",
+        //          "feeRateRr" => "0.0006",
+        //          "lastLiquidityInd" => "RemovedLiquidity",
+        //          "leavesQty" => "0",
+        //          "leavesValueRv" => "0",
+        //          "message" => "No error",
+        //          "ordStatus" => "Filled",
+        //          "ordType" => "Market",
+        //          "orderID" => "79620ed2-54c6-4645-a35c-7057e687c576",
+        //          "orderQty" => "0.001",
+        //          "pegOffsetProportionRr" => "0",
+        //          "pegOffsetValueRp" => "0",
+        //          "posSide" => "Long",
+        //          "priceRp" => "21476.3",
+        //          "relatedPosTerm" => 1,
+        //          "relatedReqNum" => 4,
+        //          "side" => "Buy",
+        //          "slTrigger" => "ByMarkPrice",
+        //          "stopLossRp" => "0",
+        //          "stopPxRp" => "0",
+        //          "symbol" => "BTCUSDT",
+        //          "takeProfitRp" => "0",
+        //          "timeInForce" => "ImmediateOrCancel",
+        //          "tpTrigger" => "ByLastPrice",
+        //          "tradeType" => "Trade",
+        //          "transactTimeNs" => "1674110665387882268",
+        //          "userID" => 4018340
+        //        ),
+        //        ...
+        //    )
         //
         $trades = array();
         $parsedOrders = array();
@@ -789,14 +1144,15 @@ class phemex extends \ccxt\async\phemex {
             $symbol = $parsed['symbol'];
             $market = $this->market($symbol);
             if ($type === null) {
-                $type = $market['type'];
+                $isUsdt = $market['settle'] === 'USDT';
+                $type = $isUsdt ? 'perpetual' : $market['type'];
             }
             $marketIds[$symbol] = true;
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $messageHash = 'orders' . ':' . $keys[$i];
-            $client->resolve ($this->orders, $messageHash);
+            $currentMessageHash = 'orders' . ':' . $keys[$i];
+            $client->resolve ($this->orders, $currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
         $messageHash = 'orders:' . $type;
@@ -805,61 +1161,126 @@ class phemex extends \ccxt\async\phemex {
 
     public function parse_ws_swap_order($order, $market = null) {
         //
-        // {
-        //     "accountID":26472240002,
-        //     "action":"Cancel",
-        //     "actionBy":"ByUser",
-        //     "actionTimeNs":"1650450096104760797",
-        //     "addedSeq":26975849309,
-        //     "bonusChangedAmountEv":0,
-        //     "clOrdID":"d9675963-5e4e-6fc8-898a-ec8b934c1c61",
-        //     "closedPnlEv":0,
-        //     "closedSize":0,
-        //     "code":0,
-        //     "cumQty":0,
-        //     "cumValueEv":0,
-        //     "curAccBalanceEv":400079,
-        //     "curAssignedPosBalanceEv":0,
-        //     "curBonusBalanceEv":0,
-        //     "curLeverageEr":0,
-        //     "curPosSide":"None",
-        //     "curPosSize":0,
-        //     "curPosTerm":1,
-        //     "curPosValueEv":0,
-        //     "curRiskLimitEv":5000000000,
-        //     "currency":"USD",
-        //     "cxlRejReason":0,
-        //     "displayQty":0,
-        //     "execFeeEv":0,
-        //     "execID":"00000000-0000-0000-0000-000000000000",
-        //     "execPriceEp":0,
-        //     "execQty":1,
-        //     "execSeq":26975862338,
-        //     "execStatus":"Canceled",
-        //     "execValueEv":0,
-        //     "feeRateEr":0,
-        //     "leavesQty":0,
-        //     "leavesValueEv":0,
-        //     "message":"No error",
-        //     "ordStatus":"Canceled",
-        //     "ordType":"Limit",
-        //     "orderID":"8141deb9-8f94-48f6-9421-a4e3a791537b",
-        //     "orderQty":1,
-        //     "pegOffsetValueEp":0,
-        //     "priceEp":9521,
-        //     "relatedPosTerm":1,
-        //     "relatedReqNum":4,
-        //     "side":"Buy",
-        //     "slTrigger":"ByMarkPrice",
-        //     "stopLossEp":0,
-        //     "stopPxEp":0,
-        //     "symbol":"ADAUSD",
-        //     "takeProfitEp":0,
-        //     "timeInForce":"GoodTillCancel",
-        //     "tpTrigger":"ByLastPrice",
-        //     "transactTimeNs":"1650450096108143014",
-        //     "userID":2647224
-        //  }
+        // swap
+        //    {
+        //        "accountID":26472240002,
+        //        "action":"Cancel",
+        //        "actionBy":"ByUser",
+        //        "actionTimeNs":"1650450096104760797",
+        //        "addedSeq":26975849309,
+        //        "bonusChangedAmountEv":0,
+        //        "clOrdID":"d9675963-5e4e-6fc8-898a-ec8b934c1c61",
+        //        "closedPnlEv":0,
+        //        "closedSize":0,
+        //        "code":0,
+        //        "cumQty":0,
+        //        "cumValueEv":0,
+        //        "curAccBalanceEv":400079,
+        //        "curAssignedPosBalanceEv":0,
+        //        "curBonusBalanceEv":0,
+        //        "curLeverageEr":0,
+        //        "curPosSide":"None",
+        //        "curPosSize":0,
+        //        "curPosTerm":1,
+        //        "curPosValueEv":0,
+        //        "curRiskLimitEv":5000000000,
+        //        "currency":"USD",
+        //        "cxlRejReason":0,
+        //        "displayQty":0,
+        //        "execFeeEv":0,
+        //        "execID":"00000000-0000-0000-0000-000000000000",
+        //        "execPriceEp":0,
+        //        "execQty":1,
+        //        "execSeq":26975862338,
+        //        "execStatus":"Canceled",
+        //        "execValueEv":0,
+        //        "feeRateEr":0,
+        //        "leavesQty":0,
+        //        "leavesValueEv":0,
+        //        "message":"No error",
+        //        "ordStatus":"Canceled",
+        //        "ordType":"Limit",
+        //        "orderID":"8141deb9-8f94-48f6-9421-a4e3a791537b",
+        //        "orderQty":1,
+        //        "pegOffsetValueEp":0,
+        //        "priceEp":9521,
+        //        "relatedPosTerm":1,
+        //        "relatedReqNum":4,
+        //        "side":"Buy",
+        //        "slTrigger":"ByMarkPrice",
+        //        "stopLossEp":0,
+        //        "stopPxEp":0,
+        //        "symbol":"ADAUSD",
+        //        "takeProfitEp":0,
+        //        "timeInForce":"GoodTillCancel",
+        //        "tpTrigger":"ByLastPrice",
+        //        "transactTimeNs":"1650450096108143014",
+        //        "userID":2647224
+        //    }
+        // perpetual
+        //    {
+        //        "accountID" => 40183400003,
+        //        "action" => "New",
+        //        "actionBy" => "ByUser",
+        //        "actionTimeNs" => "1674110665380190869",
+        //        "addedSeq" => 678760103,
+        //        "apRp" => "0",
+        //        "bonusChangedAmountRv" => "0",
+        //        "bpRp" => "0",
+        //        "clOrdID" => '',
+        //        "cl_req_code" => 0,
+        //        "closedPnlRv" => "0",
+        //        "closedSize" => "0",
+        //        "code" => 0,
+        //        "cumFeeRv" => "0",
+        //        "cumQty" => "0.001",
+        //        "cumValueRv" => "20.849",
+        //        "curAccBalanceRv" => "19.9874906",
+        //        "curAssignedPosBalanceRv" => "0",
+        //        "curBonusBalanceRv" => "0",
+        //        "curLeverageRr" => "-10",
+        //        "curPosSide" => "Buy",
+        //        "curPosSize" => "0.001",
+        //        "curPosTerm" => 1,
+        //        "curPosValueRv" => "20.849",
+        //        "curRiskLimitRv" => "1000000",
+        //        "currency" => "USDT",
+        //        "cxlRejReason" => 0,
+        //        "displayQty" => "0.001",
+        //        "execFeeRv" => "0.0125094",
+        //        "execID" => "b88d2950-04a2-52d8-8927-346059900242",
+        //        "execPriceRp" => "20849",
+        //        "execQty" => "0.001",
+        //        "execSeq" => 678760103,
+        //        "execStatus" => "TakerFill",
+        //        "execValueRv" => "20.849",
+        //        "feeRateRr" => "0.0006",
+        //        "lastLiquidityInd" => "RemovedLiquidity",
+        //        "leavesQty" => "0",
+        //        "leavesValueRv" => "0",
+        //        "message" => "No error",
+        //        "ordStatus" => "Filled",
+        //        "ordType" => "Market",
+        //        "orderID" => "79620ed2-54c6-4645-a35c-7057e687c576",
+        //        "orderQty" => "0.001",
+        //        "pegOffsetProportionRr" => "0",
+        //        "pegOffsetValueRp" => "0",
+        //        "posSide" => "Long",
+        //        "priceRp" => "21476.3",
+        //        "relatedPosTerm" => 1,
+        //        "relatedReqNum" => 4,
+        //        "side" => "Buy",
+        //        "slTrigger" => "ByMarkPrice",
+        //        "stopLossRp" => "0",
+        //        "stopPxRp" => "0",
+        //        "symbol" => "BTCUSDT",
+        //        "takeProfitRp" => "0",
+        //        "timeInForce" => "ImmediateOrCancel",
+        //        "tpTrigger" => "ByLastPrice",
+        //        "tradeType" => "Trade",
+        //        "transactTimeNs" => "1674110665387882268",
+        //        "userID" => 4018340
+        //    }
         //
         $id = $this->safe_string($order, 'orderID');
         $clientOrderId = $this->safe_string($order, 'clOrdID');
@@ -872,18 +1293,17 @@ class phemex extends \ccxt\async\phemex {
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parseOrderType ($this->safe_string($order, 'ordType'));
-        $price = $this->parse_number($this->from_ep($this->safe_string($order, 'priceEp'), $market));
+        $price = $this->safe_string($order, 'priceRp', $this->from_ep($this->safe_string($order, 'priceEp'), $market));
         $amount = $this->safe_string($order, 'orderQty');
         $filled = $this->safe_string($order, 'cumQty');
         $remaining = $this->safe_string($order, 'leavesQty');
         $timestamp = $this->safe_integer_product($order, 'actionTimeNs', 0.000001);
-        $costEv = $this->safe_string($order, 'cumValueEv');
-        $cost = $this->from_ev($costEv, $market);
+        $cost = $this->safe_string($order, 'cumValueRv', $this->from_ev($this->safe_string($order, 'cumValueEv'), $market));
         $lastTradeTimestamp = $this->safe_integer_product($order, 'transactTimeNs', 0.000001);
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;
         }
-        $timeInForce = $this->parseTimeInForce ($this->safe_string($order, 'timeInForce'));
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->safe_string($order, 'stopPx');
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
@@ -912,143 +1332,140 @@ class phemex extends \ccxt\async\phemex {
         ), $market);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         // private spot update
         // {
-        //     $orders => array( closed => [ ], fills => [ ], open => array() ),
-        //     sequence => 40435835,
-        //     timestamp => '1650443245600839241',
-        //     $type => 'snapshot',
-        //     wallets => array(
+        //     "orders" => array( closed => [ ], fills => [ ], open => array() ),
+        //     "sequence" => 40435835,
+        //     "timestamp" => "1650443245600839241",
+        //     "type" => "snapshot",
+        //     "wallets" => array(
         //       array(
-        //         balanceEv => 0,
-        //         currency => 'BTC',
-        //         lastUpdateTimeNs => '1650442638722099092',
-        //         lockedTradingBalanceEv => 0,
-        //         lockedWithdrawEv => 0,
-        //         userID => 2647224
+        //         "balanceEv" => 0,
+        //         "currency" => "BTC",
+        //         "lastUpdateTimeNs" => "1650442638722099092",
+        //         "lockedTradingBalanceEv" => 0,
+        //         "lockedWithdrawEv" => 0,
+        //         "userID" => 2647224
         //       ),
         //       {
-        //         balanceEv => 1154232337,
-        //         currency => 'USDT',
-        //         lastUpdateTimeNs => '1650442617610017597',
-        //         lockedTradingBalanceEv => 0,
-        //         lockedWithdrawEv => 0,
-        //         userID => 2647224
+        //         "balanceEv" => 1154232337,
+        //         "currency" => "USDT",
+        //         "lastUpdateTimeNs" => "1650442617610017597",
+        //         "lockedTradingBalanceEv" => 0,
+        //         "lockedWithdrawEv" => 0,
+        //         "userID" => 2647224
         //       }
         //     )
         // }
         // private swap update
         // {
-        //     sequence => 83839628,
-        //     timestamp => '1650382581827447829',
-        //     $type => 'snapshot',
-        //     $accounts => array(
+        //     "sequence" => 83839628,
+        //     "timestamp" => "1650382581827447829",
+        //     "type" => "snapshot",
+        //     "accounts" => array(
         //       {
-        //         accountBalanceEv => 0,
-        //         accountID => 26472240001,
-        //         bonusBalanceEv => 0,
-        //         currency => 'BTC',
-        //         totalUsedBalanceEv => 0,
-        //         userID => 2647224
+        //         "accountBalanceEv" => 0,
+        //         "accountID" => 26472240001,
+        //         "bonusBalanceEv" => 0,
+        //         "currency" => "BTC",
+        //         "totalUsedBalanceEv" => 0,
+        //         "userID" => 2647224
         //       }
         //     ),
-        //     $orders => array(),
-        //     positions => array(
+        //     "orders" => array(),
+        //     "positions" => array(
         //       {
-        //         accountID => 26472240001,
-        //         assignedPosBalanceEv => 0,
-        //         avgEntryPriceEp => 0,
-        //         bankruptCommEv => 0,
-        //         bankruptPriceEp => 0,
-        //         buyLeavesQty => 0,
-        //         buyLeavesValueEv => 0,
-        //         buyValueToCostEr => 1150750,
-        //         createdAtNs => 0,
-        //         crossSharedBalanceEv => 0,
-        //         cumClosedPnlEv => 0,
-        //         cumFundingFeeEv => 0,
-        //         cumTransactFeeEv => 0,
-        //         curTermRealisedPnlEv => 0,
-        //         currency => 'BTC',
-        //         dataVer => 2,
-        //         deleveragePercentileEr => 0,
-        //         displayLeverageEr => 10000000000,
-        //         estimatedOrdLossEv => 0,
-        //         execSeq => 0,
-        //         freeCostEv => 0,
-        //         freeQty => 0,
-        //         initMarginReqEr => 1000000,
-        //         lastFundingTime => '1640601827712091793',
-        //         lastTermEndTime => 0,
-        //         leverageEr => 0,
-        //         liquidationPriceEp => 0,
-        //         maintMarginReqEr => 500000,
-        //         makerFeeRateEr => 0,
-        //         markPriceEp => 507806777,
-        //         orderCostEv => 0,
-        //         posCostEv => 0,
-        //         positionMarginEv => 0,
-        //         positionStatus => 'Normal',
-        //         riskLimitEv => 10000000000,
-        //         sellLeavesQty => 0,
-        //         sellLeavesValueEv => 0,
-        //         sellValueToCostEr => 1149250,
-        //         side => 'None',
-        //         size => 0,
-        //         symbol => 'BTCUSD',
-        //         takerFeeRateEr => 0,
-        //         term => 1,
-        //         transactTimeNs => 0,
-        //         unrealisedPnlEv => 0,
-        //         updatedAtNs => 0,
-        //         usedBalanceEv => 0,
-        //         userID => 2647224,
-        //         valueEv => 0
+        //         "accountID" => 26472240001,
+        //         "assignedPosBalanceEv" => 0,
+        //         "avgEntryPriceEp" => 0,
+        //         "bankruptCommEv" => 0,
+        //         "bankruptPriceEp" => 0,
+        //         "buyLeavesQty" => 0,
+        //         "buyLeavesValueEv" => 0,
+        //         "buyValueToCostEr" => 1150750,
+        //         "createdAtNs" => 0,
+        //         "crossSharedBalanceEv" => 0,
+        //         "cumClosedPnlEv" => 0,
+        //         "cumFundingFeeEv" => 0,
+        //         "cumTransactFeeEv" => 0,
+        //         "curTermRealisedPnlEv" => 0,
+        //         "currency" => "BTC",
+        //         "dataVer" => 2,
+        //         "deleveragePercentileEr" => 0,
+        //         "displayLeverageEr" => 10000000000,
+        //         "estimatedOrdLossEv" => 0,
+        //         "execSeq" => 0,
+        //         "freeCostEv" => 0,
+        //         "freeQty" => 0,
+        //         "initMarginReqEr" => 1000000,
+        //         "lastFundingTime" => "1640601827712091793",
+        //         "lastTermEndTime" => 0,
+        //         "leverageEr" => 0,
+        //         "liquidationPriceEp" => 0,
+        //         "maintMarginReqEr" => 500000,
+        //         "makerFeeRateEr" => 0,
+        //         "markPriceEp" => 507806777,
+        //         "orderCostEv" => 0,
+        //         "posCostEv" => 0,
+        //         "positionMarginEv" => 0,
+        //         "positionStatus" => "Normal",
+        //         "riskLimitEv" => 10000000000,
+        //         "sellLeavesQty" => 0,
+        //         "sellLeavesValueEv" => 0,
+        //         "sellValueToCostEr" => 1149250,
+        //         "side" => "None",
+        //         "size" => 0,
+        //         "symbol" => "BTCUSD",
+        //         "takerFeeRateEr" => 0,
+        //         "term" => 1,
+        //         "transactTimeNs" => 0,
+        //         "unrealisedPnlEv" => 0,
+        //         "updatedAtNs" => 0,
+        //         "usedBalanceEv" => 0,
+        //         "userID" => 2647224,
+        //         "valueEv" => 0
         //       }
         //     )
         // }
-        $id = $this->safe_integer($message, 'id');
-        if ($id !== null) {
-            // not every $method stores its $subscription
-            // as an object so we can't do indeById here
-            $subs = $client->subscriptions;
-            $values = is_array($subs) ? array_values($subs) : array();
-            for ($i = 0; $i < count($values); $i++) {
-                $subscription = $values[$i];
-                if ($subscription !== true) {
-                    $subId = $this->safe_integer($subscription, 'id');
-                    if (($subId !== null) && ($subId === $id)) {
-                        $method = $this->safe_value($subscription, 'method');
-                        if ($method !== null) {
-                            $method($client, $message);
-                            return;
-                        }
-                    }
-                }
+        $id = $this->safe_string($message, 'id');
+        if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+            $method = $client->subscriptions[$id];
+            unset($client->subscriptions[$id]);
+            if ($method !== true) {
+                $method($client, $message);
+                return;
             }
         }
-        if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message))) {
-            return $this->handle_ticker($client, $message);
-        } elseif (is_array($message) && array_key_exists('trades', $message)) {
-            return $this->handle_trades($client, $message);
-        } elseif (is_array($message) && array_key_exists('kline', $message)) {
-            return $this->handle_ohlcv($client, $message);
-        } elseif (is_array($message) && array_key_exists('book', $message)) {
-            return $this->handle_order_book($client, $message);
+        $methodName = $this->safe_string($message, 'method', '');
+        if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message)) || (mb_strpos($methodName, 'perp_market24h_pack_p') !== false)) {
+            $this->handle_ticker($client, $message);
+            return;
+        } elseif ((is_array($message) && array_key_exists('trades', $message)) || (is_array($message) && array_key_exists('trades_p', $message))) {
+            $this->handle_trades($client, $message);
+            return;
+        } elseif ((is_array($message) && array_key_exists('kline', $message)) || (is_array($message) && array_key_exists('kline_p', $message))) {
+            $this->handle_ohlcv($client, $message);
+            return;
+        } elseif ((is_array($message) && array_key_exists('book', $message)) || (is_array($message) && array_key_exists('orderbook_p', $message))) {
+            $this->handle_order_book($client, $message);
+            return;
         }
-        if (is_array($message) && array_key_exists('orders', $message)) {
-            $orders = $this->safe_value($message, 'orders', array());
+        if ((is_array($message) && array_key_exists('orders', $message)) || (is_array($message) && array_key_exists('orders_p', $message))) {
+            $orders = $this->safe_value_2($message, 'orders', 'orders_p', array());
             $this->handle_orders($client, $orders);
         }
-        if ((is_array($message) && array_key_exists('accounts', $message)) || (is_array($message) && array_key_exists('wallets', $message))) {
+        if ((is_array($message) && array_key_exists('accounts', $message)) || (is_array($message) && array_key_exists('accounts_p', $message)) || (is_array($message) && array_key_exists('wallets', $message))) {
             $type = (is_array($message) && array_key_exists('accounts', $message)) ? 'swap' : 'spot';
-            $accounts = $this->safe_value_2($message, 'accounts', 'wallets', array());
+            if (is_array($message) && array_key_exists('accounts_p', $message)) {
+                $type = 'perpetual';
+            }
+            $accounts = $this->safe_value_n($message, array( 'accounts', 'accounts_p', 'wallets' ), array());
             $this->handle_balance($type, $client, $accounts);
         }
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         // {
         //     "error" => null,
@@ -1058,9 +1475,18 @@ class phemex extends \ccxt\async\phemex {
         //     }
         // }
         //
-        $future = $client->futures['authenticated'];
-        $future->resolve (1);
-        return $message;
+        $result = $this->safe_value($message, 'result');
+        $status = $this->safe_string($result, 'status');
+        $messageHash = 'authenticated';
+        if ($status === 'success') {
+            $client->resolve ($message, $messageHash);
+        } else {
+            $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
+            $client->reject ($error, $messageHash);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                unset($client->subscriptions[$messageHash]);
+            }
+        }
     }
 
     public function subscribe_private($type, $messageHash, $params = array ()) {
@@ -1069,18 +1495,22 @@ class phemex extends \ccxt\async\phemex {
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
             $requestId = $this->seconds();
-            $channel = ($type === 'spot') ? 'wo.subscribe' : 'aop.subscribe';
+            $settleIsUSDT = ($this->safe_value($params, 'settle', '') === 'USDT');
+            $params = $this->omit($params, 'settle');
+            $channel = 'aop.subscribe';
+            if ($type === 'spot') {
+                $channel = 'wo.subscribe';
+            }
+            if ($settleIsUSDT) {
+                $channel = 'aop_p.subscribe';
+            }
             $request = array(
                 'id' => $requestId,
                 'method' => $channel,
                 'params' => array(),
             );
-            $request = array_merge($request, $params);
-            $subscription = array(
-                'id' => $requestId,
-                'messageHash' => $messageHash,
-            );
-            return Async\await($this->watch($url, $messageHash, $request, $channel, $subscription));
+            $request = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $channel));
         }) ();
     }
 
@@ -1089,27 +1519,29 @@ class phemex extends \ccxt\async\phemex {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
-            $time = $this->seconds();
+            $requestId = $this->request_id();
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
                 $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
                 $expiration = $this->seconds() . $expiryDelta;
                 $payload = $this->apiKey . (string) $expiration;
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+                $method = 'user.auth';
                 $request = array(
-                    'method' => 'user.auth',
+                    'method' => $method,
                     'params' => array( 'API', $this->apiKey, $signature, $expiration ),
-                    'id' => $time,
+                    'id' => $requestId,
                 );
-                $subscription = array(
-                    'id' => $time,
-                    'method' => array($this, 'handle_authenticate'),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $subscription);
+                $subscriptionHash = (string) $requestId;
+                $message = $this->extend($request, $params);
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                    $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
+                }
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
             }
-            return Async\await($future);
+            return $future;
         }) ();
     }
 }

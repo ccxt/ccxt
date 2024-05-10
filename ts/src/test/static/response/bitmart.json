@@ -1,0 +1,848 @@
+{
+    "exchange": "okx",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch swap closed orders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "1000",
+                    "message": "Ok",
+                    "data": [
+                        {
+                            "order_id": "231116363679831",
+                            "client_order_id": "",
+                            "price": "100",
+                            "size": "1",
+                            "symbol": "LTCUSDT",
+                            "state": "4",
+                            "side": "4",
+                            "type": "limit",
+                            "leverage": "1",
+                            "open_type": "cross",
+                            "deal_avg_price": "0",
+                            "deal_size": "0",
+                            "create_time": "1699638121672",
+                            "update_time": "1699638158472"
+                        }
+                    ],
+                    "trace": "4caf855074664097ac6ba5257c47305d.74.17002156265082169"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "231116363679831",
+                        "clientOrderId": null,
+                        "info": {
+                            "order_id": "231116363679831",
+                            "client_order_id": "",
+                            "price": "100",
+                            "size": "1",
+                            "symbol": "LTCUSDT",
+                            "state": "4",
+                            "side": "4",
+                            "type": "limit",
+                            "leverage": "1",
+                            "open_type": "cross",
+                            "deal_avg_price": "0",
+                            "deal_size": "0",
+                            "create_time": "1699638121672",
+                            "update_time": "1699638158472"
+                        },
+                        "timestamp": 1699638121672,
+                        "datetime": "2023-11-10T17:42:01.672Z",
+                        "lastTradeTimestamp": 1699638158472,
+                        "symbol": "LTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 100,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 1,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 1,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "Spot closed order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "1000",
+                    "message": "success",
+                    "data": [
+                        {
+                            "orderId": "201060879563236943",
+                            "clientOrderId": "201060879563236943",
+                            "symbol": "LTC_USDT",
+                            "side": "sell",
+                            "orderMode": "spot",
+                            "type": "market",
+                            "state": "filled",
+                            "price": "0.0000",
+                            "priceAvg": "71.0566",
+                            "size": "0.100",
+                            "filledSize": "0.100",
+                            "notional": "0.00000000",
+                            "filledNotional": "7.10566000",
+                            "createTime": "1700215845644",
+                            "updateTime": "1700215845697"
+                        }
+                    ],
+                    "trace": "f3786e6984b742a8b357ea2377e9883f.59.17002158518723115"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "201060879563236943",
+                        "clientOrderId": null,
+                        "info": {
+                            "orderId": "201060879563236943",
+                            "clientOrderId": "201060879563236943",
+                            "symbol": "LTC_USDT",
+                            "side": "sell",
+                            "orderMode": "spot",
+                            "type": "market",
+                            "state": "filled",
+                            "price": "0.0000",
+                            "priceAvg": "71.0566",
+                            "size": "0.100",
+                            "filledSize": "0.100",
+                            "notional": "0.00000000",
+                            "filledNotional": "7.10566000",
+                            "createTime": "1700215845644",
+                            "updateTime": "1700215845697"
+                        },
+                        "timestamp": 1700215845644,
+                        "datetime": "2023-11-17T10:10:45.644Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "LTC/USDT",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 71.0566,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": 7.10566,
+                        "average": 71.0566,
+                        "filled": 0.1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "spot create limit buy order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "httpResponse": {
+                    "message": "OK",
+                    "code": "1000",
+                    "trace": "c749335273a64c5b8698e4e2a662d185.76.17033755834924989",
+                    "data": {
+                        "order_id": "209626977087068257"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "209626977087068257",
+                    "clientOrderId": null,
+                    "info": {
+                        "order_id": "209626977087068257"
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 50,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.1,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "spot cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "209628171087991494",
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "message": "OK",
+                    "code": "1000",
+                    "trace": "fde85afe772c423684c1a0715bdb918d.72.17033755220918623",
+                    "data": {
+                        "result": true
+                    }
+                },
+                "parsedResponse": {
+                    "id": "209628171087991494",
+                    "clientOrderId": null,
+                    "info": {},
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "1000",
+                    "trace": "4c166d073d49475daabf72f27c992525.67.17067043428007529",
+                    "message": "success",
+                    "data": [
+                        {
+                            "tradeId": "226559426091255813",
+                            "orderId": "229121051960828591",
+                            "clientOrderId": "229121051960828591",
+                            "symbol": "LTC_USDT",
+                            "side": "buy",
+                            "orderMode": "spot",
+                            "type": "market",
+                            "price": "68.2782",
+                            "size": "0.087",
+                            "notional": "5.94020340",
+                            "fee": "0.00594020",
+                            "feeCoinName": "USDT",
+                            "tradeRole": "taker",
+                            "createTime": "1706704336944",
+                            "updateTime": "1706704336944"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tradeId": "226559426091255813",
+                            "orderId": "229121051960828591",
+                            "clientOrderId": "229121051960828591",
+                            "symbol": "LTC_USDT",
+                            "side": "buy",
+                            "orderMode": "spot",
+                            "type": "market",
+                            "price": "68.2782",
+                            "size": "0.087",
+                            "notional": "5.94020340",
+                            "fee": "0.00594020",
+                            "feeCoinName": "USDT",
+                            "tradeRole": "taker",
+                            "createTime": "1706704336944",
+                            "updateTime": "1706704336944"
+                        },
+                        "id": "226559426091255813",
+                        "order": "229121051960828591",
+                        "timestamp": 1706704336944,
+                        "datetime": "2024-01-31T12:32:16.944Z",
+                        "symbol": "LTC/USDT",
+                        "type": "market",
+                        "side": "buy",
+                        "price": 68.2782,
+                        "amount": 0.087,
+                        "cost": 5.9402034,
+                        "takerOrMaker": "taker",
+                        "fee": {
+                            "cost": 0.0059402,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.0059402,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "message": "OK",
+                    "code": "1000",
+                    "trace": "81a9d57b63be4819b65d3065e6a4682b.98.17103276593350339",
+                    "data": {
+                        "trades": [
+                            {
+                                "amount": "4197.31",
+                                "order_time": "1710327657996",
+                                "price": "73238.70",
+                                "count": "0.05731",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "88.62",
+                                "order_time": "1710327657994",
+                                "price": "73238.70",
+                                "count": "0.00121",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "4285.93",
+                                "order_time": "1710327657893",
+                                "price": "73238.70",
+                                "count": "0.05852",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "481.91",
+                                "order_time": "1710327657804",
+                                "price": "73238.70",
+                                "count": "0.00658",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "186.76",
+                                "order_time": "1710327657802",
+                                "price": "73238.70",
+                                "count": "0.00255",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "280.50",
+                                "order_time": "1710327657799",
+                                "price": "73238.70",
+                                "count": "0.00383",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "57.86",
+                                "order_time": "1710327657797",
+                                "price": "73238.70",
+                                "count": "0.00079",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "210.20",
+                                "order_time": "1710327657797",
+                                "price": "73238.70",
+                                "count": "0.00287",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "7.32",
+                                "order_time": "1710327657796",
+                                "price": "73238.70",
+                                "count": "0.00010",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "2830.68",
+                                "order_time": "1710327657796",
+                                "price": "73238.70",
+                                "count": "0.03865",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "147.94",
+                                "order_time": "1710327657795",
+                                "price": "73238.70",
+                                "count": "0.00202",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "82.76",
+                                "order_time": "1710327657795",
+                                "price": "73238.70",
+                                "count": "0.00113",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "4285.93",
+                                "order_time": "1710327657692",
+                                "price": "73238.70",
+                                "count": "0.05852",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "494.36",
+                                "order_time": "1710327657598",
+                                "price": "73238.70",
+                                "count": "0.00675",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "96.68",
+                                "order_time": "1710327657598",
+                                "price": "73238.70",
+                                "count": "0.00132",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "334.70",
+                                "order_time": "1710327657596",
+                                "price": "73238.70",
+                                "count": "0.00457",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "757.29",
+                                "order_time": "1710327657596",
+                                "price": "73238.70",
+                                "count": "0.01034",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "119.38",
+                                "order_time": "1710327657596",
+                                "price": "73238.70",
+                                "count": "0.00163",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "612.28",
+                                "order_time": "1710327657594",
+                                "price": "73238.70",
+                                "count": "0.00836",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "1498.46",
+                                "order_time": "1710327657593",
+                                "price": "73238.70",
+                                "count": "0.02046",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "7.32",
+                                "order_time": "1710327657593",
+                                "price": "73238.70",
+                                "count": "0.00010",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "331.04",
+                                "order_time": "1710327657592",
+                                "price": "73238.70",
+                                "count": "0.00452",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "34.42",
+                                "order_time": "1710327657592",
+                                "price": "73238.70",
+                                "count": "0.00047",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "3818.67",
+                                "order_time": "1710327657488",
+                                "price": "73238.70",
+                                "count": "0.05214",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "8.06",
+                                "order_time": "1710327657487",
+                                "price": "73238.70",
+                                "count": "0.00011",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "509.74",
+                                "order_time": "1710327657399",
+                                "price": "73238.70",
+                                "count": "0.00696",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "3070.90",
+                                "order_time": "1710327657399",
+                                "price": "73238.70",
+                                "count": "0.04193",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "71.04",
+                                "order_time": "1710327657399",
+                                "price": "73238.70",
+                                "count": "0.00097",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "46.87",
+                                "order_time": "1710327657399",
+                                "price": "73238.70",
+                                "count": "0.00064",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "8.06",
+                                "order_time": "1710327657398",
+                                "price": "73238.70",
+                                "count": "0.00011",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "78.37",
+                                "order_time": "1710327657397",
+                                "price": "73238.70",
+                                "count": "0.00107",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "459.94",
+                                "order_time": "1710327657063",
+                                "price": "73238.70",
+                                "count": "0.00628",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "941.85",
+                                "order_time": "1710327657062",
+                                "price": "73238.70",
+                                "count": "0.01286",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "88.62",
+                                "order_time": "1710327657060",
+                                "price": "73238.70",
+                                "count": "0.00121",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "8.79",
+                                "order_time": "1710327657058",
+                                "price": "73238.70",
+                                "count": "0.00012",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "109.86",
+                                "order_time": "1710327656961",
+                                "price": "73238.70",
+                                "count": "0.00150",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "8.79",
+                                "order_time": "1710327656959",
+                                "price": "73238.70",
+                                "count": "0.00012",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "904.50",
+                                "order_time": "1710327656959",
+                                "price": "73238.70",
+                                "count": "0.01235",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "109.13",
+                                "order_time": "1710327656959",
+                                "price": "73238.70",
+                                "count": "0.00149",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "93.75",
+                                "order_time": "1710327656958",
+                                "price": "73238.70",
+                                "count": "0.00128",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "405.74",
+                                "order_time": "1710327656871",
+                                "price": "73238.69",
+                                "count": "0.00554",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "1562.18",
+                                "order_time": "1710327656858",
+                                "price": "73238.69",
+                                "count": "0.02133",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "443.09",
+                                "order_time": "1710327656858",
+                                "price": "73238.70",
+                                "count": "0.00605",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "919.88",
+                                "order_time": "1710327656858",
+                                "price": "73238.69",
+                                "count": "0.01256",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "8.06",
+                                "order_time": "1710327656856",
+                                "price": "73238.69",
+                                "count": "0.00011",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "289.29",
+                                "order_time": "1710327656856",
+                                "price": "73238.70",
+                                "count": "0.00395",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "657.68",
+                                "order_time": "1710327656856",
+                                "price": "73238.70",
+                                "count": "0.00898",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "94.48",
+                                "order_time": "1710327656755",
+                                "price": "73238.69",
+                                "count": "0.00129",
+                                "type": "sell"
+                            },
+                            {
+                                "amount": "8.06",
+                                "order_time": "1710327656754",
+                                "price": "73238.69",
+                                "count": "0.00011",
+                                "type": "buy"
+                            },
+                            {
+                                "amount": "54.20",
+                                "order_time": "1710327656754",
+                                "price": "73238.69",
+                                "count": "0.00074",
+                                "type": "buy"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "amount": "4197.31",
+                            "order_time": "1710327657996",
+                            "price": "73238.70",
+                            "count": "0.05731",
+                            "type": "buy"
+                        },
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1710327657996,
+                        "datetime": "2024-03-13T11:00:57.996Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "price": 73238.7,
+                        "amount": 0.05731,
+                        "cost": 4197.31,
+                        "takerOrMaker": null,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "message": "OK",
+                    "code": "1000",
+                    "trace": "81a9d57b63be4819b65d3065e6a4682b.107.17103282467416495",
+                    "data": {
+                        "tickers": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "last_price": "73390.00",
+                                "quote_volume_24h": "1887544518.36",
+                                "base_volume_24h": "26284.12196",
+                                "high_24h": "73638.95",
+                                "low_24h": "68649.22",
+                                "open_24h": "72149.27",
+                                "close_24h": "73390.00",
+                                "best_ask": "73368.31",
+                                "best_ask_size": "0.00027",
+                                "best_bid": "73368.29",
+                                "best_bid_size": "0.00032",
+                                "fluctuation": "+0.0172",
+                                "url": "https://www.bitmart.com/trade?symbol=BTC_USDT",
+                                "timestamp": "1710328205593"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328205593,
+                    "datetime": "2024-03-13T11:10:05.593Z",
+                    "high": 73638.95,
+                    "low": 68649.22,
+                    "bid": 73368.29,
+                    "bidVolume": 0.00032,
+                    "ask": 73368.31,
+                    "askVolume": 0.00027,
+                    "vwap": 71813.10911707548,
+                    "open": 72149.27,
+                    "close": 73390,
+                    "last": 73390,
+                    "previousClose": null,
+                    "change": 1240.73,
+                    "percentage": 1.72,
+                    "average": 72769.635,
+                    "baseVolume": 26284.12196,
+                    "quoteVolume": 1887544518.36,
+                    "info": {
+                        "symbol": "BTC_USDT",
+                        "last_price": "73390.00",
+                        "quote_volume_24h": "1887544518.36",
+                        "base_volume_24h": "26284.12196",
+                        "high_24h": "73638.95",
+                        "low_24h": "68649.22",
+                        "open_24h": "72149.27",
+                        "close_24h": "73390.00",
+                        "best_ask": "73368.31",
+                        "best_ask_size": "0.00027",
+                        "best_bid": "73368.29",
+                        "best_bid_size": "0.00032",
+                        "fluctuation": "+0.0172",
+                        "url": "https://www.bitmart.com/trade?symbol=BTC_USDT",
+                        "timestamp": "1710328205593"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "1000",
+                    "trace": "fa253db6cdc54bdcbd831389d2ca682a.107.17103284225947337",
+                    "message": "success",
+                    "data": [
+                        [
+                            "1710327600",
+                            "73259.99",
+                            "73425.4",
+                            "73238.69",
+                            "73425.4",
+                            "94.52076",
+                            "6931725.77"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73259.99,
+                        73425.4,
+                        73238.69,
+                        73425.4,
+                        94.52076
+                    ]
+                ]
+            }
+        ]
+    }
+}

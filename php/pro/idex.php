@@ -7,11 +7,11 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\InvalidNonce;
+use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class idex extends \ccxt\async\idex {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -38,6 +38,9 @@ class idex extends \ccxt\async\idex {
                 'watchOrderBookLimit' => 1000, // default limit
                 'orderBookSubscriptions' => array(),
                 'token' => null,
+                'watchOrderBook' => array(
+                    'maxRetries' => 3,
+                ),
                 'fetchOrderBookSnapshotMaxAttempts' => 10,
                 'fetchOrderBookSnapshotMaxDelay' => 10000, // throw if there are no orders in 10 seconds
             ),
@@ -72,13 +75,13 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -88,73 +91,73 @@ class idex extends \ccxt\async\idex {
                 'markets' => [ $market['id'] ],
             );
             $messageHash = $name . ':' . $market['id'];
-            return Async\await($this->subscribe(array_merge($subscribeObject, $params), $messageHash));
+            return Async\await($this->subscribe($this->extend($subscribeObject, $params), $messageHash));
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
-        // { $type => 'tickers',
-        //   $data:
-        //    { m => 'DIL-ETH',
-        //      t => 1599213946045,
-        //      o => '0.09699020',
-        //      h => '0.10301548',
-        //      l => '0.09577222',
-        //      c => '0.09907311',
-        //      Q => '1.32723120',
-        //      v => '297.80667468',
-        //      q => '29.52142669',
-        //      P => '2.14',
-        //      n => 197,
-        //      a => '0.09912245',
-        //      b => '0.09686980',
-        //      u => 5870 } }
+    public function handle_ticker(Client $client, $message) {
+        // { $type => "tickers",
+        //   "data":
+        //    { m => "DIL-ETH",
+        //      "t" => 1599213946045,
+        //      "o" => "0.09699020",
+        //      "h" => "0.10301548",
+        //      "l" => "0.09577222",
+        //      "c" => "0.09907311",
+        //      "Q" => "1.32723120",
+        //      "v" => "297.80667468",
+        //      "q" => "29.52142669",
+        //      "P" => "2.14",
+        //      "n" => 197,
+        //      "a" => "0.09912245",
+        //      "b" => "0.09686980",
+        //      "u" => 5870 } }
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'm');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = $type . ':' . $marketId;
         $timestamp = $this->safe_integer($data, 't');
-        $close = $this->safe_float($data, 'c');
-        $percentage = $this->safe_float($data, 'P');
+        $close = $this->safe_string($data, 'c');
+        $percentage = $this->safe_string($data, 'P');
         $change = null;
         if (($percentage !== null) && ($close !== null)) {
-            $change = $close * $percentage;
+            $change = Precise::string_mul($close, $percentage);
         }
-        $ticker = array(
+        $ticker = $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($data, 'h'),
-            'low' => $this->safe_float($data, 'l'),
-            'bid' => $this->safe_float($data, 'b'),
+            'high' => $this->safe_string($data, 'h'),
+            'low' => $this->safe_string($data, 'l'),
+            'bid' => $this->safe_string($data, 'b'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($data, 'a'),
+            'ask' => $this->safe_string($data, 'a'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($data, 'o'),
+            'open' => $this->safe_string($data, 'o'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($data, 'v'),
-            'quoteVolume' => $this->safe_float($data, 'q'),
+            'baseVolume' => $this->safe_string($data, 'v'),
+            'quoteVolume' => $this->safe_string($data, 'q'),
             'info' => $message,
-        );
+        ));
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -173,7 +176,7 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'm');
@@ -190,43 +193,43 @@ class idex extends \ccxt\async\idex {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function parse_ws_trade($trade) {
+    public function parse_ws_trade($trade, $market = null) {
         // public trades
-        // { m => 'DIL-ETH',
-        //   i => '897ecae6-4b75-368a-ac00-be555e6ad65f',
-        //   p => '0.09696995',
-        //   q => '2.00000000',
-        //   Q => '0.19393990',
-        //   t => 1599504616247,
-        //   s => 'buy',
-        //   u => 6620 }
+        // { m => "DIL-ETH",
+        //   "i" => "897ecae6-4b75-368a-ac00-be555e6ad65f",
+        //   "p" => "0.09696995",
+        //   "q" => "2.00000000",
+        //   "Q" => "0.19393990",
+        //   "t" => 1599504616247,
+        //   "s" => "buy",
+        //   "u" => 6620 }
         // private trades
-        // { i => 'ee253d78-88be-37ed-a61c-a36395c2ce48',
-        //   p => '0.09925382',
-        //   q => '0.15000000',
-        //   Q => '0.01488807',
-        //   t => 1599499129369,
-        //   s => 'sell',
-        //   u => 6603,
-        //   f => '0.00030000',
-        //   a => 'DIL',
-        //   g => '0.00856110',
-        //   l => 'maker',
-        //   S => 'pending' }
+        // { i => "ee253d78-88be-37ed-a61c-a36395c2ce48",
+        //   "p" => "0.09925382",
+        //   "q" => "0.15000000",
+        //   "Q" => "0.01488807",
+        //   "t" => 1599499129369,
+        //   "s" => "sell",
+        //   "u" => 6603,
+        //   "f" => "0.00030000",
+        //   "a" => "DIL",
+        //   "g" => "0.00856110",
+        //   "l" => "maker",
+        //   "S" => "pending" }
         $marketId = $this->safe_string($trade, 'm');
         $symbol = $this->safe_symbol($marketId);
         $id = $this->safe_string($trade, 'i');
-        $price = $this->safe_float($trade, 'p');
-        $amount = $this->safe_float($trade, 'q');
-        $cost = $this->safe_float($trade, 'Q');
+        $price = $this->safe_string($trade, 'p');
+        $amount = $this->safe_string($trade, 'q');
+        $cost = $this->safe_string($trade, 'Q');
         $timestamp = $this->safe_integer($trade, 't');
         $side = $this->safe_string($trade, 's');
         $fee = array(
             'currency' => $this->safe_string($trade, 'a'),
-            'cost' => $this->safe_float($trade, 'f'),
+            'cost' => $this->safe_string($trade, 'f'),
         );
         $takerOrMarker = $this->safe_string($trade, 'l');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -240,25 +243,25 @@ class idex extends \ccxt\async\idex {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ));
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'candles';
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $subscribeObject = array(
                 'name' => $name,
                 'markets' => [ $market['id'] ],
@@ -273,21 +276,21 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
-        // { $type => 'candles',
-        //   $data:
-        //    { m => 'DIL-ETH',
-        //      t => 1599477340109,
-        //      i => '1m',
-        //      s => 1599477300000,
-        //      e => 1599477360000,
-        //      o => '0.09911040',
-        //      h => '0.09911040',
-        //      l => '0.09911040',
-        //      c => '0.09911040',
-        //      v => '0.15000000',
-        //      n => 1,
-        //      u => 6531 } }
+    public function handle_ohlcv(Client $client, $message) {
+        // { $type => "candles",
+        //   "data":
+        //    { m => "DIL-ETH",
+        //      "t" => 1599477340109,
+        //      "i" => "1m",
+        //      "s" => 1599477300000,
+        //      "e" => 1599477360000,
+        //      "o" => "0.09911040",
+        //      "h" => "0.09911040",
+        //      "l" => "0.09911040",
+        //      "c" => "0.09911040",
+        //      "v" => "0.15000000",
+        //      "n" => 1,
+        //      "u" => 6531 } }
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'm');
@@ -315,7 +318,7 @@ class idex extends \ccxt\async\idex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_subscribe_message($client, $message) {
+    public function handle_subscribe_message(Client $client, $message) {
         // {
         //   "type" => "subscriptions",
         //   "subscriptions" => array(
@@ -340,7 +343,7 @@ class idex extends \ccxt\async\idex {
                         $symbol = $this->safe_symbol($marketId);
                         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
                             $orderbook = $this->counted_order_book(array());
-                            $orderbook->cache = array();
+                            // $orderbook->cache = array(); // cache is never used?
                             $this->orderbooks[$symbol] = $orderbook;
                         }
                         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $symbol);
@@ -366,7 +369,7 @@ class idex extends \ccxt\async\idex {
             try {
                 $limit = $this->safe_integer($subscription, 'limit', 0);
                 // 3. Request a level-2 order book $snapshot for the $market from the REST API Order Books endpoint with $limit set to 0.
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit));
                 $firstBuffered = $this->safe_value($orderbook->cache, 0);
                 $firstData = $this->safe_value($firstBuffered, 'data');
                 $firstNonce = $this->safe_integer($firstData, 'u');
@@ -416,14 +419,14 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -449,7 +452,7 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'm');
         $symbol = $this->safe_symbol($marketId);
@@ -462,7 +465,7 @@ class idex extends \ccxt\async\idex {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         // {
         //   "type" => "l2orderbook",
         //   "data" => {
@@ -517,7 +520,7 @@ class idex extends \ccxt\async\idex {
                     'wallet' => $this->walletAddress,
                     'nonce' => $this->uuidv1(),
                 );
-                $response = Async\await($this->privateGetWsToken (array_merge($request, $params)));
+                $response = Async\await($this->privateGetWsToken ($this->extend($request, $params)));
                 $this->options['lastAuthenticatedTime'] = $time;
                 $this->options['token'] = $this->safe_string($response, 'token');
             }
@@ -525,15 +528,15 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified market $symbol of the market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the idex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified market $symbol of the market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'orders';
@@ -555,7 +558,7 @@ class idex extends \ccxt\async\idex {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         // {
         //   "type" => "orders",
         //   "data" => {
@@ -599,7 +602,7 @@ class idex extends \ccxt\async\idex {
         $marketId = $this->safe_string($order, 'm');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($order, 't');
-        $fills = $this->safe_value($order, 'F');
+        $fills = $this->safe_value($order, 'F', array());
         $trades = array();
         for ($i = 0; $i < count($fills); $i++) {
             $trades[] = $this->parse_ws_trade($fills[$i]);
@@ -607,18 +610,10 @@ class idex extends \ccxt\async\idex {
         $id = $this->safe_string($order, 'i');
         $side = $this->safe_string($order, 's');
         $orderType = $this->safe_string($order, 'o');
-        $amount = $this->safe_float($order, 'q');
-        $filled = $this->safe_float($order, 'z');
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
-            $remaining = $amount - $filled;
-        }
-        $average = $this->safe_float($order, 'v');
-        $price = $this->safe_float($order, 'price', $average);  // for market $orders
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $amount = $this->safe_string($order, 'q');
+        $filled = $this->safe_string($order, 'z');
+        $average = $this->safe_string($order, 'v');
+        $price = $this->safe_string($order, 'price', $average);  // for market $orders
         $rawStatus = $this->safe_string($order, 'X');
         $status = $this->parse_order_status($rawStatus);
         $fee = array(
@@ -629,10 +624,11 @@ class idex extends \ccxt\async\idex {
         for ($i = 0; $i < count($trades); $i++) {
             $lastTrade = $trades[$i];
             $fee['currency'] = $lastTrade['fee']['currency'];
-            $fee['cost'] = $this->sum($fee['cost'], $lastTrade['fee']['cost']);
+            $stringLastTradeFee = $lastTrade['fee']['cost'];
+            $fee['cost'] = Precise::string_add($fee['cost'], $stringLastTradeFee);
         }
         $lastTradeTimestamp = $this->safe_integer($lastTrade, 'timestamp');
-        $parsedOrder = array(
+        $parsedOrder = $this->safe_order(array(
             'info' => $message,
             'id' => $id,
             'clientOrderId' => null,
@@ -642,18 +638,18 @@ class idex extends \ccxt\async\idex {
             'symbol' => $symbol,
             'type' => $orderType,
             'side' => $side,
-            'price' => $price,
+            'price' => $this->parse_number($price),
             'stopPrice' => null,
             'triggerPrice' => null,
-            'amount' => $amount,
-            'cost' => $cost,
-            'average' => $average,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'amount' => $this->parse_number($amount),
+            'cost' => null,
+            'average' => $this->parse_number($average),
+            'filled' => $this->parse_number($filled),
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
@@ -665,7 +661,7 @@ class idex extends \ccxt\async\idex {
         $client->resolve ($orders, $type);
     }
 
-    public function watch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             Async\await($this->load_markets());
             $name = 'balances';
@@ -680,20 +676,20 @@ class idex extends \ccxt\async\idex {
             if ($this->newUpdates) {
                 $limit = $transactions->getLimit ($code, $limit);
             }
-            return $this->filter_by_since_limit($transactions, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($transactions, $since, $limit, 'timestamp');
         }) ();
     }
 
-    public function handle_transaction($client, $message) {
+    public function handle_transaction(Client $client, $message) {
         // Update Speed => Real time, updates on any deposit or withdrawal of the wallet
-        // { $type => 'balances',
-        //   $data:
-        //    { w => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //      a => 'ETH',
-        //      q => '0.11198667',
-        //      f => '0.11198667',
-        //      l => '0.00000000',
-        //      d => '0.00' } }
+        // { $type => "balances",
+        //   "data":
+        //    { w => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //      "a" => "ETH",
+        //      "q" => "0.11198667",
+        //      "f" => "0.11198667",
+        //      "l" => "0.00000000",
+        //      "d" => "0.00" } }
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_value($message, 'data');
         $currencyId = $this->safe_string($data, 'a');
@@ -729,7 +725,7 @@ class idex extends \ccxt\async\idex {
         $client->resolve ($transactions, $type);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $type = $this->safe_string($message, 'type');
         $methods = array(
             'tickers' => array($this, 'handle_ticker'),

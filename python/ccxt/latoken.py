@@ -4,7 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -14,13 +17,14 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class latoken(Exchange):
+class latoken(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(latoken, self).describe(), {
@@ -33,19 +37,31 @@ class latoken(Exchange):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
-                'future': None,
+                'swap': False,
+                'future': False,
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
+                'createPostOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
+                'fetchDepositsWithdrawals': True,
+                'fetchDepositWithdrawFees': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -53,14 +69,20 @@ class latoken(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': True,
                 'transfer': True,
@@ -202,13 +224,14 @@ class latoken(Exchange):
                     'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
                     "Can't find currency with tag": BadSymbol,  # {"status":"FAILURE","message":"Can't find currency with tag = None","error":"NOT_FOUND","errors":null,"result":false}
                     'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state(PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
-                    'API keys are not available for FROZEN user': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
+                    'API keys are not available for': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {
                 'defaultType': 'spot',
                 'types': {
                     'wallet': 'ACCOUNT_TYPE_WALLET',
+                    'funding': 'ACCOUNT_TYPE_WALLET',
                     'spot': 'ACCOUNT_TYPE_SPOT',
                 },
                 'accounts': {
@@ -227,7 +250,8 @@ class latoken(Exchange):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict params: extra parameters specific to the latoken api endpoint
+        :see: https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.publicGetTime(params)
@@ -238,11 +262,12 @@ class latoken(Exchange):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for latoken
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :see: https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
         currencies = self.fetch_currencies_from_cache(params)
         #
@@ -362,6 +387,7 @@ class latoken(Exchange):
                             'max': self.safe_number(market, 'maxOrderCost' + capitalizedQuote),
                         },
                     },
+                    'created': self.safe_integer(market, 'created'),
                     'info': market,
                 })
         return result
@@ -381,10 +407,10 @@ class latoken(Exchange):
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :param dict params: extra parameters specific to the latoken api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = self.fetch_currencies_from_cache(params)
@@ -428,10 +454,12 @@ class latoken(Exchange):
             code = self.safe_currency_code(tag)
             fee = self.safe_number(currency, 'fee')
             currencyType = self.safe_string(currency, 'type')
-            parts = currencyType.split('_')
-            numParts = len(parts)
-            lastPart = self.safe_value(parts, numParts - 1)
-            type = lastPart.lower()
+            type = None
+            if currencyType == 'CURRENCY_TYPE_ALTERNATIVE':
+                type = 'other'
+            else:
+                # CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
+                type = 'crypto'
             status = self.safe_string(currency, 'status')
             active = (status == 'CURRENCY_STATUS_ACTIVE')
             name = self.safe_string(currency, 'name')
@@ -456,36 +484,38 @@ class latoken(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :see: https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetAuthAccount(params)
         #
         #     [
         #         {
-        #             id: "e5852e02-8711-431c-9749-a6f5503c6dbe",
-        #             status: "ACCOUNT_STATUS_ACTIVE",
-        #             type: "ACCOUNT_TYPE_WALLET",
-        #             timestamp: "1635920106506",
-        #             currency: "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        #             available: "100.000000",
-        #             blocked: "0.000000"
+        #             "id": "e5852e02-8711-431c-9749-a6f5503c6dbe",
+        #             "status": "ACCOUNT_STATUS_ACTIVE",
+        #             "type": "ACCOUNT_TYPE_WALLET",
+        #             "timestamp": "1635920106506",
+        #             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #             "available": "100.000000",
+        #             "blocked": "0.000000"
         #         },
         #         {
-        #             id: "369df204-acbc-467e-a25e-b16e3cc09cf6",
-        #             status: "ACCOUNT_STATUS_ACTIVE",
-        #             type: "ACCOUNT_TYPE_SPOT",
-        #             timestamp: "1635920106504",
-        #             currency: "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        #             available: "100.000000",
-        #             blocked: "0.000000"
+        #             "id": "369df204-acbc-467e-a25e-b16e3cc09cf6",
+        #             "status": "ACCOUNT_STATUS_ACTIVE",
+        #             "type": "ACCOUNT_TYPE_SPOT",
+        #             "timestamp": "1635920106504",
+        #             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #             "available": "100.000000",
+        #             "blocked": "0.000000"
         #         }
         #     ]
         #
@@ -519,13 +549,14 @@ class latoken(Exchange):
         result['datetime'] = self.iso8601(maxTimestamp)
         return self.safe_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -554,53 +585,60 @@ class latoken(Exchange):
         #
         return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'quantity')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
-        #     {
-        #         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        #         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        #         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        #         "volume24h":"76411867.852585600000000000",
-        #         "volume7d":"637809926.759451100000000000",
-        #         "change24h":"2.5300",
-        #         "change7d":"5.1300",
-        #         "lastPrice":"4426.9"
-        #     }
+        #    {
+        #        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        #        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #        "volume24h": "165723597.189022176000000000",
+        #        "volume7d": "934505768.625109571000000000",
+        #        "change24h": "0.0200",
+        #        "change7d": "-6.4200",
+        #        "amount24h": "6438.457663100000000000",
+        #        "amount7d": "35657.785013800000000000",
+        #        "lastPrice": "25779.16",
+        #        "lastQuantity": "0.248403300000000000",
+        #        "bestBid": "25778.74",
+        #        "bestBidQuantity": "0.6520232",
+        #        "bestAsk": "25779.17",
+        #        "bestAskQuantity": "0.4956043",
+        #        "updateTimestamp": "1693965231406"
+        #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'lastPrice')
-        change = self.safe_string(ticker, 'change24h')
-        timestamp = self.nonce()
+        timestamp = self.safe_integer_omit_zero(ticker, 'updateTimestamp')  # sometimes latoken provided '0' ts from /ticker endpoint
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': self.safe_symbol(marketId, market),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'low': self.safe_string(ticker, 'low'),
-            'high': self.safe_string(ticker, 'high'),
-            'bid': None,
-            'bidVolume': None,
-            'ask': None,
-            'askVolume': None,
+            'low': None,
+            'high': None,
+            'bid': self.safe_string(ticker, 'bestBid'),
+            'bidVolume': self.safe_string(ticker, 'bestBidQuantity'),
+            'ask': self.safe_string(ticker, 'bestAsk'),
+            'askVolume': self.safe_string(ticker, 'bestAskQuantity'),
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_string(ticker, 'change24h'),
             'average': None,
-            'baseVolume': None,
+            'baseVolume': self.safe_string(ticker, 'amount24h'),
             'quoteVolume': self.safe_string(ticker, 'volume24h'),
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -610,45 +648,62 @@ class latoken(Exchange):
         }
         response = self.publicGetTickerBaseQuote(self.extend(request, params))
         #
-        #     {
-        #         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        #         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        #         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        #         "volume24h":"76411867.852585600000000000",
-        #         "volume7d":"637809926.759451100000000000",
-        #         "change24h":"2.5300",
-        #         "change7d":"5.1300",
-        #         "lastPrice":"4426.9"
-        #     }
+        #    {
+        #        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        #        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #        "volume24h": "165723597.189022176000000000",
+        #        "volume7d": "934505768.625109571000000000",
+        #        "change24h": "0.0200",
+        #        "change7d": "-6.4200",
+        #        "amount24h": "6438.457663100000000000",
+        #        "amount7d": "35657.785013800000000000",
+        #        "lastPrice": "25779.16",
+        #        "lastQuantity": "0.248403300000000000",
+        #        "bestBid": "25778.74",
+        #        "bestBidQuantity": "0.6520232",
+        #        "bestAsk": "25779.17",
+        #        "bestAskQuantity": "0.4956043",
+        #        "updateTimestamp": "1693965231406"
+        #    }
         #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTicker(params)
         #
-        #     [
-        #         {
-        #             "symbol":"DASH/BTC",
-        #             "baseCurrency":"ed75c263-4ab9-494b-8426-031dab1c7cc1",
-        #             "quoteCurrency":"92151d82-df98-4d88-9a4d-284fa9eca49f",
-        #             "volume24h":"1.977753278000000000",
-        #             "volume7d":"18.964342670000000000",
-        #             "change24h":"-1.4800",
-        #             "change7d":"-5.5200",
-        #             "lastPrice":"0.003066"
-        #         },
-        #     ]
+        #    [
+        #        {
+        #            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        #            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #            "volume24h": "165723597.189022176000000000",
+        #            "volume7d": "934505768.625109571000000000",
+        #            "change24h": "0.0200",
+        #            "change7d": "-6.4200",
+        #            "amount24h": "6438.457663100000000000",
+        #            "amount7d": "35657.785013800000000000",
+        #            "lastPrice": "25779.16",
+        #            "lastQuantity": "0.248403300000000000",
+        #            "bestBid": "25778.74",
+        #            "bestBidQuantity": "0.6520232",
+        #            "bestAsk": "25779.17",
+        #            "bestAskQuantity": "0.4956043",
+        #            "updateTimestamp": "1693965231406"
+        #        }
+        #    ]
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -729,14 +784,15 @@ class latoken(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -744,10 +800,10 @@ class latoken(Exchange):
             'currency': market['baseId'],
             'quote': market['quoteId'],
             # 'from': str(since),  # milliseconds
-            # 'limit': limit,  # default 100, max 1000
+            # 'limit': limit,  # default 100, limit 100
         }
         if limit is not None:
-            request['limit'] = limit  # default 100, max 1000
+            request['limit'] = min(limit, 100)  # default 100, limit 100
         response = self.publicGetTradeHistoryCurrencyQuote(self.extend(request, params))
         #
         #     [
@@ -758,21 +814,27 @@ class latoken(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fee(self, symbol, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
+        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
+        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'fetchTradingFee', {})
+        defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTradingFee')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchTradingFee', {})
-            method = self.safe_string(options, 'method', 'fetchPrivateTradingFee')
-        return getattr(self, method)(symbol, params)
+        if method == 'fetchPrivateTradingFee':
+            return self.fetch_private_trading_fee(symbol, params)
+        elif method == 'fetchPublicTradingFee':
+            return self.fetch_public_trading_fee(symbol, params)
+        else:
+            raise NotSupported(self.id + ' not support self method')
 
-    def fetch_public_trading_fee(self, symbol, params={}):
+    def fetch_public_trading_fee(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -782,10 +844,10 @@ class latoken(Exchange):
         response = self.publicGetTradeFeeCurrencyQuote(self.extend(request, params))
         #
         #     {
-        #         makerFee: '0.004900000000000000',
-        #         takerFee: '0.004900000000000000',
-        #         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
-        #         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        #         "makerFee": "0.004900000000000000",
+        #         "takerFee": "0.004900000000000000",
+        #         "type": "FEE_SCHEME_TYPE_PERCENT_QUOTE",
+        #         "take": "FEE_SCHEME_TAKE_PROPORTION"
         #     }
         #
         return {
@@ -793,9 +855,11 @@ class latoken(Exchange):
             'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    def fetch_private_trading_fee(self, symbol, params={}):
+    def fetch_private_trading_fee(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -805,10 +869,10 @@ class latoken(Exchange):
         response = self.privateGetAuthTradeFeeCurrencyQuote(self.extend(request, params))
         #
         #     {
-        #         makerFee: '0.004900000000000000',
-        #         takerFee: '0.004900000000000000',
-        #         type: 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
-        #         take: 'FEE_SCHEME_TAKE_PROPORTION'
+        #         "makerFee": "0.004900000000000000",
+        #         "takerFee": "0.004900000000000000",
+        #         "type": "FEE_SCHEME_TYPE_PERCENT_QUOTE",
+        #         "take": "FEE_SCHEME_TAKE_PROPORTION"
         #     }
         #
         return {
@@ -816,16 +880,20 @@ class latoken(Exchange):
             'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
+            'percentage': None,
+            'tierBased': None,
         }
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader
+        :see: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {
@@ -834,16 +902,17 @@ class latoken(Exchange):
             # 'from': self.milliseconds(),
             # 'limit': limit,  # default '100'
         }
-        method = 'privateGetAuthTrade'
         market = None
+        if limit is not None:
+            request['limit'] = limit  # default 100
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            method = 'privateGetAuthTradePairCurrencyQuote'
-        if limit is not None:
-            request['limit'] = limit  # default 100
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateGetAuthTradePairCurrencyQuote(self.extend(request, params))
+        else:
+            response = self.privateGetAuthTrade(self.extend(request, params))
         #
         #     [
         #         {
@@ -887,20 +956,20 @@ class latoken(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
-        #     {
-        #         "orderId":"1563460093.134037.704945@0370:2",
-        #         "cliOrdId":"",
-        #         "pairId":370,
-        #         "symbol":"ETHBTC",
-        #         "side":"sell",
-        #         "orderType":"limit",
-        #         "price":1.0,
-        #         "amount":1.0
-        #     }
+        #    {
+        #        "baseCurrency": "f7dac554-8139-4ff6-841f-0e586a5984a0",
+        #        "quoteCurrency": "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
+        #        "side": "BID",
+        #        "clientOrderId": "my-wonderful-order-number-71566",
+        #        "price": "10103.19",
+        #        "stopPrice": "10103.19",
+        #        "quantity": "3.21",
+        #        "timestamp": 1568185507
+        #    }
         #
         # fetchOrder, fetchOpenOrders, fetchOrders
         #
@@ -962,6 +1031,7 @@ class latoken(Exchange):
                 status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
+        triggerPrice = self.safe_string(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -976,8 +1046,8 @@ class latoken(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -987,24 +1057,34 @@ class latoken(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  # stop
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if fetching trigger orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
+        response = None
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, 'stop')
+        # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         market = self.market(symbol)
         request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
-        response = self.privateGetAuthOrderPairCurrencyQuoteActive(self.extend(request, params))
+        if isTrigger:
+            response = self.privateGetAuthStopOrderPairCurrencyQuoteActive(self.extend(request, params))
+        else:
+            response = self.privateGetAuthOrderPairCurrencyQuoteActive(self.extend(request, params))
         #
         #     [
         #         {
@@ -1029,14 +1109,19 @@ class latoken(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       # stop
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair  # stop
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if fetching trigger orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1045,16 +1130,25 @@ class latoken(Exchange):
             # 'from': self.milliseconds(),
             # 'limit': limit,  # default '100'
         }
-        method = 'privateGetAuthOrder'
         market = None
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['stop', 'trigger'])
+        if limit is not None:
+            request['limit'] = limit  # default 100
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            method = 'privateGetAuthOrderPairCurrencyQuote'
-        if limit is not None:
-            request['limit'] = limit  # default 100
-        response = getattr(self, method)(self.extend(request, params))
+            if isTrigger:
+                response = self.privateGetAuthStopOrderPairCurrencyQuote(self.extend(request, params))
+            else:
+                response = self.privateGetAuthOrderPairCurrencyQuote(self.extend(request, params))
+        else:
+            if isTrigger:
+                response = self.privateGetAuthStopOrder(self.extend(request, params))
+            else:
+                response = self.privateGetAuthOrder(self.extend(request, params))
         #
         #     [
         #         {
@@ -1079,18 +1173,27 @@ class latoken(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :param str|None symbol: not used by latoken fetchOrder
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+        :param str [symbol]: not used by latoken fetchOrder
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if fetching a trigger order
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
             'id': id,
         }
-        response = self.privateGetAuthOrderGetOrderId(self.extend(request, params))
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['stop', 'trigger'])
+        response = None
+        if isTrigger:
+            response = self.privateGetAuthStopOrderGetOrderId(self.extend(request, params))
+        else:
+            response = self.privateGetAuthOrderGetOrderId(self.extend(request, params))
         #
         #     {
         #         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
@@ -1113,16 +1216,23 @@ class latoken(Exchange):
         #
         return self.parse_order(response)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  # stop
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.condition]: "GTC", "IOC", or  "FOK"
+        :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1136,39 +1246,55 @@ class latoken(Exchange):
             'clientOrderId': self.uuid(),  # 50 characters max
             # 'price': self.price_to_precision(symbol, price),
             # 'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_precision(symbol, amount),
+            'timestamp': self.seconds(),
         }
         if uppercaseType == 'LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
-        request['quantity'] = self.amount_to_precision(symbol, amount)
-        request['timestamp'] = self.seconds()
-        response = self.privatePostAuthOrderPlace(self.extend(request, params))
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['triggerPrice', 'stopPrice'])
+        response = None
+        if triggerPrice is not None:
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+            response = self.privatePostAuthStopOrderPlace(self.extend(request, params))
+        else:
+            response = self.privatePostAuthOrderPlace(self.extend(request, params))
         #
-        #     {
-        #         "orderId":"1563460093.134037.704945@0370:2",
-        #         "cliOrdId":"",
-        #         "pairId":370,
-        #         "symbol":"ETHBTC",
-        #         "side":"sell",
-        #         "orderType":"limit",
-        #         "price":1.0,
-        #         "amount":1.0
-        #     }
+        #    {
+        #        "baseCurrency": "f7dac554-8139-4ff6-841f-0e586a5984a0",
+        #        "quoteCurrency": "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
+        #        "side": "BID",
+        #        "clientOrderId": "my-wonderful-order-number-71566",
+        #        "price": "10103.19",
+        #        "stopPrice": "10103.19",
+        #        "quantity": "3.21",
+        #        "timestamp": 1568185507
+        #    }
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  # stop
         :param str id: order id
-        :param str|None symbol: not used by latoken cancelOrder()
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: not used by latoken cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if cancelling a trigger order
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
             'id': id,
         }
-        response = self.privatePostAuthOrderCancel(self.extend(request, params))
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['stop', 'trigger'])
+        response = None
+        if isTrigger:
+            response = self.privatePostAuthStopOrderCancel(self.extend(request, params))
+        else:
+            response = self.privatePostAuthOrderCancel(self.extend(request, params))
         #
         #     {
         #         "id": "12345678-1234-1244-1244-123456789012",
@@ -1180,26 +1306,38 @@ class latoken(Exchange):
         #
         return self.parse_order(response)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
         :param str symbol: unified market symbol of the market to cancel orders in
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if cancelling trigger orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
         }
-        method = 'privatePostAuthOrderCancelAll'
         market = None
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['stop', 'trigger'])
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            method = 'privatePostAuthOrderCancelAllCurrencyQuote'
-        response = getattr(self, method)(self.extend(request, params))
+            if isTrigger:
+                response = self.privatePostAuthStopOrderCancelAllCurrencyQuote(self.extend(request, params))
+            else:
+                response = self.privatePostAuthOrderCancelAllCurrencyQuote(self.extend(request, params))
+        else:
+            if isTrigger:
+                response = self.privatePostAuthStopOrderCancelAll(self.extend(request, params))
+            else:
+                response = self.privatePostAuthOrderCancelAll(self.extend(request, params))
         #
         #     {
         #         "message":"cancellation request successfully submitted",
@@ -1208,14 +1346,16 @@ class latoken(Exchange):
         #
         return response
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        fetch history of deposits and withdrawals
-        :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|None limit: max number of transactions to return, default is None
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+         * @deprecated
+        use fetchDepositsWithdrawals instead
+        :see: https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions
+        :param str code: unified currency code for the currency of the transactions, default is None
+        :param int [since]: timestamp in ms of the earliest transaction, default is None
+        :param int [limit]: max number of transactions to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {
@@ -1252,10 +1392,10 @@ class latoken(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        content = self.safe_value(response, 'content', [])
+        content = self.safe_list(response, 'content', [])
         return self.parse_transactions(content, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -1284,13 +1424,15 @@ class latoken(Exchange):
         addressTo = self.safe_string(transaction, 'recipientAddress')
         txid = self.safe_string(transaction, 'transactionHash')
         tagTo = self.safe_string(transaction, 'memo')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         feeCost = self.safe_number(transaction, 'transactionFee')
         if feeCost is not None:
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            }
+            fee['cost'] = feeCost
+            fee['currency'] = code
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         return {
             'info': transaction,
@@ -1310,6 +1452,8 @@ class latoken(Exchange):
             'currency': code,
             'status': status,
             'updated': None,
+            'comment': None,
+            'internal': None,
             'fee': fee,
         }
 
@@ -1328,14 +1472,15 @@ class latoken(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
-        :param str|None code: unified currency code of the currency transferred
-        :param int|None since: the earliest time in ms to fetch transfers for
-        :param int|None limit: the maximum number of  transfers structures to retrieve
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
+        :param str code: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of  transfers structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1371,34 +1516,36 @@ class latoken(Exchange):
         #         "hasContent": True
         #     }
         #
-        transfers = self.safe_value(response, 'content', [])
+        transfers = self.safe_list(response, 'content', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
+        :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail
+        :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById
+        :see: https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the latoken api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
-        method = None
-        if toAccount.find('@') >= 0:
-            method = 'privatePostAuthTransferEmail'
-        elif len(toAccount) == 36:
-            method = 'privatePostAuthTransferId'
-        else:
-            method = 'privatePostAuthTransferPhone'
         request = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': self.currency_to_precision(code, amount),
         }
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if toAccount.find('@') >= 0:
+            response = self.privatePostAuthTransferEmail(self.extend(request, params))
+        elif len(toAccount) == 36:
+            response = self.privatePostAuthTransferId(self.extend(request, params))
+        else:
+            response = self.privatePostAuthTransferPhone(self.extend(request, params))
         #
         #     {
         #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -1423,7 +1570,7 @@ class latoken(Exchange):
         #
         return self.parse_transfer(response)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -1461,7 +1608,7 @@ class latoken(Exchange):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'TRANSFER_STATUS_COMPLETED': 'ok',
             'TRANSFER_STATUS_PENDING': 'pending',
@@ -1496,7 +1643,7 @@ class latoken(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return
+            return None
         #
         # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
         # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
@@ -1514,3 +1661,4 @@ class latoken(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

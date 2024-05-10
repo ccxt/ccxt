@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\binancecoinm as binance;
 
 class binancecoinm extends binance {
 
@@ -37,12 +38,12 @@ class binancecoinm extends binance {
         ));
     }
 
-    public function transfer_in($code, $amount, $params = array ()) {
+    public function transfer_in(string $code, $amount, $params = array ()) {
         // transfer from spot wallet to coinm futures wallet
         return $this->futuresTransfer ($code, $amount, 3, $params);
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         // transfer from coinm futures wallet to spot wallet
         return $this->futuresTransfer ($code, $amount, 4, $params);
     }

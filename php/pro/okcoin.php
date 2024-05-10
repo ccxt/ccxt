@@ -9,10 +9,9 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class okcoin extends \ccxt\async\okcoin {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -72,15 +71,15 @@ class okcoin extends \ccxt\async\okcoin {
         }) ();
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the okcoin api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -92,15 +91,15 @@ class okcoin extends \ccxt\async\okcoin {
         }) ();
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple orders made by the user
-             * @param {string|null} $symbol unified market $symbol of the market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the okcoin api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -116,40 +115,40 @@ class okcoin extends \ccxt\async\okcoin {
         }) ();
     }
 
-    public function handle_orders($client, $message, $subscription = null) {
+    public function handle_orders(Client $client, $message, $subscription = null) {
         //
         // {
-        //     $table => 'spot/order',
-        //     data => array(
+        //     "table" => "spot/order",
+        //     "data" => array(
         //       {
-        //         client_oid => '',
-        //         created_at => '2022-03-04T16:44:58.530Z',
-        //         event_code => '0',
-        //         event_message => '',
-        //         fee => '',
-        //         fee_currency => '',
-        //         filled_notional => '0',
-        //         filled_size => '0',
-        //         instrument_id => 'LTC-USD',
-        //         last_amend_result => '',
-        //         last_fill_id => '0',
-        //         last_fill_px => '0',
-        //         last_fill_qty => '0',
-        //         last_fill_time => '1970-01-01T00:00:00.000Z',
-        //         last_request_id => '',
-        //         margin_trading => '1',
-        //         notional => '',
-        //         order_id => '8629537900471296',
-        //         order_type => '0',
-        //         price => '1500',
-        //         rebate => '',
-        //         rebate_currency => '',
-        //         side => 'sell',
-        //         size => '0.0133',
-        //         state => '0',
-        //         status => 'open',
-        //         timestamp => '2022-03-04T16:44:58.530Z',
-        //         type => 'limit'
+        //         "client_oid" => '',
+        //         "created_at" => "2022-03-04T16:44:58.530Z",
+        //         "event_code" => "0",
+        //         "event_message" => '',
+        //         "fee" => '',
+        //         "fee_currency" => '',
+        //         "filled_notional" => "0",
+        //         "filled_size" => "0",
+        //         "instrument_id" => "LTC-USD",
+        //         "last_amend_result" => '',
+        //         "last_fill_id" => "0",
+        //         "last_fill_px" => "0",
+        //         "last_fill_qty" => "0",
+        //         "last_fill_time" => "1970-01-01T00:00:00.000Z",
+        //         "last_request_id" => '',
+        //         "margin_trading" => "1",
+        //         "notional" => '',
+        //         "order_id" => "8629537900471296",
+        //         "order_type" => "0",
+        //         "price" => "1500",
+        //         "rebate" => '',
+        //         "rebate_currency" => '',
+        //         "side" => "sell",
+        //         "size" => "0.0133",
+        //         "state" => "0",
+        //         "status" => "open",
+        //         "timestamp" => "2022-03-04T16:44:58.530Z",
+        //         "type" => "limit"
         //       }
         //     )
         //   }
@@ -180,30 +179,30 @@ class okcoin extends \ccxt\async\okcoin {
         }
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the okcoin api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->subscribe('ticker', $symbol, $params));
         }) ();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
-        //         $table => 'spot/trade',
-        //         $data => array(
+        //         "table" => "spot/trade",
+        //         "data" => array(
         //             {
-        //                 side => 'buy',
-        //                 trade_id => '30770973',
-        //                 price => '4665.4',
-        //                 size => '0.019',
-        //                 instrument_id => 'BTC-USDT',
-        //                 timestamp => '2020-03-16T13:41:46.526Z'
+        //                 "side" => "buy",
+        //                 "trade_id" => "30770973",
+        //                 "price" => "4665.4",
+        //                 "size" => "0.019",
+        //                 "instrument_id" => "BTC-USDT",
+        //                 "timestamp" => "2020-03-16T13:41:46.526Z"
         //             }
         //         )
         //     }
@@ -227,25 +226,25 @@ class okcoin extends \ccxt\async\okcoin {
         return $message;
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         $table => 'spot/ticker',
-        //         $data => array(
+        //         "table" => "spot/ticker",
+        //         "data" => array(
         //             {
-        //                 last => '4634.1',
-        //                 open_24h => '5305.6',
-        //                 best_bid => '4631.6',
-        //                 high_24h => '5950',
-        //                 low_24h => '4448.8',
-        //                 base_volume_24h => '147913.11435388',
-        //                 quote_volume_24h => '756850119.99108082',
-        //                 best_ask => '4631.7',
-        //                 instrument_id => 'BTC-USDT',
-        //                 timestamp => '2020-03-16T13:16:25.677Z',
-        //                 best_bid_size => '0.12348942',
-        //                 best_ask_size => '0.00100014',
-        //                 last_qty => '0.00331822'
+        //                 "last" => "4634.1",
+        //                 "open_24h" => "5305.6",
+        //                 "best_bid" => "4631.6",
+        //                 "high_24h" => "5950",
+        //                 "low_24h" => "4448.8",
+        //                 "base_volume_24h" => "147913.11435388",
+        //                 "quote_volume_24h" => "756850119.99108082",
+        //                 "best_ask" => "4631.7",
+        //                 "instrument_id" => "BTC-USDT",
+        //                 "timestamp" => "2020-03-16T13:16:25.677Z",
+        //                 "best_bid_size" => "0.12348942",
+        //                 "best_ask_size" => "0.00100014",
+        //                 "last_qty" => "0.00331822"
         //             }
         //         )
         //     }
@@ -263,20 +262,20 @@ class okcoin extends \ccxt\async\okcoin {
         return $message;
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the okcoin api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'candle' . $interval . 's';
             $ohlcv = Async\await($this->subscribe($name, $symbol, $params));
             if ($this->newUpdates) {
@@ -286,13 +285,13 @@ class okcoin extends \ccxt\async\okcoin {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $table => "spot/candle60s",
-        //         $data => array(
+        //         "table" => "spot/candle60s",
+        //         "data" => array(
         //             {
-        //                 $candle => array(
+        //                 "candle" => array(
         //                     "2020-03-16T14:29:00.000Z",
         //                     "4948.3",
         //                     "4966.7",
@@ -300,7 +299,7 @@ class okcoin extends \ccxt\async\okcoin {
         //                     "4945.3",
         //                     "238.36021657"
         //                 ),
-        //                 instrument_id => "BTC-USDT"
+        //                 "instrument_id" => "BTC-USDT"
         //             }
         //         )
         //     }
@@ -332,14 +331,14 @@ class okcoin extends \ccxt\async\okcoin {
         }
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the okcoin api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
             $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
@@ -360,22 +359,22 @@ class okcoin extends \ccxt\async\okcoin {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
-        //         instrument_id => "BTC-USDT",
-        //         $asks => [
+        //         "instrument_id" => "BTC-USDT",
+        //         "asks" => [
         //             ["4568.5", "0.49723138", "2"],
         //             ["4568.7", "0.5013", "1"],
         //             ["4569.1", "0.4398", "1"],
         //         ],
-        //         $bids => [
+        //         "bids" => [
         //             ["4568.4", "0.84187666", "5"],
         //             ["4568.3", "0.75661506", "6"],
         //             ["4567.8", "2.01", "2"],
         //         ],
-        //         $timestamp => "2020-03-16T11:11:43.388Z",
-        //         checksum => 473370408
+        //         "timestamp" => "2020-03-16T11:11:43.388Z",
+        //         "checksum" => 473370408
         //     }
         //
         $asks = $this->safe_value($message, 'asks', array());
@@ -388,28 +387,28 @@ class okcoin extends \ccxt\async\okcoin {
         return $orderbook;
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // first $message (snapshot)
         //
         //     {
-        //         $table => "spot/depth",
-        //         $action => "partial",
-        //         $data => [
+        //         "table" => "spot/depth",
+        //         "action" => "partial",
+        //         "data" => [
         //             {
-        //                 instrument_id => "BTC-USDT",
-        //                 asks => [
+        //                 "instrument_id" => "BTC-USDT",
+        //                 "asks" => [
         //                     ["4568.5", "0.49723138", "2"],
         //                     ["4568.7", "0.5013", "1"],
         //                     ["4569.1", "0.4398", "1"],
         //                 ],
-        //                 bids => [
+        //                 "bids" => [
         //                     ["4568.4", "0.84187666", "5"],
         //                     ["4568.3", "0.75661506", "6"],
         //                     ["4567.8", "2.01", "2"],
         //                 ],
-        //                 timestamp => "2020-03-16T11:11:43.388Z",
-        //                 checksum => 473370408
+        //                 "timestamp" => "2020-03-16T11:11:43.388Z",
+        //                 "checksum" => 473370408
         //             }
         //         ]
         //     }
@@ -417,23 +416,23 @@ class okcoin extends \ccxt\async\okcoin {
         // subsequent updates
         //
         //     {
-        //         $table => "spot/depth",
-        //         $action => "update",
-        //         $data => [
+        //         "table" => "spot/depth",
+        //         "action" => "update",
+        //         "data" => [
         //             {
-        //                 instrument_id =>   "BTC-USDT",
-        //                 asks => [
+        //                 "instrument_id" =>   "BTC-USDT",
+        //                 "asks" => [
         //                     ["4598.8", "0", "0"],
         //                     ["4599.1", "0", "0"],
         //                     ["4600.3", "0", "0"],
         //                 ],
-        //                 bids => [
+        //                 "bids" => [
         //                     ["4598.5", "0.08", "1"],
         //                     ["4598.2", "0.0337323", "1"],
         //                     ["4598.1", "0.12681801", "3"],
         //                 ],
-        //                 timestamp => "2020-03-16T11:20:35.139Z",
-        //                 checksum => 740786981
+        //                 "timestamp" => "2020-03-16T11:20:35.139Z",
+        //                 "checksum" => 740786981
         //             }
         //         ]
         //     }
@@ -502,12 +501,12 @@ class okcoin extends \ccxt\async\okcoin {
         }) ();
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * $query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the okcoin api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
             $type = $this->safe_string($params, 'type', $defaultType);
@@ -571,19 +570,19 @@ class okcoin extends \ccxt\async\okcoin {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // spot
         //
         //     {
-        //         $table => 'spot/account',
-        //         $data => array(
+        //         "table" => "spot/account",
+        //         "data" => array(
         //             {
-        //                 available => '11.044827320825',
-        //                 currency => 'USDT',
-        //                 id => '',
-        //                 $balance => '11.044827320825',
-        //                 hold => '0'
+        //                 "available" => "11.044827320825",
+        //                 "currency" => "USDT",
+        //                 "id" => '',
+        //                 "balance" => "11.044827320825",
+        //                 "hold" => "0"
         //             }
         //         )
         //     }
@@ -591,21 +590,23 @@ class okcoin extends \ccxt\async\okcoin {
         // margin
         //
         //     {
-        //         $table => "spot/margin_account",
-        //         $data => array(
+        //         "table" => "spot/margin_account",
+        //         "data" => array(
         //             {
-        //                 maint_margin_ratio => "0.08",
-        //                 liquidation_price => "0",
-        //                 'currency:USDT' => array( available => "0", $balance => "0", borrowed => "0", hold => "0", lending_fee => "0" ),
-        //                 tiers => "1",
-        //                 instrument_id =>   "ETH-USDT",
-        //                 'currency:ETH' => array( available => "0", $balance => "0", borrowed => "0", hold => "0", lending_fee => "0" )
+        //                 "maint_margin_ratio" => "0.08",
+        //                 "liquidation_price" => "0",
+        //                 "currency:USDT" => array( available => "0", $balance => "0", borrowed => "0", hold => "0", lending_fee => "0" ),
+        //                 "tiers" => "1",
+        //                 "instrument_id" =>   "ETH-USDT",
+        //                 "currency:ETH" => array( available => "0", $balance => "0", borrowed => "0", hold => "0", lending_fee => "0" )
         //             }
         //         )
         //     }
         //
         $table = $this->safe_string($message, 'table');
         $parts = explode('/', $table);
+        $data = $this->safe_value($message, 'data', array());
+        $this->balance['info'] = $data;
         $type = $this->safe_string($parts, 0);
         if ($type === 'spot') {
             $part1 = $this->safe_string($parts, 1);
@@ -613,7 +614,6 @@ class okcoin extends \ccxt\async\okcoin {
                 $type = 'margin';
             }
         }
-        $data = $this->safe_value($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $balance = $this->parseBalanceByType ($type, $data);
             $oldBalance = $this->safe_value($this->balance, $type, array());
@@ -623,7 +623,7 @@ class okcoin extends \ccxt\async\okcoin {
         }
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
         //
@@ -632,9 +632,9 @@ class okcoin extends \ccxt\async\okcoin {
         return $message;
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
-        //     array( event => 'login', success => true )
+        //     array( event => "login", success => true )
         //
         $client->resolve ($message, 'authenticated');
         return $message;
@@ -646,16 +646,16 @@ class okcoin extends \ccxt\async\okcoin {
         return 'ping';
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
-        //     array( event => 'error', $message => 'Invalid sign', $errorCode => 30013 )
+        //     array( event => "error", $message => "Invalid sign", $errorCode => 30013 )
         //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
-        //     array( event => 'error', $message => "Channel spot/order doesn't exist", $errorCode => 30040 )
+        //     array( event => "error", $message => "Channel spot/order doesn't exist", $errorCode => 30040 )
         //
         $errorCode = $this->safe_string($message, 'errorCode');
         try {
@@ -680,7 +680,7 @@ class okcoin extends \ccxt\async\okcoin {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -688,21 +688,21 @@ class okcoin extends \ccxt\async\okcoin {
         //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
         //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
         //     {
-        //         $table => "spot/depth",
-        //         action => "partial",
-        //         data => [
+        //         "table" => "spot/depth",
+        //         "action" => "partial",
+        //         "data" => [
         //             {
-        //                 instrument_id =>   "BTC-USDT",
-        //                 asks => [
+        //                 "instrument_id" =>   "BTC-USDT",
+        //                 "asks" => [
         //                     ["5301.8", "0.03763319", "1"],
         //                     ["5302.4", "0.00305", "2"],
         //                 ],
-        //                 bids => [
+        //                 "bids" => [
         //                     ["5301.7", "0.58911427", "6"],
         //                     ["5301.6", "0.01222922", "4"],
         //                 ],
-        //                 timestamp => "2020-03-16T03:25:00.440Z",
-        //                 checksum => -2088736623
+        //                 "timestamp" => "2020-03-16T03:25:00.440Z",
+        //                 "checksum" => -2088736623
         //             }
         //         ]
         //     }
@@ -738,7 +738,8 @@ class okcoin extends \ccxt\async\okcoin {
         // }
         //
         if ($message === 'pong') {
-            return $this->handle_pong($client, $message);
+            $this->handle_pong($client, $message);
+            return;
         }
         $table = $this->safe_string($message, 'table');
         if ($table === null) {
@@ -751,10 +752,8 @@ class okcoin extends \ccxt\async\okcoin {
                     'subscribe' => array($this, 'handle_subscription_status'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         } else {
@@ -775,10 +774,8 @@ class okcoin extends \ccxt\async\okcoin {
             if (mb_strpos($name, 'candle') !== false) {
                 $method = array($this, 'handle_ohlcv');
             }
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

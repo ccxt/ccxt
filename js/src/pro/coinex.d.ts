@@ -1,0 +1,31 @@
+import coinexRest from '../coinex.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class coinex extends coinexRest {
+    describe(): any;
+    requestId(): any;
+    handleTicker(client: Client, message: any): void;
+    parseWSTicker(ticker: any, market?: any): Ticker;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
+    handleTrades(client: Client, message: any): void;
+    parseWsTrade(trade: any, market?: any): Trade;
+    handleOHLCV(client: Client, message: any): void;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleDelta(bookside: any, delta: any): void;
+    handleDeltas(bookside: any, deltas: any): void;
+    handleOrderBook(client: Client, message: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrders(client: Client, message: any): void;
+    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrderStatus(status: any): string;
+    handleMessage(client: Client, message: any): void;
+    handleAuthenticationMessage(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): void;
+    authenticate(params?: {}): Promise<any>;
+}

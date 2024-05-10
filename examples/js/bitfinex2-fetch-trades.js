@@ -1,14 +1,15 @@
-"use strict";
+
 
 // ----------------------------------------------------------------------------
 
-const ccxt = require ('../../ccxt.js')
-    , log  = require ('ololog')
-    , asTable = require ('as-table').configure ({ delimiter: ' | ' })
+import ccxt from '../../js/ccxt.js';
+import asTable from 'as-table';
+import log from 'ololog';
 
 // ----------------------------------------------------------------------------
 
-;(async () => {
+const // ----------------------------------------------------------------------------
+table = asTable.configure ({ delimiter: ' | ' });(async () => {
 
     const exchange = new ccxt.bitfinex2 ({
         'verbose': process.argv.includes ('--verbose'),
@@ -18,7 +19,7 @@ const ccxt = require ('../../ccxt.js')
     try {
 
         const response = await exchange.fetchTrades ('ETH/BTC', 1518983548636 - 2 * 24 * 60 * 60 * 1000)
-        log (asTable (response))
+        log (table (response))
         log (response.length.toString (), 'trades')
         log.green ('Succeeded.')
 

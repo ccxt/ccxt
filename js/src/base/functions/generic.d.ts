@@ -1,0 +1,28 @@
+import { Dictionary, IndexType } from '../types.js';
+declare const keys: {
+    (o: object): string[];
+    (o: {}): string[];
+};
+declare const values: (x: any[] | Dictionary<any>) => any[];
+declare const index: (x: any[]) => Set<any>;
+declare const extend: (...args: any[]) => any;
+declare const clone: (x: any) => any;
+declare const ordered: (x: any[] | Dictionary<any>) => any[] | Dictionary<any>;
+declare const unique: (x: any[]) => any[];
+declare const arrayConcat: (a: any[], b: any[]) => any[];
+declare const inArray: (needle: any, haystack: any[]) => boolean;
+declare const toArray: (object: Dictionary<any> | any[]) => any[];
+declare const isEmpty: (object: any[] | Dictionary<any>) => boolean;
+declare const keysort: (x: Dictionary<any>, out?: Dictionary<any>) => Dictionary<any>;
+declare const groupBy: (x: Dictionary<any>, k: string, out?: Dictionary<any>) => Dictionary<any>;
+declare const indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
+declare const filterBy: (x: Dictionary<any>, k: string, value?: any, out?: Dictionary<any>[]) => Dictionary<any>[];
+declare const sortBy: (array: any[], key: IndexType, descending?: boolean, defaultValue?: any, direction?: number) => any[];
+declare const sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];
+declare const flatten: (x: any[], out?: any[]) => any[];
+declare const pluck: (x: Dictionary<any>, k: any) => any[];
+declare const omit: (x: Dictionary<any>, ...args: any) => any;
+declare const sum: (...xs: any[]) => any;
+declare const deepExtend: (...xs: any) => any;
+declare const merge: (target: Dictionary<any>, ...args: any) => Dictionary<any>;
+export { keys, values, extend, clone, index, ordered, unique, arrayConcat, inArray, toArray, isEmpty, keysort, indexBy, groupBy, filterBy, sortBy, sortBy2, flatten, pluck, omit, sum, deepExtend, merge, };

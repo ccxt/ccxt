@@ -7,14 +7,13 @@
 
         document.addEventListener ("DOMContentLoaded", function () {
 
-            alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+            alert ('ccxt version ' + ccxt.version);
 
             const exchange = new ccxt.bitmex ({
-                'enableRateLimit': true,
-                'proxy': 'http://127.0.0.1:8080/',
+                'proxyUrl': 'http://127.0.0.1:8080/',
             })
 
-            const symbol = 'BTC/USD'
+            const symbol = 'BTC/USDT'
 
             exchange.fetchTicker (symbol).then (ticker => {
 

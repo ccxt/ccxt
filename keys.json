@@ -1,40 +1,10 @@
 {
-    "alpaca":        { "skipWs": true },
-    "bkex":          { "skip": true },
-    "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
-    "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
-    "binancecoinm":  { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
-    "mexc":          { "skip": true,    "//":"Reason: 403 Forbidden <HTML><HEAD><TITLE>Access Denied</TITLE></HEAD"},
-    "gemini":        { "skip": true,    "//":"Reason: Markets api is too unreliable" },
-    "coinex":        { "skip": true,    "//": "Reason: 13/01 API is down" },
-    "bitcoincom":    { "skipWs": true },
-    "bitmart":       { "skipWs": true },
-    "bitmex":        { "skipWs": true },
-    "bitfinex":      { "skipWs": true },
-    "bittrex":       { "skipWs": true },
-    "cdax":          { "skipWs": true },
-    "cex":           { "skipWs": true },
-    "currencycom":   { "skipWs": true },
-    "cryptocom":     { "skipWs": true },
-    "huobipro":      { "skipWs": true },
-    "okcoin":        { "skipWs": true },
-    "poloniex":      { "skipWs": true },
-    "zipmex":        { "skipWs": true },
-    "bequant":       { "skipWs": true },
-    "bitopro":       { "skipWs": true },
-    "bitvavo":       { "skipWs": true },
-    "huobi":         { "skipWs": true },
-    "hollaex":       { "skipWs": true },
-    "idex":          { "skipWs": true },
-    "kucoin":        { "skipWs": true },
-    "ndax":          { "skipWs": true },
-    "ripio":         { "skip":true, "skipWs": true },
-    "upbit":         { "skipWs": true },
-    "zb":            { "skipWs": true },
-    "tidebit":       { "skip": true },
-    "tokocrypto":    { "skip": true },
-    "crex24":        { "skip": true },
-    "btcex":         { "skip": true },
-    "wazirx":        { "skipWs": true },
-    "deribit":       { "skipWs": true }
+    "sampleExchange" : {
+        "httpProxy": "012.345.678.910",
+        "apiKey": "xxxxxxxx",
+        "secret": "xxxxxxxx",
+        "options": {
+            "defaultType": "spot"
+        }
+    }
 }

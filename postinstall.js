@@ -1,7 +1,7 @@
-const fetch = require ('./js/static_dependencies/fetch-ponyfill/fetch-node') ().fetch
+import fetch from './js/src/static_dependencies/node-fetch/index.js'
 
 function style(s, style) {
-    return style + s + '\033[0m'
+    return style + s + '\x1b[0m'
 }
 
 const colors = {
@@ -16,45 +16,32 @@ const colors = {
 
 let colorFunctions = {}
 for (let color of Object.keys (colors)) {
-    colorFunctions[color] = (s) => console.log (style (s, '\033[' + colors[color].toString () + 'm'))
+    colorFunctions[color] = (s) => console.log (style (s, '\x1b[' + colors[color].toString () + 'm'))
 }
 
 let ascii = [
-    '                                                         ',
-    '                         :Siiiiiiiiiiir    rSiiiiiiiiiiS:',
-    '                         r&9hh&&&&&&&A5    SG99h&&&&&&GHr',
-    '                         ;hX32;::::::;,    i9X9S:;:::::;,',
-    '                         ;hX9S             ihXhr         ',
-    '                         ;hX32::::::,:,    i9X9i::::::,:.',
-    '                         rG999GGGGGGGAS    iG99hGGGGGGGAr',
-    '                         ;2S55SSSSSSS2r    r2555SSSSSSS2;',
-    '                                                         ',
-    '                                                         ',
-    '                         ;2S5s    ;2S2r    r2SS555555SS2;',
-    '                         rAh&2    sAhAS    SAGGh9999GGGAr',
-    '                         .:,::rrrs::::,    ,:,,;9X3X:,,:.',
-    '                              &A&H,            ,hX33     ',
-    '                         ,;:;;;;;r;;:;,        ,hX3X.    ',
-    '                         rHGAX    sAGA5        :&9h9.    ',
-    '                         :Ssir    ;isir        ,Siii     ',
-    '                                                         ',
-]
-
-let footer = [
-    '                                                                 ',
-    '              ---------------------------------------------------',
-    '                                                                 ',
-    '                     You can contribute in crypto directly:      ',
-    '                                                                 ',
-    '                 ETH 0x26a3CB49578F07000575405a57888681249c35Fd  ',
-    '                 BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva          ',
-    '                 BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze          ',
-    '                 LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP          ',
-    '                                                                 ',
-    '              ---------------------------------------------------',
-    '                                                                 ',
-    '                                   Thank you!                    ',
-    '                                                                 ',
+    '                                                              ',
+    '                                                              ',
+    '                     ████████████████████████████████████     ',
+    '                     ████████████████████████████████████     ',
+    '                     ████            ████            ████     ',
+    '                     ████            ████            ████     ',
+    '                     ████    ████████████    ████████████     ',
+    '                     ████    ████████████    ████████████     ',
+    '                     ████            ████            ████     ',
+    '                     ████            ████            ████     ',
+    '                     ████████████████████████████████████     ',
+    '                     ████████████████████████████████████     ',
+    '                     ████    ████    ████            ████     ',
+    '                     ████    ████    ████            ████     ',
+    '                     ████████    ████████████    ████████     ',
+    '                     ████████    ████████████    ████████     ',
+    '                     ████    ████    ████████    ████████     ',
+    '                     ████    ████    ████████    ████████     ',
+    '                     ████████████████████████████████████     ',
+    '                     ████████████████████████████████████     ',
+    '                                                              ',
+    '                                                              ',
 ]
 
 async function getData () {
@@ -88,14 +75,11 @@ async function main () {
         colorFunctions['blue'] (ascii.join ('\n'))
         colorFunctions['red'] (pad (`Stars: ${data.stars}`))
         colorFunctions['red'] (pad (`Forks: ${data.forks}`))
-        colorFunctions['red'] (pad (`Contributors: ${data.contributors}`))
         colorFunctions['red'] (pad (`Size: ${data.size}MB`))
         colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
         colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
         colorFunctions['gray'] (pad ('to help us maintain this package.'))
         colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
-        colorFunctions['white'] (pad (`Thanks to our ${data.backers} backers we are operating on an annual budget of $${data.budget}`))
-        colorFunctions['yellow'] (footer.join ('\n'))
 
     } catch (e) {
 

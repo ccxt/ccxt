@@ -1,0 +1,669 @@
+{
+    "exchange": "phemex",
+    "skipKeys": [
+        "clOrdID"
+    ],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt20228e2ff23c142d8430\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.1
+                ],
+                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Sell\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt2022682fd099549bbfeb\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000}"
+            },
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    "55"
+                ],
+                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"ccxt202269fb13ce74759a10\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000,\"priceEp\":5500000000}"
+            },
+            {
+                "description": "Swap market buy",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt20221857f87e9488b077\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1}"
+            },
+            {
+                "description": "swap order with tp/sl attached",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.5,
+                  50,
+                  {
+                    "takeProfit": {
+                      "triggerPrice": 150
+                    },
+                    "stopLoss": {
+                      "triggerPrice": 30
+                    }
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456037657993410b08f\",\"posSide\":\"Merged\",\"orderQtyRq\":0.5,\"stopLossRp\":\"30\",\"takeProfitRp\":\"150\",\"priceRp\":\"50\"}"
+            },
+            {
+                "description": "Swap limit buy with trigger price",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    "55",
+                    {
+                        "triggerPrice": 60,
+                        "clientOrderId": "myordr2"
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"myordr2\",\"stopPxRp\":\"60\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"55\"}"
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit spot order",
+                "method": "editOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders?symbol=sLTCUSDT&orderID=a1db4e77-3255-4b7c-a2ca-d8f3da177b0c&priceEp=5600000000&baseQtyEV=11000000",
+                "input": [
+                    "a1db4e77-3255-4b7c-a2ca-d8f3da177b0c",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.11,
+                    "56"
+                ]
+            },
+            {
+                "description": "Edit swap order",
+                "method": "editOrder",
+                "url": "https://testnet-api.phemex.com/g-orders/replace?symbol=LTCUSDT&orderID=f19a1108-8dc0-4afb-b281-0cd2c8ca65d9&priceRp=50&orderQtyRq=0.14&posSide=Merged",
+                "input": [
+                    "f19a1108-8dc0-4afb-b281-0cd2c8ca65d9",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.14,
+                    "50"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders?symbol=sLTCUSDT&orderID=2465bef7-b1fd-46ba-9eaa-bebc5c9791f2",
+                "input": [
+                    "2465bef7-b1fd-46ba-9eaa-bebc5c9791f2",
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://testnet-api.phemex.com/g-orders/cancel?symbol=LTCUSDT&orderID=2da1890e-2b2e-4780-b432-410213a07e4c&posSide=Merged",
+                "input": [
+                    "2da1890e-2b2e-4780-b432-410213a07e4c",
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://api.phemex.com/spot/orders?symbol=sLTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap orders",
+                "method": "fetchOrders",
+                "url": "https://api.phemex.com/exchange/order/v2/orderList?symbol=LTCUSDT&currency=USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap orders - inverse",
+                "method": "fetchOrders",
+                "url": "https://api.phemex.com/exchange/order/list?symbol=BTCUSD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.phemex.com/exchange/spot/order/trades?limit=5&symbol=sLTCUSDT&start=1699457638000",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "Swap private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.phemex.com/exchange/order/v2/tradingList?limit=5&currency=USDT&offset=0&start=1699457638000",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "Swap private trades - inverse",
+                "method": "fetchMyTrades",
+                "url": "https://api.phemex.com/exchange/order/trade?limit=5&symbol=BTCUSD&start=1699457638000",
+                "input": [
+                    "BTC/USD:BTC",
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "my trades without symbol should return usdt settled trades",
+                "method": "fetchMyTrades",
+                "url": "https://testnet-api.phemex.com/exchange/order/v2/tradingList?currency=USDT&offset=0&limit=200",
+                "input": []
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.phemex.com/spot/orders?symbol=sLTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.phemex.com/g-orders/activeList?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap open orders - inverse",
+                "method": "fetchOpenOrders",
+                "url": "https://api.phemex.com/orders/activeList?symbol=BTCUSD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.phemex.com/exchange/spot/order?symbol=sLTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.phemex.com/exchange/order/v2/orderList?symbol=LTCUSDT&currency=USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap closed orders - inverse",
+                "method": "fetchClosedOrders",
+                "url": "https://api.phemex.com/exchange/order/list?symbol=BTCUSD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "Closed orders without symbol should return usdt settled orders",
+                "method": "fetchClosedOrders",
+                "url": "https://testnet-api.phemex.com/exchange/order/v2/orderList?currency=USDT",
+                "input": []
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel swap orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.phemex.com/g-orders/all?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.phemex.com/spot/orders/all?symbol=sLTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Cancel swap orders - inverse",
+                "method": "cancelAllOrders",
+                "url": "https://api.phemex.com/orders/all?symbol=BTCUSD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.phemex.com/spot/wallets",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.phemex.com/g-accounts/accountPositions?currency=USDT",
+                "input": [
+                    {
+                        "type": "swap",
+                        "settle": "USDT"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    {
+                        "type": "swap",
+                        "settle": "BTC"
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPositions",
+                "url": "https://api.phemex.com/g-accounts/accountPositions?currency=USDT",
+                "input": [
+                    [
+                        "LTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch inverse position",
+                "method": "fetchPositions",
+                "url": "https://api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch linear positions using privateGetAccountsPositions",
+                "method": "fetchPositions",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=USD&method=privateGetAccountsPositions",
+                "input": [
+                    null,
+                    {
+                        "method": "privateGetAccountsPositions"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.phemex.com/exchange/wallets/depositList",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.phemex.com/exchange/wallets/withdrawList",
+                "input": []
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set linear position mode to dual side",
+                "method": "setPositionMode",
+                "url": "https://api.phemex.com/g-positions/switch-pos-mode-sync?symbol=LTCUSDT&targetPosMode=Hedged",
+                "input": [
+                    true,
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch USDT transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.phemex.com/assets/transfer?currency=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.phemex.com/phemex-user/wallets/v2/depositAddress?currency=USDT&chainName=ETH",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.phemex.com/v1/md/spot/ticker/24hr?symbol=sBTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch swap ticker - inverse",
+                "method": "fetchTicker",
+                "url": "https://api.phemex.com/v1/md/ticker/24hr?symbol=BTCUSD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.phemex.com/v1/md/spot/ticker/24hr?symbol=sBTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "inverse tickers without symbols",
+                "method": "fetchTickers",
+                "url": "https://api.phemex.com/v1/md/ticker/24hr/all",
+                "input": [
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.phemex.com/v1/md/spot/ticker/24hr/all",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.phemex.com/md/v2/ticker/24hr/all",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch spot trades",
+                "method": "fetchTrades",
+                "url": "https://api.phemex.com/v1/md/trade?symbol=sBTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch swap trades",
+                "method": "fetchTrades",
+                "url": "https://api.phemex.com/md/v2/trade?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch swap trades - inverse",
+                "method": "fetchTrades",
+                "url": "https://api.phemex.com/v1/md/trade?symbol=BTCUSD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.phemex.com/v1/md/trade?symbol=sBTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.phemex.com/md/v2/trade?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch spot orderbook with limit < 30",
+                "method": "fetchOrderBook",
+                "url": "https://api.phemex.com/v1/md/orderbook?symbol=sBTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    25
+                ]
+            },
+            {
+                "description": "Fetch complete spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.phemex.com/v1/md/fullbook?symbol=sBTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.phemex.com/md/v2/orderbook?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch swap orderbook - inverse with limit < 30",
+                "method": "fetchOrderBook",
+                "url": "https://api.phemex.com/v1/md/orderbook?symbol=BTCUSD",
+                "input": [
+                    "BTC/USD:BTC",
+                    10
+                ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.phemex.com/v1/md/fullbook?symbol=sBTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.phemex.com/md/v2/orderbook?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "withdraw",
+                "url": "https://api.phemex.com/phemex-withdraw/wallets/api/createWithdraw",
+                "input": [
+                    "SOL",
+                    0.03,
+                    "6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK"
+                ],
+                "output": "{\"currency\":\"SOL\",\"address\":\"6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK\",\"amount\":0.03,\"chainName\":\"SOL\"}"
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage to maximum on isolated margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=100",
+                "input": [
+                    100,
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Set leverage to minimum on isolated margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=1",
+                "input": [
+                    1,
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Set leverage to minimum on cross margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=-1",
+                "input": [
+                    -1,
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Set leverage to maximum on cross margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=-100",
+                "input": [
+                    -100,
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline?symbol=sBTCUSDT&resolution=60&limit=1000",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/last?symbol=BTCUSDT&resolution=60&limit=1000",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.phemex.com/api-data/public/data/funding-rate-history?symbol=.BTCUSDTFR8H",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ]
+    }
+}
