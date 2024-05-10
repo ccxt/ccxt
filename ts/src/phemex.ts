@@ -3871,11 +3871,18 @@ export default class phemex extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const timestamp = this.safeInteger (entry, 'createTime');
-            const execFee = this.safeString2 (entry, 'execFeeEv', 'execFeeRv');
+            let execFee = this.safeString2 (entry, 'execFeeEv', 'execFeeRv');
+            const currencyCode = this.safeCurrencyCode (this.safeString (entry, 'currency'));
+            if (currencyCode === 'USD') {
+                const currency = this.safeCurrency (currencyCode);
+                const scale = this.safeString (currency['info'], 'valueScale');
+                const tickPrecision = this.parsePrecision (scale);
+                execFee = Precise.stringMul (execFee, tickPrecision);
+            }
             result.push ({
                 'info': entry,
                 'symbol': this.safeString (entry, 'symbol'),
-                'code': this.safeCurrencyCode (this.safeString (entry, 'currency')),
+                'code': currencyCode,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': undefined,
