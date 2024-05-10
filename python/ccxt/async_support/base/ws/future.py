@@ -33,11 +33,18 @@ class Future(asyncio.Future):
                             future.reject(e)
                         # wait for all the sub promises to be reject before rejecting future
                         continue
+                    except asyncio.CancelledError as e:
+                        continue
                     except Exception as e:
                         future.reject(e)
                         return
                 # no exceptions return first result
                 futures_list = list(complete)
+
+                are_all_canceled = all([f.cancelled() for f in futures_list])
+                if are_all_canceled:
+                    future.reject(ExchangeClosedByUser('Connection closed by the user'))
+                    return
 
                 first = futures_list[0]
 
