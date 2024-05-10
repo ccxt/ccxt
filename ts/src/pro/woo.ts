@@ -566,6 +566,17 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
+    async watchPrivateMultiple (messageHashes, message, params = {}) {
+        await this.authenticate (params);
+        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const requestId = this.requestId (url);
+        const subscribe = {
+            'id': requestId,
+        };
+        const request = this.extend (subscribe, message);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, subscribe);
+    }
+
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
@@ -836,12 +847,16 @@ export default class woo extends wooRest {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        let messageHash = '';
+        const messageHashes = [];
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
-            messageHash = '::' + symbols.join (',');
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push ('positions::' + symbol);
+            }
+        } else {
+            messageHashes.push ('positions');
         }
-        messageHash = 'positions' + messageHash;
         const url = this.urls['api']['ws']['private'] + '/' + this.uid;
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
@@ -855,7 +870,7 @@ export default class woo extends wooRest {
             'event': 'subscribe',
             'topic': 'position',
         };
-        const newPositions = await this.watchPrivate (messageHash, request, params);
+        const newPositions = await this.watchPrivateMultiple (messageHashes, request, params);
         if (this.newUpdates) {
             return newPositions;
         }
@@ -933,17 +948,8 @@ export default class woo extends wooRest {
             const position = this.parsePosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
-        }
-        const messageHashes = this.findMessageHashes (client, 'positions::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
-            if (!this.isEmpty (positions)) {
-                client.resolve (positions, messageHash);
-            }
+            const messageHash = 'positions::' + market['symbol'];
+            client.resolve (position, messageHash);
         }
         client.resolve (newPositions, 'positions');
     }
