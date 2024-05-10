@@ -281,9 +281,29 @@ export default class okx extends okxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
-        const fundingRate = await this.subscribeMultiple ('public', 'funding-rate', symbols, params);
-        const symbol = this.safeString (fundingRate, 'symbol');
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const channel = 'funding-rate';
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push (channel + ':' + symbol);
+            const marketId = this.marketId (symbol);
+            const topic = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push (topic);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const url = this.getUrl (channel, 'public');
+        const fundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
+            const symbol = this.safeString (fundingRate, 'symbol');
             const result = {};
             result[symbol] = fundingRate;
             return result;
@@ -317,7 +337,7 @@ export default class okx extends okxRest {
             const fundingRate = this.parseFundingRate (rawfr);
             const symbol = fundingRate['symbol'];
             this.fundingRates[symbol] = fundingRate;
-            client.resolve (fundingRate, 'funding-rate' + '::' + fundingRate['symbol']);
+            client.resolve (fundingRate, 'funding-rate' + ':' + fundingRate['symbol']);
         }
     }
 
