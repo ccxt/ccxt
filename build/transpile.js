@@ -44,11 +44,19 @@ if (platform === 'win32') {
 class Transpiler {
 
     trimmedUnCamelCase(word) {
+        // don't modify implicit api methods
+        if (
+            word.startsWith('v1') || word.startsWith('v2') || word.startsWith('v3') || word.startsWith('v4') ||
+            word.startsWith('private') || word.startsWith('public')
+        ) {
+            return word;
+        }
         // remove JS space between method name and (
         // example: this.myMethod ( -> this.myMethod() 
-        word = word.replace(' ', '')
+        word = word.replace(' ', '');
         // unCamelCase needs to have an input of plain word, so, remove and re-add the parentheses
-        return unCamelCase (word.replace ('(', '')) + '('
+        const uncameled = unCamelCase (word.replace ('(', '')) + '(';
+        return word.replace(/v[0-9]+/, uncameled);
     }
 
     getCommonRegexes () {
