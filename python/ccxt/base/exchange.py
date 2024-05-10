@@ -3131,28 +3131,8 @@ class Exchange(object):
             'previousClose': self.safe_number(ticker, 'previousClose'),
         })
 
-<<<<<<< HEAD
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        self.load_markets()
-        trades = self.fetch_trades(symbol, since, limit, params)
-        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
-        result = []
-        for i in range(0, len(ohlcvc)):
-            result.append([
-                self.safe_integer(ohlcvc[i], 0),
-                self.safe_number(ohlcvc[i], 1),
-                self.safe_number(ohlcvc[i], 2),
-                self.safe_number(ohlcvc[i], 3),
-                self.safe_number(ohlcvc[i], 4),
-                self.safe_number(ohlcvc[i], 5),
-            ])
-        return result
-=======
     def fetch_borrow_rate(self, code: str, amount, params={}):
         raise NotSupported(self.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead')
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
 
     def repay_cross_margin(self, code: str, amount, params={}):
         raise NotSupported(self.id + ' repayCrossMargin is not support yet')
@@ -3756,18 +3736,7 @@ class Exchange(object):
                 ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
         return ohlcvs
 
-<<<<<<< HEAD
-    def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        self.load_markets()
-        trades = self.fetch_trades(symbol, since, limit, params)
-        return self.build_ohlcvc(trades, timeframe, since, limit)
-
-    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-=======
     def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since: Int = None, limit: Int = None):
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
@@ -3780,13 +3749,8 @@ class Exchange(object):
     def edit_limit_order(self, id: str, symbol: str, side: OrderSide, amount: float, price: Num = None, params={}):
         return self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
-<<<<<<< HEAD
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
-        self.cancel_order(id, symbol)
-=======
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.cancelOrder(id, symbol)
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         return self.create_order(symbol, type, side, amount, price, params)
 
     def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -3958,16 +3922,7 @@ class Exchange(object):
         return self.fetch_partial_balance('total', params)
 
     def fetch_status(self, params={}):
-<<<<<<< HEAD
-        if self.has['fetchTime']:
-            time = self.fetch_time(params)
-            self.status = self.extend(self.status, {
-                'updated': time,
-            })
-        return self.status
-=======
         raise NotSupported(self.id + ' fetchStatus() is not supported yet')
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
 
     def fetch_transaction_fee(self, code: str, params={}):
         if not self.has['fetchTransactionFees']:
@@ -4558,13 +4513,8 @@ class Exchange(object):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
-<<<<<<< HEAD
-    def cancel_unified_order(self, order, params={}):
-        return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
-=======
     def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrderWs() is not supported yet')
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
 
     def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrdersWs() is not supported yet')
