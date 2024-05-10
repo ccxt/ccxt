@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, Liquidation } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, Liquidation, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -8273,7 +8273,7 @@ export default class htx extends Exchange {
         return this.parseOpenInterests (tick, market, since, limit);
     }
 
-    async fetchOpenInterest (symbol: string, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         /**
          * @method
          * @name huobi#fetchOpenInterest
@@ -8379,7 +8379,7 @@ export default class htx extends Exchange {
         return openInterest;
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterestHistory
         //

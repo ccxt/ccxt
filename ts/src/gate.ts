@@ -6314,7 +6314,7 @@ export default class gate extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, params);
     }
 
-    async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
         /**
          * @method
          * @name gate#fetchOpenInterest
@@ -6374,7 +6374,7 @@ export default class gate extends Exchange {
         return this.parseOpenInterests (response, market, since, limit);
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
         //
         //    {
         //        "long_liq_size": "0",

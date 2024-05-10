@@ -6086,11 +6086,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchConvertCurrencies() is not supported yet');
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
+    parseOpenInterests (response: any, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
