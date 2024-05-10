@@ -1642,11 +1642,26 @@ export default class valr extends Exchange {
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name valr#fetchLedger
+         * @see https://docs.valr.com/#0d7cc0ff-b8ca-4e1f-980e-36d07672e53d
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {string} [code] uunified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.skip] number of items to skip from list
+         * @param {object} [params.transactionTypes] string list of transaction types to match (see VALR docs for details)
+         * @returns {object} a list of [ledger entry structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structure}
+         */
+        await this.loadMarkets ();
         let currency = undefined;
+        const queryParams = {};
         if (code !== undefined) {
             currency = this.currency (code);
+            queryParams['currency'] = currency['id'];
         }
-        const queryParams = {};
         if (since !== undefined) {
             queryParams['startTime'] = this.iso8601 (since);
         }
@@ -1664,6 +1679,7 @@ export default class valr extends Exchange {
         const ledgerTypeInfo = this.safeDict (item, 'transactionType');
         const ledgerType = this.safeString (ledgerTypeInfo, 'type');
         const transactionTypes = {
+            'ACCOUNT_FUNDING': [ 'deposit', 'in' ],
             'LIMIT_BUY': [ 'trade', 'in' ],
             'LIMIT_SELL': [ 'trade', 'out' ],
             'MARKET_BUY': [ 'trade', 'in' ],
