@@ -2,7 +2,7 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -153,7 +153,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
     }
 
-    async watchFundingRate (symbol: string, params = {}): Promise<{}> {
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name coinbaseinternational#watchFundingRate
@@ -166,7 +166,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.subscribe ('RISK', [ symbol ], params);
     }
 
-    async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
+    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name coinbaseinternational#watchFundingRates
@@ -176,7 +176,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
-        return await this.subscribeMultiple ('RISK', symbols, params);
+        const fundingRate = await this.subscribeMultiple ('RISK', symbols, params);
+        const symbol = this.safeString (fundingRate, 'symbol');
+        if (this.newUpdates) {
+            const result = {};
+            result[symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray (this.fundingRates, 'symbol', symbols);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -607,6 +614,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //
         const channel = this.safeString (message, 'channel');
         const fundingRate = this.parseFundingRate (message);
+        this.fundingRates[fundingRate['symbol']] = fundingRate;
         client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
     }
 
