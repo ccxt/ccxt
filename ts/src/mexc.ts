@@ -5539,7 +5539,7 @@ export default class mexc extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         let marginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;

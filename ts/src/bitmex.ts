@@ -2175,7 +2175,7 @@ export default class bitmex extends Exchange {
         return this.parseLeverages (leverages, symbols, 'symbol');
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         return {
             'info': leverage,

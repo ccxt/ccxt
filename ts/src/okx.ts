@@ -5302,7 +5302,7 @@ export default class okx extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         let marketId = undefined;
         let marginMode = undefined;
         let longLeverage = undefined;

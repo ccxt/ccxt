@@ -6721,7 +6721,7 @@ export default class Exchange {
         return leverageStructures;
     }
 
-    parseLeverage (leverage, market: Market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 

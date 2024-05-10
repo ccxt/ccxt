@@ -5705,7 +5705,7 @@ export default class coinex extends Exchange {
         return this.parseLeverages (leverages, symbols, 'market', marketType);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'market');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {

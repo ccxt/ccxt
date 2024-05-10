@@ -2027,7 +2027,7 @@ export default class blofin extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'instId');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {

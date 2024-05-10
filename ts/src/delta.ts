@@ -2881,7 +2881,7 @@ export default class delta extends Exchange {
         return this.parseLeverage (result, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'index_symbol');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
