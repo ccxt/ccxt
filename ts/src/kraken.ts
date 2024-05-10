@@ -2114,7 +2114,7 @@ export default class kraken extends Exchange {
             }
             throw e;
         }
-        return response;
+        return this.parseOrder (response);
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {

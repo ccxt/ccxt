@@ -2357,7 +2357,7 @@ export default class kucoin extends Exchange {
                 response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
             }
         }
-        return response;
+        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {

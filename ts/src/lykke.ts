@@ -895,7 +895,8 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {

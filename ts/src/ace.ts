@@ -666,7 +666,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

@@ -1568,7 +1568,10 @@ export default class kucoinfutures extends kucoin {
         //       },
         //   }
         //
-        return this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
+        const cancelledOrderIds = this.safeList (data, 'cancelledOrderIds');
+        const orders = this.parseOrders (cancelledOrderIds);
+        return this.safeDict (orders, 0) as Order;
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {

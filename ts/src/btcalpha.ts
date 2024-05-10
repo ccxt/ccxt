@@ -803,7 +803,7 @@ export default class btcalpha extends Exchange {
             'order': id,
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

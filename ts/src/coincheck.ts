@@ -635,7 +635,8 @@ export default class coincheck extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteExchangeOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteExchangeOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

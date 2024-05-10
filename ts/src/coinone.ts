@@ -1078,7 +1078,7 @@ export default class coinone extends Exchange {
         //         "errorCode": "0"
         //     }
         //
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchDepositAddresses (codes: string[] = undefined, params = {}) {

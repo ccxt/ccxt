@@ -704,7 +704,7 @@ export default class bitbank extends Exchange {
         };
         const response = await this.privatePostUserSpotCancelOrder (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        return data;
+        return this.parseOrder (data, market);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

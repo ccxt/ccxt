@@ -491,7 +491,8 @@ export default class zaif extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     parseOrder (order, market: Market = undefined): Order {

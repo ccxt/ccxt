@@ -1913,7 +1913,7 @@ export default class digifinex extends Exchange {
                 throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
             }
         }
-        return response;
+        return this.parseOrder (response);
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {

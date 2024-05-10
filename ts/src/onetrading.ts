@@ -1618,7 +1618,7 @@ export default class onetrading extends Exchange {
         //
         // responds with an empty body
         //
-        return response;
+        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {

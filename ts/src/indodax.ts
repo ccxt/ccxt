@@ -883,7 +883,8 @@ export default class indodax extends Exchange {
             'pair': market['id'],
             'type': side,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchTransactionFee (code: string, params = {}) {

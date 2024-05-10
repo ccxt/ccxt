@@ -441,7 +441,8 @@ export default class bl3p extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostMarketMoneyOrderCancel (this.extend (request, params));
+        const response = await this.privatePostMarketMoneyOrderCancel (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async createDepositAddress (code: string, params = {}) {

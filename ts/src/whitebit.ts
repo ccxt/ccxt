@@ -1374,7 +1374,8 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt (id),
         };
-        return await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        const response = await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {

@@ -738,7 +738,8 @@ export default class independentreserve extends Exchange {
         const request = {
             'orderGuid': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchDepositAddress (code: string, params = {}) {
