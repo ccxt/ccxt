@@ -69,6 +69,7 @@ export default class Exchange {
     apiKey: string;
     secret: string;
     uid: string;
+    accountId: string;
     login: string;
     password: string;
     privateKey: string;
@@ -119,6 +120,7 @@ export default class Exchange {
         apiKey: boolean;
         secret: boolean;
         uid: boolean;
+        accountId: boolean;
         login: boolean;
         password: boolean;
         twofa: boolean;
@@ -276,6 +278,7 @@ export default class Exchange {
     base64ToString: (string: string) => string;
     crc32: typeof functions.crc32;
     packb: typeof functions.packb;
+    urlencodeBase64: (payload: string | Uint8Array) => string;
     describe(): {
         id: any;
         name: any;
@@ -509,6 +512,7 @@ export default class Exchange {
             apiKey: boolean;
             secret: boolean;
             uid: boolean;
+            accountId: boolean;
             login: boolean;
             password: boolean;
             twofa: boolean;
@@ -1072,15 +1076,15 @@ export default class Exchange {
     safeOpenInterest(interest: any, market?: Market): OpenInterest;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
     parseLiquidations(liquidations: any, market?: any, since?: Int, limit?: Int): Liquidation[];
-    parseGreeks(greeks: any, market?: Market): Greeks;
-    parseOption(chain: any, currency?: Currency, market?: Market): Option;
+    parseGreeks(greeks: Dict, market?: Market): Greeks;
+    parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     parseOptionChain(response: object[], currencyKey?: Str, symbolKey?: Str): OptionChain;
     parseMarginModes(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModes;
     parseMarginMode(marginMode: any, market?: Market): MarginMode;
     parseLeverages(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): Leverages;
-    parseLeverage(leverage: any, market?: Market): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     parseConversions(conversions: any[], code?: Str, fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
-    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     convertExpireDate(date: string): string;
     convertExpireDateToMarketIdDate(date: string): string;
     convertMarketIdExpireDate(date: string): string;

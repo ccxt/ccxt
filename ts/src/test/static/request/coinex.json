@@ -257,14 +257,17 @@
         ],
         "setLeverage": [
             {
-                "description": "Set linear leverage",
+                "description": "Swap set the leverage and marginMode of a linear trading pair",
                 "method": "setLeverage",
-                "url": "https://api.coinex.com/perpetual/v1/market/adjust_leverage",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-leverage",
                 "input": [
-                    5,
-                    "LTC/USDT:USDT"
+                  3,
+                  "BTC/USDT:USDT",
+                  {
+                    "marginMode": "isolated"
+                  }
                 ],
-                "output": "access_id=53DD577FFFD741D4B53A5424ECD33196&leverage=5&market=LTCUSDT&position_type=2&timestamp=1699458297747"
+                "output": "{\"leverage\":3,\"margin_mode\":\"isolated\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
             }
         ],
         "fetchDeposits": [
@@ -1155,6 +1158,21 @@
                     "network": "ERC20"
                   }
                 ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Swap set the margin mode and leverage of a trading pair",
+                "method": "setMarginMode",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-leverage",
+                "input": [
+                  "isolated",
+                  "BTC/USDT:USDT",
+                  {
+                    "leverage": 1
+                  }
+                ],
+                "output": "{\"leverage\":1,\"margin_mode\":\"isolated\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
             }
         ]
     },

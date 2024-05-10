@@ -6586,7 +6586,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         return {
             'info': leverage,
             'symbol': market['symbol'],
@@ -8063,7 +8063,7 @@ class bitget(Exchange, ImplicitAPI):
         dataList = self.safe_list(data, 'dataList', [])
         return self.parse_conversions(dataList, code, 'fromCoin', 'toCoin', since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
         #

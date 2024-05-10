@@ -2,7 +2,12 @@
 /* eslint-disable */
 
 import * as functions from './functions.js';
-import { inArray as inArrayFunc, keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
+import {
+    inArray as inArrayFunc,
+    keys as keysFunc,
+    values as valuesFunc,
+    vwap as vwapFunc
+} from './functions.js';
 // import exceptions from "./errors.js"
 import {
     ArgumentsRequired,
@@ -207,6 +212,7 @@ const {
     unCamelCase,
     unique,
     urlencode,
+    urlencodeBase64,
     urlencodeNested,
     urlencodeWithArrayRepeat,
     uuid,
@@ -344,6 +350,7 @@ export default class Exchange {
     verbose: boolean = false;
     twofa = undefined; // two-factor authentication (2FA)
 
+    accountId: string;
     apiKey: string;
     login: string;
     password: string;
@@ -407,6 +414,7 @@ export default class Exchange {
     rateLimit: Num = undefined; // milliseconds
     reloadingMarkets: boolean = undefined;
     requiredCredentials: {
+        accountId: boolean;
         apiKey: boolean;
         login: boolean;
         password: boolean;
@@ -532,6 +540,7 @@ export default class Exchange {
     unCamelCase = unCamelCase;
     unique = unique;
     urlencode = urlencode;
+    urlencodeBase64 = urlencodeBase64
     urlencodeNested = urlencodeNested;
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
     uuid = uuid;
@@ -826,6 +835,7 @@ export default class Exchange {
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'rateLimit': 2000, // milliseconds = seconds * 1000
             'requiredCredentials': {
+                'accountId':  false,
                 'apiKey': true,
                 'login': false,
                 'password': false,
@@ -6758,11 +6768,11 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseGreeks (greeks, market: Market = undefined): Greeks {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined): Option {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         throw new NotSupported (this.id + ' parseOption () is not supported yet');
     }
 
@@ -6809,7 +6819,7 @@ export default class Exchange {
         return leverageStructures;
     }
 
-    parseLeverage (leverage, market: Market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
@@ -6846,7 +6856,7 @@ export default class Exchange {
         return this.filterBySinceLimit (both, since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         throw new NotSupported (this.id + ' parseConversion () is not supported yet');
     }
 

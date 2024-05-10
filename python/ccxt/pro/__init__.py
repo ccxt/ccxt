@@ -76,6 +76,7 @@ from ccxt.pro.upbit import upbit                                          # noqa
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
+from ccxt.pro.woofipro import woofipro                                    # noqa: F401
 
 exchanges = [
     'alpaca',
@@ -142,4 +143,5 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
+    'woofipro',
 ]

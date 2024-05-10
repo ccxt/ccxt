@@ -60,7 +60,7 @@ export default class currencycom extends Exchange {
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
