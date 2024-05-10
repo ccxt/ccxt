@@ -1112,13 +1112,6 @@ class testMainClass extends baseMainTestClass {
         return $content;
     }
 
-    public function load_credentials_from_file($id) {
-        $filename = $this->root_dir . './ts/src/test/static/credentials/' . $id . '.json';
-        if (!io_file_exists($filename)) return null;
-        $content = io_file_read($filename);
-        return $content;
-    }
-
     public function load_static_data($folder, $target_exchange = null) {
         $result = array();
         if ($target_exchange) {
@@ -1385,7 +1378,6 @@ class testMainClass extends baseMainTestClass {
     public function init_offline_exchange($exchange_name) {
         $markets = $this->load_markets_from_file($exchange_name);
         $currencies = $this->load_currencies_from_file($exchange_name);
-        $credentials = $this->load_credentials_from_file($exchange_name);
         $exchange = init_exchange($exchange_name, array(
             'markets' => $markets,
             'currencies' => $currencies,
@@ -1400,6 +1392,7 @@ class testMainClass extends baseMainTestClass {
             'privateKey' => '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid' => 'uid',
             'token' => 'token',
+            'accountId' => 'accountId',
             'accounts' => [array(
     'id' => 'myAccount',
     'code' => 'USDT',
@@ -1416,14 +1409,6 @@ class testMainClass extends baseMainTestClass {
             ),
         ));
         $exchange->currencies = $currencies; // not working in python if assigned  in the config dict
-        if (is_array($credentials)) {
-            $objkeys = array_keys($credentials);
-            for ($i = 0; $i < count($objkeys); $i++) {
-                $credential = $objkeys[$i];
-                $credential_value = $credentials[$credential];
-                set_exchange_prop($exchange, $credential, $credential_value);
-            }
-        }
         return $exchange;
     }
 
@@ -1432,6 +1417,15 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
             $exchange = $this->init_offline_exchange($exchange_name);
             $global_options = $exchange->safe_dict($exchange_data, 'options', array());
+            // read apiKey/secret from the test file
+            $api_key = $exchange->safe_string($exchange_data, 'apiKey');
+            if ($api_key) {
+                $exchange->api_key = ((string) $api_key);
+            }
+            $secret = $exchange->safe_string($exchange_data, 'secret');
+            if ($secret) {
+                $exchange->secret = ((string) $secret);
+            }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             $exchange->extend_exchange_options($global_options);
             $methods = $exchange->safe_value($exchange_data, 'methods', array());
@@ -1469,6 +1463,15 @@ class testMainClass extends baseMainTestClass {
     public function test_exchange_response_statically($exchange_name, $exchange_data, $test_name = null) {
         return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
             $exchange = $this->init_offline_exchange($exchange_name);
+            // read apiKey/secret from the test file
+            $api_key = $exchange->safe_string($exchange_data, 'apiKey');
+            if ($api_key) {
+                $exchange->api_key = ((string) $api_key);
+            }
+            $secret = $exchange->safe_string($exchange_data, 'secret');
+            if ($secret) {
+                $exchange->secret = ((string) $secret);
+            }
             $methods = $exchange->safe_value($exchange_data, 'methods', array());
             $options = $exchange->safe_value($exchange_data, 'options', array());
             // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
@@ -1587,7 +1590,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1975,6 +1978,25 @@ class testMainClass extends baseMainTestClass {
             }
             $client_order_id = $request['client_order_id'];
             assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+            Async\await(close($exchange));
+            return true;
+        }) ();
+    }
+
+    public function test_woofi_pro() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('woofipro');
+            $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
+            $id = 'CCXT';
+            Async\await($exchange->load_markets());
+            $request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = $request['order_tag'];
+            assert($broker_id === $id, 'woofipro - id: ' . $id . ' different from  broker_id: ' . $broker_id);
             Async\await(close($exchange));
             return true;
         }) ();

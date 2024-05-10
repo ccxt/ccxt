@@ -3842,10 +3842,11 @@ class coinex(Exchange, ImplicitAPI):
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+        :see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int params['leverage']: the rate of leverage
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -3857,30 +3858,33 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
-        defaultPositionType = None
-        if marginMode == 'isolated':
-            defaultPositionType = 1
-        elif marginMode == 'cross':
-            defaultPositionType = 2
         leverage = self.safe_integer(params, 'leverage')
         maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
-        positionType = self.safe_integer(params, 'position_type', defaultPositionType)
         if leverage is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        if positionType is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair')
-        if (leverage < 3) or (leverage > maxLeverage):
-            raise BadRequest(self.id + ' setMarginMode() leverage should be between 3 and ' + str(maxLeverage) + ' for ' + symbol)
+        if (leverage < 1) or (leverage > maxLeverage):
+            raise BadRequest(self.id + ' setMarginMode() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
         request = {
             'market': market['id'],
-            'leverage': str(leverage),
-            'position_type': positionType,  # 1: isolated, 2: cross
+            'market_type': 'FUTURES',
+            'margin_mode': marginMode,
+            'leverage': leverage,
         }
-        return await self.v1PerpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
+        return await self.v2PrivatePostFuturesAdjustPositionLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "leverage": 1,
+        #             "margin_mode": "isolated"
+        #         },
+        #         "message": "OK"
+        #     }
+        #
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+        :see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
         set the level of leverage for a market
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
@@ -3896,21 +3900,27 @@ class coinex(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
-        positionType = None
-        if marginMode == 'isolated':
-            positionType = 1
-        elif marginMode == 'cross':
-            positionType = 2
         minLeverage = self.safe_integer(market['limits']['leverage'], 'min', 1)
         maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
         if (leverage < minLeverage) or (leverage > maxLeverage):
             raise BadRequest(self.id + ' setLeverage() leverage should be between ' + str(minLeverage) + ' and ' + str(maxLeverage) + ' for ' + symbol)
         request = {
             'market': market['id'],
-            'leverage': str(leverage),
-            'position_type': positionType,  # 1: isolated, 2: cross
+            'market_type': 'FUTURES',
+            'margin_mode': marginMode,
+            'leverage': leverage,
         }
-        return await self.v1PerpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
+        return await self.v2PrivatePostFuturesAdjustPositionLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "leverage": 1,
+        #             "margin_mode": "isolated"
+        #         },
+        #         "message": "OK"
+        #     }
+        #
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
@@ -5359,7 +5369,7 @@ class coinex(Exchange, ImplicitAPI):
         leverages = self.safe_list(response, 'data', [])
         return self.parse_leverages(leverages, symbols, 'market', marketType)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'market')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {

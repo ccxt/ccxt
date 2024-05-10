@@ -4070,10 +4070,11 @@ class coinex extends Exchange {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+             * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-$leverage
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} $params->leverage the rate of $leverage
              * @return {array} response from the exchange
              */
             if ($symbol === null) {
@@ -4088,37 +4089,38 @@ class coinex extends Exchange {
             if ($market['type'] !== 'swap') {
                 throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
             }
-            $defaultPositionType = null;
-            if ($marginMode === 'isolated') {
-                $defaultPositionType = 1;
-            } elseif ($marginMode === 'cross') {
-                $defaultPositionType = 2;
-            }
             $leverage = $this->safe_integer($params, 'leverage');
             $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
-            $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
             }
-            if ($positionType === null) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair');
-            }
-            if (($leverage < 3) || ($leverage > $maxLeverage)) {
-                throw new BadRequest($this->id . ' setMarginMode() $leverage should be between 3 and ' . (string) $maxLeverage . ' for ' . $symbol);
+            if (($leverage < 1) || ($leverage > $maxLeverage)) {
+                throw new BadRequest($this->id . ' setMarginMode() $leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
             }
             $request = array(
                 'market' => $market['id'],
-                'leverage' => (string) $leverage,
-                'position_type' => $positionType, // 1 => isolated, 2 => cross
+                'market_type' => 'FUTURES',
+                'margin_mode' => $marginMode,
+                'leverage' => $leverage,
             );
-            return Async\await($this->v1PerpetualPrivatePostMarketAdjustLeverage ($this->extend($request, $params)));
+            return Async\await($this->v2PrivatePostFuturesAdjustPositionLeverage ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             "leverage" => 1,
+            //             "margin_mode" => "isolated"
+            //         ),
+            //         "message" => "OK"
+            //     }
+            //
         }) ();
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+             * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-$leverage
              * set the level of $leverage for a $market
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
@@ -4136,12 +4138,6 @@ class coinex extends Exchange {
             }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
-            $positionType = null;
-            if ($marginMode === 'isolated') {
-                $positionType = 1;
-            } elseif ($marginMode === 'cross') {
-                $positionType = 2;
-            }
             $minLeverage = $this->safe_integer($market['limits']['leverage'], 'min', 1);
             $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
             if (($leverage < $minLeverage) || ($leverage > $maxLeverage)) {
@@ -4149,10 +4145,21 @@ class coinex extends Exchange {
             }
             $request = array(
                 'market' => $market['id'],
-                'leverage' => (string) $leverage,
-                'position_type' => $positionType, // 1 => isolated, 2 => cross
+                'market_type' => 'FUTURES',
+                'margin_mode' => $marginMode,
+                'leverage' => $leverage,
             );
-            return Async\await($this->v1PerpetualPrivatePostMarketAdjustLeverage ($this->extend($request, $params)));
+            return Async\await($this->v2PrivatePostFuturesAdjustPositionLeverage ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             "leverage" => 1,
+            //             "margin_mode" => "isolated"
+            //         ),
+            //         "message" => "OK"
+            //     }
+            //
         }) ();
     }
 
@@ -5720,7 +5727,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'market');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(

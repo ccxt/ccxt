@@ -2480,7 +2480,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         data = self.safe_dict(leveragePreferences, 0, {})
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         leverageValue = self.safe_integer(leverage, 'maxLeverage')
         return {

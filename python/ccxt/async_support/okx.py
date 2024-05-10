@@ -4980,7 +4980,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = None
         marginMode = None
         longLeverage = None
@@ -7033,7 +7033,7 @@ class okx(Exchange, ImplicitAPI):
                 return self.parse_greeks(entry, market)
         return None
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "askVol": "0",
@@ -7231,7 +7231,7 @@ class okx(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         return self.parse_option_chain(result, None, 'instId')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "instType": "OPTION",
@@ -7466,7 +7466,7 @@ class okx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'data', [])
         return self.parse_conversions(rows, code, 'baseCcy', 'quoteCcy', since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
         #
