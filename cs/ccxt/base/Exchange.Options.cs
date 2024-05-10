@@ -79,6 +79,7 @@ public partial class Exchange
     public string apiKey { get; set; }
     public string password { get; set; }
     public string uid { get; set; }
+    public string accountId { get; set; }
 
     public dict userAgents { get; set; } = new dict(){
         {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},
@@ -325,6 +326,7 @@ public partial class Exchange
                 { "apiKey", true },
                 { "secret", true },
                 { "uid", false },
+                { "accountId", false },
                 { "login", false },
                 { "password", false },
                 { "twofa", false },
@@ -429,6 +431,7 @@ public partial class Exchange
         this.walletAddress = SafeString(extendedProperties, "walletAddress", "");
         this.token = SafeString(extendedProperties, "token", "");
         this.uid = SafeString(extendedProperties, "uid", "");
+        this.accountId = SafeString(extendedProperties, "accountId", "");
 
         this.userAgents = SafeValue(extendedProperties, "userAgents", userAgents) as dict;
         this.userAgent = SafeString(extendedProperties, "userAgent");

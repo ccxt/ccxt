@@ -94,6 +94,7 @@ const {
     , safeStringLowerN
     , safeStringUpperN
     , urlencodeNested
+    , urlencodeBase64
     , parseDate
     , ymd
     , base64ToString
@@ -237,6 +238,7 @@ export default class Exchange {
     apiKey: string;
     secret: string;
     uid: string;
+    accountId: string;
     login:string;
     password: string;
     privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
@@ -294,6 +296,7 @@ export default class Exchange {
         apiKey: boolean;
         secret: boolean;
         uid: boolean;
+        accountId: boolean;
         login: boolean;
         password: boolean;
         twofa: boolean;
@@ -457,6 +460,7 @@ export default class Exchange {
     base64ToString = base64ToString
     crc32 = crc32
     packb = packb
+    urlencodeBase64 = urlencodeBase64
 
     describe () {
         return {
@@ -692,6 +696,7 @@ export default class Exchange {
                 'apiKey':     true,
                 'secret':     true,
                 'uid':        false,
+                'accountId':  false,
                 'login':      false,
                 'password':   false,
                 'twofa':      false, // 2-factor authentication (one-time password key)

@@ -889,6 +889,13 @@ class testMainClass(baseMainTestClass):
         content = io_file_read(filename)
         return content
 
+    def load_credentials_from_file(self, id):
+        filename = self.root_dir + './ts/src/test/static/credentials/' + id + '.json'
+        if not io_file_exists(filename):
+            return None
+        content = io_file_read(filename)
+        return content
+
     def load_static_data(self, folder, target_exchange=None):
         result = {}
         if target_exchange:
@@ -1104,6 +1111,7 @@ class testMainClass(baseMainTestClass):
     def init_offline_exchange(self, exchange_name):
         markets = self.load_markets_from_file(exchange_name)
         currencies = self.load_currencies_from_file(exchange_name)
+        credentials = self.load_credentials_from_file(exchange_name)
         exchange = init_exchange(exchange_name, {
             'markets': markets,
             'currencies': currencies,
@@ -1134,6 +1142,12 @@ class testMainClass(baseMainTestClass):
             },
         })
         exchange.currencies = currencies  # not working in python if assigned  in the config dict
+        if credentials is not None:
+            objkeys = list(credentials.keys())
+            for i in range(0, len(objkeys)):
+                credential = objkeys[i]
+                credential_value = credentials[credential]
+                set_exchange_prop(exchange, credential, credential_value)
         return exchange
 
     async def test_exchange_request_statically(self, exchange_name, exchange_data, test_name=None):
