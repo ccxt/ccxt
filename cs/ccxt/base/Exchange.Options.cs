@@ -156,6 +156,7 @@ public partial class Exchange
 
     // WS options
     public object tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public object fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
     public object transactions = new dict();

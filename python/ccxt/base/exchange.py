@@ -261,6 +261,7 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    fundingRates = None
     bidsasks = None
     base_currencies = None
     quote_currencies = None
