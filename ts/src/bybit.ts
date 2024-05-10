@@ -8160,7 +8160,7 @@ export default class bybit extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let paginate = false;
+        let paginate = true;
         [ paginate, params ] = this.handleOptionAndParams (params, 'getLeverageTiersPaginated', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('getLeverageTiersPaginated', symbol, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 100);
