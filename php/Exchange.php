@@ -3017,7 +3017,7 @@ class Exchange {
         return array(
             'id' => $this->safe_string($entry, 'id'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => $this->iso8601 ($timestamp),
             'direction' => $direction,
             'account' => $this->safe_string($entry, 'account'),
             'referenceId' => $this->safe_string($entry, 'referenceId'),
@@ -3230,7 +3230,7 @@ class Exchange {
             $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
         }
         $this->currencies_by_id = $this->index_by($this->currencies, 'id');
-        $currenciesSortedByCode = $this->keysort($this->currencies);
+        $currenciesSortedByCode = $this->keysort ($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;
     }
@@ -4297,7 +4297,7 @@ class Exchange {
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => $this->iso8601 ($timestamp),
             'nonce' => null,
         );
     }
@@ -4355,7 +4355,7 @@ class Exchange {
                     $symbol = $symbols[$i];
                     $this->markets[$symbol] = $this->deep_extend($this->markets[$symbol], $response[$symbol]);
                 }
-                $this->options['limitsLoaded'] = $this->milliseconds();
+                $this->options['limitsLoaded'] = $this->milliseconds ();
             }
         }
         return $this->markets;
@@ -4464,7 +4464,7 @@ class Exchange {
     }
 
     public function nonce() {
-        return $this->seconds();
+        return $this->seconds ();
     }
 
     public function set_headers($headers) {
@@ -4503,7 +4503,7 @@ class Exchange {
     public function resolve_path($path, $params) {
         return array(
             $this->implode_params($path, $params),
-            $this->omit($params, $this->extract_params($path)),
+            $this->omit ($params, $this->extract_params($path)),
         );
     }
 
@@ -5010,7 +5010,7 @@ class Exchange {
         }
         $marketType = ($market === null) ? $methodType : $market['type'];
         $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
-        $params = $this->omit($params, array( 'defaultType', 'type' ));
+        $params = $this->omit ($params, array( 'defaultType', 'type' ));
         return array( $type, $params );
     }
 
@@ -5755,7 +5755,7 @@ class Exchange {
 
     public function fetch_deposit_address(string $code, $params = array ()) {
         if ($this->has['fetchDepositAddresses']) {
-            $depositAddresses = $this->fetch_deposit_addresses(array( $code ), $params);
+            $depositAddresses = $this->fetchDepositAddresses (array( $code ), $params);
             $depositAddress = $this->safe_value($depositAddresses, $code);
             if ($depositAddress === null) {
                 throw new InvalidAddress($this->id . ' fetchDepositAddress() could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
@@ -5841,7 +5841,7 @@ class Exchange {
         if ($tag === null) {
             $tag = $this->safe_string($params, 'tag');
             if ($tag !== null) {
-                $params = $this->omit($params, 'tag');
+                $params = $this->omit ($params, 'tag');
             }
         }
         return array( $tag, $params );
@@ -6023,7 +6023,7 @@ class Exchange {
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         if ($this->has['fetchLeverageTiers']) {
-            $market = $this->market($symbol);
+            $market = $this->market ($symbol);
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
             }
@@ -6402,7 +6402,7 @@ class Exchange {
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
             }
-            $rates = $this->fetch_funding_rates(array( $symbol ), $params);
+            $rates = $this->fetchFundingRates (array( $symbol ), $params);
             $rate = $this->safe_value($rates, $symbol);
             if ($rate === null) {
                 throw new NullResponse($this->id . ' fetchFundingRate () returned no data for ' . $symbol);
