@@ -5642,7 +5642,7 @@ export default class Exchange {
         return this.implodeParams (url, { 'hostname': this.hostname });
     }
 
-    async fetchMarketLeverageTiers (symbol: string, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         if (this.has['fetchLeverageTiers']) {
             const market = this.market (symbol);
             if (!market['contract']) {

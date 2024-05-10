@@ -3786,7 +3786,7 @@ export default class digifinex extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'instrument_id');
     }
 
-    async fetchMarketLeverageTiers (symbol: string, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         /**
          * @method
          * @name digifinex#fetchMarketLeverageTiers
