@@ -53,325 +53,13 @@ class Transpiler {
 
     getCommonRegexes () {
         return [
-<<<<<<< HEAD
-=======
-
-            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
-            [ /\.deepExtend\s/g, '.deep_extend'],
-            [ /\.safeFloat2\s/g, '.safe_float_2'],
-            [ /\.safeInteger2\s/g, '.safe_integer_2'],
-            [ /\.safeIntegerProduct2\s/g, '.safe_integer_product_2'],
-            [ /\.safeTimestamp2\s/g, '.safe_timestamp_2'],
-            [ /\.safeString2\s/g, '.safe_string_2'],
-            [ /\.safeNumber2\s/g, '.safe_number_2'],
-            [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
-            [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
-            [ /\.safeValue2\s/g, '.safe_value_2'],
-            [ /\.safeNumber\s/g, '.safe_number'],
-            [ /\.safeFloat\s/g, '.safe_float'],
-            [ /\.safeInteger\s/g, '.safe_integer'],
-            [ /\.safeIntegerProduct\s/g, '.safe_integer_product'],
-            [ /\.safeTimestamp\s/g, '.safe_timestamp'],
-            [ /\.safeString\s/g, '.safe_string'],
-            [ /\.safeStringLower\s/g, '.safe_string_lower'],
-            [ /\.safeStringUpper\s/g, '.safe_string_upper'],
-            [ /\.safeValue\s/g, '.safe_value'],
-            [ /\.safeFloatN\s/g, '.safe_float_n'],
-            [ /\.safeIntegerN\s/g, '.safe_integer_n'],
-            [ /\.safeIntegerProductN\s/g, '.safe_integer_product_n'],
-            [ /\.safeTimestampN\s/g, '.safe_timestamp_n'],
-            [ /\.safeStringN\s/g, '.safe_string_n'],
-            [ /\.safeNumberN\s/g, '.safe_number_n'],
-            [ /\.safeStringLowerN\s/g, '.safe_string_lower_n'],
-            [ /\.safeStringUpperN\s/g, '.safe_string_upper_n'],
-            [ /\.safeValueN\s/g, '.safe_value_n'],
-            [ /\.safeBoolN\s/g, '.safe_bool_n'],
-            [ /\.safeBool2\s/g, '.safe_bool_2'],
-            [ /\.safeBool\s/g, '.safe_bool'],
-            [ /\.safeDictN\s/g, '.safe_dict_n'],
-            [ /\.safeDict2\s/g, '.safe_dict_2'],
-            [ /\.safeDict\s/g, '.safe_dict'],
-            [ /\.safeListN\s/g, '.safe_list_n'],
-            [ /\.safeList2\s/g, '.safe_list_2'],
-            [ /\.safeList\s/g, '.safe_list'],
-            [ /\.inArray\s/g, '.in_array'],
-            [ /\.toArray\s/g, '.to_array'],
-            [ /\.isEmpty\s/g, '.is_empty'],
-            [ /\.arrayConcat\s/g, '.array_concat'],
-            [ /\.binaryConcat\s/g, '.binary_concat'],
-            [ /\.binaryConcatArray\s/g, '.binary_concat_array'],
-            [ /\.binaryToString\s/g, '.binary_to_string' ],
-            [ /\.precisionFromString\s/g, '.precision_from_string'],
-            [ /\.parsePrecision\s/g, '.parse_precision'],
-            [ /\.parseNumber\s/g, '.parse_number'],
-            [ /\.implodeHostname\s/g, '.implode_hostname'],
-            [ /\.implodeParams\s/g, '.implode_params'],
-            [ /\.extractParams\s/g, '.extract_params'],
-            [ /\.safeBalance\s/g, '.safe_balance'],
-            [ /\.parseAccounts\s/g, '.parse_accounts' ],
-            [ /\.parseAccount\s/g, '.parse_account' ],
-            [ /\.parseBalance\s/g, '.parse_balance'],
-            [ /\.parseWsBalance\s/g, '.parse_ws_balance'],
-            [ /\.parseBorrowInterest\s/g, '.parse_borrow_interest'],
-            [ /\.parseFundingRateHistories\s/g, '.parse_funding_rate_histories'],
-            [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
-            [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
-            [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
-            [ /\.parseWsOHLCVs\s/g, '.parse_ws_ohlcvs'],
-            [ /\.parseWsOHLCV\s/g, '.parse_ws_ohlcv'],
-            [ /\.parseDate\s/g, '.parse_date'],
-            [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
-            [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
-            [ /\.parseMarketLeverageTiers\s/g, '.parse_market_leverage_tiers'],
-            [ /\.parseLeverageTiers\s/g, '.parse_leverage_tiers'],
-            [ /\.parseLeverage\s/g, '.parse_leverage' ],
-            [ /\.parseLeverages\s/g, '.parse_leverages' ],
-            [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
-            [ /\.parseLedger\s/g, '.parse_ledger'],
-            [ /\.parseTickers\s/g, '.parse_tickers'],
-            [ /\.parseTicker\s/g, '.parse_ticker'],
-            [ /\.parseWsTicker\s/g, '.parse_ws_ticker'],
-            [ /\.parseTimeframe\s/g, '.parse_timeframe'],
-            [ /\.parseTimeInForce\s/g, '.parse_time_in_force'],
-            [ /\.parseWsTimeInForce\s/g, '.parse_ws_time_in_force'],
-            [ /\.parseTradesData\s/g, '.parse_trades_data'],
-            [ /\.parseTrades\s/g, '.parse_trades'],
-            [ /\.parseTrade\s/g, '.parse_trade'],
-            [ /\.parseWsTrade\s/g, '.parse_ws_trade'],
-            [ /\.parseTradingFees\s/g, '.parse_trading_fees'],
-            [ /\.parseTradingFee\s/g, '.parse_trading_fee'],
-            [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
-            [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
-            [ /\.parseTransactions\s/g, '.parse_transactions'],
-            [ /\.parseTransaction\s/g, '.parse_transaction'],
-            [ /\.parseTransfers\s/g, '.parse_transfers'],
-            [ /\.parseTransfer\s/g, '.parse_transfer'],
-            [ /\.parseOrderBook\s/g, '.parse_order_book'],
-            [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
-            [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
-            [ /\.parseOpenInterests\s/g, '.parse_open_interests'],
-            [ /\.parseOpenInterest\s/g, '.parse_open_interest'],
-            [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
-            [ /\.parseOrders\s/g, '.parse_orders'],
-            [ /\.parseOrderStatus\s/g, '.parse_order_status'],
-            [ /\.parseOrder\s/g, '.parse_order'],
-            [ /\.parseWsOrder\s/g, '.parse_ws_order'],
-            [ /\.parseWsOrderTrade\s/g, '.parse_ws_order_trade'],
-            [ /\.parseJson\s/g, '.parse_json'],
-            [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
-            [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
-            [ /\.parsePositions\s/g, '.parse_positions' ],
-            [ /\.parsePosition\s/g, '.parse_position' ],
-            [ /\.parseWsPosition\s/g, '.parse_ws_position' ],
-            [ /\.parseIncome\s/g, '.parse_income' ],
-            [ /\.parseIncomes\s/g, '.parse_incomes' ],
-            [ /\.parseFundingRates\s/g, '.parse_funding_rates' ],
-            [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
-            [ /\.parseMarginModification\s/g, '.parse_margin_modification' ],
-            [ /\.parseMarginMode\s/g, '.parse_margin_mode' ],
-            [ /\.parseMarginModes\s/g, '.parse_margin_modes' ],
-            [ /\.filterByArray\s/g, '.filter_by_array'],
-            [ /\.filterByValueSinceLimit\s/g, '.filter_by_value_since_limit'],
-            [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
-            [ /\.filterByCurrencySinceLimit\s/g, '.filter_by_currency_since_limit'],
-            [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
-            [ /\.filterBySymbol\s/g, '.filter_by_symbol'],
-            [ /\.getVersionString\s/g, '.get_version_string'],
-            [ /\.checkRequiredArgument\s/g, '.check_required_argument'],
-            [ /\.indexBy\s/g, '.index_by'],
-            [ /\.sortBy\s/g, '.sort_by'],
-            [ /\.sortBy2\s/g, '.sort_by_2'],
-            [ /\.filterBy\s/g, '.filter_by'],
-            [ /\.groupBy\s/g, '.group_by'],
-            [ /\.marketSymbols\s/g, '.market_symbols'],
-            [ /\.marketIds\s/g, '.market_ids'],
-            [ /\.marketId\s/g, '.market_id'],
-            [ /\.fetchTradingLimits\s/g, '.fetch_trading_limits'],
-            [ /\.fetchTransactionFee\s/g, '.fetch_transaction_fee'],
-            [ /\.fetchTransactionFees\s/g, '.fetch_transaction_fees'],
-            [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
-            [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
-            [ /\.fetchOHLCVWs\s/g, '.fetch_ohlcv_ws'],
-            [ /\.fetchOHLCVC\s/g, '.fetch_ohlcvc'],
-            [ /\.fetchOHLCV\s/g, '.fetch_ohlcv'],
-            [ /\.buildOHLCVC\s/g, '.build_ohlcvc'],
-            [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
-            [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
-            [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
-            [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
-            [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
-            [ /\.fetchOpenOrder\s/g, '.fetch_open_order'],
-            [ /\.fetchOrders\s/g, '.fetch_orders'],
-            [ /\.fetchOrderTrades\s/g, '.fetch_order_trades'],
-            [ /\.fetchOrder\s/g, '.fetch_order'],
-            [ /\.fetchPositionHistory\s/g, '.fetch_position_history'],
-            [ /\.fetchPositionsHistory\s/g, '.fetch_positions_history'],
-            [ /\.fetchBalance\s/g, '.fetch_balance'],
-            [ /\.fetchTotalBalance\s/g, '.fetch_total_balance'],
-            [ /\.fetchUsedBalance\s/g, '.fetch_used_balance'],
-            [ /\.fetchFreeBalance\s/g, '.fetch_free_balance'],
-            [ /\.fetchPartialBalance\s/g, '.fetch_partial_balance'],
-            [ /\.fetchPermissions\s/g, '.fetch_permissions'],
-            [ /\.fetchBidsAsks\s/g, '.fetch_bids_asks'],
-            [ /\.fetchTickers\s/g, '.fetch_tickers'],
-            [ /\.fetchTicker\s/g, '.fetch_ticker'],
-            [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
-            [ /\.fetchStatus\s/g, '.fetch_status'],
-            [ /\.fetchMarginAdjustmentHistory\s/g, '.fetch_margin_adjustment_history'],
-            [ /\.numberToString\s/g, '.number_to_string' ],
-            [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
-            [ /\.priceToPrecision\s/g, '.price_to_precision'],
-            [ /\.amountToPrecision\s/g, '.amount_to_precision'],
-            [ /\.amountToLots\s/g, '.amount_to_lots'],
-            [ /\.feeToPrecision\s/g, '.fee_to_precision'],
-            [ /\.currencyToPrecision\s/g, '.currency_to_precision'],
-            [ /\.costToPrecision\s/g, '.cost_to_precision'],
-            [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
-            [ /\.getDefaultOptions\s/g, '.get_default_options'],
-            [ /\.loadAccounts\s/g, '.load_accounts'],
-            [ /\.fetchAccounts\s/g, '.fetch_accounts'],
-            [ /\.loadMarkets\s/g, '.load_markets'],
-            [ /\.loadTimeDifference\s/g, '.load_time_difference'],
-            [ /\.fetchMarkets\s/g, '.fetch_markets'],
-            [ /\.fetchMarketLeverageTiers\s/g, '.fetch_market_leverage_tiers'],
-            [ /\.fetchLeverageTiers\s/g, '.fetch_leverage_tiers'],
-            [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
-            [ /\.fetchCategories\s/g, '.fetch_categories'],
-            [ /\.calculateFee\s/g, '.calculate_fee'],
-            [ /\.createOrderRequest\s/g, '.create_order_request'],
-            [ /\.createOrder\s/g, '.create_order'],
-            [ /\.createPostOnlyOrder\s/g, '.create_post_only_order'],
-            [ /\.createStopOrder\s/g, '.create_stop_order'],
-            [ /\.createStopLimitOrder\s/g, '.create_stop_limit_order'],
-            [ /\.createStopMarketOrder\s/g, '.create_stop_market_order'],
-            [ /\.editLimitBuyOrder\s/g, '.edit_limit_buy_order'],
-            [ /\.editLimitSellOrder\s/g, '.edit_limit_sell_order'],
-            [ /\.editLimitOrder\s/g, '.edit_limit_order'],
-            [ /\.editOrderRequest\s/g, '.edit_order_request'],
-            [ /\.editOrder\s/g, '.edit_order'],
-            [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
-            [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
-            [ /\.handleAuthenticate\s/g, '.handle_authenticate'],
-            [ /\.handleBalance\s/g, '.handle_balance'],
-            [ /\.handleErrors\s/g, '.handle_errors'],
-            [ /\.handleErrorMessage\s/g, '.handle_error_message'],
-            [ /\.handleDeltas\s/g, '.handle_deltas'],
-            [ /\.handleDelta\s/g, '.handle_delta'],
-            [ /\.handleMessage\s/g, '.handle_message'],
-            [ /\.handleMyTrade\s/g, '.handle_my_trade'],
-            [ /\.handleOHLCV\s/g, '.handle_ohlcv'],
-            [ /\.handleOrder\s/g, '.handle_order'],
-            [ /\.handleOrderBook\s/g, '.handle_order_book'],
-            [ /\.handlePing\s/g, '.handle_ping'],
-            [ /\.handlePosition\s/g, '.handle_position'],
-            [ /\.handlePositions\s/g, '.handle_positions'],
-            [ /\.handleSubscription\s/g, '.handle_subscription'],
-            [ /\.handleTicker\s/g, '.handle_ticker'],
-            [ /\.handleTrades\s/g, '.handle_trades'],
-            [ /\.handleWithdrawTagAndParams\s/g, '.handle_withdraw_tag_and_params'],
-            [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
-            [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
-            [ /\.checkAddress\s/g, '.check_address'],
-            [ /\.unCamelCase\s/g, '.un_camel_case'],
-            [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
-            [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
-            [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
-            [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
-            [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
-            [ /\.checkProxySettings\s/g, '.check_proxy_settings'],
-            [ /\.getExchangePropAllCase\s/g, '.get_exchange_prop_all_case'],
-            [ /\.setExchangePropAllCase\s/g, '.set_exchange_prop_all_case'],
-            [ /\.getProperty\s/g, '.get_property'],
-            [ /\.safeProp\s/g, '.safe_prop'],
-            [ /\.safeProp2\s/g, '.safe_prop_2'],
-            [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
-            [ /\.safeCurrency\s/g, '.safe_currency'],
-            [ /\.safeSymbol\s/g, '.safe_symbol'],
-            [ /\.safeMarket\s/g, '.safe_market'],
-            [ /\.safeMarketStructure\s/g, '.safe_market_structure'],
-            [ /\.safeOrder\s/g, '.safe_order'],
-            [ /\.safeTicker\s/g, '.safe_ticker'],
-            [ /\.roundTimeframe\s/g, '.round_timeframe'],
-            [ /\.calculateRateLimiterCost\s/g, '.calculate_rate_limiter_cost' ],
-            [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key' ],
-            [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception' ],
-            [ /\.throwExactlyMatchedException\s/g, '.throw_exactly_matched_exception' ],
-            [ /\.getNetwork\s/g, '.get_network' ],
-            [ /\.findTimeframe\s/g, '.find_timeframe'],
-            [ /\.getListFromObjectValues\s/g, '.get_list_from_object_values'],
-            [ /\.getSymbolsForMarketType\s/g, '.get_symbols_for_market_type'],
-            [ /\.requireSymbolsForMultiSubscription\s/g, '.require_symbols_for_multi_subscription'],
-            [ /errorHierarchy/g, 'error_hierarchy'],
-            [ /\.base16ToBinary/g, '.base16_to_binary'],
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
             [ /\'use strict\';?\s+/g, '' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.call\s*\(this, /g, '(' ],
-<<<<<<< HEAD
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase ],
             [ /super\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase ],
-        ]
-=======
-            [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
-            [ /\.fetchBorrowRates\s/g, '.fetch_borrow_rates'],
-            [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
-            [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
-            [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
-            [ /\.isPostOnly\s/g, '.is_post_only'],
-            [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
-            [ /\.omitZero\s/g, '.omit_zero'],
-            [ /\.afterConstruct\s/g, '.after_construct'],
-            [ /\.networkCodeToId\s/g, '.network_code_to_id'],
-            [ /\.networkIdToCode\s/g, '.network_id_to_code'],
-            [ /\.defaultNetworkCode\s/g, '.default_network_code'],
-            [ /\.selectNetworkCodeFromUnifiedNetworks\s/g, '.select_network_code_from_unified_networks'],
-            [ /\.selectNetworkIdFromRawNetworks\s/g, '.select_network_id_from_raw_networks'],
-            [ /\.selectNetworkKeyFromNetworks\s/g, '.select_network_key_from_networks'],
-            [ /\.createNetworksByIdObject\s/g, '.create_networks_by_id_object'],
-            [ /\.invertFlatStringDictionary\s/g, '.invert_flat_string_dictionary'],
-            [ /\.safeCurrencyStructure\s/g, '.safe_currency_structure'],
-            [ /\.isTickPrecision\s/g, '.is_tick_precision'],
-            [ /\.isDecimalPrecision\s/g, '.is_decimal_precision'],
-            [ /\.isSignificantPrecision\s/g, '.is_significant_precision'],
-            [ /\.filterByLimit\s/g, '.filter_by_limit'],
-            [ /\.fetchTime\s/g, '.fetch_time'],
-            [ /\.handleOptionAndParams\s/g, '.handle_option_and_params'],
-            [ /\.fetchRestOrderBookSafe\s/g, '.fetch_rest_order_book_safe'],
-            [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
-            [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
-            [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
-            [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
-            [ /\.handleMaxEntriesPerRequestAndParams\s/g, '.handle_max_entries_per_request_and_params'],
-            [ /\.safeDeterministicCall\s/g, '.safe_deterministic_call'],
-            [ /\.fetchPaginatedCallDynamic\s/g, '.fetch_paginated_call_dynamic'],
-            [ /\.fetchPaginatedCallDeterministic\s/g, '.fetch_paginated_call_deterministic'],
-            [ /\.fetchPaginatedCallCursor\s/g, '.fetch_paginated_call_cursor'],
-            [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
-            [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
-            [ /\.handleUntilOption\s/g, '.handle_until_option'],
-            [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
-            [ /\.checkConflictingProxies\s/g, '.check_conflicting_proxies'],
-            [ /\.parseMarket\s/g, '.parse_market'],
-            [ /\.isRoundNumber\s/g, '.is_round_number'],
-            [ /\.getDescribeForExtendedWsExchange\s/g, '.get_describe_for_extended_ws_exchange'],
-            [ /\.watchMultiple\s/g, '.watch_multiple'],
-            [ /\.intToBase16\s/g, '.int_to_base16'],
-            [ /\.convertExpireDate\s/g, '.convert_expire_date'],
-            [ /\.convertMarketIdExpireDate\s/g, '.convert_market_id_expire_date'],
-            [ /\.convertExpireDateToMarketIdDate\s/g, '.convert_expire_date_to_market_id_date'],
-            [ /\.handleParamString\s/g, '.handle_param_string'],
-            [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
-            [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
-            [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
-            [ /\.setTakeProfitAndStopLossParams\s/g, '.set_take_profit_and_stop_loss_params'],
-            [ /\.randomBytes\s/g, '.random_bytes'],
-            [ /\.createAuthToken\s/g, '.create_auth_token'],
-            [ /\.cancelOrderRequest\s/g, '.cancel_order_request'],
-            [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
-            [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
         ].concat(this.getTypescriptRemovalRegexes())
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
     }
 
     getPythonRegexes () {
@@ -896,12 +584,12 @@ class Transpiler {
             let regex = array[i][0]
             const flags = (typeof regex === 'string') ? 'g' : undefined
             regex = new RegExp (regex, flags)
-            if (typeof array[i][1] === 'function') {
+            if (typeof array[i][1] !== 'function') {
+                text = text.replace (regex, array[i][1])
+            } else {
                 text = text.replace (regex, function (matched) {
                     return array[i][1] (matched)
                 })
-            } else {
-                text = text.replace (regex, array[i][1])
             }
         }
         return text
@@ -1260,7 +948,7 @@ class Transpiler {
     transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
 
         // transpile JS → Python 3
-        let python3Body = this.regexAll (js, this.getPythonRegexes())
+        let python3Body = this.regexAll (js, this.getPythonRegexes ())
 
         if (removeEmptyLines) {
             python3Body = python3Body.replace (/$\s*$/gm, '')
@@ -1468,11 +1156,6 @@ class Transpiler {
         return contents.match (/^export \s*(?:default)?\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
     }
 
-    getImplicitMethodsList (className) {
-        const targetExchange = require ('../js/'+className+'.js')
-        const exchange = new targetExchange({'saveDefinedRestApiMethods':true});
-        return exchange.definedRestApiMethods;
-    }
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
@@ -2860,34 +2543,6 @@ class Transpiler {
     }
 
     // ============================================================================
-    transpilePhpBaseClassMethods () {
-        const baseMethods = this.getPHPBaseMethods ()
-        const indent = 4
-        const space = ' '.repeat (indent)
-        const result = [
-            'public static $camelcase_methods = array(',
-        ]
-        for (const method of baseMethods) {
-            const underscoreCase = unCamelCase (method)
-            if (underscoreCase !== method) {
-                result.push (space.repeat (2) + '\'' + method + '\' => ' + '\'' + underscoreCase + '\',')
-            }
-        }
-        result.push (space + ');')
-        const string = result.join ('\n')
-
-        const phpBaseClass = './php/Exchange.php';
-        const phpBody = fs.readFileSync (phpBaseClass, 'utf8')
-        const regex = /public static \$camelcase_methods = array\([\s\S]+?\);/g
-        const bodyArray = phpBody.split (regex)
-
-        const newBody = bodyArray[0] + string + bodyArray[1]
-
-        log.magenta ('Transpiling from ', phpBaseClass.yellow, '→', phpBaseClass.yellow)
-        overwriteFile (phpBaseClass, newBody)
-    }
-
-    // ============================================================================
 
     getAllFilesRecursively(folder, jsFiles) {
         fs.readdirSync(folder).forEach(File => {
@@ -2963,16 +2618,11 @@ class Transpiler {
 
             this.transpileTests ()
 
-            // this.transpilePhpBaseClassMethods ()
-
             this.transpileExamples ()
 
-<<<<<<< HEAD
-=======
             this.addGeneratedHeaderToJs ('./js/')
         }
 
->>>>>>> 8fac4c4e892659992c48d84380bdc9ede5b8b5e0
         log.bright.green ('Transpiled successfully.')
     }
 }
