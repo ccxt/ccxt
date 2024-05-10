@@ -5948,6 +5948,9 @@ class Exchange {
                 if (method === 'fetchAccounts') {
                     response = await this[method](params);
                 }
+                else if (method === 'getLeverageTiersPaginated') {
+                    response = await this[method](symbol, params);
+                }
                 else {
                     response = await this[method](symbol, since, maxEntriesPerRequest, params);
                 }

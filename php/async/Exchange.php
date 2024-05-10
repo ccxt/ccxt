@@ -5111,6 +5111,8 @@ class Exchange extends \ccxt\Exchange {
                     $response = null;
                     if ($method === 'fetchAccounts') {
                         $response = Async\await($this->$method ($params));
+                    } elseif ($method === 'getLeverageTiersPaginated') {
+                        $response = Async\await($this->$method ($symbol, $params));
                     } else {
                         $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
                     }

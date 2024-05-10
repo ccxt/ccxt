@@ -1841,6 +1841,8 @@ class Exchange(BaseExchange):
                 response = None
                 if method == 'fetchAccounts':
                     response = await getattr(self, method)(params)
+                elif method == 'getLeverageTiersPaginated':
+                    response = await getattr(self, method)(symbol, params)
                 else:
                     response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0

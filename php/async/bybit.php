@@ -8183,6 +8183,38 @@ class bybit extends Exchange {
         ));
     }
 
+    public function get_leverage_tiers_paginated(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'getLeverageTiersPaginated', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('getLeverageTiersPaginated', $symbol, null, null, $params, 'nextPageCursor', 'cursor', null, 100));
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('getLeverageTiersPaginated', $market, $params, 'linear');
+            $request = array(
+                'category' => $subType,
+            );
+            $response = Async\await($this->publicGetV5MarketRiskLimit ($this->extend($request, $params)));
+            $result = $this->add_pagination_cursor_to_result($response);
+            $first = $this->safe_dict($result, 0);
+            $total = count($result);
+            $lastIndex = $total - 1;
+            $last = $this->safe_dict($result, $lastIndex);
+            $cursorValue = $this->safe_string($first, 'nextPageCursor');
+            $last['info'] = array(
+                'nextPageCursor' => $cursorValue,
+            );
+            $result[$lastIndex] = $last;
+            return $result;
+        }) ();
+    }
+
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -8190,25 +8222,21 @@ class bybit extends Exchange {
              * retrieve information on the maximum leverage, for different trade sizes
              * @param {string[]} [$symbols] a list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subType] $market $subType, ['linear', 'inverse'], default is 'linear'
+             * @param {string} [$params->subType] $market subType, ['linear', 'inverse'], default is 'linear'
+             * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by $market $symbols
              */
             Async\await($this->load_markets());
             $market = null;
+            $symbol = null;
             if ($symbols !== null) {
                 $market = $this->market($symbols[0]);
                 if ($market['spot']) {
                     throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported for spot market');
                 }
+                $symbol = $market['symbol'];
             }
-            $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
-            $request = array(
-                'category' => $subType,
-            );
-            $response = Async\await($this->publicGetV5MarketRiskLimit ($this->extend($request, $params)));
-            $result = $this->safe_dict($response, 'result', array());
-            $data = $this->safe_list($result, 'list', array());
+            $data = Async\await($this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 20 ), $params)));
             $symbols = $this->market_symbols($symbols);
             return $this->parse_leverage_tiers($data, $symbols, 'symbol');
         }) ();
@@ -8236,9 +8264,13 @@ class bybit extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
             $entry = $grouped[$marketId];
+            for ($j = 0; $j < count($entry); $j++) {
+                $id = $this->safe_integer($entry[$j], 'id');
+                $entry[$j]['id'] = $id;
+            }
             $market = $this->safe_market($marketId, null, null, 'contract');
             $symbol = $market['symbol'];
-            $tiers[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+            $tiers[$symbol] = $this->parse_market_leverage_tiers($this->sort_by($entry, 'id'), $market);
         }
         return $tiers;
     }

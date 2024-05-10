@@ -208,6 +208,7 @@ public partial class phemex
     /// </summary>
     /// <remarks>
     /// See <see href="https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order"/>  <br/>
+    /// See <see href="https://phemex-docs.github.io/#place-order-http-put-prefered-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -219,6 +220,12 @@ public partial class phemex
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// float : trigger price for conditional orders
     /// </description>
     /// </item>
     /// <item>

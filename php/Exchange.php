@@ -6876,6 +6876,8 @@ class Exchange {
                 $response = null;
                 if ($method === 'fetchAccounts') {
                     $response = $this->$method ($params);
+                } elseif ($method === 'getLeverageTiersPaginated') {
+                    $response = $this->$method ($symbol, $params);
                 } else {
                     $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
                 }
