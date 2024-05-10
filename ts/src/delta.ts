@@ -3429,7 +3429,7 @@ export default class delta extends Exchange {
         return this.parseOption (result, undefined, market);
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "close": 6793.0,

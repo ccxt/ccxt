@@ -7323,7 +7323,7 @@ export default class gate extends Exchange {
         return this.parseOptionChain (response, undefined, 'name');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "is_active": true,

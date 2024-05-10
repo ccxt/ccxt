@@ -8476,7 +8476,7 @@ export default class bybit extends Exchange {
         return this.parseOptionChain (resultList, undefined, 'symbol');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "symbol": "BTC-27DEC24-55000-P",

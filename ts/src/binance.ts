@@ -12452,7 +12452,7 @@ export default class binance extends Exchange {
         return this.parseOption (chain, undefined, market);
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "symbol": "BTC-241227-80000-C",
