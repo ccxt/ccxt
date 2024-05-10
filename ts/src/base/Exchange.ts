@@ -972,9 +972,6 @@ export default class Exchange {
         // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
         this[camelcase]  = partial
         this[underscore] = partial
-        const uncamelcased = unCamelCase (camelcase)
-        if (uncamelcased != underscore && uncamelcased != camelcase)
-            this[uncamelcased] = partial
     }
 
     defineRestApi (api, methodName, paths = []) {
