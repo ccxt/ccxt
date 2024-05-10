@@ -4101,7 +4101,7 @@ export default class coinex extends Exchange {
         /**
          * @method
          * @name coinex#setLeverage
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+         * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
@@ -4119,12 +4119,6 @@ export default class coinex extends Exchange {
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
-        let positionType = undefined;
-        if (marginMode === 'isolated') {
-            positionType = 1;
-        } else if (marginMode === 'cross') {
-            positionType = 2;
-        }
         const minLeverage = this.safeInteger (market['limits']['leverage'], 'min', 1);
         const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 100);
         if ((leverage < minLeverage) || (leverage > maxLeverage)) {
@@ -4132,10 +4126,21 @@ export default class coinex extends Exchange {
         }
         const request = {
             'market': market['id'],
-            'leverage': leverage.toString (),
-            'position_type': positionType, // 1: isolated, 2: cross
+            'market_type': 'FUTURES',
+            'margin_mode': marginMode,
+            'leverage': leverage,
         };
-        return await this.v1PerpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
+        return await this.v2PrivatePostFuturesAdjustPositionLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "leverage": 1,
+        //             "margin_mode": "isolated"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
     }
 
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
