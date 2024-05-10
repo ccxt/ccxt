@@ -7966,7 +7966,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "symbol": "BTC-26JAN24-39000-C",
