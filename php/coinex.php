@@ -291,7 +291,7 @@ class coinex extends Exchange {
                 'v2' => array(
                     'public' => array(
                         'get' => array(
-                            'maintain-info' => 1,
+                            'maintain/info' => 1,
                             'ping' => 1,
                             'time' => 1,
                             'spot/market' => 1,
@@ -3993,10 +3993,11 @@ class coinex extends Exchange {
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+         * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-$leverage
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} $params->leverage the rate of $leverage
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
@@ -4011,35 +4012,36 @@ class coinex extends Exchange {
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
-        $defaultPositionType = null;
-        if ($marginMode === 'isolated') {
-            $defaultPositionType = 1;
-        } elseif ($marginMode === 'cross') {
-            $defaultPositionType = 2;
-        }
         $leverage = $this->safe_integer($params, 'leverage');
         $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
-        $positionType = $this->safe_integer($params, 'position_type', $defaultPositionType);
         if ($leverage === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
         }
-        if ($positionType === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair');
-        }
-        if (($leverage < 3) || ($leverage > $maxLeverage)) {
-            throw new BadRequest($this->id . ' setMarginMode() $leverage should be between 3 and ' . (string) $maxLeverage . ' for ' . $symbol);
+        if (($leverage < 1) || ($leverage > $maxLeverage)) {
+            throw new BadRequest($this->id . ' setMarginMode() $leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
         }
         $request = array(
             'market' => $market['id'],
-            'leverage' => (string) $leverage,
-            'position_type' => $positionType, // 1 => isolated, 2 => cross
+            'market_type' => 'FUTURES',
+            'margin_mode' => $marginMode,
+            'leverage' => $leverage,
         );
-        return $this->v1PerpetualPrivatePostMarketAdjustLeverage ($this->extend($request, $params));
+        return $this->v2PrivatePostFuturesAdjustPositionLeverage ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "leverage" => 1,
+        //             "margin_mode" => "isolated"
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+         * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-$leverage
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
@@ -4057,12 +4059,6 @@ class coinex extends Exchange {
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
-        $positionType = null;
-        if ($marginMode === 'isolated') {
-            $positionType = 1;
-        } elseif ($marginMode === 'cross') {
-            $positionType = 2;
-        }
         $minLeverage = $this->safe_integer($market['limits']['leverage'], 'min', 1);
         $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 100);
         if (($leverage < $minLeverage) || ($leverage > $maxLeverage)) {
@@ -4070,57 +4066,84 @@ class coinex extends Exchange {
         }
         $request = array(
             'market' => $market['id'],
-            'leverage' => (string) $leverage,
-            'position_type' => $positionType, // 1 => isolated, 2 => cross
+            'market_type' => 'FUTURES',
+            'margin_mode' => $marginMode,
+            'leverage' => $leverage,
         );
-        return $this->v1PerpetualPrivatePostMarketAdjustLeverage ($this->extend($request, $params));
+        return $this->v2PrivatePostFuturesAdjustPositionLeverage ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "leverage" => 1,
+        //             "margin_mode" => "isolated"
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
         $this->load_markets();
-        $response = $this->v1PerpetualPublicGetMarketLimitConfig ($params);
+        $request = array();
+        if ($symbols !== null) {
+            $marketIds = $this->market_ids($symbols);
+            $request['market'] = implode(',', $marketIds);
+        }
+        $response = $this->v2PublicGetFuturesPositionLevel ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
         //         "data" => array(
-        //             "BTCUSD" => [
-        //                 ["500001", "100", "0.005"],
-        //                 ["1000001", "50", "0.01"],
-        //                 ["2000001", "30", "0.015"],
-        //                 ["5000001", "20", "0.02"],
-        //                 ["10000001", "15", "0.025"],
-        //                 ["20000001", "10", "0.03"]
-        //             ],
-        //             ...
+        //             array(
+        //                 "level" => array(
+        //                     array(
+        //                         "amount" => "20001",
+        //                         "leverage" => "20",
+        //                         "maintenance_margin_rate" => "0.02",
+        //                         "min_initial_margin_rate" => "0.05"
+        //                     ),
+        //                     array(
+        //                         "amount" => "50001",
+        //                         "leverage" => "10",
+        //                         "maintenance_margin_rate" => "0.04",
+        //                         "min_initial_margin_rate" => "0.1"
+        //                     ),
+        //                 ),
+        //                 "market" => "MINAUSDT"
+        //             ),
         //         ),
         //         "message" => "OK"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_leverage_tiers($data, $symbols, null);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_leverage_tiers($data, $symbols, 'market');
     }
 
-    public function parse_market_leverage_tiers($item, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         $tiers = array();
+        $brackets = $this->safe_list($info, 'level', array());
         $minNotional = 0;
-        for ($j = 0; $j < count($item); $j++) {
-            $bracket = $item[$j];
-            $maxNotional = $this->safe_number($bracket, 0);
+        for ($i = 0; $i < count($brackets); $i++) {
+            $tier = $brackets[$i];
+            $marketId = $this->safe_string($info, 'market');
+            $market = $this->safe_market($marketId, $market, null, 'swap');
+            $maxNotional = $this->safe_number($tier, 'amount');
             $tiers[] = array(
-                'tier' => $j + 1,
+                'tier' => $this->sum($i, 1),
                 'currency' => $market['linear'] ? $market['base'] : $market['quote'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_number($bracket, 2),
-                'maxLeverage' => $this->safe_integer($bracket, 1),
-                'info' => $bracket,
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenance_margin_rate'),
+                'maxLeverage' => $this->safe_integer($tier, 'leverage'),
+                'info' => $tier,
             );
             $minNotional = $maxNotional;
         }
@@ -4201,7 +4224,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // addMargin/reduceMargin
         //
@@ -5600,7 +5623,7 @@ class coinex extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'market', $marketType);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'market');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(

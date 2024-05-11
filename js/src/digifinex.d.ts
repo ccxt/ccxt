@@ -136,7 +136,7 @@ export default class digifinex extends Exchange {
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     parseIncome(income: any, market?: Market): {
         info: any;

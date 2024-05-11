@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -34,6 +34,8 @@ class okx(ccxt.async_support.okx):
                 'watchOrders': True,
                 'watchMyTrades': True,
                 'watchPositions': True,
+                'watchFundingRate': True,
+                'watchFundingRates': True,
                 'createOrderWs': True,
                 'editOrderWs': True,
                 'cancelOrderWs': True,
@@ -240,6 +242,81 @@ class okx(ccxt.async_support.okx):
                 self.trades[symbol] = stored
             stored.append(trade)
             client.resolve(stored, messageHash)
+
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        watch the current funding rate
+        :see: https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        symbol = self.symbol(symbol)
+        fr = await self.watch_funding_rates([symbol], params)
+        return fr[symbol]
+
+    async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
+        """
+        watch the funding rate for multiple markets
+        :see: https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+        :param str[] symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        channel = 'funding-rate'
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append(channel + ':' + symbol)
+            marketId = self.market_id(symbol)
+            topic = {
+                'channel': channel,
+                'instId': marketId,
+            }
+            topics.append(topic)
+        request = {
+            'op': 'subscribe',
+            'args': topics,
+        }
+        url = self.get_url(channel, 'public')
+        fundingRate = await self.watch_multiple(url, messageHashes, request, messageHashes)
+        if self.newUpdates:
+            symbol = self.safe_string(fundingRate, 'symbol')
+            result = {}
+            result[symbol] = fundingRate
+            return result
+        return self.filter_by_array(self.fundingRates, 'symbol', symbols)
+
+    def handle_funding_rate(self, client: Client, message):
+        #
+        # "data":[
+        #     {
+        #        "fundingRate":"0.0001875391284828",
+        #        "fundingTime":"1700726400000",
+        #        "instId":"BTC-USD-SWAP",
+        #        "instType":"SWAP",
+        #        "method": "next_period",
+        #        "maxFundingRate":"0.00375",
+        #        "minFundingRate":"-0.00375",
+        #        "nextFundingRate":"0.0002608059239328",
+        #        "nextFundingTime":"1700755200000",
+        #        "premium": "0.0001233824646391",
+        #        "settFundingRate":"0.0001699799259033",
+        #        "settState":"settled",
+        #        "ts":"1700724675402"
+        #     }
+        # ]
+        #
+        data = self.safe_list(message, 'data', [])
+        for i in range(0, len(data)):
+            rawfr = data[i]
+            fundingRate = self.parse_funding_rate(rawfr)
+            symbol = fundingRate['symbol']
+            self.fundingRates[symbol] = fundingRate
+            client.resolve(fundingRate, 'funding-rate' + ':' + fundingRate['symbol'])
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -1519,6 +1596,7 @@ class okx(ccxt.async_support.okx):
                 'block-tickers': self.handle_ticker,
                 'trades': self.handle_trades,
                 'account': self.handle_balance,
+                'funding-rate': self.handle_funding_rate,
                 # 'margin_account': self.handle_balance,
                 'orders': self.handle_orders,
                 'orders-algo': self.handle_orders,

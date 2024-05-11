@@ -2347,12 +2347,14 @@ class phemex(Exchange, ImplicitAPI):
         """
         create a trade order
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
+        :see: https://phemex-docs.github.io/#place-order-http-put-prefered-3
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.trigger]: trigger price for conditional orders
         :param dict [params.takeProfit]: *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
@@ -2363,7 +2365,7 @@ class phemex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         requestSide = self.capitalize(side)
         type = self.capitalize(type)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
         request = {
             # common
             'symbol': market['id'],
@@ -2404,18 +2406,24 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
-        stopPrice = self.safe_string_n(params, ['stopPx', 'stopPrice', 'triggerPrice'])
-        if stopPrice is not None:
+        triggerPrice = self.safe_string_n(params, ['stopPx', 'stopPrice', 'triggerPrice'])
+        if triggerPrice is not None:
             if market['settle'] == 'USDT':
-                request['stopPxRp'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPxRp'] = self.price_to_precision(symbol, triggerPrice)
             else:
-                request['stopPxEp'] = self.to_ep(stopPrice, market)
+                request['stopPxEp'] = self.to_ep(triggerPrice, market)
         params = self.omit(params, ['stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice'])
         if market['spot']:
             qtyType = self.safe_value(params, 'qtyType', 'ByBase')
             if (type == 'Market') or (type == 'Stop') or (type == 'MarketIfTouched'):
                 if price is not None:
                     qtyType = 'ByQuote'
+            if triggerPrice is not None:
+                if type == 'Limit':
+                    request['ordType'] = 'StopLimit'
+                elif type == 'Market':
+                    request['ordType'] = 'Stop'
+                request['trigger'] = 'ByLastPrice'
             request['qtyType'] = qtyType
             if qtyType == 'ByQuote':
                 cost = self.safe_number(params, 'cost')
@@ -2446,7 +2454,7 @@ class phemex(Exchange, ImplicitAPI):
                 request['orderQtyRq'] = amount
             else:
                 request['orderQty'] = self.parse_to_int(amount)
-            if stopPrice is not None:
+            if triggerPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
                 request['triggerType'] = triggerType
             if stopLossDefined or takeProfitDefined:
@@ -3782,7 +3790,7 @@ class phemex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
         #         "code": 0,

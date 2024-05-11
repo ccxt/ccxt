@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.18';
+const version = '4.3.20';
 
 (Exchange as any).ccxtVersion = version
 
@@ -146,6 +146,7 @@ import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
+import woofipro from  './src/woofipro.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
@@ -216,6 +217,7 @@ import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
+import woofiproPro from  './src/pro/woofipro.js'
 
 const exchanges = {
     'ace':                    ace,
@@ -318,6 +320,7 @@ const exchanges = {
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
+    'woofipro':               woofipro,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
@@ -388,6 +391,7 @@ const pro = {
     'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
+    'woofipro':               woofiproPro,
 }
 
 for (const exchange in pro) {
@@ -579,6 +583,7 @@ export {
     wazirx,
     whitebit,
     woo,
+    woofipro,
     yobit,
     zaif,
     zonda,    

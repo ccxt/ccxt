@@ -2127,7 +2127,7 @@ class bitmex extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,

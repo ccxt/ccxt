@@ -104,9 +104,9 @@ export default class bingx extends Exchange {
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {

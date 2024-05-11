@@ -5679,7 +5679,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' modifyMarginHelper() not support self market type')
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
         #         "value": "11.9257",
@@ -6490,7 +6490,7 @@ class gate(Exchange, ImplicitAPI):
                 return self.parse_greeks(entry, market)
         return None
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "vega": "1.78992",
@@ -6703,7 +6703,7 @@ class gate(Exchange, ImplicitAPI):
             #
         return self.parse_leverages(response, symbols, marketIdRequest, 'spot')
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string_2(leverage, 'currency_pair', 'id')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {
@@ -6830,7 +6830,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_option_chain(response, None, 'name')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "is_active": True,

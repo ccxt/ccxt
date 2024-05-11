@@ -148,15 +148,15 @@ public partial class Exchange
         var res = await this.fetchFundingRates(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
-    public async Task<Dictionary<string, object>> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     public async Task<Dictionary<string, object>> WatchFundingRatesForSymbols(List<string> symbols, Dictionary<string, object> parameters = null)
     {
@@ -1213,6 +1213,7 @@ public class  Wavesexchange: wavesexchange { public Wavesexchange(object args = 
 public class  Wazirx: wazirx { public Wazirx(object args = null) : base(args) { } }
 public class  Whitebit: whitebit { public Whitebit(object args = null) : base(args) { } }
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
+public class  Woofipro: woofipro { public Woofipro(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
 public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

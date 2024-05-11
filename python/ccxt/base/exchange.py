@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.18'
+__version__ = '4.3.20'
 
 # -----------------------------------------------------------------------------
 
@@ -262,6 +262,7 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    fundingRates = None
     bidsasks = None
     base_currencies = None
     quote_currencies = None
@@ -440,6 +441,7 @@ class Exchange(object):
         self.headers = dict() if self.headers is None else self.headers
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
+        self.fundingRates = dict() if self.fundingRates is None else self.fundingRates
         self.tickers = dict() if self.tickers is None else self.tickers
         self.bidsasks = dict() if self.bidsasks is None else self.bidsasks
         self.trades = dict() if self.trades is None else self.trades
@@ -5557,6 +5559,8 @@ class Exchange(object):
                 response = None
                 if method == 'fetchAccounts':
                     response = getattr(self, method)(params)
+                elif method == 'getLeverageTiersPaginated':
+                    response = getattr(self, method)(symbol, params)
                 else:
                     response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
@@ -5684,10 +5688,10 @@ class Exchange(object):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption() is not supported yet')
 
     def parse_option_chain(self, response: List[object], currencyKey: Str = None, symbolKey: Str = None):
@@ -5724,7 +5728,7 @@ class Exchange(object):
                 leverageStructures[market['symbol']] = self.parse_leverage(info, market)
         return leverageStructures
 
-    def parse_leverage(self, leverage, market: Market = None):
+    def parse_leverage(self, leverage: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
     def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -5754,7 +5758,7 @@ class Exchange(object):
         both = self.array_concat(fromConversion, toConversion)
         return self.filter_by_since_limit(both, since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None):
         raise NotSupported(self.id + ' parseConversion() is not supported yet')
 
     def convert_expire_date(self, date: str):
@@ -5850,7 +5854,7 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data: dict, market: Market = None):
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
 
     def parse_margin_modifications(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):

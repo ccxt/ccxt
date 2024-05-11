@@ -331,6 +331,9 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/spot/account/subaccount-assets': 2,
                             'v2/spot/account/bills': 2,
                             'v2/spot/account/transferRecords': 1,
+                            'v2/account/funding-assets': 2,
+                            'v2/account/bot-assets': 2,
+                            'v2/account/all-account-balance': 20,
                             'v2/spot/wallet/deposit-address': 2,
                             'v2/spot/wallet/deposit-records': 2,
                             'v2/spot/wallet/withdrawal-records': 2,
@@ -6475,7 +6478,7 @@ class bitget(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # addMargin/reduceMargin
         #
@@ -6586,7 +6589,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         return {
             'info': leverage,
             'symbol': market['symbol'],
@@ -8063,7 +8066,7 @@ class bitget(Exchange, ImplicitAPI):
         dataList = self.safe_list(data, 'dataList', [])
         return self.parse_conversions(dataList, code, 'fromCoin', 'toCoin', since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
         #

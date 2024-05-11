@@ -7,7 +7,7 @@ import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, B
 export default class exmo extends Exchange {
     describe(): any;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;

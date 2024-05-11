@@ -317,6 +317,9 @@ class bitget extends Exchange {
                             'v2/spot/account/subaccount-assets' => 2,
                             'v2/spot/account/bills' => 2,
                             'v2/spot/account/transferRecords' => 1,
+                            'v2/account/funding-assets' => 2,
+                            'v2/account/bot-assets' => 2,
+                            'v2/account/all-account-balance' => 20,
                             'v2/spot/wallet/deposit-address' => 2,
                             'v2/spot/wallet/deposit-records' => 2,
                             'v2/spot/wallet/withdrawal-records' => 2,
@@ -6885,7 +6888,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // addMargin/reduceMargin
         //
@@ -7010,7 +7013,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         return array(
             'info' => $leverage,
             'symbol' => $market['symbol'],
@@ -8608,7 +8611,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
         //

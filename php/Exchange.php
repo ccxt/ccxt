@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.18';
+$version = '4.3.20';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.18';
+    const VERSION = '4.3.20';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -145,6 +145,8 @@ class Exchange {
     public $quote_currencies = null;
     public $balance = array();
     public $orderbooks = array();
+    public $fundingRates = array();
+
     public $tickers = array();
     public $bidsasks = array();
     public $fees = array('trading' => array(), 'funding' => array());
@@ -6874,6 +6876,8 @@ class Exchange {
                 $response = null;
                 if ($method === 'fetchAccounts') {
                     $response = $this->$method ($params);
+                } elseif ($method === 'getLeverageTiersPaginated') {
+                    $response = $this->$method ($symbol, $params);
                 } else {
                     $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
                 }
@@ -7033,11 +7037,11 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null) {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOption () is not supported yet');
     }
 
@@ -7084,7 +7088,7 @@ class Exchange {
         return $leverageStructures;
     }
 
-    public function parse_leverage($leverage, ?array $market = null) {
+    public function parse_leverage(array $leverage, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
     }
 
@@ -7121,7 +7125,7 @@ class Exchange {
         return $this->filter_by_since_limit($both, $since, $limit);
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {
         throw new NotSupported($this->id . ' parseConversion () is not supported yet');
     }
 
@@ -7226,7 +7230,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification(array $data, ?array $market = null) {
         throw new NotSupported($this->id . ' parseMarginModification() is not supported yet');
     }
 

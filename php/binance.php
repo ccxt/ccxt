@@ -10253,7 +10253,7 @@ class binance extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $marginModeRaw = $this->safe_bool($leverage, 'isolated');
         $marginMode = null;
@@ -10946,7 +10946,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // add/reduce margin
         //
@@ -11992,7 +11992,7 @@ class binance extends Exchange {
         return $this->parse_greeks($response[0], $market);
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-231229-40000-C",
@@ -12275,7 +12275,7 @@ class binance extends Exchange {
         return $this->parse_option($chain, null, $market);
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
         //
         //     {
         //         "symbol" => "BTC-241227-80000-C",
@@ -12691,7 +12691,7 @@ class binance extends Exchange {
         return $this->parse_conversions($rows, $code, $fromCurrencyKey, $toCurrencyKey, $since, $limit);
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
         //

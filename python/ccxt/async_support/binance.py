@@ -9747,7 +9747,7 @@ class binance(Exchange, ImplicitAPI):
         leverages = self.safe_list(response, 'positions', [])
         return self.parse_leverages(leverages, symbols, 'symbol')
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         marginModeRaw = self.safe_bool(leverage, 'isolated')
         marginMode = None
@@ -10357,7 +10357,7 @@ class binance(Exchange, ImplicitAPI):
             'code': code,
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # add/reduce margin
         #
@@ -11341,7 +11341,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_greeks(response[0], market)
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "symbol": "BTC-231229-40000-C",
@@ -11612,7 +11612,7 @@ class binance(Exchange, ImplicitAPI):
         chain = self.safe_dict(response, 0, {})
         return self.parse_option(chain, None, market)
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "symbol": "BTC-241227-80000-C",
@@ -12001,7 +12001,7 @@ class binance(Exchange, ImplicitAPI):
         rows = self.safe_list(response, responseQuery, [])
         return self.parse_conversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
         #

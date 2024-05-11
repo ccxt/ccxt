@@ -118,11 +118,11 @@ export default class delta extends Exchange {
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
@@ -134,50 +134,12 @@ export default class delta extends Exchange {
     };
     parseSettlements(settlements: any, market: any): any[];
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
-    parseGreeks(greeks: any, market?: Market): {
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        delta: number;
-        gamma: number;
-        theta: number;
-        vega: number;
-        rho: number;
-        bidSize: number;
-        askSize: number;
-        bidImpliedVolatility: number;
-        askImpliedVolatility: number;
-        markImpliedVolatility: number;
-        bidPrice: number;
-        askPrice: number;
-        markPrice: number;
-        lastPrice: any;
-        underlyingPrice: number;
-        info: any;
-    };
+    parseGreeks(greeks: Dict, market?: Market): Greeks;
     closeAllPositions(params?: {}): Promise<Position[]>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
     fetchOption(symbol: string, params?: {}): Promise<Option>;
-    parseOption(chain: any, currency?: Currency, market?: Market): {
-        info: any;
-        currency: any;
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        impliedVolatility: number;
-        openInterest: number;
-        bidPrice: number;
-        askPrice: number;
-        midPrice: number;
-        markPrice: number;
-        lastPrice: any;
-        underlyingPrice: number;
-        change: any;
-        percentage: any;
-        baseVolume: number;
-        quoteVolume: any;
-    };
+    parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
