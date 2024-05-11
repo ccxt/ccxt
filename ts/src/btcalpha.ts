@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, Insuf
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -309,7 +309,7 @@ export default class btcalpha extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "timestamp": "1674658.445272",

@@ -2549,7 +2549,7 @@ class bitmart extends bitmart$1 {
         else if (isMarketOrder) {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
-                let notional = this.safeNumber2(params, 'cost', 'notional');
+                let notional = this.safeString2(params, 'cost', 'notional');
                 params = this.omit(params, 'cost');
                 let createMarketBuyOrderRequiresPrice = true;
                 [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2560,11 +2560,11 @@ class bitmart extends bitmart$1 {
                     else {
                         const amountString = this.numberToString(amount);
                         const priceString = this.numberToString(price);
-                        notional = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
+                        notional = Precise["default"].stringMul(amountString, priceString);
                     }
                 }
                 else {
-                    notional = (notional === undefined) ? amount : notional;
+                    notional = (notional === undefined) ? this.numberToString(amount) : notional;
                 }
                 request['notional'] = this.decimalToPrecision(notional, number.TRUNCATE, market['precision']['price'], this.precisionMode);
             }
@@ -3886,9 +3886,9 @@ class bitmart extends bitmart$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'time_end', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['till', 'until']);
+        params = this.omit(params, ['until']);
         if (endTime !== undefined) {
             request['time_end'] = endTime;
         }

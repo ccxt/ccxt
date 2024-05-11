@@ -145,9 +145,9 @@ public partial class independentreserve : ccxt.independentreserve
         {
             limit = 100;
         }
-        limit = this.numberToString(limit);
-        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limit), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
-        object messageHash = add(add(add("orderbook:", symbol), ":"), limit);
+        object limitString = this.numberToString(limit);
+        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
+        object messageHash = add(add(add("orderbook:", symbol), ":"), limitString);
         object subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
@@ -240,6 +240,8 @@ public partial class independentreserve : ccxt.independentreserve
             if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
             {
                 var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }

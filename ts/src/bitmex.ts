@@ -90,6 +90,7 @@ export default class bitmex extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': undefined,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': undefined,
                 'setMarginMode': true,
@@ -1423,7 +1424,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -2174,7 +2175,7 @@ export default class bitmex extends Exchange {
         return this.parseLeverages (leverages, symbols, 'symbol');
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         return {
             'info': leverage,
@@ -2590,8 +2591,8 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['endTime'] = this.iso8601 (until);
         }

@@ -265,7 +265,7 @@ class independentreserve(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
         return self.parse_order_book(response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # {
         #     "DayHighestPrice":43489.49,
         #     "DayLowestPrice":41998.32,

@@ -106,6 +106,7 @@ public partial class coinmetro : Exchange
                 { "reduceMargin", false },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMargin", false },
                 { "setMarginMode", false },
@@ -527,10 +528,10 @@ public partial class coinmetro : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = ":from"; // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         }
-        until = this.safeInteger2(parameters, "till", "until", until);
+        until = this.safeInteger(parameters, "until", until);
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["to"] = until;
         } else
         {

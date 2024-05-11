@@ -113,6 +113,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'reduceMargin': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
@@ -442,6 +443,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
             marketName = self.safe_string(market, 'name')
+            if marketName.find('/') < 0:
+                # there are some weird spot markets in testnet, eg @2
+                continue
             marketParts = marketName.split('/')
             baseName = self.safe_string(marketParts, 0)
             quoteId = self.safe_string(marketParts, 1)
@@ -2186,7 +2190,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'code': self.safe_string(response, 'status'),
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #    {
         #        'type': 'default'

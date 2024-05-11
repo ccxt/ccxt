@@ -818,7 +818,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         tickers = self.parse_tickers(data, symbols)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "code": "200000",
@@ -1689,8 +1689,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, params)
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['stop', 'until', 'till', 'trigger'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['stop', 'until', 'trigger'])
         if status == 'closed':
             status = 'done'
         elif status == 'open':
@@ -1776,7 +1776,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1798,7 +1798,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :param boolean [params.trigger]: set to True to retrieve untriggered stop orders
@@ -2146,7 +2146,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'toAccount': 'spot',
         })
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -2167,7 +2167,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'info': transfer,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'PROCESSING': 'pending',
         }
@@ -2594,8 +2594,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'from': 0,
             'to': self.milliseconds(),
         }
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if since is not None:
             request['from'] = since
             if until is None:

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -134,6 +134,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchVolatilityHistory': True,
                 'fetchWithdrawals': True,
                 'repayCrossMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
@@ -337,6 +338,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
                         'v5/account/transaction-log': 1,
+                        'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         # asset
@@ -359,6 +361,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/coin/query-info': 28,  # should be 25 but exceeds ratelimit unless the weight is 28 or higher
                         'v5/asset/withdraw/query-record': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
+                        'v5/asset/withdraw/vasp/list': 5,
                         # user
                         'v5/user/query-sub-members': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api': 5,  # 10/s => cost = 50 / 10 = 5
@@ -1111,7 +1114,7 @@ class bybit(Exchange, ImplicitAPI):
         return self.milliseconds() - self.options['timeDifference']
 
     def add_pagination_cursor_to_result(self, response):
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_value_n(result, ['list', 'rows', 'data', 'dataList'], [])
         paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
         dataLength = len(data)
@@ -1128,8 +1131,8 @@ class bybit(Exchange, ImplicitAPI):
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
         # SUB UID: "Account Transfer"
         # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
-        enableUnifiedMargin = self.safe_value(self.options, 'enableUnifiedMargin')
-        enableUnifiedAccount = self.safe_value(self.options, 'enableUnifiedAccount')
+        enableUnifiedMargin = self.safe_bool(self.options, 'enableUnifiedMargin')
+        enableUnifiedAccount = self.safe_bool(self.options, 'enableUnifiedAccount')
         if enableUnifiedMargin is None or enableUnifiedAccount is None:
             if self.options['enableDemoTrading']:
                 # info endpoint is not available in demo trading
@@ -1178,7 +1181,7 @@ class bybit(Exchange, ImplicitAPI):
             #         "time": 1676891757649
             #     }
             #
-            result = self.safe_value(response, 'result', {})
+            result = self.safe_dict(response, 'result', {})
             self.options['enableUnifiedMargin'] = self.safe_integer(result, 'unified') == 1
             self.options['enableUnifiedAccount'] = self.safe_integer(result, 'uta') == 1
         return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
@@ -1329,15 +1332,15 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672194582264
         #     }
         #
-        data = self.safe_value(response, 'result', [])
-        rows = self.safe_value(data, 'rows', [])
+        data = self.safe_dict(response, 'result', {})
+        rows = self.safe_list(data, 'rows', [])
         result = {}
         for i in range(0, len(rows)):
             currency = rows[i]
             currencyId = self.safe_string(currency, 'coin')
             code = self.safe_currency_code(currencyId)
             name = self.safe_string(currency, 'name')
-            chains = self.safe_value(currency, 'chains', [])
+            chains = self.safe_list(currency, 'chains', [])
             networks = {}
             minPrecision = None
             minWithdrawFeeString = None
@@ -1422,7 +1425,7 @@ class bybit(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
         promisesUnresolved = []
-        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        fetchMarkets = self.safe_list(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
         for i in range(0, len(fetchMarkets)):
             marketType = fetchMarkets[i]
             if marketType == 'spot':
@@ -1438,12 +1441,12 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promisesUnresolved)
-        spotMarkets = self.safe_value(promises, 0, [])
-        linearMarkets = self.safe_value(promises, 1, [])
-        inverseMarkets = self.safe_value(promises, 2, [])
-        btcOptionMarkets = self.safe_value(promises, 3, [])
-        ethOptionMarkets = self.safe_value(promises, 4, [])
-        solOptionMarkets = self.safe_value(promises, 5, [])
+        spotMarkets = self.safe_list(promises, 0, [])
+        linearMarkets = self.safe_list(promises, 1, [])
+        inverseMarkets = self.safe_list(promises, 2, [])
+        btcOptionMarkets = self.safe_list(promises, 3, [])
+        ethOptionMarkets = self.safe_list(promises, 4, [])
+        solOptionMarkets = self.safe_list(promises, 5, [])
         futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
         optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
         optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)
@@ -1468,6 +1471,7 @@ class bybit(Exchange, ImplicitAPI):
         #                     "quoteCoin": "USDT",
         #                     "innovation": "0",
         #                     "status": "Trading",
+        #                     "marginTrading": "both",
         #                     "lotSizeFilter": {
         #                         "basePrecision": "0.000001",
         #                         "quotePrecision": "0.00000001",
@@ -1486,8 +1490,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672712468011
         #     }
         #
-        responseResult = self.safe_value(response, 'result', {})
-        markets = self.safe_value(responseResult, 'list', [])
+        responseResult = self.safe_dict(response, 'result', {})
+        markets = self.safe_list(responseResult, 'list', [])
         result = []
         takerFee = self.parse_number('0.001')
         makerFee = self.parse_number('0.001')
@@ -1501,10 +1505,12 @@ class bybit(Exchange, ImplicitAPI):
             symbol = base + '/' + quote
             status = self.safe_string(market, 'status')
             active = (status == 'Trading')
-            lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
-            priceFilter = self.safe_value(market, 'priceFilter')
+            lotSizeFilter = self.safe_dict(market, 'lotSizeFilter')
+            priceFilter = self.safe_dict(market, 'priceFilter')
             quotePrecision = self.safe_number(lotSizeFilter, 'quotePrecision')
-            result.append({
+            marginTrading = self.safe_string(market, 'marginTrading', 'none')
+            allowsMargin = marginTrading != 'none'
+            result.append(self.safe_market_structure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -1515,7 +1521,7 @@ class bybit(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': None,
+                'margin': allowsMargin,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -1554,22 +1560,22 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'created': None,
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_future_markets(self, params):
         params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
         response = await self.publicGetV5MarketInstrumentsInfo(params)
-        data = self.safe_value(response, 'result', {})
-        markets = self.safe_value(data, 'list', [])
+        data = self.safe_dict(response, 'result', {})
+        markets = self.safe_list(data, 'list', [])
         paginationCursor = self.safe_string(data, 'nextPageCursor')
         if paginationCursor is not None:
             while(paginationCursor is not None):
                 params['cursor'] = paginationCursor
                 responseInner = await self.publicGetV5MarketInstrumentsInfo(params)
-                dataNew = self.safe_value(responseInner, 'result', {})
-                rawMarkets = self.safe_value(dataNew, 'list', [])
+                dataNew = self.safe_dict(responseInner, 'result', {})
+                rawMarkets = self.safe_list(dataNew, 'list', [])
                 rawMarketsLength = len(rawMarkets)
                 if rawMarketsLength == 0:
                     break
@@ -1645,9 +1651,9 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote
-            lotSizeFilter = self.safe_value(market, 'lotSizeFilter', {})
-            priceFilter = self.safe_value(market, 'priceFilter', {})
-            leverage = self.safe_value(market, 'leverageFilter', {})
+            lotSizeFilter = self.safe_dict(market, 'lotSizeFilter', {})
+            priceFilter = self.safe_dict(market, 'priceFilter', {})
+            leverage = self.safe_dict(market, 'leverageFilter', {})
             status = self.safe_string(market, 'status')
             swap = linearPerpetual or inversePerpetual
             future = inverseFutures or linearFutures
@@ -1667,7 +1673,7 @@ class bybit(Exchange, ImplicitAPI):
             if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
             contractSize = self.safe_number_2(lotSizeFilter, 'minTradingQty', 'minOrderQty') if inverse else self.parse_number('1')
-            result.append({
+            result.append(self.safe_market_structure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -1717,7 +1723,7 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_option_markets(self, params):
@@ -1725,8 +1731,8 @@ class bybit(Exchange, ImplicitAPI):
             'category': 'option',
         }
         response = await self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
-        data = self.safe_value(response, 'result', {})
-        markets = self.safe_value(data, 'list', [])
+        data = self.safe_dict(response, 'result', {})
+        markets = self.safe_list(data, 'list', [])
         if self.options['loadAllOptions']:
             request['limit'] = 1000
             paginationCursor = self.safe_string(data, 'nextPageCursor')
@@ -1734,8 +1740,8 @@ class bybit(Exchange, ImplicitAPI):
                 while(paginationCursor is not None):
                     request['cursor'] = paginationCursor
                     responseInner = await self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
-                    dataNew = self.safe_value(responseInner, 'result', {})
-                    rawMarkets = self.safe_value(dataNew, 'list', [])
+                    dataNew = self.safe_dict(responseInner, 'result', {})
+                    rawMarkets = self.safe_list(dataNew, 'list', [])
                     rawMarketsLength = len(rawMarkets)
                     if rawMarketsLength == 0:
                         break
@@ -1786,8 +1792,8 @@ class bybit(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
-            lotSizeFilter = self.safe_value(market, 'lotSizeFilter', {})
-            priceFilter = self.safe_value(market, 'priceFilter', {})
+            lotSizeFilter = self.safe_dict(market, 'lotSizeFilter', {})
+            priceFilter = self.safe_dict(market, 'priceFilter', {})
             status = self.safe_string(market, 'status')
             expiry = self.safe_integer(market, 'deliveryTime')
             splitId = id.split('-')
@@ -1795,7 +1801,7 @@ class bybit(Exchange, ImplicitAPI):
             optionLetter = self.safe_string(splitId, 3)
             isActive = (status == 'Trading')
             if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
-                result.append({
+                result.append(self.safe_market_structure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
                     'base': base,
@@ -1845,10 +1851,10 @@ class bybit(Exchange, ImplicitAPI):
                     },
                     'created': self.safe_integer(market, 'launchTime'),
                     'info': market,
-                })
+                }))
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot
         #
@@ -2030,8 +2036,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672376496682
         #     }
         #
-        result = self.safe_value(response, 'result', [])
-        tickers = self.safe_value(result, 'list', [])
+        result = self.safe_dict(response, 'result', {})
+        tickers = self.safe_list(result, 'list', [])
         rawTicker = self.safe_dict(tickers, 0)
         return self.parse_ticker(rawTicker, market)
 
@@ -2126,7 +2132,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672376496682
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         tickerList = self.safe_list(result, 'list', [])
         return self.parse_tickers(tickerList, parsedSymbols)
 
@@ -2249,7 +2255,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672025956592
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         ohlcvs = self.safe_list(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
@@ -2418,9 +2424,9 @@ class bybit(Exchange, ImplicitAPI):
         request['category'] = type
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         else:
@@ -2448,8 +2454,8 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         rates = []
-        result = self.safe_value(response, 'result')
-        resultList = self.safe_value(result, 'list')
+        result = self.safe_dict(response, 'result')
+        resultList = self.safe_list(result, 'list')
         for i in range(0, len(resultList)):
             entry = resultList[i]
             timestamp = self.safe_integer(entry, 'fundingRateTimestamp')
@@ -2577,7 +2583,7 @@ class bybit(Exchange, ImplicitAPI):
             isBuyer = self.safe_integer(trade, 'isBuyer')
             if isBuyer is not None:
                 side = 'buy' if isBuyer else 'sell'
-        isMaker = self.safe_value(trade, 'isMaker')
+        isMaker = self.safe_bool(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
@@ -2683,7 +2689,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672053054358
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'list', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -2745,7 +2751,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672765737734
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_dict(response, 'result', {})
         timestamp = self.safe_integer(result, 'ts')
         return self.parse_order_book(result, symbol, timestamp, 'b', 'a')
 
@@ -2858,7 +2864,7 @@ class bybit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        responseResult = self.safe_value(response, 'result', {})
+        responseResult = self.safe_dict(response, 'result', {})
         currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'balance'])
         if currencyList is None:
             # usdc wallet
@@ -2872,7 +2878,7 @@ class bybit(Exchange, ImplicitAPI):
                 entry = currencyList[i]
                 accountType = self.safe_string(entry, 'accountType')
                 if accountType == 'UNIFIED' or accountType == 'CONTRACT' or accountType == 'SPOT':
-                    coins = self.safe_value(entry, 'coin')
+                    coins = self.safe_list(entry, 'coin')
                     for j in range(0, len(coins)):
                         account = self.account()
                         coinEntry = coins[j]
@@ -2924,7 +2930,7 @@ class bybit(Exchange, ImplicitAPI):
         else:
             if isSwap:
                 type = 'contract'
-        accountTypes = self.safe_value(self.options, 'accountsByType', {})
+        accountTypes = self.safe_dict(self.options, 'accountsByType', {})
         unifiedType = self.safe_string_upper(accountTypes, type, type)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
@@ -3235,7 +3241,7 @@ class bybit(Exchange, ImplicitAPI):
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
         stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
-        reduceOnly = self.safe_value(order, 'reduceOnly')
+        reduceOnly = self.safe_bool(order, 'reduceOnly')
         takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
         stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
         triggerDirection = self.safe_string(order, 'triggerDirection')
@@ -3269,7 +3275,7 @@ class bybit(Exchange, ImplicitAPI):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': None,
-            'reduceOnly': self.safe_value(order, 'reduceOnly'),
+            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -3360,7 +3366,7 @@ class bybit(Exchange, ImplicitAPI):
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
         isTrailingAmountOrder = trailingAmount is not None
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
-        options = self.safe_value(self.options, 'createOrder', {})
+        options = self.safe_dict(self.options, 'createOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privatePostV5OrderCreate')
         response = None
         if isTrailingAmountOrder or (defaultMethod == 'privatePostV5PositionTradingStop'):
@@ -3603,10 +3609,10 @@ class bybit(Exchange, ImplicitAPI):
             'request': ordersRequests,
         }
         response = await self.privatePostV5OrderCreateBatch(self.extend(request, params))
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        retInfo = self.safe_value(response, 'retExtInfo', {})
-        codes = self.safe_value(retInfo, 'list', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
+        retInfo = self.safe_dict(response, 'retExtInfo', {})
+        codes = self.safe_list(retInfo, 'list', [])
         # self.extend the error with the unsuccessful orders
         for i in range(0, len(codes)):
             code = codes[i]
@@ -3778,7 +3784,7 @@ class bybit(Exchange, ImplicitAPI):
         if market['option']:
             response = await self.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(self.extend(request, params))
         else:
-            isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+            isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
             triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
             stopLossPrice = self.safe_value(params, 'stopLossPrice')
             isStopLossOrder = stopLossPrice is not None
@@ -3923,7 +3929,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672217093461
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.safe_order({
             'info': response,
             'id': self.safe_string(result, 'orderId'),
@@ -3939,7 +3945,7 @@ class bybit(Exchange, ImplicitAPI):
             # 'orderLinkId': 'string',  # one of order_id, stop_order_id or order_link_id is required
             # 'orderId': id,
         }
-        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
         if id is not None:  # The user can also use argument params["order_link_id"]
             request['orderId'] = id
@@ -4193,7 +4199,7 @@ class bybit(Exchange, ImplicitAPI):
         if market['option']:
             response = await self.privatePostOptionUsdcOpenapiPrivateV1CancelAll(self.extend(request, params))
         else:
-            isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+            isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
             if isStop:
                 request['orderFilter'] = 'StopOrder'
             else:
@@ -4256,7 +4262,7 @@ class bybit(Exchange, ImplicitAPI):
             if symbol is None and baseCoin is None:
                 defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
                 request['settleCoin'] = self.safe_string(params, 'settleCoin', defaultSettle)
-        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
         if isStop:
             request['orderFilter'] = 'StopOrder'
@@ -4289,8 +4295,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1676962409398
         #     }
         #
-        result = self.safe_value(response, 'result', [])
-        orders = self.safe_value(result, 'list')
+        result = self.safe_dict(response, 'result', {})
+        orders = self.safe_list(result, 'list')
         if not isinstance(orders, list):
             return response
         return self.parse_orders(orders, market)
@@ -4319,7 +4325,7 @@ class bybit(Exchange, ImplicitAPI):
             request['category'] = 'PERPETUAL'
         else:
             request['category'] = 'OPTION'
-        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
         if isStop:
             request['orderFilter'] = 'StopOrder'
@@ -4373,7 +4379,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "retMsg": "Success."
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'dataList', [])
         return self.parse_orders(data, market, since, limit)
 
@@ -4485,9 +4491,9 @@ class bybit(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = await self.privateGetV5OrderHistory(self.extend(request, params))
@@ -4643,9 +4649,9 @@ class bybit(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = await self.privateGetV5OrderHistory(self.extend(request, params))
@@ -4757,8 +4763,8 @@ class bybit(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchUsdcOpenOrders', market, params)
         request['category'] = 'perpetual' if (type == 'swap') else 'option'
         response = await self.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders(self.extend(request, params))
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'dataList', [])
+        result = self.safe_dict(response, 'result', {})
+        orders = self.safe_list(result, 'dataList', [])
         #
         #     {
         #         "retCode": 0,
@@ -4825,7 +4831,7 @@ class bybit(Exchange, ImplicitAPI):
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return await self.fetch_usdc_open_orders(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
         if isStop:
             request['orderFilter'] = 'StopOrder'
@@ -4943,7 +4949,7 @@ class bybit(Exchange, ImplicitAPI):
         #       "retMsg": "Success."
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         dataList = self.safe_list(result, 'dataList', [])
         return self.parse_trades(dataList, market, since, limit)
 
@@ -5085,8 +5091,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672192792860
         #     }
         #
-        result = self.safe_value(response, 'result', [])
-        chains = self.safe_value(result, 'chains', [])
+        result = self.safe_dict(response, 'result', {})
+        chains = self.safe_list(result, 'chains', [])
         coin = self.safe_string(result, 'coin')
         currency = self.currency(coin)
         parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
@@ -5131,8 +5137,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672192792860
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        chains = self.safe_value(result, 'chains', [])
+        result = self.safe_dict(response, 'result', {})
+        chains = self.safe_list(result, 'chains', [])
         chainsIndexedById = self.index_by(chains, 'chain')
         selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
         addressObject = self.safe_dict(chainsIndexedById, selectedNetworkId, {})
@@ -5390,7 +5396,7 @@ class bybit(Exchange, ImplicitAPI):
             # 'coin': currency['id'],
             # 'currency': currency['id'],  # alias
             # 'start_date': self.iso8601(since),
-            # 'end_date': self.iso8601(till),
+            # 'end_date': self.iso8601(until),
             # 'wallet_fund_type': 'Deposit',  # Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
             # 'page': 1,
             # 'limit': 20,  # max 50
@@ -5803,14 +5809,14 @@ class bybit(Exchange, ImplicitAPI):
         #         "retMsg": "Success."
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value(result, 'dataList', [])
+        result = self.safe_dict(response, 'result', {})
+        positions = self.safe_list(result, 'dataList', [])
         results = []
         for i in range(0, len(positions)):
             rawPosition = positions[i]
             if ('data' in rawPosition) and ('is_valid' in rawPosition):
                 # futures only
-                rawPosition = self.safe_value(rawPosition, 'data')
+                rawPosition = self.safe_dict(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
@@ -5908,7 +5914,7 @@ class bybit(Exchange, ImplicitAPI):
             rawPosition = positions[i]
             if ('data' in rawPosition) and ('is_valid' in rawPosition):
                 # futures only
-                rawPosition = self.safe_value(rawPosition, 'data')
+                rawPosition = self.safe_dict(rawPosition, 'data')
             results.append(self.parse_position(rawPosition))
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
@@ -6152,7 +6158,7 @@ class bybit(Exchange, ImplicitAPI):
         position = await self.fetch_position(symbol, params)
         return self.parse_leverage(position, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {
@@ -6267,19 +6273,19 @@ class bybit(Exchange, ImplicitAPI):
         isUsdcSettled = market['settle'] == 'USDC'
         # engage in leverage setting
         # we reuse the code here instead of having two methods
-        leverage = self.number_to_string(leverage)
+        leverageString = self.number_to_string(leverage)
         request = {
             'symbol': market['id'],
-            'buyLeverage': leverage,
-            'sellLeverage': leverage,
+            'buyLeverage': leverageString,
+            'sellLeverage': leverageString,
         }
         response = None
         if isUsdcSettled and not isUnifiedAccount:
-            request['leverage'] = leverage
+            request['leverage'] = leverageString
             response = await self.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(self.extend(request, params))
         else:
-            request['buyLeverage'] = leverage
-            request['sellLeverage'] = leverage
+            request['buyLeverage'] = leverageString
+            request['sellLeverage'] = leverageString
             if market['linear']:
                 request['category'] = 'linear'
             elif market['inverse']:
@@ -6338,7 +6344,7 @@ class bybit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         subType = 'linear' if market['linear'] else 'inverse'
         category = self.safe_string(params, 'category', subType)
-        intervals = self.safe_value(self.options, 'intervals')
+        intervals = self.safe_dict(self.options, 'intervals')
         interval = self.safe_string(intervals, timeframe)  # 5min,15min,30min,1h,4h,1d
         if interval is None:
             raise BadRequest(self.id + ' fetchOpenInterestHistory() cannot use the ' + timeframe + ' timeframe')
@@ -6349,8 +6355,8 @@ class bybit(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        params = self.omit(params, ['till', 'until'])
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
+        params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = until
         if limit is not None:
@@ -6379,7 +6385,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672053548579
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.add_pagination_cursor_to_result(response)
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
@@ -6400,7 +6406,7 @@ class bybit(Exchange, ImplicitAPI):
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         timeframe = self.safe_string(params, 'interval', '1h')
-        intervals = self.safe_value(self.options, 'intervals')
+        intervals = self.safe_dict(self.options, 'intervals')
         interval = self.safe_string(intervals, timeframe)  # 5min,15min,30min,1h,4h,1d
         if interval is None:
             raise BadRequest(self.id + ' fetchOpenInterest() cannot use the ' + timeframe + ' timeframe')
@@ -6435,7 +6441,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672053548579
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
         data = self.add_pagination_cursor_to_result(response)
@@ -6517,7 +6523,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(response, 'time')
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         data['timestamp'] = timestamp
         return self.parse_borrow_rate(data, currency)
 
@@ -6581,8 +6587,8 @@ class bybit(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        rows = self.safe_value(data, 'loanAccountList', [])
+        data = self.safe_dict(response, 'result', {})
+        rows = self.safe_list(data, 'loanAccountList', [])
         interest = self.parse_borrow_interests(rows, None)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -6623,7 +6629,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         transferId = self.safe_string(params, 'transferId', self.uuid())
-        accountTypes = self.safe_value(self.options, 'accountsByType', {})
+        accountTypes = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
         toId = self.safe_string(accountTypes, toAccount, toAccount)
         currency = self.currency(code)
@@ -6648,7 +6654,7 @@ class bybit(Exchange, ImplicitAPI):
         # }
         #
         timestamp = self.safe_integer(response, 'time')
-        transfer = self.safe_value(response, 'result', {})
+        transfer = self.safe_dict(response, 'result', {})
         statusRaw = self.safe_string_n(response, ['retCode', 'retMsg'])
         status = self.parse_transfer_status(statusRaw)
         return self.extend(self.parse_transfer(transfer, currency), {
@@ -6660,7 +6666,7 @@ class bybit(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
@@ -6740,7 +6746,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1662617848970
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         transaction = self.parse_margin_loan(result, currency)
         return self.extend(transaction, {
             'symbol': None,
@@ -6774,7 +6780,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1662618298452
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         transaction = self.parse_margin_loan(result, currency)
         return self.extend(transaction, {
             'symbol': None,
@@ -6805,7 +6811,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '0': 'ok',
             'OK': 'ok',
@@ -6813,7 +6819,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -6837,7 +6843,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(transfer, 'timestamp')
         fromAccountId = self.safe_string(transfer, 'fromAccountType')
         toAccountId = self.safe_string(transfer, 'toAccountType')
-        accountIds = self.safe_value(self.options, 'accountsById', {})
+        accountIds = self.safe_dict(self.options, 'accountsById', {})
         fromAccount = self.safe_string(accountIds, fromAccountId, fromAccountId)
         toAccount = self.safe_string(accountIds, toAccountId, toAccountId)
         return {
@@ -6886,8 +6892,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672054488010
         #     }
         #
-        result = self.safe_value(response, 'result')
-        tiers = self.safe_value(result, 'list')
+        result = self.safe_dict(response, 'result')
+        tiers = self.safe_list(result, 'list')
         return self.parse_market_leverage_tiers(tiers, market)
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}):
@@ -6968,9 +6974,9 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1676360412576
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        fees = self.safe_value(result, 'list', [])
-        first = self.safe_value(fees, 0, {})
+        result = self.safe_dict(response, 'result', {})
+        fees = self.safe_list(result, 'list', [])
+        first = self.safe_dict(fees, 0, {})
         return self.parse_trading_fee(first, market)
 
     async def fetch_trading_fees(self, params={}) -> TradingFees:
@@ -7004,8 +7010,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1676360412576
         #     }
         #
-        fees = self.safe_value(response, 'result', {})
-        fees = self.safe_value(fees, 'list', [])
+        fees = self.safe_dict(response, 'result', {})
+        fees = self.safe_list(fees, 'list', [])
         result = {}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
@@ -7034,7 +7040,7 @@ class bybit(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        chains = self.safe_value(fee, 'chains', [])
+        chains = self.safe_list(fee, 'chains', [])
         chainsLength = len(chains)
         result = {
             'info': fee,
@@ -7104,7 +7110,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672194582264
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         rows = self.safe_list(data, 'rows', [])
         return self.parse_deposit_withdraw_fees(rows, codes, 'coin')
 
@@ -7153,8 +7159,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1689043527231
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
@@ -7209,8 +7215,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1689043527231
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
@@ -7310,7 +7316,7 @@ class bybit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        volatility = self.safe_value(response, 'result', [])
+        volatility = self.safe_list(response, 'result', [])
         return self.parse_volatility_history(volatility)
 
     def parse_volatility_history(self, volatility):
@@ -7389,15 +7395,15 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(response, 'time')
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
         greeks = self.parse_greeks(data[0], market)
         return self.extend(greeks, {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "symbol": "BTC-26JAN24-39000-C",
@@ -7576,6 +7582,33 @@ class bybit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
+    async def get_leverage_tiers_paginated(self, symbol: Str = None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'getLeverageTiersPaginated', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_cursor('getLeverageTiersPaginated', symbol, None, None, params, 'nextPageCursor', 'cursor', None, 100)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('getLeverageTiersPaginated', market, params, 'linear')
+        request = {
+            'category': subType,
+        }
+        response = await self.publicGetV5MarketRiskLimit(self.extend(request, params))
+        result = self.add_pagination_cursor_to_result(response)
+        first = self.safe_dict(result, 0)
+        total = len(result)
+        lastIndex = total - 1
+        last = self.safe_dict(result, lastIndex)
+        cursorValue = self.safe_string(first, 'nextPageCursor')
+        last['info'] = {
+            'nextPageCursor': cursorValue,
+        }
+        result[lastIndex] = last
+        return result
+
     async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         :see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
@@ -7583,22 +7616,18 @@ class bybit(Exchange, ImplicitAPI):
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: market subType, ['linear', 'inverse'], default is 'linear'
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
         market = None
+        symbol = None
         if symbols is not None:
             market = self.market(symbols[0])
             if market['spot']:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
-        request = {
-            'category': subType,
-        }
-        response = await self.publicGetV5MarketRiskLimit(self.extend(request, params))
-        result = self.safe_dict(response, 'result', {})
-        data = self.safe_list(result, 'list', [])
+            symbol = market['symbol']
+        data = await self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 20}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
@@ -7624,9 +7653,12 @@ class bybit(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             marketId = keys[i]
             entry = grouped[marketId]
+            for j in range(0, len(entry)):
+                id = self.safe_integer(entry[j], 'id')
+                entry[j]['id'] = id
             market = self.safe_market(marketId, None, None, 'contract')
             symbol = market['symbol']
-            tiers[symbol] = self.parse_market_leverage_tiers(entry, market)
+            tiers[symbol] = self.parse_market_leverage_tiers(self.sort_by(entry, 'id'), market)
         return tiers
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
@@ -7872,7 +7904,7 @@ class bybit(Exchange, ImplicitAPI):
         resultList = self.safe_list(result, 'list', [])
         return self.parse_option_chain(resultList, None, 'symbol')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "symbol": "BTC-27DEC24-55000-P",

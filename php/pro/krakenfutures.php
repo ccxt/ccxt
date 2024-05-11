@@ -88,7 +88,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     'event' => 'challenge',
                     'api_key' => $this->apiKey,
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 $client->subscriptions[$messageHash] = $future;
             }
@@ -142,7 +142,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $messageHash = $messageHash . ':' . $market['symbol'];
             }
             $subscribe['product_ids'] = $marketIds;
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -167,7 +167,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'original_challenge' => $this->options['challenge'],
                 'signed_challenge' => $this->options['signedChallenge'],
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -782,7 +782,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 for ($i = 0; $i < count($orders); $i++) {
                     $currentOrder = $orders[$i];
                     if ($currentOrder['id'] === $message['order_id']) {
-                        $orders[$i] = array_merge($currentOrder, array(
+                        $orders[$i] = $this->extend($currentOrder, array(
                             'status' => 'canceled',
                         ));
                         $client->resolve ($orders, 'orders');
@@ -1517,7 +1517,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'product_ids' => $marketIds,
             );
             $url = $this->urls['api']['ws'];
-            return Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $messageHashes, $subscriptionArgs));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscriptionArgs));
         }) ();
     }
 

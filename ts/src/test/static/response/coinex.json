@@ -8,293 +8,406 @@
                 "description": "spot trade",
                 "method": "fetchMyTrades",
                 "input": [
-                    "LTC/USDT",
+                    "BTC/USDT",
                     null,
                     1
                 ],
                 "httpResponse": {
-                    "code": "0",
-                    "data": {
-                        "count": "1",
-                        "curr_page": "1",
-                        "data": [
-                            {
-                                "account_id": "0",
-                                "amount": "0.46923575",
-                                "create_time": "1654589906",
-                                "deal_money": "28.97999992",
-                                "fee": "0.0009384715",
-                                "fee_asset": "LTC",
-                                "id": "2892344085",
-                                "market": "LTCUSDT",
-                                "order_id": "78418175782",
-                                "price": "61.76",
-                                "role": "taker",
-                                "type": "buy"
-                            }
-                        ],
-                        "has_next": true,
-                        "total": "0"
-                    },
-                    "message": "Success"
+                    "code": 0,
+                    "data": [
+                        {
+                            "amount": "0.00010087",
+                            "created_at": 1714618087585,
+                            "deal_id": 4161200602,
+                            "margin_market": "",
+                            "market": "BTCUSDT",
+                            "order_id": 117654919342,
+                            "price": "57464.04",
+                            "side": "sell"
+                        }
+                    ],
+                    "message": "OK",
+                    "pagination": {
+                        "has_next": true
+                    }
                 },
                 "parsedResponse": [
                     {
                         "info": {
-                            "account_id": "0",
-                            "amount": "0.46923575",
-                            "create_time": "1654589906",
-                            "deal_money": "28.97999992",
-                            "fee": "0.0009384715",
-                            "fee_asset": "LTC",
-                            "id": "2892344085",
-                            "market": "LTCUSDT",
-                            "order_id": "78418175782",
-                            "price": "61.76",
-                            "role": "taker",
-                            "type": "buy"
+                            "amount": "0.00010087",
+                            "created_at": 1714618087585,
+                            "deal_id": 4161200602,
+                            "margin_market": "",
+                            "market": "BTCUSDT",
+                            "order_id": 117654919342,
+                            "price": "57464.04",
+                            "side": "sell"
                         },
-                        "timestamp": 1654589906000,
-                        "datetime": "2022-06-07T08:18:26.000Z",
-                        "symbol": "LTC/USDT",
-                        "id": "2892344085",
-                        "order": "78418175782",
+                        "timestamp": 1714618087585,
+                        "datetime": "2024-05-02T02:48:07.585Z",
+                        "symbol": "BTC/USDT",
+                        "id": "4161200602",
+                        "order": "117654919342",
                         "type": null,
-                        "side": "buy",
-                        "takerOrMaker": "taker",
-                        "price": 61.76,
-                        "amount": 0.46923575,
-                        "cost": 28.97999992,
-                        "fee": {
-                            "cost": 0.0009384715,
-                            "currency": "LTC"
-                        },
-                        "fees": [
-                            {
-                                "cost": 0.0009384715,
-                                "currency": "LTC"
-                            }
-                        ]
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 57464.04,
+                        "amount": 0.00010087,
+                        "cost": 5.7963977148,
+                        "fee": null,
+                        "fees": []
                     }
                 ]
             },
             {
-                "description": "Swap trade",
+                "description": "swap trade",
                 "method": "fetchMyTrades",
                 "input": [
-                    "LTC/USDT:USDT",
+                    "BTC/USDT:USDT",
                     null,
-                    1
+                    1,
+                    {
+                        "side": "buy"
+                    }
                 ],
                 "httpResponse": {
-                    "code": "0",
-                    "data": {
-                        "limit": "1",
-                        "offset": "0",
-                        "records": [
-                            {
-                                "amount": "0.1",
-                                "deal_fee": "0.003689",
-                                "deal_insurance": "0",
-                                "deal_margin": "1.4756",
-                                "deal_order_id": "120234770773",
-                                "deal_profit": "0",
-                                "deal_stock": "7.378",
-                                "deal_type": "1",
-                                "deal_user_id": "2529144",
-                                "fee_asset": "",
-                                "fee_discount": "0",
-                                "fee_price": "0",
-                                "fee_rate": "0.0005",
-                                "fee_real_rate": "0.0005",
-                                "id": "1050281181",
-                                "leverage": "5",
-                                "liq_price": "5.57682491582491582502",
-                                "margin_amount": "1.4756",
-                                "market": "LTCUSDT",
-                                "market_type": "1",
-                                "open_price": "73.78",
-                                "order_id": "120234770970",
-                                "position_amount": "0.1",
-                                "position_id": "277157309",
-                                "position_type": "2",
-                                "price": "73.78",
-                                "role": "2",
-                                "settle_price": "73.78",
-                                "side": "2",
-                                "time": "1703591279.143",
-                                "user_id": "3707264"
-                            }
-                        ]
-                    },
-                    "message": "OK"
+                    "code": 0,
+                    "data": [
+                        {
+                            "deal_id": 1180222387,
+                            "created_at": 1714119054558,
+                            "market": "BTCUSDT",
+                            "side": "buy",
+                            "order_id": 136915589622,
+                            "price": "64376",
+                            "amount": "0.0001"
+                        }
+                    ],
+                    "message": "OK",
+                    "pagination": {
+                        "has_next": true
+                    }
                 },
                 "parsedResponse": [
                     {
                         "info": {
-                            "amount": "0.1",
-                            "deal_fee": "0.003689",
-                            "deal_insurance": "0",
-                            "deal_margin": "1.4756",
-                            "deal_order_id": "120234770773",
-                            "deal_profit": "0",
-                            "deal_stock": "7.378",
-                            "deal_type": "1",
-                            "deal_user_id": "2529144",
-                            "fee_asset": "",
-                            "fee_discount": "0",
-                            "fee_price": "0",
-                            "fee_rate": "0.0005",
-                            "fee_real_rate": "0.0005",
-                            "id": "1050281181",
-                            "leverage": "5",
-                            "liq_price": "5.57682491582491582502",
-                            "margin_amount": "1.4756",
-                            "market": "LTCUSDT",
-                            "market_type": "1",
-                            "open_price": "73.78",
-                            "order_id": "120234770970",
-                            "position_amount": "0.1",
-                            "position_id": "277157309",
-                            "position_type": "2",
-                            "price": "73.78",
-                            "role": "2",
-                            "settle_price": "73.78",
-                            "side": "2",
-                            "time": "1703591279.143",
-                            "user_id": "3707264"
+                            "deal_id": 1180222387,
+                            "created_at": 1714119054558,
+                            "market": "BTCUSDT",
+                            "side": "buy",
+                            "order_id": 136915589622,
+                            "price": "64376",
+                            "amount": "0.0001"
                         },
-                        "timestamp": 1703591279143,
-                        "datetime": "2023-12-26T11:47:59.143Z",
-                        "symbol": "LTC/USDT:USDT",
-                        "id": "1050281181",
-                        "order": "120234770970",
+                        "timestamp": 1714119054558,
+                        "datetime": "2024-04-26T08:10:54.558Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "id": "1180222387",
+                        "order": "136915589622",
                         "type": null,
                         "side": "buy",
-                        "takerOrMaker": "taker",
-                        "price": 73.78,
-                        "amount": 0.1,
-                        "cost": 7.378,
-                        "fee": {
-                            "cost": 0.003689,
-                            "currency": null
-                        },
-                        "fees": [
-                            {
-                                "cost": 0.003689,
-                                "currency": null
-                            }
-                        ]
+                        "takerOrMaker": null,
+                        "price": 64376,
+                        "amount": 0.0001,
+                        "cost": 6.4376,
+                        "fee": null,
+                        "fees": []
                     }
                 ]
             }
         ],
         "fetchClosedOrders": [
             {
-                "description": "spot order",
+                "description": "spot closed order",
                 "method": "fetchClosedOrders",
                 "input": [
-                    "LTC/USDT",
+                  "LTC/USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "order_id": "117193263933",
+                      "market": "LTCUSDT",
+                      "market_type": "SPOT",
+                      "side": "sell",
+                      "type": "market",
+                      "ccy": "LTC",
+                      "amount": "0.07",
+                      "price": "0",
+                      "client_id": "x-167673045-b1fe1dd3e421b261",
+                      "created_at": "1714130440203",
+                      "updated_at": "0",
+                      "base_fee": "0",
+                      "quote_fee": "0.0119896",
+                      "discount_fee": "0",
+                      "maker_fee_rate": "0",
+                      "taker_fee_rate": "0.002",
+                      "unfilled_amount": "0",
+                      "filled_amount": "0.07",
+                      "filled_value": "5.9948"
+                    }
+                  ],
+                  "message": "OK",
+                  "pagination": {
+                    "has_next": true
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "id": "117193263933",
+                    "clientOrderId": "x-167673045-b1fe1dd3e421b261",
+                    "datetime": "2024-04-26T11:20:40.203Z",
+                    "timestamp": 1714130440203,
+                    "lastTradeTimestamp": 1714130440203,
+                    "status": null,
+                    "symbol": "LTC/USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "price": 85.64,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 5.9948,
+                    "average": 85.64,
+                    "amount": 0.07,
+                    "filled": 0.07,
+                    "remaining": 0,
+                    "trades": [],
+                    "fee": {
+                      "currency": "USDT",
+                      "cost": "0.0119896"
+                    },
+                    "info": {
+                      "order_id": "117193263933",
+                      "market": "LTCUSDT",
+                      "market_type": "SPOT",
+                      "side": "sell",
+                      "type": "market",
+                      "ccy": "LTC",
+                      "amount": "0.07",
+                      "price": "0",
+                      "client_id": "x-167673045-b1fe1dd3e421b261",
+                      "created_at": "1714130440203",
+                      "updated_at": "0",
+                      "base_fee": "0",
+                      "quote_fee": "0.0119896",
+                      "discount_fee": "0",
+                      "maker_fee_rate": "0",
+                      "taker_fee_rate": "0.002",
+                      "unfilled_amount": "0",
+                      "filled_amount": "0.07",
+                      "filled_value": "5.9948"
+                    },
+                    "fees": [
+                      {
+                        "currency": "USDT",
+                        "cost": 0.0119896
+                      }
+                    ],
+                    "lastUpdateTimestamp": null
+                  }
+                ]
+            },
+            {
+                "description": "swap closed order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDT:USDT",
                     null,
                     1
                 ],
                 "httpResponse": {
-                    "code": "0",
-                    "data": {
-                        "count": "1",
-                        "curr_page": "1",
-                        "data": [
-                            {
-                                "account_id": "0",
-                                "amount": "28.98",
-                                "amount_asset": "USDT",
-                                "asset_fee": "0",
-                                "avg_price": "61.76",
-                                "client_id": "",
-                                "create_time": "1654589906",
-                                "deal_amount": "0.46923575",
-                                "deal_fee": "0.0009384715",
-                                "deal_money": "28.97999992",
-                                "fee_asset": "",
-                                "fee_discount": "1",
-                                "finished_time": "1654589906",
-                                "id": "78418175782",
-                                "left": "0",
-                                "maker_fee_rate": "0",
-                                "market": "LTCUSDT",
-                                "money_fee": "0",
-                                "order_type": "market",
-                                "price": "0",
-                                "status": "done",
-                                "stock_fee": "0.0009384715",
-                                "taker_fee_rate": "0.002",
-                                "type": "buy"
-                            }
-                        ],
-                        "has_next": true,
-                        "total": "0"
-                    },
-                    "message": "Success"
+                    "code": 0,
+                    "data": [
+                        {
+                            "order_id": 136915813578,
+                            "market": "BTCUSDT",
+                            "market_type": "FUTURES",
+                            "side": "sell",
+                            "type": "market",
+                            "amount": "0.0001",
+                            "price": "0",
+                            "client_id": "x-167673045-4f264600c432ac06",
+                            "created_at": 1714119323764,
+                            "updated_at": 1714119323764,
+                            "unfilled_amount": "0",
+                            "filled_amount": "0.0001",
+                            "filled_value": "6.442017",
+                            "fee": "0.003221",
+                            "fee_ccy": "USDT",
+                            "maker_fee_rate": "0",
+                            "taker_fee_rate": "0.0005"
+                        }
+                    ],
+                    "message": "OK",
+                    "pagination": {
+                        "has_next": false
+                    }
                 },
                 "parsedResponse": [
                     {
-                        "id": "78418175782",
-                        "clientOrderId": null,
-                        "datetime": "2022-06-07T08:18:26.000Z",
-                        "timestamp": 1654589906000,
-                        "lastTradeTimestamp": null,
-                        "status": "closed",
-                        "symbol": "LTC/USDT",
+                        "id": "136915813578",
+                        "clientOrderId": "x-167673045-4f264600c432ac06",
+                        "datetime": "2024-04-26T08:15:23.764Z",
+                        "timestamp": 1714119323764,
+                        "lastTradeTimestamp": 1714119323764,
+                        "status": null,
+                        "symbol": "BTC/USDT:USDT",
                         "type": "market",
                         "timeInForce": "IOC",
                         "postOnly": null,
                         "reduceOnly": null,
-                        "side": "buy",
-                        "price": 61.76,
+                        "side": "sell",
+                        "price": 64420.17,
                         "stopPrice": null,
                         "triggerPrice": null,
                         "takeProfitPrice": null,
                         "stopLossPrice": null,
-                        "cost": 28.97999992,
-                        "average": 61.76,
-                        "amount": 28.98,
-                        "filled": 0.46923575,
+                        "cost": 6.442017,
+                        "average": 64420.17,
+                        "amount": 0.0001,
+                        "filled": 0.0001,
                         "remaining": 0,
                         "trades": [],
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.0009384715"
+                            "cost": "0.003221"
                         },
                         "info": {
-                            "account_id": "0",
-                            "amount": "28.98",
-                            "amount_asset": "USDT",
-                            "asset_fee": "0",
-                            "avg_price": "61.76",
-                            "client_id": "",
-                            "create_time": "1654589906",
-                            "deal_amount": "0.46923575",
-                            "deal_fee": "0.0009384715",
-                            "deal_money": "28.97999992",
-                            "fee_asset": "",
-                            "fee_discount": "1",
-                            "finished_time": "1654589906",
-                            "id": "78418175782",
-                            "left": "0",
-                            "maker_fee_rate": "0",
-                            "market": "LTCUSDT",
-                            "money_fee": "0",
-                            "order_type": "market",
+                            "order_id": 136915813578,
+                            "market": "BTCUSDT",
+                            "market_type": "FUTURES",
+                            "side": "sell",
+                            "type": "market",
+                            "amount": "0.0001",
                             "price": "0",
-                            "status": "done",
-                            "stock_fee": "0.0009384715",
-                            "taker_fee_rate": "0.002",
-                            "type": "buy"
+                            "client_id": "x-167673045-4f264600c432ac06",
+                            "created_at": 1714119323764,
+                            "updated_at": 1714119323764,
+                            "unfilled_amount": "0",
+                            "filled_amount": "0.0001",
+                            "filled_value": "6.442017",
+                            "fee": "0.003221",
+                            "fee_ccy": "USDT",
+                            "maker_fee_rate": "0",
+                            "taker_fee_rate": "0.0005"
                         },
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.0009384715
+                                "cost": 0.003221
+                            }
+                        ],
+                        "lastUpdateTimestamp": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "spot open order",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        {
+                            "order_id": 117660874760,
+                            "market": "BTCUSDT",
+                            "market_type": "SPOT",
+                            "side": "buy",
+                            "type": "limit",
+                            "ccy": "BTC",
+                            "amount": "0.00010606",
+                            "price": "53500.23",
+                            "client_id": "",
+                            "created_at": 1714625001450,
+                            "updated_at": 1714625001450,
+                            "base_fee": "0",
+                            "quote_fee": "0",
+                            "discount_fee": "0",
+                            "maker_fee_rate": "0.002",
+                            "taker_fee_rate": "0.002",
+                            "last_fill_amount": "0",
+                            "last_fill_price": "0",
+                            "unfilled_amount": "0.00010606",
+                            "filled_amount": "0",
+                            "filled_value": "0"
+                        }
+                    ],
+                    "message": "OK",
+                    "pagination": {
+                        "total": 1,
+                        "has_next": false
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "117660874760",
+                        "clientOrderId": "",
+                        "datetime": "2024-05-02T04:43:21.450Z",
+                        "timestamp": 1714625001450,
+                        "lastTradeTimestamp": 1714625001450,
+                        "status": null,
+                        "symbol": "BTC/USDT",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 53500.23,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "cost": 0,
+                        "average": null,
+                        "amount": 0.00010606,
+                        "filled": 0,
+                        "remaining": 0.00010606,
+                        "trades": [],
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": "0"
+                        },
+                        "info": {
+                            "order_id": 117660874760,
+                            "market": "BTCUSDT",
+                            "market_type": "SPOT",
+                            "side": "buy",
+                            "type": "limit",
+                            "ccy": "BTC",
+                            "amount": "0.00010606",
+                            "price": "53500.23",
+                            "client_id": "",
+                            "created_at": 1714625001450,
+                            "updated_at": 1714625001450,
+                            "base_fee": "0",
+                            "quote_fee": "0",
+                            "discount_fee": "0",
+                            "maker_fee_rate": "0.002",
+                            "taker_fee_rate": "0.002",
+                            "last_fill_amount": "0",
+                            "last_fill_price": "0",
+                            "unfilled_amount": "0.00010606",
+                            "filled_amount": "0",
+                            "filled_value": "0"
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
                             }
                         ],
                         "lastUpdateTimestamp": null
@@ -302,124 +415,100 @@
                 ]
             },
             {
-                "description": "swap closed order",
-                "method": "fetchClosedOrders",
+                "description": "swap open order",
+                "method": "fetchOpenOrders",
                 "input": [
-                    "LTC/USDT:USDT",
+                    "BTC/USDT:USDT",
                     null,
                     1
                 ],
                 "httpResponse": {
-                    "code": "0",
-                    "data": {
-                        "limit": "1",
-                        "offset": "0",
-                        "records": [
-                            {
-                                "amount": "0.1",
-                                "client_id": "x-167673045-8012a4a93415be8f",
-                                "create_time": "1703591279.143000",
-                                "deal_asset_fee": "0",
-                                "deal_fee": "0.003689",
-                                "deal_profit": "0",
-                                "deal_stock": "7.378",
-                                "effect_type": "0",
-                                "fee_asset": "",
-                                "fee_discount": "0",
-                                "left": "0",
-                                "leverage": "5",
-                                "maker_fee": "0",
-                                "market": "LTCUSDT",
-                                "market_type": "1",
-                                "option": "0",
-                                "order_id": "120234770970",
-                                "position_id": "0",
-                                "position_type": "2",
-                                "price": "0",
-                                "side": "2",
-                                "source": "api.v1",
-                                "stop_id": "0",
-                                "stop_loss_price": "0",
-                                "stop_loss_type": "0",
-                                "take_profit_price": "0",
-                                "take_profit_type": "0",
-                                "taker_fee": "0.0005",
-                                "target": "0",
-                                "type": "2",
-                                "update_time": "1703591279.143000",
-                                "user_id": "3707264"
-                            }
-                        ]
-                    },
-                    "message": "OK"
+                    "code": 0,
+                    "data": [
+                        {
+                            "order_id": 137612164968,
+                            "market": "BTCUSDT",
+                            "market_type": "FUTURES",
+                            "side": "buy",
+                            "type": "limit",
+                            "amount": "0.0001",
+                            "price": "52100",
+                            "client_id": "",
+                            "created_at": 1714625341469,
+                            "updated_at": 1714625341469,
+                            "unfilled_amount": "0.0001",
+                            "filled_amount": "0",
+                            "filled_value": "0",
+                            "fee": "0",
+                            "fee_ccy": "USDT",
+                            "maker_fee_rate": "0.0003",
+                            "taker_fee_rate": "0.0005",
+                            "last_filled_amount": "0",
+                            "last_filled_price": "0",
+                            "realized_pnl": "0"
+                        }
+                    ],
+                    "message": "OK",
+                    "pagination": {
+                        "total": 1,
+                        "has_next": false
+                    }
                 },
                 "parsedResponse": [
                     {
-                        "id": "120234770970",
-                        "clientOrderId": "x-167673045-8012a4a93415be8f",
-                        "datetime": "2023-12-26T11:47:59.143Z",
-                        "timestamp": 1703591279143,
-                        "lastTradeTimestamp": 1703591279143,
+                        "id": "137612164968",
+                        "clientOrderId": "",
+                        "datetime": "2024-05-02T04:49:01.469Z",
+                        "timestamp": 1714625341469,
+                        "lastTradeTimestamp": 1714625341469,
                         "status": null,
-                        "symbol": "LTC/USDT:USDT",
-                        "type": "market",
-                        "timeInForce": "IOC",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": null,
                         "postOnly": null,
                         "reduceOnly": null,
                         "side": "buy",
-                        "price": null,
+                        "price": 52100,
                         "stopPrice": null,
                         "triggerPrice": null,
-                        "takeProfitPrice": 0,
-                        "stopLossPrice": 0,
-                        "cost": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "cost": 0,
                         "average": null,
-                        "amount": 0.1,
-                        "filled": 0.1,
-                        "remaining": 0,
+                        "amount": 0.0001,
+                        "filled": 0,
+                        "remaining": 0.0001,
                         "trades": [],
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.003689"
+                            "cost": "0"
                         },
                         "info": {
-                            "amount": "0.1",
-                            "client_id": "x-167673045-8012a4a93415be8f",
-                            "create_time": "1703591279.143000",
-                            "deal_asset_fee": "0",
-                            "deal_fee": "0.003689",
-                            "deal_profit": "0",
-                            "deal_stock": "7.378",
-                            "effect_type": "0",
-                            "fee_asset": "",
-                            "fee_discount": "0",
-                            "left": "0",
-                            "leverage": "5",
-                            "maker_fee": "0",
-                            "market": "LTCUSDT",
-                            "market_type": "1",
-                            "option": "0",
-                            "order_id": "120234770970",
-                            "position_id": "0",
-                            "position_type": "2",
-                            "price": "0",
-                            "side": "2",
-                            "source": "api.v1",
-                            "stop_id": "0",
-                            "stop_loss_price": "0",
-                            "stop_loss_type": "0",
-                            "take_profit_price": "0",
-                            "take_profit_type": "0",
-                            "taker_fee": "0.0005",
-                            "target": "0",
-                            "type": "2",
-                            "update_time": "1703591279.143000",
-                            "user_id": "3707264"
+                            "order_id": 137612164968,
+                            "market": "BTCUSDT",
+                            "market_type": "FUTURES",
+                            "side": "buy",
+                            "type": "limit",
+                            "amount": "0.0001",
+                            "price": "52100",
+                            "client_id": "",
+                            "created_at": 1714625341469,
+                            "updated_at": 1714625341469,
+                            "unfilled_amount": "0.0001",
+                            "filled_amount": "0",
+                            "filled_value": "0",
+                            "fee": "0",
+                            "fee_ccy": "USDT",
+                            "maker_fee_rate": "0.0003",
+                            "taker_fee_rate": "0.0005",
+                            "last_filled_amount": "0",
+                            "last_filled_price": "0",
+                            "realized_pnl": "0"
                         },
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.003689
+                                "cost": 0
                             }
                         ],
                         "lastUpdateTimestamp": null
@@ -577,7 +666,7 @@
         ],
         "fetchPositions": [
             {
-                "description": "fetch position",
+                "description": "fetchPositions",
                 "method": "fetchPositions",
                 "input": [
                   [
@@ -588,127 +677,85 @@
                   "code": "0",
                   "data": [
                     {
-                      "adl_level": "2",
-                      "adl_sort": "297",
-                      "adl_sort_val": "0.01662416",
-                      "amount": "0.10",
-                      "amount_max": "0.10",
-                      "amount_max_margin": "1.47560000000000000000",
-                      "auction_start_amount": "0.00",
-                      "bkr_price": "13.62659862776666666678",
-                      "bkr_price_imply": "44.81400000000000000044",
-                      "close_left": "0.10",
-                      "create_time": "1703591279.143562",
-                      "deal_all": "7.37",
-                      "deal_asset_fee": "0",
-                      "fee_asset": "",
-                      "finish_type": "1",
-                      "first_price": "73.78",
-                      "insurance": "0.00000000000000000000",
-                      "latest_price": "73.78",
-                      "leverage": "5",
-                      "liq_amount": "0.00",
-                      "liq_order_price": "0",
-                      "liq_order_time": "0",
-                      "liq_price": "13.76424103814814814826",
-                      "liq_price_imply": "45.26666666666666666712",
-                      "liq_profit": "0.00000000000000000000",
-                      "liq_time": "0",
-                      "mainten_margin": "0.01000000000000000000",
-                      "mainten_margin_amount": "0.07326000000000000000",
-                      "maker_fee": "0.00000",
-                      "margin_amount": "2.89660000000000000000",
-                      "market": "LTCUSDT",
-                      "open_margin": "0.81530769005466702810",
-                      "open_margin_imply": "0.39259962049335863377",
-                      "open_price": "73.78000000000000000000",
-                      "open_val": "7.37800000000000000000",
-                      "open_val_max": "7.37800000000000000000",
                       "position_id": "277157309",
-                      "profit_clearing": "0.00000000000000000000",
-                      "profit_real": "-0.81424319611000000000",
-                      "profit_unreal": "1.80",
-                      "settle_price": "73.78000000000000000000",
-                      "settle_val": "7.37800000000000000000",
-                      "side": "2",
-                      "stop_loss_price": "0",
-                      "stop_loss_type": "0",
-                      "sys": "0",
+                      "market": "LTCUSDT",
+                      "market_type": "FUTURES",
+                      "side": "long",
+                      "margin_mode": "cross",
+                      "open_interest": "0.1",
+                      "close_avbl": "0.1",
+                      "ath_position_amount": "0.1",
+                      "unrealized_pnl": "0.63",
+                      "realized_pnl": "-1.05239007058",
+                      "avg_entry_price": "73.78",
+                      "cml_position_value": "7.378",
+                      "max_position_value": "7.378",
+                      "created_at": "1703591279143",
+                      "updated_at": "1713744017790",
                       "take_profit_price": "0",
-                      "take_profit_type": "0",
-                      "taker_fee": "0.00000",
-                      "total": "415",
-                      "type": "2",
-                      "update_time": "1711440022.935482",
-                      "user_id": "3707264"
+                      "stop_loss_price": "0",
+                      "take_profit_type": "",
+                      "stop_loss_type": "",
+                      "settle_price": "73.78",
+                      "settle_value": "7.378",
+                      "leverage": "5",
+                      "margin_avbl": "2.8966",
+                      "ath_margin_size": "1.4756",
+                      "position_margin_rate": "0.45453554659166892563",
+                      "maintenance_margin_rate": "0.01",
+                      "maintenance_margin_value": "0.08566",
+                      "liq_price": "40.65087613380471380506",
+                      "bkr_price": "40.24436737246666666701",
+                      "adl_level": "3"
                     }
                   ],
-                  "message": "OK"
+                  "message": "OK",
+                  "pagination": {
+                    "has_next": false
+                  }
                 },
                 "parsedResponse": [
                   {
                     "info": {
-                      "adl_level": "2",
-                      "adl_sort": "297",
-                      "adl_sort_val": "0.01662416",
-                      "amount": "0.10",
-                      "amount_max": "0.10",
-                      "amount_max_margin": "1.47560000000000000000",
-                      "auction_start_amount": "0.00",
-                      "bkr_price": "13.62659862776666666678",
-                      "bkr_price_imply": "44.81400000000000000044",
-                      "close_left": "0.10",
-                      "create_time": "1703591279.143562",
-                      "deal_all": "7.37",
-                      "deal_asset_fee": "0",
-                      "fee_asset": "",
-                      "finish_type": "1",
-                      "first_price": "73.78",
-                      "insurance": "0.00000000000000000000",
-                      "latest_price": "73.78",
-                      "leverage": "5",
-                      "liq_amount": "0.00",
-                      "liq_order_price": "0",
-                      "liq_order_time": "0",
-                      "liq_price": "13.76424103814814814826",
-                      "liq_price_imply": "45.26666666666666666712",
-                      "liq_profit": "0.00000000000000000000",
-                      "liq_time": "0",
-                      "mainten_margin": "0.01000000000000000000",
-                      "mainten_margin_amount": "0.07326000000000000000",
-                      "maker_fee": "0.00000",
-                      "margin_amount": "2.89660000000000000000",
-                      "market": "LTCUSDT",
-                      "open_margin": "0.81530769005466702810",
-                      "open_margin_imply": "0.39259962049335863377",
-                      "open_price": "73.78000000000000000000",
-                      "open_val": "7.37800000000000000000",
-                      "open_val_max": "7.37800000000000000000",
                       "position_id": "277157309",
-                      "profit_clearing": "0.00000000000000000000",
-                      "profit_real": "-0.81424319611000000000",
-                      "profit_unreal": "1.80",
-                      "settle_price": "73.78000000000000000000",
-                      "settle_val": "7.37800000000000000000",
-                      "side": "2",
-                      "stop_loss_price": "0",
-                      "stop_loss_type": "0",
-                      "sys": "0",
+                      "market": "LTCUSDT",
+                      "market_type": "FUTURES",
+                      "side": "long",
+                      "margin_mode": "cross",
+                      "open_interest": "0.1",
+                      "close_avbl": "0.1",
+                      "ath_position_amount": "0.1",
+                      "unrealized_pnl": "0.63",
+                      "realized_pnl": "-1.05239007058",
+                      "avg_entry_price": "73.78",
+                      "cml_position_value": "7.378",
+                      "max_position_value": "7.378",
+                      "created_at": "1703591279143",
+                      "updated_at": "1713744017790",
                       "take_profit_price": "0",
-                      "take_profit_type": "0",
-                      "taker_fee": "0.00000",
-                      "total": "415",
-                      "type": "2",
-                      "update_time": "1711440022.935482",
-                      "user_id": "3707264"
+                      "stop_loss_price": "0",
+                      "take_profit_type": "",
+                      "stop_loss_type": "",
+                      "settle_price": "73.78",
+                      "settle_value": "7.378",
+                      "leverage": "5",
+                      "margin_avbl": "2.8966",
+                      "ath_margin_size": "1.4756",
+                      "position_margin_rate": "0.45453554659166892563",
+                      "maintenance_margin_rate": "0.01",
+                      "maintenance_margin_value": "0.08566",
+                      "liq_price": "40.65087613380471380506",
+                      "bkr_price": "40.24436737246666666701",
+                      "adl_level": "3"
                     },
                     "id": 277157309,
                     "symbol": "LTC/USDT:USDT",
                     "notional": 7.378,
                     "marginMode": "cross",
-                    "liquidationPrice": "13.76424103814814814826",
+                    "liquidationPrice": 40.650876133804715,
                     "entryPrice": 73.78,
-                    "unrealizedPnl": 1.8,
+                    "unrealizedPnl": 0.63,
+                    "realizedPnl": -1.05239007058,
                     "percentage": null,
                     "contracts": 0.1,
                     "contractSize": 1,
@@ -716,21 +763,21 @@
                     "lastPrice": null,
                     "side": "long",
                     "hedged": null,
-                    "timestamp": 1711440022935,
-                    "datetime": "2024-03-26T08:00:22.935Z",
-                    "lastUpdateTimestamp": null,
-                    "maintenanceMargin": 0.07326,
+                    "timestamp": 1703591279143,
+                    "datetime": "2023-12-26T11:47:59.143Z",
+                    "lastUpdateTimestamp": 1713744017790,
+                    "maintenanceMargin": 0.08566,
                     "maintenanceMarginPercentage": 0.01,
                     "collateral": 2.8966,
-                    "initialMargin": 1.4756,
-                    "initialMarginPercentage": 0.2,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
                     "leverage": 5,
-                    "marginRatio": null,
+                    "marginRatio": 0.45453554659166895,
                     "stopLossPrice": null,
                     "takeProfitPrice": null
                   }
                 ]
-            }
+              }
         ],
         "fetchTradingFee": [
             {

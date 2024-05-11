@@ -1486,7 +1486,7 @@ export default class mexc extends Exchange {
         }
         let trades = undefined;
         if (market['spot']) {
-            const until = this.safeIntegerN(params, ['endTime', 'until', 'till']);
+            const until = this.safeIntegerN(params, ['endTime', 'until']);
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1771,7 +1771,7 @@ export default class mexc extends Exchange {
         };
         let candles = undefined;
         if (market['spot']) {
-            const until = this.safeIntegerN(params, ['until', 'endTime', 'till']);
+            const until = this.safeIntegerN(params, ['until', 'endTime']);
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1785,7 +1785,7 @@ export default class mexc extends Exchange {
                 request['limit'] = limit;
             }
             if (until !== undefined) {
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
                 request['endTime'] = until;
             }
             const response = await this.spotPublicGetKlines(this.extend(request, params));
@@ -1806,12 +1806,12 @@ export default class mexc extends Exchange {
             candles = response;
         }
         else if (market['swap']) {
-            const until = this.safeIntegerProductN(params, ['until', 'endTime', 'till'], 0.001);
+            const until = this.safeIntegerProductN(params, ['until', 'endTime'], 0.001);
             if (since !== undefined) {
                 request['start'] = this.parseToInt(since / 1000);
             }
             if (until !== undefined) {
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
                 request['end'] = until;
             }
             const priceType = this.safeString(params, 'price', 'default');
@@ -4971,7 +4971,7 @@ export default class mexc extends Exchange {
             'lastUpdateTimestamp': undefined,
         });
     }
-    async fetchTransfer(id, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfer(id, code = undefined, params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfer', undefined, params);
         await this.loadMarkets();
         if (marketType === 'spot') {

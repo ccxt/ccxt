@@ -2617,7 +2617,7 @@ public partial class bitmart : Exchange
             // for market buy it requires the amount of quote currency to spend
             if (isTrue(isEqual(side, "buy")))
             {
-                object notional = this.safeNumber2(parameters, "cost", "notional");
+                object notional = this.safeString2(parameters, "cost", "notional");
                 parameters = this.omit(parameters, "cost");
                 object createMarketBuyOrderRequiresPrice = true;
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2632,11 +2632,11 @@ public partial class bitmart : Exchange
                     {
                         object amountString = this.numberToString(amount);
                         object priceString = this.numberToString(price);
-                        notional = this.parseNumber(Precise.stringMul(amountString, priceString));
+                        notional = Precise.stringMul(amountString, priceString);
                     }
                 } else
                 {
-                    notional = ((bool) isTrue((isEqual(notional, null)))) ? amount : notional;
+                    notional = ((bool) isTrue((isEqual(notional, null)))) ? this.numberToString(amount) : notional;
                 }
                 ((IDictionary<string,object>)request)["notional"] = this.decimalToPrecision(notional, TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode);
             } else if (isTrue(isEqual(side, "sell")))
@@ -4076,7 +4076,7 @@ public partial class bitmart : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -4115,9 +4115,9 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "time_end", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["time_end"] = endTime;

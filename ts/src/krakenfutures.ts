@@ -72,6 +72,7 @@ export default class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -542,7 +543,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -2468,7 +2469,7 @@ export default class krakenfutures extends Exchange {
         return tiers;
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -2662,7 +2663,7 @@ export default class krakenfutures extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         const leverageValue = this.safeInteger (leverage, 'maxLeverage');
         return {

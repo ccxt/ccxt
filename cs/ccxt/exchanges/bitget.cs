@@ -291,6 +291,9 @@ public partial class bitget : Exchange
                             { "v2/spot/account/subaccount-assets", 2 },
                             { "v2/spot/account/bills", 2 },
                             { "v2/spot/account/transferRecords", 1 },
+                            { "v2/account/funding-assets", 2 },
+                            { "v2/account/bot-assets", 2 },
+                            { "v2/account/all-account-balance", 20 },
                             { "v2/spot/wallet/deposit-address", 2 },
                             { "v2/spot/wallet/deposit-records", 2 },
                             { "v2/spot/wallet/withdrawal-records", 2 },
@@ -2707,12 +2710,7 @@ public partial class bitget : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object close = this.safeString(ticker, "lastPr");
-        object timestampString = this.omitZero(this.safeString(ticker, "ts")); // exchange sometimes provided 0
-        object timestamp = null;
-        if (isTrue(!isEqual(timestampString, null)))
-        {
-            timestamp = this.parseToInt(timestampString);
-        }
+        object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
         object change = this.safeString(ticker, "change24h");
         object open24 = this.safeString(ticker, "open24");
         object open = this.safeString(ticker, "open");
@@ -3503,11 +3501,11 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
             { "granularity", this.safeString(timeframes, timeframe, timeframe) },
         };
-        object until = this.safeInteger2(parameters, "until", "till");
+        object until = this.safeInteger(parameters, "until");
         object limitDefined = !isEqual(limit, null);
         object sinceDefined = !isEqual(since, null);
         object untilDefined = !isEqual(until, null);
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object response = null;
         object now = this.milliseconds();
         // retrievable periods listed here:
@@ -4876,6 +4874,10 @@ public partial class bitget : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
+            if (isTrue(isEqual(triggerPrice, null)))
+            {
+                throw new NotSupported ((string)add(this.id, "editOrder() only supports plan/trigger spot orders")) ;
+            }
             object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue(editMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
             {
@@ -6039,8 +6041,8 @@ public partial class bitget : Exchange
                     {
                         throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                     }
-                    object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until", "till"});
-                    parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                    object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
+                    parameters = this.omit(parameters, new List<object>() {"until"});
                     if (isTrue(isEqual(since, null)))
                     {
                         since = subtract(now, 7776000000);
@@ -7915,7 +7917,7 @@ public partial class bitget : Exchange
         }, market);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

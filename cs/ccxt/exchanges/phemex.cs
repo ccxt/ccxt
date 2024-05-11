@@ -72,6 +72,7 @@ public partial class phemex : Exchange
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", true },
                 { "setMarginMode", true },
@@ -2482,7 +2483,7 @@ public partial class phemex : Exchange
             lastTradeTimestamp = null;
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        object stopPrice = this.omitZero(this.safeNumber2(order, "stopPx", "stopPxRp"));
+        object stopPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         object postOnly = (isEqual(timeInForce, "PO"));
         object reduceOnly = this.safeValue(order, "reduceOnly");
         object execInst = this.safeString(order, "execInst");
@@ -2539,12 +2540,14 @@ public partial class phemex : Exchange
         * @name phemex#createOrder
         * @description create a trade order
         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
+        * @see https://phemex-docs.github.io/#place-order-http-put-prefered-3
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {float} [params.trigger] trigger price for conditional orders
         * @param {object} [params.takeProfit] *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
         * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
@@ -2556,7 +2559,7 @@ public partial class phemex : Exchange
         object market = this.market(symbol);
         object requestSide = this.capitalize(side);
         type = this.capitalize(type);
-        object reduceOnly = this.safeValue(parameters, "reduceOnly");
+        object reduceOnly = this.safeBool(parameters, "reduceOnly");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", requestSide },
@@ -2579,15 +2582,15 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["clOrdID"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId"});
         }
-        object stopPrice = this.safeStringN(parameters, new List<object>() {"stopPx", "stopPrice", "triggerPrice"});
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPx", "stopPrice", "triggerPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
             {
-                ((IDictionary<string,object>)request)["stopPxRp"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPxRp"] = this.priceToPrecision(symbol, triggerPrice);
             } else
             {
-                ((IDictionary<string,object>)request)["stopPxEp"] = this.toEp(stopPrice, market);
+                ((IDictionary<string,object>)request)["stopPxEp"] = this.toEp(triggerPrice, market);
             }
         }
         parameters = this.omit(parameters, new List<object>() {"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"});
@@ -2600,6 +2603,17 @@ public partial class phemex : Exchange
                 {
                     qtyType = "ByQuote";
                 }
+            }
+            if (isTrue(!isEqual(triggerPrice, null)))
+            {
+                if (isTrue(isEqual(type, "Limit")))
+                {
+                    ((IDictionary<string,object>)request)["ordType"] = "StopLimit";
+                } else if (isTrue(isEqual(type, "Market")))
+                {
+                    ((IDictionary<string,object>)request)["ordType"] = "Stop";
+                }
+                ((IDictionary<string,object>)request)["trigger"] = "ByLastPrice";
             }
             ((IDictionary<string,object>)request)["qtyType"] = qtyType;
             if (isTrue(isEqual(qtyType, "ByQuote")))
@@ -2647,7 +2661,7 @@ public partial class phemex : Exchange
             {
                 ((IDictionary<string,object>)request)["orderQty"] = this.parseToInt(amount);
             }
-            if (isTrue(!isEqual(stopPrice, null)))
+            if (isTrue(!isEqual(triggerPrice, null)))
             {
                 object triggerType = this.safeString(parameters, "triggerType", "ByMarkPrice");
                 ((IDictionary<string,object>)request)["triggerType"] = triggerType;
@@ -4754,7 +4768,7 @@ public partial class phemex : Exchange
         return transfer;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

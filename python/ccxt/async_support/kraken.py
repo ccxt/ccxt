@@ -548,6 +548,8 @@ class kraken(Exchange, ImplicitAPI):
             leverageBuy = self.safe_value(market, 'leverage_buy', [])
             leverageBuyLength = len(leverageBuy)
             precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))
+            status = self.safe_string(market, 'status')
+            isActive = status == 'online'
             result.append({
                 'id': id,
                 'wsId': self.safe_string(market, 'wsname'),
@@ -566,7 +568,7 @@ class kraken(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': isActive,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -816,7 +818,7 @@ class kraken(Exchange, ImplicitAPI):
             orderbook = self.safe_value(result, wsName, orderbook)
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "a":["2432.77000","1","1.000"],
@@ -2728,7 +2730,7 @@ class kraken(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #

@@ -310,6 +310,9 @@ class bitget extends bitget$1 {
                             'v2/spot/account/subaccount-assets': 2,
                             'v2/spot/account/bills': 2,
                             'v2/spot/account/transferRecords': 1,
+                            'v2/account/funding-assets': 2,
+                            'v2/account/bot-assets': 2,
+                            'v2/account/all-account-balance': 20,
                             'v2/spot/wallet/deposit-address': 2,
                             'v2/spot/wallet/deposit-records': 2,
                             'v2/spot/wallet/withdrawal-records': 2,
@@ -2632,11 +2635,7 @@ class bitget extends bitget$1 {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const close = this.safeString(ticker, 'lastPr');
-        const timestampString = this.omitZero(this.safeString(ticker, 'ts')); // exchange sometimes provided 0
-        let timestamp = undefined;
-        if (timestampString !== undefined) {
-            timestamp = this.parseToInt(timestampString);
-        }
+        const timestamp = this.safeIntegerOmitZero(ticker, 'ts'); // exchange bitget provided 0
         const change = this.safeString(ticker, 'change24h');
         const open24 = this.safeString(ticker, 'open24');
         const open = this.safeString(ticker, 'open');
@@ -3361,11 +3360,11 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
             'granularity': this.safeString(timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger2(params, 'until', 'till');
+        const until = this.safeInteger(params, 'until');
         const limitDefined = limit !== undefined;
         const sinceDefined = since !== undefined;
         const untilDefined = until !== undefined;
-        params = this.omit(params, ['until', 'till']);
+        params = this.omit(params, ['until']);
         let response = undefined;
         const now = this.milliseconds();
         // retrievable periods listed here:
@@ -4611,6 +4610,9 @@ class bitget extends bitget$1 {
         params = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent']);
         let response = undefined;
         if (market['spot']) {
+            if (triggerPrice === undefined) {
+                throw new errors.NotSupported(this.id + 'editOrder() only supports plan/trigger spot orders');
+            }
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {
@@ -5643,8 +5645,8 @@ class bitget extends bitget$1 {
                     if (symbol === undefined) {
                         throw new errors.ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                     }
-                    const endTime = this.safeIntegerN(params, ['endTime', 'until', 'till']);
-                    params = this.omit(params, ['until', 'till']);
+                    const endTime = this.safeIntegerN(params, ['endTime', 'until']);
+                    params = this.omit(params, ['until']);
                     if (since === undefined) {
                         since = now - 7776000000;
                         request['startTime'] = since;

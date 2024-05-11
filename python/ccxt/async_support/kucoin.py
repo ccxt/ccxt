@@ -1466,7 +1466,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type == 'futures') deprecated, use(type == 'future')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "BTC-USDT",   # symbol
@@ -2315,10 +2315,10 @@ class kucoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         lowercaseStatus = status.lower()
-        until = self.safe_integer_2(params, 'until', 'till')
+        until = self.safe_integer(params, 'until')
         stop = self.safe_bool(params, 'stop', False)
         hf = self.safe_bool(params, 'hf', False)
-        params = self.omit(params, ['stop', 'hf', 'till', 'until'])
+        params = self.omit(params, ['stop', 'hf', 'until'])
         marginMode, query = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
         if lowercaseStatus == 'open':
             lowercaseStatus = 'active'
@@ -2409,7 +2409,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
@@ -2436,7 +2436,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: end time in ms
+        :param int [params.until]: end time in ms
         :param bool [params.stop]: True if fetching stop orders
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop
@@ -3625,7 +3625,7 @@ class kucoin(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data')
             return self.parse_transfer(data, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer(spot)
         #
@@ -3680,7 +3680,7 @@ class kucoin(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'PROCESSING': 'pending',
         }

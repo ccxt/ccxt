@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, FundingHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, FundingHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -351,7 +351,7 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "symbol": "BTCUSDTPERP",                   // Market of the symbol
@@ -1289,8 +1289,8 @@ export default class poloniexfutures extends Exchange {
          */
         await this.loadMarkets ();
         const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'triger', 'stop', 'until', 'till' ]);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'trigger', 'stop', 'until' ]);
         if (status === 'closed') {
             status = 'done';
         }
@@ -1389,7 +1389,7 @@ export default class poloniexfutures extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1408,7 +1408,7 @@ export default class poloniexfutures extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

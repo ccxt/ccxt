@@ -178,9 +178,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
             if ($subscription === null) {
                 $subscription = $subscriptionRequest;
             } else {
-                $subscription = array_merge($subscriptionRequest, $subscription);
+                $subscription = $this->extend($subscriptionRequest, $subscription);
             }
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $name, $subscriptionRequest));
         }) ();
     }

@@ -3307,7 +3307,7 @@ public partial class htx : Exchange
         return result;
     }
 
-    public override object networkIdToCode(object networkId, object currencyCode = null)
+    public override object networkIdToCode(object networkId = null, object currencyCode = null)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         object keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds")).Keys);
@@ -8912,8 +8912,8 @@ public partial class htx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "future")))

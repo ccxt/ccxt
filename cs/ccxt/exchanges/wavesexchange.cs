@@ -72,6 +72,7 @@ public partial class wavesexchange : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -1167,7 +1168,7 @@ public partial class wavesexchange : Exchange
         return this.parseToInt(parseFloat(amountPrecision));
     }
 
-    public override object currencyToPrecision(object code, object amount, object networkCode = null)
+    public virtual object customCurrencyToPrecision(object code, object amount, object networkCode = null)
     {
         object amountPrecision = this.numberToString(this.toPrecision(amount, getValue(getValue(this.currencies, code), "precision")));
         return this.parseToInt(parseFloat(amountPrecision));
@@ -2572,7 +2573,7 @@ public partial class wavesexchange : Exchange
         object feeAssetId = "WAVES";
         object type = 4; // transfer
         object version = 2;
-        object amountInteger = this.currencyToPrecision(code, amount);
+        object amountInteger = this.customCurrencyToPrecision(code, amount);
         object currency = this.currency(code);
         object timestamp = this.milliseconds();
         object byteArray = new List<object> {this.numberToBE(4, 1), this.numberToBE(2, 1), this.base58ToBinary(this.apiKey), this.getAssetBytes(getValue(currency, "id")), this.getAssetBytes(feeAssetId), this.numberToBE(timestamp, 8), this.numberToBE(amountInteger, 8), this.numberToBE(fee, 8), this.base58ToBinary(proxyAddress), this.numberToBE(0, 2)};

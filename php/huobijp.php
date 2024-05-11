@@ -357,7 +357,7 @@ class huobijp extends Exchange {
         $request = array(
             'symbol' => $id,
         );
-        $response = $this->publicGetCommonExchange (array_merge($request, $params));
+        $response = $this->publicGetCommonExchange ($this->extend($request, $params));
         //
         //     { status =>   "ok",
         //         "data" => {                                  symbol => "aidocbtc",
@@ -522,7 +522,7 @@ class huobijp extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -622,7 +622,7 @@ class huobijp extends Exchange {
             'symbol' => $market['id'],
             'type' => 'step0',
         );
-        $response = $this->marketGetDepth (array_merge($request, $params));
+        $response = $this->marketGetDepth ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -669,7 +669,7 @@ class huobijp extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->marketGetDetailMerged (array_merge($request, $params));
+        $response = $this->marketGetDetailMerged ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -819,7 +819,7 @@ class huobijp extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrderOrdersIdMatchresults (array_merge($request, $params));
+        $response = $this->privateGetOrderOrdersIdMatchresults ($this->extend($request, $params));
         return $this->parse_trades($response['data'], null, $since, $limit);
     }
 
@@ -846,7 +846,7 @@ class huobijp extends Exchange {
             $request['start-time'] = $since; // a date within 120 days from today
             // $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
         }
-        $response = $this->privateGetOrderMatchresults (array_merge($request, $params));
+        $response = $this->privateGetOrderMatchresults ($this->extend($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -867,7 +867,7 @@ class huobijp extends Exchange {
         if ($limit !== null) {
             $request['size'] = min ($limit, 2000);
         }
-        $response = $this->marketGetHistoryTrade (array_merge($request, $params));
+        $response = $this->marketGetHistoryTrade ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -947,7 +947,7 @@ class huobijp extends Exchange {
         if ($limit !== null) {
             $request['size'] = min ($limit, 2000);
         }
-        $response = $this->marketGetHistoryKline (array_merge($request, $params));
+        $response = $this->marketGetHistoryKline ($this->extend($request, $params));
         //
         //     {
         //         "status":"ok",
@@ -984,7 +984,7 @@ class huobijp extends Exchange {
         $request = array(
             'language' => $this->options['language'],
         );
-        $response = $this->publicGetSettingsCurrencys (array_merge($request, $params));
+        $response = $this->publicGetSettingsCurrencys ($this->extend($request, $params));
         //
         //     {
         //         "status":"ok",
@@ -1108,7 +1108,7 @@ class huobijp extends Exchange {
         $request = array(
             'id' => $this->accounts[0]['id'],
         );
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         return $this->parse_balance($response);
     }
 
@@ -1123,7 +1123,7 @@ class huobijp extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         //     { "status" =>   "ok",
         //         "data" => array( {                  id =>  13997833014,
@@ -1155,7 +1155,7 @@ class huobijp extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrderOrdersId (array_merge($request, $params));
+        $response = $this->privateGetOrderOrdersId ($this->extend($request, $params));
         $order = $this->safe_dict($response, 'data');
         return $this->parse_order($order);
     }
@@ -1231,7 +1231,7 @@ class huobijp extends Exchange {
             $request['size'] = $limit;
         }
         $omitted = $this->omit($params, 'account-id');
-        $response = $this->privateGetOrderOpenOrders (array_merge($request, $omitted));
+        $response = $this->privateGetOrderOpenOrders ($this->extend($request, $omitted));
         //
         //     {
         //         "status":"ok",
@@ -1431,7 +1431,7 @@ class huobijp extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $method = $this->options['createOrderMethod'];
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         $id = $this->safe_string($response, 'data');
         return $this->safe_order(array(
             'info' => $response,
@@ -1470,7 +1470,7 @@ class huobijp extends Exchange {
         //         "data" => "10138899000",
         //     }
         //
-        return array_merge($this->parse_order($response), array(
+        return $this->extend($this->parse_order($response), array(
             'id' => $id,
             'status' => 'canceled',
         ));
@@ -1493,7 +1493,7 @@ class huobijp extends Exchange {
         } else {
             $request['client-order-ids'] = $clientOrderIds;
         }
-        $response = $this->privatePostOrderOrdersBatchcancel (array_merge($request, $params));
+        $response = $this->privatePostOrderOrdersBatchcancel ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1549,7 +1549,7 @@ class huobijp extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privatePostOrderOrdersBatchCancelOpenOrders (array_merge($request, $params));
+        $response = $this->privatePostOrderOrdersBatchCancelOpenOrders ($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -1633,7 +1633,7 @@ class huobijp extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
-        $response = $this->privateGetQueryDepositWithdraw (array_merge($request, $params));
+        $response = $this->privateGetQueryDepositWithdraw ($this->extend($request, $params));
         // return $response
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
@@ -1665,7 +1665,7 @@ class huobijp extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
-        $response = $this->privateGetQueryDepositWithdraw (array_merge($request, $params));
+        $response = $this->privateGetQueryDepositWithdraw ($this->extend($request, $params));
         // return $response
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
@@ -1809,7 +1809,7 @@ class huobijp extends Exchange {
             }
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));
+        $response = $this->privatePostDwWithdrawApiCreate ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1840,7 +1840,7 @@ class huobijp extends Exchange {
                 'Timestamp' => $timestamp,
             );
             if ($method !== 'POST') {
-                $request = array_merge($request, $query);
+                $request = $this->extend($request, $query);
             }
             $requestSorted = $this->keysort($request);
             $auth = $this->urlencode($requestSorted);

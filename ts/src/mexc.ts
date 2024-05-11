@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, TransferEntries } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1491,7 +1491,7 @@ export default class mexc extends Exchange {
         }
         let trades = undefined;
         if (market['spot']) {
-            const until = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
+            const until = this.safeIntegerN (params, [ 'endTime', 'until' ]);
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1773,7 +1773,7 @@ export default class mexc extends Exchange {
         };
         let candles = undefined;
         if (market['spot']) {
-            const until = this.safeIntegerN (params, [ 'until', 'endTime', 'till' ]);
+            const until = this.safeIntegerN (params, [ 'until', 'endTime' ]);
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1787,7 +1787,7 @@ export default class mexc extends Exchange {
                 request['limit'] = limit;
             }
             if (until !== undefined) {
-                params = this.omit (params, [ 'until', 'till' ]);
+                params = this.omit (params, [ 'until' ]);
                 request['endTime'] = until;
             }
             const response = await this.spotPublicGetKlines (this.extend (request, params));
@@ -1807,12 +1807,12 @@ export default class mexc extends Exchange {
             //
             candles = response;
         } else if (market['swap']) {
-            const until = this.safeIntegerProductN (params, [ 'until', 'endTime', 'till' ], 0.001);
+            const until = this.safeIntegerProductN (params, [ 'until', 'endTime' ], 0.001);
             if (since !== undefined) {
                 request['start'] = this.parseToInt (since / 1000);
             }
             if (until !== undefined) {
-                params = this.omit (params, [ 'until', 'till' ]);
+                params = this.omit (params, [ 'until' ]);
                 request['end'] = until;
             }
             const priceType = this.safeString (params, 'price', 'default');
@@ -2020,7 +2020,7 @@ export default class mexc extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         let timestamp = undefined;
@@ -4974,7 +4974,7 @@ export default class mexc extends Exchange {
         });
     }
 
-    async fetchTransfer (id: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
         await this.loadMarkets ();
         if (marketType === 'spot') {
@@ -5003,7 +5003,7 @@ export default class mexc extends Exchange {
         return undefined;
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         /**
          * @method
          * @name mexc#fetchTransfers
@@ -5150,7 +5150,7 @@ export default class mexc extends Exchange {
         });
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // spot: fetchTransfer
         //
@@ -5217,7 +5217,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'SUCCESS': 'ok',
             'FAILED': 'failed',
@@ -5539,7 +5539,7 @@ export default class mexc extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         let marginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -141,6 +141,7 @@ export default class okx extends Exchange {
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
@@ -482,6 +483,7 @@ export default class okx extends Exchange {
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/grid/adjust-investment': 1,
                         'tradingBot/signal/create-signal': 1,
                         'tradingBot/signal/order-algo': 1,
                         'tradingBot/signal/stop-order-algo': 1,
@@ -891,7 +893,24 @@ export default class okx extends Exchange {
                     '60017': BadRequest,
                     '60018': BadRequest,
                     '60019': BadRequest,
+                    '60020': ExchangeError,
+                    '60021': AccountNotEnabled,
+                    '60022': AuthenticationError,
+                    '60023': DDoSProtection,
+                    '60024': AuthenticationError,
+                    '60025': ExchangeError,
+                    '60026': AuthenticationError,
+                    '60027': ArgumentsRequired,
+                    '60028': NotSupported,
+                    '60029': AccountNotEnabled,
+                    '60030': AccountNotEnabled,
+                    '60031': AuthenticationError,
+                    '60032': AuthenticationError,
                     '63999': ExchangeError,
+                    '64000': BadRequest,
+                    '64001': BadRequest,
+                    '64002': BadRequest,
+                    '64003': AccountNotEnabled,
                     '70010': BadRequest,
                     '70013': BadRequest,
                     '70016': BadRequest, // Please specify your instrument settings for at least one instType.
@@ -4030,10 +4049,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(query, 'till', 'until');
+            const until = this.safeInteger(query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit(query, ['until', 'till']);
+                query = this.omit(query, ['until']);
             }
         }
         const send = this.omit(query, ['method', 'stop', 'trigger', 'trailing']);
@@ -4219,10 +4238,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(query, 'till', 'until');
+            const until = this.safeInteger(query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit(query, ['until', 'till']);
+                query = this.omit(query, ['until']);
             }
             request['state'] = 'filled';
         }
@@ -5578,7 +5597,7 @@ export default class okx extends Exchange {
         //    }
         //
         const marketId = this.safeString(position, 'instId');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const pos = this.safeString(position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise.stringAbs(pos);
@@ -5995,6 +6014,22 @@ export default class okx extends Exchange {
         //        "nextFundingRate": "0.00017",
         //        "nextFundingTime": "1634284800000"
         //    }
+        // ws
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
         //
         // in the response above nextFundingRate is actually two funding rates from now
         //
@@ -7124,10 +7159,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(params, 'till', 'until');
+            const until = this.safeInteger(params, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
             }
             response = await this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, params));
         }

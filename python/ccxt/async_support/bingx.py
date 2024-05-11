@@ -8,7 +8,7 @@ from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -98,6 +98,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
                 'setMarginMode': True,
@@ -401,6 +402,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100202': InsufficientFunds,
                     '100204': BadRequest,
                     '100400': BadRequest,
+                    '100410': OperationFailed,  # {"code":100410,"msg":"The current system is busy, please try again later"}
                     '100421': BadSymbol,  # {"code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":""}
                     '100440': ExchangeError,
                     '100500': OperationFailed,  # {"code":100500,"msg":"The current system is busy, please try again later","debugMsg":""}
@@ -2735,9 +2737,9 @@ class bingx(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till', 'until'])
+        params = self.omit(params, ['endTime', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         response = await self.swapV1PrivateGetTradeFullOrder(self.extend(request, params))
@@ -3008,7 +3010,7 @@ class bingx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
@@ -3055,7 +3057,7 @@ class bingx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'rows', [])
         return self.parse_transfers(rows, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         tranId = self.safe_string(transfer, 'tranId')
         timestamp = self.safe_integer(transfer, 'timestamp')
         currencyCode = self.safe_currency_code(None, currency)
@@ -3435,7 +3437,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #    {
         #        "code": 0,
@@ -3485,7 +3487,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         return {
             'info': leverage,

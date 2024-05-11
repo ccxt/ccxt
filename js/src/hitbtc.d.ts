@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Dictionary } from './base/types.js';
 /**
  * @class hitbtc
  * @augments Exchange
@@ -29,7 +29,7 @@ export default class hitbtc extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;
@@ -62,17 +62,7 @@ export default class hitbtc extends Exchange {
     fetchMarginModes(symbols?: Str[], params?: {}): Promise<MarginModes>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        id: string;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-        info: any;
-    };
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     convertCurrencyNetwork(code: string, amount: any, fromNetwork: any, toNetwork: any, params: any): Promise<{
         info: any;
     }>;
@@ -123,11 +113,11 @@ export default class hitbtc extends Exchange {
         previousFundingDatetime: any;
     };
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;

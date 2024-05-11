@@ -108,6 +108,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -632,6 +633,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {
@@ -1102,7 +1104,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #       "ask": "62756.01",
@@ -1658,7 +1660,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['from'] = self.iso8601(since)
-        request, params = self.handle_until_option('till', request, params)
+        request, params = self.handle_until_option('until', request, params)
         if limit is not None:
             request['limit'] = min(limit, 1000)
         price = self.safe_string(params, 'price')
@@ -2446,7 +2448,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -2604,11 +2606,11 @@ class hitbtc(Exchange, ImplicitAPI):
             # 'symbols': Comma separated list of symbol codes,
             # 'sort': 'DESC' or 'ASC'
             # 'from': 'Datetime or Number',
-            # 'till': 'Datetime or Number',
+            # 'until': 'Datetime or Number',
             # 'limit': 100,
             # 'offset': 0,
         }
-        request, params = self.handle_until_option('till', request, params)
+        request, params = self.handle_until_option('until', request, params)
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -3055,7 +3057,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # addMargin/reduceMargin
         #
@@ -3185,7 +3187,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_leverage(response, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {

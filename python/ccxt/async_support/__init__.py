@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.11'
+__version__ = '4.3.20'
 
 # -----------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ from ccxt.base.errors import BadSymbol                                # noqa: F4
 from ccxt.base.errors import OperationRejected                        # noqa: F401
 from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
+from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
@@ -159,6 +160,7 @@ from ccxt.async_support.wavesexchange import wavesexchange                      
 from ccxt.async_support.wazirx import wazirx                                    # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
+from ccxt.async_support.woofipro import woofipro                                # noqa: F401
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
@@ -264,6 +266,7 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
+    'woofipro',
     'yobit',
     'zaif',
     'zonda',

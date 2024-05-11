@@ -1,5 +1,5 @@
 import Exchange from './abstract/cryptocom.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market, Num, Account, CancellationRequest } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market, Num, Account, CancellationRequest, Dict } from './base/types.js';
 /**
  * @class cryptocom
  * @augments Exchange
@@ -33,7 +33,7 @@ export default class cryptocom extends Exchange {
     safeNetwork(networkId: any): string;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     parseTrade(trade: any, market?: Market): Trade;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseOrderStatus(status: any): string;

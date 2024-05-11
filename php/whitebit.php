@@ -44,6 +44,7 @@ class whitebit extends Exchange {
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -732,7 +733,7 @@ class whitebit extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PublicGetTicker (array_merge($request, $params));
+        $response = $this->v1PublicGetTicker ($this->extend($request, $params));
         //
         //      {
         //         "success":true,
@@ -754,7 +755,7 @@ class whitebit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //  FetchTicker (v1)
         //
@@ -859,7 +860,7 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 100, maximum = 100
         }
-        $response = $this->v4PublicGetOrderbookMarket (array_merge($request, $params));
+        $response = $this->v4PublicGetOrderbookMarket ($this->extend($request, $params));
         //
         //      {
         //          "timestamp" => 1594391413,
@@ -898,7 +899,7 @@ class whitebit extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v4PublicGetTradesMarket (array_merge($request, $params));
+        $response = $this->v4PublicGetTradesMarket ($this->extend($request, $params));
         //
         //      array(
         //          array(
@@ -931,7 +932,7 @@ class whitebit extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->v4PrivatePostTradeAccountExecutedHistory (array_merge($request, $params));
+        $response = $this->v4PrivatePostTradeAccountExecutedHistory ($this->extend($request, $params));
         //
         // when no $symbol is provided
         //
@@ -1096,7 +1097,7 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1440);
         }
-        $response = $this->v1PublicGetKline (array_merge($request, $params));
+        $response = $this->v1PublicGetKline ($this->extend($request, $params));
         //
         //     {
         //         "success":true,
@@ -1227,13 +1228,13 @@ class whitebit extends Exchange {
             if ($isLimitOrder) {
                 // stop limit order
                 $request['price'] = $this->price_to_precision($symbol, $price);
-                $response = $this->v4PrivatePostOrderStopLimit (array_merge($request, $params));
+                $response = $this->v4PrivatePostOrderStopLimit ($this->extend($request, $params));
             } else {
                 // stop $market order
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralTriggerMarket (array_merge($request, $params));
+                    $response = $this->v4PrivatePostOrderCollateralTriggerMarket ($this->extend($request, $params));
                 } else {
-                    $response = $this->v4PrivatePostOrderStopMarket (array_merge($request, $params));
+                    $response = $this->v4PrivatePostOrderStopMarket ($this->extend($request, $params));
                 }
             }
         } else {
@@ -1241,16 +1242,16 @@ class whitebit extends Exchange {
                 // limit order
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralLimit (array_merge($request, $params));
+                    $response = $this->v4PrivatePostOrderCollateralLimit ($this->extend($request, $params));
                 } else {
-                    $response = $this->v4PrivatePostOrderNew (array_merge($request, $params));
+                    $response = $this->v4PrivatePostOrderNew ($this->extend($request, $params));
                 }
             } else {
                 // $market order
                 if ($useCollateralEndpoint) {
-                    $response = $this->v4PrivatePostOrderCollateralMarket (array_merge($request, $params));
+                    $response = $this->v4PrivatePostOrderCollateralMarket ($this->extend($request, $params));
                 } else {
-                    $response = $this->v4PrivatePostOrderStockMarket (array_merge($request, $params));
+                    $response = $this->v4PrivatePostOrderStockMarket ($this->extend($request, $params));
                 }
             }
         }
@@ -1313,7 +1314,7 @@ class whitebit extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $response = $this->v4PrivatePostOrderModify (array_merge($request, $params));
+        $response = $this->v4PrivatePostOrderModify ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -1335,7 +1336,7 @@ class whitebit extends Exchange {
             'market' => $market['id'],
             'orderId' => intval($id),
         );
-        return $this->v4PrivatePostOrderCancel (array_merge($request, $params));
+        return $this->v4PrivatePostOrderCancel ($this->extend($request, $params));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1372,7 +1373,7 @@ class whitebit extends Exchange {
             throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' type');
         }
         $request['type'] = $requestType;
-        $response = $this->v4PrivatePostOrderCancelAll (array_merge($request, $params));
+        $response = $this->v4PrivatePostOrderCancelAll ($this->extend($request, $params));
         //
         // array()
         //
@@ -1406,7 +1407,7 @@ class whitebit extends Exchange {
         } else {
             $request['timeout'] = 'null';
         }
-        $response = $this->v4PrivatePostOrderKillSwitch (array_merge($request, $params));
+        $response = $this->v4PrivatePostOrderKillSwitch ($this->extend($request, $params));
         //
         //     {
         //         "market" => "BTC_USDT", // currency $market,
@@ -1511,7 +1512,7 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 100);
         }
-        $response = $this->v4PrivatePostOrders (array_merge($request, $params));
+        $response = $this->v4PrivatePostOrders ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1556,7 +1557,7 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 100); // default 50 max 100
         }
-        $response = $this->v4PrivatePostTradeAccountOrderHistory (array_merge($request, $params));
+        $response = $this->v4PrivatePostTradeAccountOrderHistory ($this->extend($request, $params));
         //
         //     {
         //         "BTC_USDT" => array(
@@ -1582,7 +1583,7 @@ class whitebit extends Exchange {
             $orders = $response[$marketId];
             for ($j = 0; $j < count($orders); $j++) {
                 $order = $this->parse_order($orders[$j], $marketNew);
-                $results[] = array_merge($order, array( 'status' => 'closed' ));
+                $results[] = $this->extend($order, array( 'status' => 'closed' ));
             }
         }
         $results = $this->sort_by($results, 'timestamp');
@@ -1720,7 +1721,7 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 100);
         }
-        $response = $this->v4PrivatePostTradeAccountOrder (array_merge($request, $params));
+        $response = $this->v4PrivatePostTradeAccountOrder ($this->extend($request, $params));
         //
         //     {
         //         "records" => array(
@@ -1774,9 +1775,9 @@ class whitebit extends Exchange {
             if ($uniqueId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an $uniqueId when the ticker is fiat');
             }
-            $response = $this->v4PrivatePostMainAccountFiatDepositUrl (array_merge($request, $params));
+            $response = $this->v4PrivatePostMainAccountFiatDepositUrl ($this->extend($request, $params));
         } else {
-            $response = $this->v4PrivatePostMainAccountAddress (array_merge($request, $params));
+            $response = $this->v4PrivatePostMainAccountAddress ($this->extend($request, $params));
         }
         //
         // fiat
@@ -1837,7 +1838,7 @@ class whitebit extends Exchange {
         $request = array(
             'leverage' => $leverage,
         );
-        return $this->v4PrivatePostCollateralAccountLeverage (array_merge($request, $params));
+        return $this->v4PrivatePostCollateralAccountLeverage ($this->extend($request, $params));
         //     {
         //         "leverage" => 5
         //     }
@@ -1866,14 +1867,14 @@ class whitebit extends Exchange {
             'from' => $fromAccountId,
             'to' => $toAccountId,
         );
-        $response = $this->v4PrivatePostMainAccountTransfer (array_merge($request, $params));
+        $response = $this->v4PrivatePostMainAccountTransfer ($this->extend($request, $params));
         //
         //    array()
         //
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    array()
         //
@@ -1923,14 +1924,14 @@ class whitebit extends Exchange {
             }
             $request['provider'] = $provider;
         }
-        $response = $this->v4PrivatePostMainAccountWithdraw (array_merge($request, $params));
+        $response = $this->v4PrivatePostMainAccountWithdraw ($this->extend($request, $params));
         //
         // empty array with a success status
         // go to deposit/withdraw history and check you $request status by $uniqueId
         //
         //     array()
         //
-        return array_merge(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
+        return $this->extend(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
     }
 
     public function parse_transaction($transaction, ?array $currency = null): array {
@@ -1938,6 +1939,7 @@ class whitebit extends Exchange {
         //     {
         //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address
         //         "uniqueId" => null,                                                                             // unique Id of deposit
+        //         "transactionId" => "a6d71d69-2b17-4ad8-8b15-2d686c54a1a5",
         //         "createdAt" => 1593437922,                                                                      // $timestamp of deposit
         //         "currency" => "Bitcoin",                                                                        // deposit $currency
         //         "ticker" => "BTC",                                                                              // deposit $currency ticker
@@ -1961,6 +1963,7 @@ class whitebit extends Exchange {
         //             "actual" => 1,                                                                              // current block confirmations
         //             "required" => 2                                                                             // required block confirmation for successful deposit
         //         }
+        //         "centralized" => false,
         //     }
         //
         $currency = $this->safe_currency(null, $currency);
@@ -1971,7 +1974,7 @@ class whitebit extends Exchange {
         $method = $this->safe_string($transaction, 'method');
         return array(
             'id' => $this->safe_string($transaction, 'uniqueId'),
-            'txid' => $this->safe_string($transaction, 'transactionHash'),
+            'txid' => $this->safe_string($transaction, 'transactionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => $this->safe_string($transaction, 'network'),
@@ -2039,7 +2042,7 @@ class whitebit extends Exchange {
             $currency = $this->currency($code);
             $request['ticker'] = $currency['id'];
         }
-        $response = $this->v4PrivatePostMainAccountHistory (array_merge($request, $params));
+        $response = $this->v4PrivatePostMainAccountHistory ($this->extend($request, $params));
         //
         //     {
         //         "limit" => 100,
@@ -2106,7 +2109,7 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 100);
         }
-        $response = $this->v4PrivatePostMainAccountHistory (array_merge($request, $params));
+        $response = $this->v4PrivatePostMainAccountHistory ($this->extend($request, $params));
         //
         //     {
         //         "limit" => 100,
@@ -2166,7 +2169,7 @@ class whitebit extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->v4PrivatePostCollateralAccountPositionsOpen (array_merge($request, $params));
+        $response = $this->v4PrivatePostCollateralAccountPositionsOpen ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2362,6 +2365,77 @@ class whitebit extends Exchange {
         );
     }
 
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch history of deposits and withdrawals
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default = 50, Min => 1, Max => 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {number} [$params->transactionMethod] Method. Example => 1 to display deposits / 2 to display withdraws. Do not send this parameter in order to receive both deposits and withdraws.
+         * @param {string} [$params->address] Can be used for filtering transactions by specific address or memo.
+         * @param {string[]} [$params->addresses] Can be used for filtering transactions by specific addresses or memos (max => 20).
+         * @param {string} [$params->uniqueId] Can be used for filtering transactions by specific unique id
+         * @param {int} [$params->offset] If you want the $request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default => 0, Min => 0, Max => 10000
+         * @param {string[]} [$params->status] Can be used for filtering transactions by status codes. Caution => You must use this parameter with appropriate transactionMethod and use valid status codes for this method. You can find them below. Example => "status" => [3,7]
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
+        $this->load_markets();
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ticker'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 1000
+        }
+        $response = $this->v4PrivatePostMainAccountHistory ($this->extend($request, $params));
+        //
+        //    {
+        //        "limit" => 100,
+        //        "offset" => 0,
+        //        "records" => array(
+        //            {
+        //                "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                        // deposit address
+        //                "uniqueId" => null,                                                                       // unique Id of deposit
+        //                "createdAt" => 1593437922,                                                                // timestamp of deposit
+        //                "currency" => "Bitcoin",                                                                  // deposit $currency
+        //                "ticker" => "BTC",                                                                        // deposit $currency ticker
+        //                "method" => 1,                                                                            // called method 1 - deposit, 2 - withdraw
+        //                "amount" => "0.0006",                                                                     // amount of deposit
+        //                "description" => "",                                                                      // deposit description
+        //                "memo" => "",                                                                             // deposit memo
+        //                "fee" => "0",                                                                             // deposit fee
+        //                "status" => 15,                                                                           // transactions status
+        //                "network" => null,                                                                        // if $currency is multinetwork
+        //                "transactionHash" => "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",  // deposit transaction hash
+        //                "transactionId" => "5e112b38-9652-11ed-a1eb-0242ac120002",                                // transaction id
+        //                "details" => {
+        //                    "partial" => array(                                                                        // details about partially successful withdrawals
+        //                        "requestAmount" => "50000",                                                       // requested withdrawal amount
+        //                        "processedAmount" => "39000",                                                     // processed withdrawal amount
+        //                        "processedFee" => "273",                                                          // fee for processed withdrawal amount
+        //                        "normalizeTransaction" => ""                                                      // deposit id
+        //                    }
+        //                ),
+        //                "confirmations" => array(                                                                      // if transaction status == 15 (Pending) you can see this object
+        //                    "actual" => 1,                                                                        // current block confirmations
+        //                    "required" => 2                                                                       // required block confirmation for successful deposit
+        //                }
+        //            ),
+        //            array(...),
+        //        ),
+        //        "total" => 300                                                                                    // total number of  transactions, use this for calculating ‘$limit’ and ‘offset'
+        //    }
+        //
+        $records = $this->safe_list($response, 'records');
+        return $this->parse_transactions($records, $currency, $since, $limit);
+    }
+
     public function is_fiat($currency) {
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
@@ -2387,7 +2461,7 @@ class whitebit extends Exchange {
             $nonce = (string) $this->nonce();
             $secret = $this->encode($this->secret);
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
-            $body = $this->json(array_merge(array( 'request' => $request, 'nonce' => $nonce ), $params));
+            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce ), $params));
             $payload = base64_encode($body);
             $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(

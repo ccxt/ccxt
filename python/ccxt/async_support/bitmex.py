@@ -100,6 +100,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'reduceMargin': None,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': None,
                 'setMarginMode': True,
@@ -1339,7 +1340,7 @@ class bitmex(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # see response sample under "fetchMarkets" because same endpoint is being used here
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -2015,7 +2016,7 @@ class bitmex(Exchange, ImplicitAPI):
         leverages = await self.fetch_positions(symbols, params)
         return self.parse_leverages(leverages, symbols, 'symbol')
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         return {
             'info': leverage,
@@ -2409,8 +2410,8 @@ class bitmex(Exchange, ImplicitAPI):
             request['startTime'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = self.iso8601(until)
         if (since is None) and (until is None):

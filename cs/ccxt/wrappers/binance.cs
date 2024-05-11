@@ -217,18 +217,18 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches the last price for multiple markets
     /// </summary>
     /// <remarks>
     /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -636,6 +636,12 @@ public partial class binance
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to create an order in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossOrTakeProfit</term>
+    /// <description>
+    /// string : 'stopLoss' or 'takeProfit', required for spot trailing orders
     /// </description>
     /// </item>
     /// </list>
@@ -1556,12 +1562,12 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -2312,6 +2318,64 @@ public partial class binance
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
         return new CrossBorrowRate(res);
+    }
+    /// <summary>
+    /// fetch the rate of interest to borrow a currency for margin trading
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// object : user's current specific margin data will be returned if viplevel is omitted
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
+        return new IsolatedBorrowRate(res);
+    }
+    /// <summary>
+    /// fetch the borrow interest rates of all currencies
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-fee-data-user_data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// object : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// object : user's current specific margin data will be returned if viplevel is omitted
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
+    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchIsolatedBorrowRates(parameters);
+        return new IsolatedBorrowRates(res);
     }
     /// <summary>
     /// retrieves a history of a currencies borrow interest rate at specific time slots

@@ -6,7 +6,7 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -296,7 +296,7 @@ export default class zaif extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // {
         //     "last": 9e-08,
@@ -696,7 +696,7 @@ export default class zaif extends Exchange {
     }
 
     customNonce () {
-        const num = (this.milliseconds () / 1000).toString ();
+        const num = this.numberToString (this.milliseconds () / 1000);
         const nonce = parseFloat (num);
         return nonce.toFixed (8);
     }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/krakenfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
 /**
  * @class krakenfutures
  * @augments Exchange
@@ -9,7 +9,7 @@ export default class krakenfutures extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -80,24 +80,14 @@ export default class krakenfutures extends Exchange {
     };
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: any;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    };
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseAccount(account: any): any;
     transferOut(code: string, amount: any, params?: {}): Promise<TransferEntry>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

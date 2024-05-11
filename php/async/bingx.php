@@ -89,6 +89,7 @@ class bingx extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
                 'setMarginMode' => true,
@@ -392,6 +393,7 @@ class bingx extends Exchange {
                     '100202' => '\\ccxt\\InsufficientFunds',
                     '100204' => '\\ccxt\\BadRequest',
                     '100400' => '\\ccxt\\BadRequest',
+                    '100410' => '\\ccxt\\OperationFailed', // array("code":100410,"msg":"The current system is busy, please try again later")
                     '100421' => '\\ccxt\\BadSymbol', // array("code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":"")
                     '100440' => '\\ccxt\\ExchangeError',
                     '100500' => '\\ccxt\\OperationFailed', // array("code":100500,"msg":"The current system is busy, please try again later","debugMsg":"")
@@ -774,14 +776,14 @@ class bingx extends Exchange {
             }
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->spotV1PublicGetMarketKline (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetMarketKline ($this->extend($request, $params)));
             } else {
                 $price = $this->safe_string($params, 'price');
                 $params = $this->omit($params, 'price');
                 if ($price === 'mark') {
-                    $response = Async\await($this->swapV1PrivateGetMarketMarkPriceKlines (array_merge($request, $params)));
+                    $response = Async\await($this->swapV1PrivateGetMarketMarkPriceKlines ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->swapV3PublicGetQuoteKlines (array_merge($request, $params)));
+                    $response = Async\await($this->swapV3PublicGetQuoteKlines ($this->extend($request, $params)));
                 }
             }
             //
@@ -905,9 +907,9 @@ class bingx extends Exchange {
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
             if ($marketType === 'spot') {
-                $response = Async\await($this->spotV1PublicGetMarketTrades (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetMarketTrades ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->swapV2PublicGetQuoteTrades (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PublicGetQuoteTrades ($this->extend($request, $params)));
             }
             //
             // spot
@@ -1113,9 +1115,9 @@ class bingx extends Exchange {
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
             if ($marketType === 'spot') {
-                $response = Async\await($this->spotV1PublicGetMarketDepth (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetMarketDepth ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->swapV2PublicGetQuoteDepth (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PublicGetQuoteDepth ($this->extend($request, $params)));
             }
             //
             // spot
@@ -1194,7 +1196,7 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->swapV2PublicGetQuotePremiumIndex (array_merge($request, $params)));
+            $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($this->extend($request, $params)));
             //
             //    {
             //        "code":0,
@@ -1227,7 +1229,7 @@ class bingx extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, 'swap', true);
-            $response = Async\await($this->swapV2PublicGetQuotePremiumIndex (array_merge($params)));
+            $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($this->extend($params)));
             $data = $this->safe_list($response, 'data', array());
             $filteredResponse = array();
             for ($i = 0; $i < count($data); $i++) {
@@ -1312,7 +1314,7 @@ class bingx extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['startTime'] = $until;
             }
-            $response = Async\await($this->swapV2PublicGetQuoteFundingRate (array_merge($request, $params)));
+            $response = Async\await($this->swapV2PublicGetQuoteFundingRate ($this->extend($request, $params)));
             //
             //    {
             //        "code":0,
@@ -1361,7 +1363,7 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->swapV2PublicGetQuoteOpenInterest (array_merge($request, $params)));
+            $response = Async\await($this->swapV2PublicGetQuoteOpenInterest ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1419,9 +1421,9 @@ class bingx extends Exchange {
             );
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->spotV1PublicGetTicker24hr (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetTicker24hr ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->swapV2PublicGetQuoteTicker (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PublicGetQuoteTicker ($this->extend($request, $params)));
             }
             $data = $this->safe_list($response, 'data');
             if ($data !== null) {
@@ -2016,7 +2018,7 @@ class bingx extends Exchange {
             $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
         }
         $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -2554,9 +2556,9 @@ class bingx extends Exchange {
             $response = null;
             list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
             if ($marketType === 'spot') {
-                $response = Async\await($this->spotV1PrivatePostTradeCancel (array_merge($request, $query)));
+                $response = Async\await($this->spotV1PrivatePostTradeCancel ($this->extend($request, $query)));
             } else {
-                $response = Async\await($this->swapV2PrivateDeleteTradeOrder (array_merge($request, $query)));
+                $response = Async\await($this->swapV2PrivateDeleteTradeOrder ($this->extend($request, $query)));
             }
             //
             // spot
@@ -2630,7 +2632,7 @@ class bingx extends Exchange {
             );
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->spotV1PrivatePostTradeCancelOpenOrders (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivatePostTradeCancelOpenOrders ($this->extend($request, $params)));
                 //
                 //     {
                 //         "code" => 0,
@@ -2654,7 +2656,7 @@ class bingx extends Exchange {
                 //     }
                 //
             } elseif ($market['swap']) {
-                $response = Async\await($this->swapV2PrivateDeleteTradeAllOpenOrders (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PrivateDeleteTradeAllOpenOrders ($this->extend($request, $params)));
                 //
                 //    {
                 //        "code" => 0,
@@ -2728,14 +2730,14 @@ class bingx extends Exchange {
             if ($market['spot']) {
                 $spotReqKey = $areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
                 $request[$spotReqKey] = implode(',', $parsedIds);
-                $response = Async\await($this->spotV1PrivatePostTradeCancelOrders (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivatePostTradeCancelOrders ($this->extend($request, $params)));
             } else {
                 if ($areClientOrderIds) {
                     $request['clientOrderIDList'] = $this->json($parsedIds);
                 } else {
                     $request['orderIdList'] = $parsedIds;
                 }
-                $response = Async\await($this->swapV2PrivateDeleteTradeBatchOrders (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PrivateDeleteTradeBatchOrders ($this->extend($request, $params)));
             }
             //
             //    {
@@ -2791,9 +2793,9 @@ class bingx extends Exchange {
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params);
             if ($type === 'spot') {
-                $response = Async\await($this->spotV1PrivatePostTradeCancelAllAfter (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivatePostTradeCancelAllAfter ($this->extend($request, $params)));
             } elseif ($type === 'swap') {
-                $response = Async\await($this->swapV2PrivatePostTradeCancelAllAfter (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PrivatePostTradeCancelAllAfter ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' cancelAllOrdersAfter() is not supported for ' . $type . ' markets');
             }
@@ -2834,9 +2836,9 @@ class bingx extends Exchange {
             $response = null;
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
             if ($marketType === 'spot') {
-                $response = Async\await($this->spotV1PrivateGetTradeQuery (array_merge($request, $query)));
+                $response = Async\await($this->spotV1PrivateGetTradeQuery ($this->extend($request, $query)));
             } else {
-                $response = Async\await($this->swapV2PrivateGetTradeOrder (array_merge($request, $query)));
+                $response = Async\await($this->swapV2PrivateGetTradeOrder ($this->extend($request, $query)));
             }
             //
             // spot
@@ -2926,13 +2928,13 @@ class bingx extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+            $params = $this->omit($params, array( 'endTime', 'until' ));
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             }
-            $response = Async\await($this->swapV1PrivateGetTradeFullOrder (array_merge($request, $params)));
+            $response = Async\await($this->swapV1PrivateGetTradeFullOrder ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -3013,9 +3015,9 @@ class bingx extends Exchange {
             $response = null;
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
             if ($marketType === 'spot') {
-                $response = Async\await($this->spotV1PrivateGetTradeOpenOrders (array_merge($request, $query)));
+                $response = Async\await($this->spotV1PrivateGetTradeOpenOrders ($this->extend($request, $query)));
             } else {
-                $response = Async\await($this->swapV2PrivateGetTradeOpenOrders (array_merge($request, $query)));
+                $response = Async\await($this->swapV2PrivateGetTradeOpenOrders ($this->extend($request, $query)));
             }
             //
             //  spot
@@ -3106,11 +3108,11 @@ class bingx extends Exchange {
             list($standard, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'standard', false);
             list($marketType, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
             if ($standard) {
-                $response = Async\await($this->contractV1PrivateGetAllOrders (array_merge($request, $query)));
+                $response = Async\await($this->contractV1PrivateGetAllOrders ($this->extend($request, $query)));
             } elseif ($marketType === 'spot') {
-                $response = Async\await($this->spotV1PrivateGetTradeHistoryOrders (array_merge($request, $query)));
+                $response = Async\await($this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $query)));
             } else {
-                $response = Async\await($this->swapV2PrivateGetTradeAllOrders (array_merge($request, $query)));
+                $response = Async\await($this->swapV2PrivateGetTradeAllOrders ($this->extend($request, $query)));
             }
             //
             //  spot
@@ -3195,7 +3197,7 @@ class bingx extends Exchange {
                 'amount' => $this->currency_to_precision($code, $amount),
                 'type' => $fromId . '_' . $toId,
             );
-            $response = Async\await($this->spotV3PrivateGetGetAssetTransfer (array_merge($request, $params)));
+            $response = Async\await($this->spotV3PrivateGetGetAssetTransfer ($this->extend($request, $params)));
             //
             //    {
             //        "tranId":13526853623
@@ -3215,7 +3217,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -3248,7 +3250,7 @@ class bingx extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
-            $response = Async\await($this->spotV3PrivateGetAssetTransfer (array_merge($request, $params)));
+            $response = Async\await($this->spotV3PrivateGetAssetTransfer ($this->extend($request, $params)));
             //
             //     {
             //         "total" => 3,
@@ -3269,7 +3271,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         $tranId = $this->safe_string($transfer, 'tranId');
         $timestamp = $this->safe_integer($transfer, 'timestamp');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -3313,7 +3315,7 @@ class bingx extends Exchange {
                 'limit' => 1000,
                 'recvWindow' => $recvWindow,
             );
-            $response = Async\await($this->walletsV1PrivateGetCapitalDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->walletsV1PrivateGetCapitalDepositAddress ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -3418,7 +3420,7 @@ class bingx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 1000
             }
-            $response = Async\await($this->spotV3PrivateGetCapitalDepositHisrec (array_merge($request, $params)));
+            $response = Async\await($this->spotV3PrivateGetCapitalDepositHisrec ($this->extend($request, $params)));
             //
             //    array(
             //        array(
@@ -3465,7 +3467,7 @@ class bingx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 1000
             }
-            $response = Async\await($this->spotV3PrivateGetCapitalWithdrawHistory (array_merge($request, $params)));
+            $response = Async\await($this->spotV3PrivateGetCapitalWithdrawHistory ($this->extend($request, $params)));
             //
             //    array(
             //        array(
@@ -3635,7 +3637,7 @@ class bingx extends Exchange {
                 'symbol' => $market['id'],
                 'marginType' => $marginMode,
             );
-            return Async\await($this->swapV2PrivatePostTradeMarginType (array_merge($request, $params)));
+            return Async\await($this->swapV2PrivatePostTradeMarginType ($this->extend($request, $params)));
         }) ();
     }
 
@@ -3644,7 +3646,7 @@ class bingx extends Exchange {
             $request = array(
                 'type' => 1,
             );
-            return Async\await($this->set_margin($symbol, $amount, array_merge($request, $params)));
+            return Async\await($this->set_margin($symbol, $amount, $this->extend($request, $params)));
         }) ();
     }
 
@@ -3653,7 +3655,7 @@ class bingx extends Exchange {
             $request = array(
                 'type' => 2,
             );
-            return Async\await($this->set_margin($symbol, $amount, array_merge($request, $params)));
+            return Async\await($this->set_margin($symbol, $amount, $this->extend($request, $params)));
         }) ();
     }
 
@@ -3681,7 +3683,7 @@ class bingx extends Exchange {
                 'amount' => $this->amount_to_precision($market['symbol'], $amount),
                 'type' => $type,
             );
-            $response = Async\await($this->swapV2PrivatePostTradePositionMargin (array_merge($request, $params)));
+            $response = Async\await($this->swapV2PrivatePostTradePositionMargin ($this->extend($request, $params)));
             //
             //    {
             //        "code" => 0,
@@ -3694,7 +3696,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         //    {
         //        "code" => 0,
@@ -3732,7 +3734,7 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->swapV2PrivateGetTradeLeverage (array_merge($request, $params)));
+            $response = Async\await($this->swapV2PrivateGetTradeLeverage ($this->extend($request, $params)));
             //
             //    {
             //        "code" => 0,
@@ -3748,7 +3750,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,
@@ -3792,7 +3794,7 @@ class bingx extends Exchange {
             //        }
             //    }
             //
-            return Async\await($this->swapV2PrivatePostTradeLeverage (array_merge($request, $params)));
+            return Async\await($this->swapV2PrivatePostTradeLeverage ($this->extend($request, $params)));
         }) ();
     }
 
@@ -3836,7 +3838,7 @@ class bingx extends Exchange {
             }
             $fills = null;
             if ($market['spot']) {
-                $response = Async\await($this->spotV1PrivateGetTradeMyTrades (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivateGetTradeMyTrades ($this->extend($request, $params)));
                 $data = $this->safe_dict($response, 'data', array());
                 $fills = $this->safe_list($data, 'fills', array());
                 //
@@ -3867,7 +3869,7 @@ class bingx extends Exchange {
                 $tradingUnit = $this->safe_string_upper($params, 'tradingUnit', 'CONT');
                 $params = $this->omit($params, 'tradingUnit');
                 $request['tradingUnit'] = $tradingUnit;
-                $response = Async\await($this->swapV2PrivateGetTradeAllFillOrders (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PrivateGetTradeAllFillOrders ($this->extend($request, $params)));
                 $data = $this->safe_dict($response, 'data', array());
                 $fills = $this->safe_list($data, 'fill_orders', array());
                 //
@@ -4007,7 +4009,7 @@ class bingx extends Exchange {
                 $request['network'] = $this->network_code_to_id($network);
             }
             $params = $this->omit($params, array( 'walletType', 'network' ));
-            $response = Async\await($this->walletsV1PrivatePostCapitalWithdrawApply (array_merge($request, $params)));
+            $response = Async\await($this->walletsV1PrivatePostCapitalWithdrawApply ($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data');
             //    {
             //        "code":0,
@@ -4070,7 +4072,7 @@ class bingx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->swapV2PrivateGetTradeForceOrders (array_merge($request, $params)));
+            $response = Async\await($this->swapV2PrivateGetTradeForceOrders ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -4167,13 +4169,13 @@ class bingx extends Exchange {
                 $request = array(
                     'positionId' => $positionId,
                 );
-                $response = Async\await($this->swapV1PrivatePostTradeClosePosition (array_merge($request, $params)));
+                $response = Async\await($this->swapV1PrivatePostTradeClosePosition ($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request = array(
                     'symbol' => $market['id'],
                 );
-                $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
             }
             //
             // swapV1PrivatePostTradeClosePosition
@@ -4231,7 +4233,7 @@ class bingx extends Exchange {
             $request = array(
                 'recvWindow' => $recvWindow,
             );
-            $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions (array_merge($request, $params)));
+            $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
             //
             //    {
             //        "code" => 0,
@@ -4312,7 +4314,7 @@ class bingx extends Exchange {
             //         data => array( $dualSidePosition => 'false' )
             //     }
             //
-            return Async\await($this->swapV1PrivatePostPositionSideDual (array_merge($request, $params)));
+            return Async\await($this->swapV1PrivatePostPositionSideDual ($this->extend($request, $params)));
         }) ();
     }
 
@@ -4354,7 +4356,7 @@ class bingx extends Exchange {
             $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->swapV1PrivatePostTradeCancelReplace (array_merge($request, $params)));
+                $response = Async\await($this->swapV1PrivatePostTradeCancelReplace ($this->extend($request, $params)));
                 //
                 //    {
                 //        code => '0',
@@ -4410,7 +4412,7 @@ class bingx extends Exchange {
                 //    }
                 //
             } else {
-                $response = Async\await($this->spotV1PrivatePostTradeOrderCancelReplace (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivatePostTradeOrderCancelReplace ($this->extend($request, $params)));
                 //
                 //    {
                 //        code => '0',
@@ -4468,7 +4470,7 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->swapV2PrivateGetTradeMarginType (array_merge($request, $params)));
+            $response = Async\await($this->swapV2PrivateGetTradeMarginType ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,

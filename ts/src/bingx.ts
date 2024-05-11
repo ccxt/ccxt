@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -85,6 +85,7 @@ export default class bingx extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
@@ -388,6 +389,7 @@ export default class bingx extends Exchange {
                     '100202': InsufficientFunds,
                     '100204': BadRequest,
                     '100400': BadRequest,
+                    '100410': OperationFailed, // {"code":100410,"msg":"The current system is busy, please try again later"}
                     '100421': BadSymbol, // {"code":100421,"msg":"This pair is currently restricted from API trading","debugMsg":""}
                     '100440': ExchangeError,
                     '100500': OperationFailed, // {"code":100500,"msg":"The current system is busy, please try again later","debugMsg":""}
@@ -2922,9 +2924,9 @@ export default class bingx extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
+        params = this.omit (params, [ 'endTime', 'until' ]);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -3210,7 +3212,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         /**
          * @method
          * @name bingx#fetchTransfers
@@ -3264,7 +3266,7 @@ export default class bingx extends Exchange {
         return this.parseTransfers (rows, currency, since, limit);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         const tranId = this.safeString (transfer, 'tranId');
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyCode = this.safeCurrencyCode (undefined, currency);
@@ -3685,7 +3687,7 @@ export default class bingx extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //    {
         //        "code": 0,
@@ -3739,7 +3741,7 @@ export default class bingx extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         return {
             'info': leverage,

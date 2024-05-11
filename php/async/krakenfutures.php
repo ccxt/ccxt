@@ -74,6 +74,7 @@ class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
@@ -460,7 +461,7 @@ class krakenfutures extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetOrderbook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbook ($this->extend($request, $params)));
             //
             //    {
             //       "result" => "success",
@@ -544,7 +545,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "tag" => 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -657,7 +658,7 @@ class krakenfutures extends Exchange {
                 $request['to'] = $this->seconds();
                 $request['from'] = $this->parse_to_int($request['to'] - ($duration * $limit));
             }
-            $response = Async\await($this->chartsGetPriceTypeSymbolInterval (array_merge($request, $params)));
+            $response = Async\await($this->chartsGetPriceTypeSymbolInterval ($this->extend($request, $params)));
             //
             //    {
             //        "candles" => array(
@@ -737,7 +738,7 @@ class krakenfutures extends Exchange {
                 if ($limit !== null) {
                     $request['count'] = $limit;
                 }
-                $response = Async\await($this->historyGetMarketSymbolExecutions (array_merge($request, $params)));
+                $response = Async\await($this->historyGetMarketSymbolExecutions ($this->extend($request, $params)));
                 //
                 //    {
                 //        "elements" => array(
@@ -801,7 +802,7 @@ class krakenfutures extends Exchange {
                 }
             } else {
                 list($request, $params) = $this->handle_until_option('lastTime', $request, $params);
-                $response = Async\await($this->publicGetHistory (array_merge($request, $params)));
+                $response = Async\await($this->publicGetHistory ($this->extend($request, $params)));
                 //
                 //    {
                 //        "result" => "success",
@@ -1024,7 +1025,7 @@ class krakenfutures extends Exchange {
             $request['limitPrice'] = $this->price_to_precision($symbol, $price);
         }
         $params = $this->omit($params, array( 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -1104,7 +1105,7 @@ class krakenfutures extends Exchange {
                 $amount = $this->safe_value($rawOrder, 'amount');
                 $price = $this->safe_value($rawOrder, 'price');
                 $orderParams = $this->safe_value($rawOrder, 'params', array());
-                $extendedParams = array_merge($orderParams, $params); // the $request does not accept extra $params since it's a list, so we're extending each order with the common $params
+                $extendedParams = $this->extend($orderParams, $params); // the $request does not accept extra $params since it's a list, so we're extending each order with the common $params
                 if (!(is_array($extendedParams) && array_key_exists('order_tag', $extendedParams))) {
                     // order tag is mandatory so we will generate one if not provided
                     $extendedParams['order_tag'] = $this->sum($i, (string) 1); // sequential counter
@@ -1116,7 +1117,7 @@ class krakenfutures extends Exchange {
             $request = array(
                 'batchOrder' => $ordersRequests,
             );
-            $response = Async\await($this->privatePostBatchorder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostBatchorder ($this->extend($request, $params)));
             //
             // {
             //     "result" => "success",
@@ -1162,7 +1163,7 @@ class krakenfutures extends Exchange {
             if ($price !== null) {
                 $request['limitPrice'] = $price;
             }
-            $response = Async\await($this->privatePostEditorder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostEditorder ($this->extend($request, $params)));
             $status = $this->safe_string($response['editStatus'], 'status');
             $this->verify_order_action_success($status, 'editOrder', array( 'filled' ));
             $order = $this->parse_order($response['editStatus']);
@@ -1182,14 +1183,14 @@ class krakenfutures extends Exchange {
              * @return An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostCancelorder (array_merge(array( 'order_id' => $id ), $params)));
+            $response = Async\await($this->privatePostCancelorder ($this->extend(array( 'order_id' => $id ), $params)));
             $status = $this->safe_string($this->safe_value($response, 'cancelStatus', array()), 'status');
             $this->verify_order_action_success($status, 'cancelOrder');
             $order = array();
             if (is_array($response) && array_key_exists('cancelStatus', $response)) {
                 $order = $this->parse_order($response['cancelStatus']);
             }
-            return array_merge(array( 'info' => $response ), $order);
+            return $this->extend(array( 'info' => $response ), $order);
         }) ();
     }
 
@@ -1222,7 +1223,7 @@ class krakenfutures extends Exchange {
             $request = array(
                 'batchOrder' => $orders,
             );
-            $response = Async\await($this->privatePostBatchorder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostBatchorder ($this->extend($request, $params)));
             // {
             //     "result" => "success",
             //     "serverTime" => "2023-10-23T16:36:51.327Z",
@@ -1270,7 +1271,7 @@ class krakenfutures extends Exchange {
             if ($symbol !== null) {
                 $request['symbol'] = $this->market_id($symbol);
             }
-            $response = Async\await($this->privatePostCancelallorders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelallorders ($this->extend($request, $params)));
             return $response;
         }) ();
     }
@@ -1288,7 +1289,7 @@ class krakenfutures extends Exchange {
             $request = array(
                 'timeout' => ($timeout > 0) ? ($this->parse_to_int($timeout / 1000)) : 0,
             );
-            $response = Async\await($this->privatePostCancelallordersafter (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelallordersafter ($this->extend($request, $params)));
             //
             //     {
             //         "result" => "success",
@@ -1348,7 +1349,7 @@ class krakenfutures extends Exchange {
             if ($since !== null) {
                 $request['from'] = $since;
             }
-            $response = Async\await($this->historyGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->historyGetOrders ($this->extend($request, $params)));
             $allOrders = $this->safe_list($response, 'elements', array());
             $closedOrders = array();
             for ($i = 0; $i < count($allOrders); $i++) {
@@ -1391,7 +1392,7 @@ class krakenfutures extends Exchange {
             if ($since !== null) {
                 $request['from'] = $since;
             }
-            $response = Async\await($this->historyGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->historyGetOrders ($this->extend($request, $params)));
             $allOrders = $this->safe_list($response, 'elements', array());
             $canceledAndRejected = array();
             for ($i = 0; $i < count($allOrders); $i++) {
@@ -2214,7 +2215,7 @@ class krakenfutures extends Exchange {
             $request = array(
                 'symbol' => strtoupper($market['id']),
             );
-            $response = Async\await($this->publicGetHistoricalfundingrates (array_merge($request, $params)));
+            $response = Async\await($this->publicGetHistoricalfundingrates ($this->extend($request, $params)));
             //
             //    {
             //        "rates" => array(
@@ -2469,7 +2470,7 @@ class krakenfutures extends Exchange {
         return $tiers;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -2559,12 +2560,12 @@ class krakenfutures extends Exchange {
                     throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount);
                 }
                 $request['currency'] = $currency['id'];
-                $response = Async\await($this->privatePostWithdrawal (array_merge($request, $params)));
+                $response = Async\await($this->privatePostWithdrawal ($this->extend($request, $params)));
             } else {
                 $request['fromAccount'] = $this->parse_account($fromAccount);
                 $request['toAccount'] = $this->parse_account($toAccount);
                 $request['unit'] = $currency['id'];
-                $response = Async\await($this->privatePostTransfer (array_merge($request, $params)));
+                $response = Async\await($this->privatePostTransfer ($this->extend($request, $params)));
             }
             //
             //    {
@@ -2573,7 +2574,7 @@ class krakenfutures extends Exchange {
             //    }
             //
             $transfer = $this->parse_transfer($response, $currency);
-            return array_merge($transfer, array(
+            return $this->extend($transfer, array(
                 'amount' => $amount,
                 'fromAccount' => $fromAccount,
                 'toAccount' => $toAccount,
@@ -2602,7 +2603,7 @@ class krakenfutures extends Exchange {
             //
             // array( result => "success", serverTime => "2023-08-01T09:40:32.345Z" )
             //
-            return Async\await($this->privatePutLeveragepreferences (array_merge($request, $params)));
+            return Async\await($this->privatePutLeveragepreferences ($this->extend($request, $params)));
         }) ();
     }
 
@@ -2651,7 +2652,7 @@ class krakenfutures extends Exchange {
             $request = array(
                 'symbol' => strtoupper($this->market_id($symbol)),
             );
-            $response = Async\await($this->privateGetLeveragepreferences (array_merge($request, $params)));
+            $response = Async\await($this->privateGetLeveragepreferences ($this->extend($request, $params)));
             //
             //     {
             //         "result" => "success",
@@ -2665,7 +2666,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'maxLeverage');
         return array(

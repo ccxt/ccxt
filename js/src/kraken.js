@@ -537,6 +537,8 @@ export default class kraken extends Exchange {
             const leverageBuy = this.safeValue(market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
             const precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, 'pair_decimals')));
+            const status = this.safeString(market, 'status');
+            const isActive = status === 'online';
             result.push({
                 'id': id,
                 'wsId': this.safeString(market, 'wsname'),
@@ -555,7 +557,7 @@ export default class kraken extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': isActive,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,

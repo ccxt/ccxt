@@ -288,6 +288,7 @@ public partial class Exchange
             var numStr = Regex.Replace(value, @"/\de/", "");
             return (Int32.Parse(numStr) * -1);
         }
+        value = value.TrimEnd('0');
         var split = Regex.Replace(value, @"/0+$/g", "").Split('.');
         return split.Length > 1 ? split[1].Length : 0;
     }

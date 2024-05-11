@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -58,7 +58,7 @@ export default class woo extends Exchange {
         network: string;
         info: any;
     }>;
-    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: Currency): {
         id: string;
@@ -85,19 +85,9 @@ export default class woo extends Exchange {
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: any;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-        info: any;
-    };
-    parseTransferStatus(status: any): string;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    parseTransferStatus(status: Str): Str;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
@@ -111,7 +101,7 @@ export default class woo extends Exchange {
     };
     nonce(): number;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+        url: string;
         method: string;
         body: any;
         headers: any;
@@ -170,7 +160,7 @@ export default class woo extends Exchange {
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchPosition(symbol?: Str, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
@@ -179,7 +169,7 @@ export default class woo extends Exchange {
     createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
-    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     defaultNetworkCodeForCurrency(code: any): any;
     setSandboxMode(enable: boolean): void;

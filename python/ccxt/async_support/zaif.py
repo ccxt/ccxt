@@ -282,7 +282,7 @@ class zaif(Exchange, ImplicitAPI):
         response = await self.publicGetDepthPair(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "last": 9e-08,
@@ -649,7 +649,7 @@ class zaif(Exchange, ImplicitAPI):
         }
 
     def custom_nonce(self):
-        num = (self.milliseconds() / str(1000))
+        num = self.number_to_string(self.milliseconds() / 1000)
         nonce = float(num)
         return format(nonce, '.8f')
 

@@ -1059,6 +1059,7 @@
         }
     },
     "idex": {
+        "skip": "seems down",
         "skipWs": "timeouts",
         "skipCSharp": "for some reasons, frequent rate limits only in C#",
         "skipMethods": {
@@ -1365,7 +1366,8 @@
     "poloniex": {
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "some currencies does not exist in currencies"
+                "currencyIdAndCode": "some currencies does not exist in currencies",
+                "created": "buggy timestamps https://app.travis-ci.com/github/ccxt/ccxt/builds/270243654#L5259"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269956260#L4357",
@@ -1521,6 +1523,18 @@
                 "id": "undefined",
                 "marginRatio": "undefined",
                 "collateral": "undefined"
+            }
+        }
+	},
+    "woofipro": {
+        "skipMethods":{
+            "loadMarkets":{
+                "active": "undefined",
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies":{
+                "withdraw": "undefined",
+                "deposit": "undefined"
             }
         }
 	},

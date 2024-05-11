@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1464,7 +1464,7 @@ class mexc(Exchange, ImplicitAPI):
             request['limit'] = limit
         trades = None
         if market['spot']:
-            until = self.safe_integer_n(params, ['endTime', 'until', 'till'])
+            until = self.safe_integer_n(params, ['endTime', 'until'])
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1721,7 +1721,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         candles = None
         if market['spot']:
-            until = self.safe_integer_n(params, ['until', 'endTime', 'till'])
+            until = self.safe_integer_n(params, ['until', 'endTime'])
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1732,7 +1732,7 @@ class mexc(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             if until is not None:
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
                 request['endTime'] = until
             response = await self.spotPublicGetKlines(self.extend(request, params))
             #
@@ -1751,11 +1751,11 @@ class mexc(Exchange, ImplicitAPI):
             #
             candles = response
         elif market['swap']:
-            until = self.safe_integer_product_n(params, ['until', 'endTime', 'till'], 0.001)
+            until = self.safe_integer_product_n(params, ['until', 'endTime'], 0.001)
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
             if until is not None:
-                params = self.omit(params, ['until', 'till'])
+                params = self.omit(params, ['until'])
                 request['end'] = until
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
@@ -1947,7 +1947,7 @@ class mexc(Exchange, ImplicitAPI):
         # when it's single symbol request, the returned structure is different(singular object) for both spot & swap, thus we need to wrap inside array
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = None
@@ -4661,7 +4661,7 @@ class mexc(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': None,
         })
 
-    async def fetch_transfer(self, id: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
         await self.load_markets()
         if marketType == 'spot':
@@ -4688,7 +4688,7 @@ class mexc(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
         return None
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -4819,7 +4819,7 @@ class mexc(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # spot: fetchTransfer
         #
@@ -4883,7 +4883,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'ok',
             'FAILED': 'failed',
@@ -5181,7 +5181,7 @@ class mexc(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marginMode = None
         longLeverage = None
         shortLeverage = None

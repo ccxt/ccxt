@@ -357,7 +357,7 @@ class lykke(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #

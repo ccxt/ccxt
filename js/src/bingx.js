@@ -86,6 +86,7 @@ export default class bingx extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
@@ -389,6 +390,7 @@ export default class bingx extends Exchange {
                     '100202': InsufficientFunds,
                     '100204': BadRequest,
                     '100400': BadRequest,
+                    '100410': OperationFailed,
                     '100421': BadSymbol,
                     '100440': ExchangeError,
                     '100500': OperationFailed,
@@ -2924,9 +2926,9 @@ export default class bingx extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'till', 'until']);
+        params = this.omit(params, ['endTime', 'until']);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }

@@ -17,7 +17,7 @@ export default class hyperliquid extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    amountToPrecision(symbol: any, amount: any): any;
+    amountToPrecision(symbol: any, amount: any): string;
     priceToPrecision(symbol: string, price: any): string;
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): {
@@ -75,7 +75,7 @@ export default class hyperliquid extends Exchange {
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     formatVaultAddress(address?: Str): string;

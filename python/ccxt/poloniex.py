@@ -84,6 +84,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'sandbox': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -579,7 +580,7 @@ class poloniex(Exchange, ImplicitAPI):
         response = self.publicGetTimestamp(params)
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol" : "BTC_USDT",
@@ -1751,12 +1752,11 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, fromAccount)
         request = {
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -1769,7 +1769,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    {
         #        "transferId" : "168041074"

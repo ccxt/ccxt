@@ -94,6 +94,7 @@ export default class hitbtc extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -618,6 +619,7 @@ export default class hitbtc extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {
@@ -1737,7 +1739,7 @@ export default class hitbtc extends Exchange {
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
         }
-        [request, params] = this.handleUntilOption('till', request, params);
+        [request, params] = this.handleUntilOption('until', request, params);
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
@@ -2809,11 +2811,11 @@ export default class hitbtc extends Exchange {
         // 'symbols': Comma separated list of symbol codes,
         // 'sort': 'DESC' or 'ASC'
         // 'from': 'Datetime or Number',
-        // 'till': 'Datetime or Number',
+        // 'until': 'Datetime or Number',
         // 'limit': 100,
         // 'offset': 0,
         };
-        [request, params] = this.handleUntilOption('till', request, params);
+        [request, params] = this.handleUntilOption('until', request, params);
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];

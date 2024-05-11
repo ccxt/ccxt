@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, TradingFeeInterface, Currencies } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, TradingFeeInterface, Currencies, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1486,7 +1486,7 @@ export default class kucoin extends Exchange {
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "BTC-USDT",   // symbol
@@ -2434,10 +2434,10 @@ export default class kucoin extends Exchange {
          */
         await this.loadMarkets ();
         let lowercaseStatus = status.toLowerCase ();
-        const until = this.safeInteger2 (params, 'until', 'till');
+        const until = this.safeInteger (params, 'until');
         const stop = this.safeBool (params, 'stop', false);
         const hf = this.safeBool (params, 'hf', false);
-        params = this.omit (params, [ 'stop', 'hf', 'till', 'until' ]);
+        params = this.omit (params, [ 'stop', 'hf', 'until' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
@@ -2539,7 +2539,7 @@ export default class kucoin extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, market, limit_stop or market_stop
          * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
@@ -2570,7 +2570,7 @@ export default class kucoin extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {bool} [params.stop] true if fetching stop orders
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, market, limit_stop or market_stop
@@ -3865,7 +3865,7 @@ export default class kucoin extends Exchange {
         }
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer (spot)
         //
@@ -3921,7 +3921,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'PROCESSING': 'pending',
         };

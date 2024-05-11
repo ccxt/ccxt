@@ -96,6 +96,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -526,19 +527,19 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, response, symbols: Strings = None, params={}):
+    def parse_tickers(self, tickers, symbols: Strings = None, params={}) -> Tickers:
         result = {}
-        keys = list(response.keys())
+        keys = list(tickers.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            ticker = response[key]
+            ticker = tickers[key]
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
             result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #

@@ -74,7 +74,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                     'coin' => $market['swap'] ? $market['base'] : $market['id'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             return $orderbook->limit ();
         }) ();
@@ -155,7 +155,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                     'user' => $userAddress,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -244,7 +244,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                     'coin' => $market['swap'] ? $market['base'] : $market['id'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -379,7 +379,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 ),
             );
             $messageHash = 'candles:' . $timeframe . ':' . $symbol;
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
@@ -455,7 +455,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                     'user' => $userAddress,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orders = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);

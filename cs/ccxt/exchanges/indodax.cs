@@ -515,7 +515,7 @@ public partial class indodax : Exchange
         // }
         //
         object response = await this.publicGetApiTickerAll(parameters);
-        object tickers = this.safeList(response, "tickers");
+        object tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
         return this.parseTickers(tickers, symbols);
     }
 
@@ -598,8 +598,8 @@ public partial class indodax : Exchange
         object timeframes = getValue(this.options, "timeframes");
         object selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
         object now = this.seconds();
-        object until = this.safeInteger2(parameters, "until", "till", now);
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until", now);
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object request = new Dictionary<string, object>() {
             { "to", until },
             { "tf", selectedTimeframe },

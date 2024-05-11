@@ -44,6 +44,38 @@
                 "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"ccxt202269fb13ce74759a10\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000,\"priceEp\":5500000000}"
             },
             {
+                "description": "spot limit trigger order",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                  "ETH/USDT",
+                  "limit",
+                  "buy",
+                  0.001,
+                  3200,
+                  {
+                    "triggerPrice": 3500
+                  }
+                ],
+                "output": "{\"symbol\":\"sETHUSDT\",\"side\":\"Buy\",\"ordType\":\"StopLimit\",\"clOrdID\":\"CCXT123456ebe0dbfc04c284b5\",\"stopPxEp\":350000000000,\"trigger\":\"ByLastPrice\",\"qtyType\":\"ByBase\",\"baseQtyEv\":100000,\"priceEp\":320000000000}"
+            },
+            {
+                "description": "spot market trigger order",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                  "ETH/USDT",
+                  "market",
+                  "buy",
+                  0.001,
+                  null,
+                  {
+                    "triggerPrice": 3500
+                  }
+                ],
+                "output": "{\"symbol\":\"sETHUSDT\",\"side\":\"Buy\",\"ordType\":\"Stop\",\"clOrdID\":\"CCXT1234561e393cf154038656\",\"stopPxEp\":350000000000,\"trigger\":\"ByLastPrice\",\"qtyType\":\"ByBase\",\"baseQtyEv\":100000}"
+            },
+            {
                 "description": "Swap market buy",
                 "method": "createOrder",
                 "url": "https://testnet-api.phemex.com/g-orders",
@@ -54,6 +86,27 @@
                     0.1
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt20221857f87e9488b077\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1}"
+            },
+            {
+                "description": "swap order with tp/sl attached",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.5,
+                  50,
+                  {
+                    "takeProfit": {
+                      "triggerPrice": 150
+                    },
+                    "stopLoss": {
+                      "triggerPrice": 30
+                    }
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456037657993410b08f\",\"posSide\":\"Merged\",\"orderQtyRq\":0.5,\"stopLossRp\":\"30\",\"takeProfitRp\":\"150\",\"priceRp\":\"50\"}"
             },
             {
                 "description": "Swap limit buy with trigger price",

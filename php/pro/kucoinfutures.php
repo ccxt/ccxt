@@ -146,14 +146,14 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'topic' => $subscriptionHash,
                 'response' => true,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $subscriptionRequest = array(
                 'id' => $requestId,
             );
             if ($subscription === null) {
                 $subscription = $subscriptionRequest;
             } else {
-                $subscription = array_merge($subscriptionRequest, $subscription);
+                $subscription = $this->extend($subscriptionRequest, $subscription);
             }
             return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash, $subscription));
         }) ();
@@ -168,7 +168,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'topic' => $topic,
                 'response' => true,
             );
-            return Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $subscriptionHashes, $subscriptionArgs));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $subscriptionHashes, $subscriptionArgs));
         }) ();
     }
 
@@ -288,7 +288,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             $subscription = array(
                 'id' => $requestId,
             );
-            return Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $messageHashes, $subscription));
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
         }) ();
     }
 
@@ -362,7 +362,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 $snapshot = Async\await($client->future ('fetchPositionSnapshot:' . $symbol));
                 return $snapshot;
             }
-            return Async\await($this->subscribe($url, $messageHash, $topic, null, array_merge($request, $params)));
+            return Async\await($this->subscribe($url, $messageHash, $topic, null, $this->extend($request, $params)));
         }) ();
     }
 
@@ -509,7 +509,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 unset($newPosition[$key]);
             }
         }
-        $position = array_merge($currentPosition, $newPosition);
+        $position = $this->extend($currentPosition, $newPosition);
         $cache->append ($position);
         $client->resolve ($position, $messageHash);
     }
@@ -801,7 +801,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
-            $orders = Async\await($this->subscribe($url, $messageHash, $topic, null, array_merge($request, $params)));
+            $orders = Async\await($this->subscribe($url, $messageHash, $topic, null, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -925,7 +925,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'method' => array($this, 'handle_balance_subscription'),
             );
             $messageHash = 'balance';
-            return Async\await($this->subscribe($url, $messageHash, $topic, $subscription, array_merge($request, $params)));
+            return Async\await($this->subscribe($url, $messageHash, $topic, $subscription, $this->extend($request, $params)));
         }) ();
     }
 
