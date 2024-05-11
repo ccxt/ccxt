@@ -308,7 +308,7 @@ class coinex(Exchange, ImplicitAPI):
                 'v2': {
                     'public': {
                         'get': {
-                            'maintain-info': 1,
+                            'maintain/info': 1,
                             'ping': 1,
                             'time': 1,
                             'spot/market': 1,

@@ -278,7 +278,7 @@ public partial class coinex : Exchange
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "maintain-info", 1 },
+                            { "maintain/info", 1 },
                             { "ping", 1 },
                             { "time", 1 },
                             { "spot/market", 1 },
