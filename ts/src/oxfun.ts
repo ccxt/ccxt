@@ -68,7 +68,7 @@ export default class oxfun extends Exchange {
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -76,7 +76,7 @@ export default class oxfun extends Exchange {
                 'fetchL3OrderBook': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -121,7 +121,7 @@ export default class oxfun extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': true, // todo check
+                'transfer': true,
                 'withdraw': false,
                 'ws': true,
             },
@@ -1029,6 +1029,140 @@ export default class oxfun extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) { // todo make it with YZH
+        /**
+         * @method
+         * @name oxfun#fetchLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+         * @see https://docs.ox.fun/?json#get-v3-leverage-tiers
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const response = await this.publicGetV3LeverageTiers (params);
+        //
+        //     {
+        //         success: true,
+        //         data: [
+        //            {
+        //                 marketCode: 'SOL-USD-SWAP-LIN',
+        //                 tiers: [
+        //                     {
+        //                         tier: '1',
+        //                         leverage: '10',
+        //                         positionFloor: '0',
+        //                         positionCap: '200000000',
+        //                         initialMargin: '0.1',
+        //                         maintenanceMargin: '0.05',
+        //                         maintenanceAmount: '0'
+        //                     },
+        //                     {
+        //                         tier: '2',
+        //                         leverage: '5',
+        //                         positionFloor: '200000000',
+        //                         positionCap: '280000000',
+        //                         initialMargin: '0.2',
+        //                         maintenanceMargin: '0.1',
+        //                         maintenanceAmount: '7000000'
+        //                     },
+        //                     {
+        //                         tier: '3',
+        //                         leverage: '4',
+        //                         positionFloor: '280000000',
+        //                         positionCap: '460000000',
+        //                         initialMargin: '0.25',
+        //                         maintenanceMargin: '0.125',
+        //                         maintenanceAmount: '14000000'
+        //                     },
+        //                     ...
+        //                 ]
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data');
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined) {
+        //
+        //     {
+        //         marketCode: 'SOL-USD-SWAP-LIN',
+        //         tiers: [
+        //             {
+        //                 tier: '1',
+        //                 leverage: '10',
+        //                 positionFloor: '0',
+        //                 positionCap: '200000000',
+        //                 initialMargin: '0.1',
+        //                 maintenanceMargin: '0.05',
+        //                 maintenanceAmount: '0'
+        //             },
+        //             {
+        //                 tier: '2',
+        //                 leverage: '5',
+        //                 positionFloor: '200000000',
+        //                 positionCap: '280000000',
+        //                 initialMargin: '0.2',
+        //                 maintenanceMargin: '0.1',
+        //                 maintenanceAmount: '7000000'
+        //             },
+        //             {
+        //                 tier: '3',
+        //                 leverage: '4',
+        //                 positionFloor: '280000000',
+        //                 positionCap: '460000000',
+        //                 initialMargin: '0.25',
+        //                 maintenanceMargin: '0.125',
+        //                 maintenanceAmount: '14000000'
+        //             },
+        //             ...
+        //         ]
+        //     },
+        //
+        let maintenanceMarginRate = this.safeString (info, 'maintenanceMarginRate');
+        let initialMarginRate = this.safeString (info, 'initialMarginRate');
+        const maxVol = this.safeString (info, 'maxVol');
+        const riskIncrVol = this.safeString (info, 'riskIncrVol');
+        const riskIncrMmr = this.safeString (info, 'riskIncrMmr');
+        const riskIncrImr = this.safeString (info, 'riskIncrImr');
+        let floor = '0';
+        const tiers = [];
+        const quoteId = this.safeString (info, 'quoteCoin');
+        if (riskIncrVol === '0') {
+            return [
+                {
+                    'tier': 0,
+                    'currency': this.safeCurrencyCode (quoteId),
+                    'notionalFloor': undefined,
+                    'notionalCap': undefined,
+                    'maintenanceMarginRate': undefined,
+                    'maxLeverage': this.safeNumber (info, 'maxLeverage'),
+                    'info': info,
+                },
+            ];
+        }
+        while (Precise.stringLt (floor, maxVol)) {
+            const cap = Precise.stringAdd (floor, riskIncrVol);
+            tiers.push ({
+                'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
+                'currency': this.safeCurrencyCode (quoteId),
+                'notionalFloor': this.parseNumber (floor),
+                'notionalCap': this.parseNumber (cap),
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                'info': info,
+            });
+            initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
+            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
+            floor = cap;
+        }
+        return tiers;
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
