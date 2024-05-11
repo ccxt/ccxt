@@ -4149,9 +4149,11 @@ export default class coinex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const request = {
-            'market': this.marketIds (symbols),
-        };
+        const request = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            request['market'] = marketIds.join (',');
+        }
         const response = await this.v2PublicGetFuturesPositionLevel (this.extend (request, params));
         //
         //     {
