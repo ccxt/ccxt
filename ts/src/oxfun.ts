@@ -3,6 +3,7 @@
 
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
+import { BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
@@ -217,7 +218,14 @@ export default class oxfun extends Exchange {
             // exchange-specific options
             'options': {
                 'networks': {
-                    // todo: complete list of networks
+                    'BTC': 'Bitcoin',
+                    'ERC20': 'Ethereum',
+                    'AVAX': 'Avalanche',
+                    'SOL': 'Solana',
+                    'ARB': 'Arbitrum',
+                    'MATIC': 'Polygon',
+                    'FTM': 'Fantom',
+                    'BNB': 'BNBSmartChain',
                 },
                 'networksById': {
                     'Bitcoin': 'BTC',
@@ -247,6 +255,7 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"20001","message":"subAcc is invalid"}
                     // {"success":false,"message":null,"code":"500","timestamp":"2024-05-09T13:15:30.418+0000","data":null}
                     // {"success":false,"code":"20001","message":"This market does not have a funding rate"}
+                    // {"success":false,"code":"30001","message":"Required parameter 'asset' is missing"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -1616,6 +1625,49 @@ export default class oxfun extends Exchange {
             'COMPLETED': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name oxfun#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.ox.fun/?json#get-v3-deposit-addresses
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] network for fetch deposit address
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode, code);
+        if (networkId === undefined) {
+            throw new BadRequest (this.id + ' fetchDepositAddress() require network parameter');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'network': networkId,
+        };
+        params = this.omit (params, 'network');
+        const response = await this.privateGetV3DepositAddresses (this.extend (request, params));
+        //
+        //     {"success":true,"data":{"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}}
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //     {"success":true,"data":{"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}}
+        //
+        return {
+            'currency': currency['code'],
+            'address': this.safeString (depositAddress, 'address'),
+            'tag': undefined,
+            'network': undefined,
+            'info': depositAddress,
+        };
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
