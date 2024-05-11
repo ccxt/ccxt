@@ -4168,7 +4168,7 @@ class coinbase extends Exchange {
         return $this->parse_conversion($data);
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         $fromCoin = $this->safe_string($conversion, 'source_currency');
         $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
         $to = $this->safe_string($conversion, 'target_currency');

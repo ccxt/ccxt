@@ -2695,7 +2695,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {
             'info': leverage,
@@ -2982,7 +2982,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'tradeVos', [])
         return self.parse_conversions(rows, code, 'sellAsset', 'buyAsset', since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
         #

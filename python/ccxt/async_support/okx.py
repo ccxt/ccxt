@@ -4980,7 +4980,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = None
         marginMode = None
         longLeverage = None
@@ -5619,6 +5619,22 @@ class okx(Exchange, ImplicitAPI):
         #        "nextFundingRate": "0.00017",
         #        "nextFundingTime": "1634284800000"
         #    }
+        # ws
+        #     {
+        #        "fundingRate":"0.0001875391284828",
+        #        "fundingTime":"1700726400000",
+        #        "instId":"BTC-USD-SWAP",
+        #        "instType":"SWAP",
+        #        "method": "next_period",
+        #        "maxFundingRate":"0.00375",
+        #        "minFundingRate":"-0.00375",
+        #        "nextFundingRate":"0.0002608059239328",
+        #        "nextFundingTime":"1700755200000",
+        #        "premium": "0.0001233824646391",
+        #        "settFundingRate":"0.0001699799259033",
+        #        "settState":"settled",
+        #        "ts":"1700724675402"
+        #     }
         #
         # in the response above nextFundingRate is actually two funding rates from now
         #
@@ -7033,7 +7049,7 @@ class okx(Exchange, ImplicitAPI):
                 return self.parse_greeks(entry, market)
         return None
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "askVol": "0",
@@ -7231,7 +7247,7 @@ class okx(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         return self.parse_option_chain(result, None, 'instId')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "instType": "OPTION",
@@ -7466,7 +7482,7 @@ class okx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'data', [])
         return self.parse_conversions(rows, code, 'baseCcy', 'quoteCcy', since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
         #

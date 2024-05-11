@@ -1847,7 +1847,7 @@ export default class currencycom extends Exchange {
         return this.parseLeverage (response, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const leverageValue = this.safeInteger (leverage, 'value');
         return {
             'info': leverage,

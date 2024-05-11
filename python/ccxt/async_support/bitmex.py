@@ -2016,7 +2016,7 @@ class bitmex(Exchange, ImplicitAPI):
         leverages = await self.fetch_positions(symbols, params)
         return self.parse_leverages(leverages, symbols, 'symbol')
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         return {
             'info': leverage,

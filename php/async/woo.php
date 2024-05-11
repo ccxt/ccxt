@@ -2934,7 +2934,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
             'info' => $leverage,
@@ -3250,7 +3250,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
         //

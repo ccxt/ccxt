@@ -3306,7 +3306,7 @@ class deribit extends Exchange {
         return $this->parse_greeks($result, $market);
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
         //         "estimated_delivery_price" => 36552.72,
@@ -3475,7 +3475,7 @@ class deribit extends Exchange {
         return $this->parse_option_chain($result, 'base_currency', 'instrument_name');
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
         //
         //     {
         //         "mid_price" => 0.04025,

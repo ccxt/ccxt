@@ -3354,7 +3354,7 @@ class hitbtc extends Exchange {
         return $this->parse_leverage($response, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(

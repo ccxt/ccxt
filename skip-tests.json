@@ -1526,6 +1526,18 @@
             }
         }
 	},
+    "woofipro": {
+        "skipMethods":{
+            "loadMarkets":{
+                "active": "undefined",
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies":{
+                "withdraw": "undefined",
+                "deposit": "undefined"
+            }
+        }
+	},
     "yobit": {
         "skipMethods": {
             "loadMarkets":{

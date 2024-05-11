@@ -3165,10 +3165,11 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#setMarginMode
         * @description set margin mode to 'cross' or 'isolated'
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+        * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
         * @param {string} marginMode 'cross' or 'isolated'
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} params.leverage the rate of leverage
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -3187,35 +3188,23 @@ public partial class coinex : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " setMarginMode() supports swap contracts only")) ;
         }
-        object defaultPositionType = null;
-        if (isTrue(isEqual(marginMode, "isolated")))
-        {
-            defaultPositionType = 1;
-        } else if (isTrue(isEqual(marginMode, "cross")))
-        {
-            defaultPositionType = 2;
-        }
         object leverage = this.safeInteger(parameters, "leverage");
         object maxLeverage = this.safeInteger(getValue(getValue(market, "limits"), "leverage"), "max", 100);
-        object positionType = this.safeInteger(parameters, "position_type", defaultPositionType);
         if (isTrue(isEqual(leverage, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a leverage parameter")) ;
         }
-        if (isTrue(isEqual(positionType, null)))
+        if (isTrue(isTrue((isLessThan(leverage, 1))) || isTrue((isGreaterThan(leverage, maxLeverage)))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair")) ;
-        }
-        if (isTrue(isTrue((isLessThan(leverage, 3))) || isTrue((isGreaterThan(leverage, maxLeverage)))))
-        {
-            throw new BadRequest ((string)add(add(add(add(this.id, " setMarginMode() leverage should be between 3 and "), ((object)maxLeverage).ToString()), " for "), symbol)) ;
+            throw new BadRequest ((string)add(add(add(add(this.id, " setMarginMode() leverage should be between 1 and "), ((object)maxLeverage).ToString()), " for "), symbol)) ;
         }
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "leverage", ((object)leverage).ToString() },
-            { "position_type", positionType },
+            { "market_type", "FUTURES" },
+            { "margin_mode", marginMode },
+            { "leverage", leverage },
         };
-        return await this.v1PerpetualPrivatePostMarketAdjustLeverage(this.extend(request, parameters));
+        return await this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters));
     }
 
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -3223,7 +3212,7 @@ public partial class coinex : Exchange
         /**
         * @method
         * @name coinex#setLeverage
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+        * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
         * @description set the level of leverage for a market
         * @param {float} leverage the rate of leverage
         * @param {string} symbol unified market symbol
@@ -3246,14 +3235,6 @@ public partial class coinex : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object positionType = null;
-        if (isTrue(isEqual(marginMode, "isolated")))
-        {
-            positionType = 1;
-        } else if (isTrue(isEqual(marginMode, "cross")))
-        {
-            positionType = 2;
-        }
         object minLeverage = this.safeInteger(getValue(getValue(market, "limits"), "leverage"), "min", 1);
         object maxLeverage = this.safeInteger(getValue(getValue(market, "limits"), "leverage"), "max", 100);
         if (isTrue(isTrue((isLessThan(leverage, minLeverage))) || isTrue((isGreaterThan(leverage, maxLeverage)))))
@@ -3262,10 +3243,11 @@ public partial class coinex : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "leverage", ((object)leverage).ToString() },
-            { "position_type", positionType },
+            { "market_type", "FUTURES" },
+            { "margin_mode", marginMode },
+            { "leverage", leverage },
         };
-        return await this.v1PerpetualPrivatePostMarketAdjustLeverage(this.extend(request, parameters));
+        return await this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters));
     }
 
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)

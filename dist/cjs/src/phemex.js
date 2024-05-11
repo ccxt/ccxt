@@ -2432,12 +2432,14 @@ class phemex extends phemex$1 {
          * @name phemex#createOrder
          * @description create a trade order
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
+         * @see https://phemex-docs.github.io/#place-order-http-put-prefered-3
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.trigger] trigger price for conditional orders
          * @param {object} [params.takeProfit] *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
@@ -2448,7 +2450,7 @@ class phemex extends phemex$1 {
         const market = this.market(symbol);
         const requestSide = this.capitalize(side);
         type = this.capitalize(type);
-        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        const reduceOnly = this.safeBool(params, 'reduceOnly');
         const request = {
             // common
             'symbol': market['id'],
@@ -2492,13 +2494,13 @@ class phemex extends phemex$1 {
             request['clOrdID'] = clientOrderId;
             params = this.omit(params, ['clOrdID', 'clientOrderId']);
         }
-        const stopPrice = this.safeStringN(params, ['stopPx', 'stopPrice', 'triggerPrice']);
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeStringN(params, ['stopPx', 'stopPrice', 'triggerPrice']);
+        if (triggerPrice !== undefined) {
             if (market['settle'] === 'USDT') {
-                request['stopPxRp'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPxRp'] = this.priceToPrecision(symbol, triggerPrice);
             }
             else {
-                request['stopPxEp'] = this.toEp(stopPrice, market);
+                request['stopPxEp'] = this.toEp(triggerPrice, market);
             }
         }
         params = this.omit(params, ['stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice']);
@@ -2508,6 +2510,15 @@ class phemex extends phemex$1 {
                 if (price !== undefined) {
                     qtyType = 'ByQuote';
                 }
+            }
+            if (triggerPrice !== undefined) {
+                if (type === 'Limit') {
+                    request['ordType'] = 'StopLimit';
+                }
+                else if (type === 'Market') {
+                    request['ordType'] = 'Stop';
+                }
+                request['trigger'] = 'ByLastPrice';
             }
             request['qtyType'] = qtyType;
             if (qtyType === 'ByQuote') {
@@ -2549,7 +2560,7 @@ class phemex extends phemex$1 {
             else {
                 request['orderQty'] = this.parseToInt(amount);
             }
-            if (stopPrice !== undefined) {
+            if (triggerPrice !== undefined) {
                 const triggerType = this.safeString(params, 'triggerType', 'ByMarkPrice');
                 request['triggerType'] = triggerType;
             }

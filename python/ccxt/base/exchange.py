@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.18'
+__version__ = '4.3.19'
 
 # -----------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, Orde
 # rsa jwt signing
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, ed25519
 # from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
@@ -199,6 +199,7 @@ class Exchange(object):
     secret = ''
     password = ''
     uid = ''
+    accountId = None
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
@@ -261,6 +262,7 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    fundingRates = None
     bidsasks = None
     base_currencies = None
     quote_currencies = None
@@ -273,6 +275,7 @@ class Exchange(object):
         'apiKey': True,
         'secret': True,
         'uid': False,
+        'accountId': False,
         'login': False,
         'password': False,
         'twofa': False,  # 2-factor authentication (one-time password key)
@@ -438,6 +441,7 @@ class Exchange(object):
         self.headers = dict() if self.headers is None else self.headers
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
+        self.fundingRates = dict() if self.fundingRates is None else self.fundingRates
         self.tickers = dict() if self.tickers is None else self.tickers
         self.bidsasks = dict() if self.bidsasks is None else self.bidsasks
         self.trades = dict() if self.trades is None else self.trades
@@ -1307,7 +1311,7 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def base64urlencode(s):
+    def urlencode_base64(s):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
@@ -1345,8 +1349,8 @@ class Exchange(object):
         if 'nonce' in opts and opts['nonce'] is not None:
             header_opts['nonce'] = opts['nonce']
         header = Exchange.encode(Exchange.json(header_opts))
-        encoded_header = Exchange.base64urlencode(header)
-        encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
+        encoded_header = Exchange.urlencode_base64(header)
+        encoded_data = Exchange.urlencode_base64(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
         algoType = alg[0:2]
         if is_rsa or algoType == 'RS':
@@ -1356,7 +1360,7 @@ class Exchange(object):
             signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
-        return token + '.' + Exchange.base64urlencode(signature)
+        return token + '.' + Exchange.urlencode_base64(signature)
 
     @staticmethod
     def rsa(request, secret, alg='sha256'):
@@ -1438,7 +1442,9 @@ class Exchange(object):
 
     @staticmethod
     def eddsa(request, secret, curve='ed25519'):
-        private_key = load_pem_private_key(Exchange.encode(secret), None)
+        if isinstance(secret, str):
+            Exchange.encode(secret)
+        private_key = ed25519.Ed25519PrivateKey.from_private_bytes(secret) if len(secret) == 32 else load_pem_private_key(secret, None)
         return Exchange.binary_to_base64(private_key.sign(request))
 
     @staticmethod
@@ -5553,6 +5559,8 @@ class Exchange(object):
                 response = None
                 if method == 'fetchAccounts':
                     response = getattr(self, method)(params)
+                elif method == 'getLeverageTiersPaginated':
+                    response = getattr(self, method)(symbol, params)
                 else:
                     response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
@@ -5680,10 +5688,10 @@ class Exchange(object):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption() is not supported yet')
 
     def parse_option_chain(self, response: List[object], currencyKey: Str = None, symbolKey: Str = None):
@@ -5720,7 +5728,7 @@ class Exchange(object):
                 leverageStructures[market['symbol']] = self.parse_leverage(info, market)
         return leverageStructures
 
-    def parse_leverage(self, leverage, market: Market = None):
+    def parse_leverage(self, leverage: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
     def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -5750,7 +5758,7 @@ class Exchange(object):
         both = self.array_concat(fromConversion, toConversion)
         return self.filter_by_since_limit(both, since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None):
         raise NotSupported(self.id + ' parseConversion() is not supported yet')
 
     def convert_expire_date(self, date: str):

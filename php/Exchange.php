@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.18';
+$version = '4.3.19';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.18';
+    const VERSION = '4.3.19';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -145,6 +145,8 @@ class Exchange {
     public $quote_currencies = null;
     public $balance = array();
     public $orderbooks = array();
+    public $fundingRates = array();
+
     public $tickers = array();
     public $bidsasks = array();
     public $fees = array('trading' => array(), 'funding' => array());
@@ -210,6 +212,7 @@ class Exchange {
     public $password = '';
     public $login = '';
     public $uid = '';
+    public $accountId = null;
     public $privateKey = '';
     public $walletAddress = '';
     public $token = ''; // reserved for HTTP auth in some cases
@@ -229,6 +232,7 @@ class Exchange {
         'apiKey' => true,
         'secret' => true,
         'uid' => false,
+        'accountId' => false,
         'login' => false,
         'password' => false,
         'twofa' => false, // 2-factor authentication (one-time password key)
@@ -480,6 +484,7 @@ class Exchange {
         'wazirx',
         'whitebit',
         'woo',
+        'woofipro',
         'yobit',
         'zaif',
         'zonda',
@@ -942,7 +947,7 @@ class Exchange {
         return $output;
     }
 
-    public static function urlencodeBase64($string) {
+    public static function urlencode_base64($string) {
         return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
@@ -1274,8 +1279,8 @@ class Exchange {
         if (array_key_exists('nonce', $opts)) {
             $headerOptions['nonce'] = $opts['nonce'];
         }
-        $encodedHeader = static::urlencodeBase64(json_encode($headerOptions));
-        $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
+        $encodedHeader = static::urlencode_base64(json_encode($headerOptions));
+        $encodedData = static::urlencode_base64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
         $algoType = mb_substr($alg, 0, 2);
         if ($is_rsa || $algoType === 'RS') {
@@ -1286,7 +1291,7 @@ class Exchange {
         } else {
             $signature = static::hmac($token, $secret, $algorithm, 'binary');
         }
-        return $token . '.' . static::urlencodeBase64($signature);
+        return $token . '.' . static::urlencode_base64($signature);
     }
 
     public static function rsa($request, $secret, $alg = 'sha256') {
@@ -1350,10 +1355,13 @@ class Exchange {
 
     public static function eddsa($request, $secret, $algorithm = 'ed25519') {
         $curve = new EdDSA($algorithm);
-        preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match);
-        // trim pem header from 48 bytes -> 32 bytes
-        // in hex so 96 chars -> 64 chars
-        $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
+        if (preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match) >= 1) {
+            // trim pem header from 48 bytes -> 32 bytes
+            // in hex so 96 chars -> 64 chars
+            $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
+        } else {
+            $hex_secret = bin2hex($secret);
+        }
         $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
     }
@@ -6868,6 +6876,8 @@ class Exchange {
                 $response = null;
                 if ($method === 'fetchAccounts') {
                     $response = $this->$method ($params);
+                } elseif ($method === 'getLeverageTiersPaginated') {
+                    $response = $this->$method ($symbol, $params);
                 } else {
                     $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
                 }
@@ -7027,11 +7037,11 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null) {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOption () is not supported yet');
     }
 
@@ -7078,7 +7088,7 @@ class Exchange {
         return $leverageStructures;
     }
 
-    public function parse_leverage($leverage, ?array $market = null) {
+    public function parse_leverage(array $leverage, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLeverage () is not supported yet');
     }
 
@@ -7115,7 +7125,7 @@ class Exchange {
         return $this->filter_by_since_limit($both, $since, $limit);
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null) {
         throw new NotSupported($this->id . ' parseConversion () is not supported yet');
     }
 

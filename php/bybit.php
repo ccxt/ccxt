@@ -342,6 +342,7 @@ class bybit extends Exchange {
                         'v5/asset/coin/query-info' => 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
                         'v5/asset/withdraw/query-record' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount' => 5,
+                        'v5/asset/withdraw/vasp/list' => 5,
                         // user
                         'v5/user/query-sub-members' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api' => 5, // 10/s => cost = 50 / 10 = 5
@@ -6509,7 +6510,7 @@ class bybit extends Exchange {
         return $this->parse_leverage($position, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -7834,7 +7835,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-26JAN24-39000-C",
@@ -8020,31 +8021,57 @@ class bybit extends Exchange {
         ));
     }
 
+    public function get_leverage_tiers_paginated(?string $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'getLeverageTiersPaginated', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('getLeverageTiersPaginated', $symbol, null, null, $params, 'nextPageCursor', 'cursor', null, 100);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('getLeverageTiersPaginated', $market, $params, 'linear');
+        $request = array(
+            'category' => $subType,
+        );
+        $response = $this->publicGetV5MarketRiskLimit ($this->extend($request, $params));
+        $result = $this->add_pagination_cursor_to_result($response);
+        $first = $this->safe_dict($result, 0);
+        $total = count($result);
+        $lastIndex = $total - 1;
+        $last = $this->safe_dict($result, $lastIndex);
+        $cursorValue = $this->safe_string($first, 'nextPageCursor');
+        $last['info'] = array(
+            'nextPageCursor' => $cursorValue,
+        );
+        $result[$lastIndex] = $last;
+        return $result;
+    }
+
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * retrieve information on the maximum leverage, for different trade sizes
          * @param {string[]} [$symbols] a list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->subType] $market $subType, ['linear', 'inverse'], default is 'linear'
+         * @param {string} [$params->subType] $market subType, ['linear', 'inverse'], default is 'linear'
+         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by $market $symbols
          */
         $this->load_markets();
         $market = null;
+        $symbol = null;
         if ($symbols !== null) {
             $market = $this->market($symbols[0]);
             if ($market['spot']) {
                 throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported for spot market');
             }
+            $symbol = $market['symbol'];
         }
-        $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
-        $request = array(
-            'category' => $subType,
-        );
-        $response = $this->publicGetV5MarketRiskLimit ($this->extend($request, $params));
-        $result = $this->safe_dict($response, 'result', array());
-        $data = $this->safe_list($result, 'list', array());
+        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 20 ), $params));
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
@@ -8071,9 +8098,13 @@ class bybit extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
             $entry = $grouped[$marketId];
+            for ($j = 0; $j < count($entry); $j++) {
+                $id = $this->safe_integer($entry[$j], 'id');
+                $entry[$j]['id'] = $id;
+            }
             $market = $this->safe_market($marketId, null, null, 'contract');
             $symbol = $market['symbol'];
-            $tiers[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+            $tiers[$symbol] = $this->parse_market_leverage_tiers($this->sort_by($entry, 'id'), $market);
         }
         return $tiers;
     }
@@ -8334,7 +8365,7 @@ class bybit extends Exchange {
         return $this->parse_option_chain($resultList, null, 'symbol');
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
         //
         //     {
         //         "symbol" => "BTC-27DEC24-55000-P",

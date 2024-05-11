@@ -6849,7 +6849,7 @@ class gate extends Exchange {
         return null;
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
         //         "vega" => "1.78992",
@@ -7071,7 +7071,7 @@ class gate extends Exchange {
         return $this->parse_leverages($response, $symbols, $marketIdRequest, 'spot');
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string_2($leverage, 'currency_pair', 'id');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -7201,7 +7201,7 @@ class gate extends Exchange {
         return $this->parse_option_chain($response, null, 'name');
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
         //
         //     {
         //         "is_active" => true,

@@ -5565,7 +5565,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marginMode = null;
         $longLeverage = null;
         $shortLeverage = null;

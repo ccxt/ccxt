@@ -4246,7 +4246,7 @@ export default class coinbase extends Exchange {
         return this.parseConversion (data);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         const fromCoin = this.safeString (conversion, 'source_currency');
         const fromCode = this.safeCurrencyCode (fromCoin, fromCurrency);
         const to = this.safeString (conversion, 'target_currency');

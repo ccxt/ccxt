@@ -2881,7 +2881,7 @@ export default class delta extends Exchange {
         return this.parseLeverage (result, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'index_symbol');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
@@ -3160,7 +3160,7 @@ export default class delta extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "close": 6793.0,
@@ -3429,7 +3429,7 @@ export default class delta extends Exchange {
         return this.parseOption (result, undefined, market);
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "close": 6793.0,

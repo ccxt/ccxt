@@ -844,7 +844,7 @@ public partial class coinex
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -864,7 +864,7 @@ public partial class coinex
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
