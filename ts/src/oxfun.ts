@@ -246,6 +246,7 @@ export default class oxfun extends Exchange {
                     // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
                     // {"success":false,"code":"20001","message":"subAcc is invalid"}
                     // {"success":false,"message":null,"code":"500","timestamp":"2024-05-09T13:15:30.418+0000","data":null}
+                    // {"success":false,"code":"20001","message":"This market does not have a funding rate"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -948,6 +949,88 @@ export default class oxfun extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#fetchFundingRateHistory
+         * @description Fetches the history of funding rates
+         * @see https://docs.ox.fun/?json#get-v3-funding-rates
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketCode': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.publicGetV3FundingRates (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         data: [
+        //         {
+        //             marketCode: 'NEAR-USD-SWAP-LIN',
+        //             fundingRate: '-0.000010000',
+        //             createdAt: '1715428870755'
+        //         },
+        //         {
+        //             marketCode: 'ENA-USD-SWAP-LIN',
+        //             fundingRate: '0.000150000',
+        //             createdAt: '1715428868616'
+        //         },
+        //         ...
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseFundingRateHistories (data, market, since, limit);
+    }
+
+    parseFundingRateHistory (info, market: Market = undefined) {
+        //
+        //     {
+        //         success: true,
+        //         data: [
+        //         {
+        //             marketCode: 'NEAR-USD-SWAP-LIN',
+        //             fundingRate: '-0.000010000',
+        //             createdAt: '1715428870755'
+        //         },
+        //         {
+        //             marketCode: 'ENA-USD-SWAP-LIN',
+        //             fundingRate: '0.000150000',
+        //             createdAt: '1715428868616'
+        //         },
+        //         ...
+        //     }
+        //
+        const marketId = this.safeString (info, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol']
+        const timestamp = this.safeInteger (info, 'matchedAt');
+        return {
+            'info': info,
+            'symbol': symbol,
+            'fundingRate': this.safeNumber (info, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -1562,14 +1645,14 @@ export default class oxfun extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let baseUrl = this.urls['api'][api];
+        const baseUrl = this.urls['api'][api];
         const endpoint = this.implodeParams (path, params);
         let url = baseUrl + '/' + endpoint;
         const query = this.omit (params, this.extractParams (path));
         let queryString = '';
         if (method === 'GET' || method === 'DELETE') {
             if (query.length !== 0) {
-                queryString = this.urlencode(query);
+                queryString = this.urlencode (query);
                 url += '?' + queryString;
             }
         }
