@@ -1174,44 +1174,48 @@ public struct LeverageTier
     }
 }
 
-// public struct LeverageTiersDict
-// {
-//     public Dictionary<string, object> info;
-//     public Dictionary<string, LeverageTier[]> leverageTiersDict;
+public struct LeverageTiers
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, List<LeverageTier>> tiers;
 
-//     public LeverageTiersDict(object leverageTiersDict2)
-//     {
-//         var leverageTiersDict = (Dictionary<string, object>)leverageTiersDict2;
+    public LeverageTiers(object leverageTiersDict2)
+    {
+        var leverageTiersDict = (Dictionary<string, object>)leverageTiersDict2;
 
-//         info = leverageTiersDict.ContainsKey("info") ? (Dictionary<string, object>)leverageTiersDict["info"] : null;
-//         this.leverageTiersDict = new Dictionary<string, LeverageTier[]>();
-//         foreach (var leverageTier in leverageTiersDict)
-//         {
-//             if (leverageTier.Key != "info")
-//                 this.leverageTiersDict.Add(leverageTier.Key, new LeverageTier[](leverageTier.Value));
-//         }
-//     }
+        info = leverageTiersDict.ContainsKey("info") ? (Dictionary<string, object>)leverageTiersDict["info"] : null;
+        this.tiers = new Dictionary<string, List<LeverageTier>>();
+        foreach (var leverageTier in leverageTiersDict)
+        {
+            if (leverageTier.Key != "info")
+            {
+                var leverageTiers = (List<object>)leverageTier.Value;
+                var leverageTiersList = leverageTiers.Select(x => new LeverageTier(x)).ToList();
+                this.tiers.Add(leverageTier.Key, leverageTiersList);
+            }
+        }
+    }
 
-//     // Indexer
-//     public LeverageTier[] this[string key]
-//     {
-//         get
-//         {
-//             if (leverageTiersDict.ContainsKey(key))
-//             {
-//                 return leverageTiersDict[key];
-//             }
-//             else
-//             {
-//                 throw new KeyNotFoundException($"The key '{key}' was not found in the tickers.");
-//             }
-//         }
-//         set
-//         {
-//             leverageTiersDict[key] = value;
-//         }
-//     }
-// }
+    // Indexer
+    public List<LeverageTier> this[string key]
+    {
+        get
+        {
+            if (tiers.ContainsKey(key))
+            {
+                return tiers[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the tickers.");
+            }
+        }
+        set
+        {
+            tiers[key] = value;
+        }
+    }
+}
 
 
 
