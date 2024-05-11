@@ -1287,7 +1287,21 @@ export default class oxfun extends Exchange {
         };
         const response = await this.privatePostV3Transfer (this.extend (request, params));
         //
-        // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null}
+        //     {
+        //         timestamp: 1715430036267,
+        //         datetime: '2024-05-11T12:20:36.267Z',
+        //         currency: 'OX',
+        //         amount: 10,
+        //         fromAccount: '106464',
+        //         toAccount: '106570',
+        //         info: {
+        //         asset: 'OX',
+        //         quantity: '10',
+        //         fromAccount: '106464',
+        //         toAccount: '106570',
+        //         transferredAt: '1715430036267'
+        //         }
+        //     }
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseTransfer (data, currency);
@@ -1548,10 +1562,17 @@ export default class oxfun extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
+        let baseUrl = this.urls['api'][api];
         const endpoint = this.implodeParams (path, params);
-        query = this.urlencode (query);
+        let url = baseUrl + '/' + endpoint;
+        const query = this.omit (params, this.extractParams (path));
+        let queryString = '';
+        if (method === 'GET' || method === 'DELETE') {
+            if (query.length !== 0) {
+                queryString = this.urlencode(query);
+                url += '?' + queryString;
+            }
+        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
@@ -1559,8 +1580,12 @@ export default class oxfun extends Exchange {
             const datetimeParts = isoDatetime.split ('.');
             const datetime = datetimeParts[0];
             const nonce = this.nonce ();
-            const urlParts = url.split ('//');
-            const msgString = datetime + '\n' + nonce + '\n' + method + '\n' + urlParts[1] + '\n/' + endpoint + '\n' + query;
+            const urlParts = baseUrl.split ('//');
+            if (method === 'POST') {
+                body = this.json (query);
+                queryString = body;
+            }
+            const msgString = datetime + '\n' + nonce + '\n' + method + '\n' + urlParts[1] + '\n/' + endpoint + '\n' + queryString;
             const signature = this.hmac (this.encode (msgString), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'Content-Type': 'application/json',
@@ -1569,10 +1594,6 @@ export default class oxfun extends Exchange {
                 'Signature': signature,
                 'Nonce': nonce,
             };
-        }
-        url = url + '/' + endpoint;
-        if (query.length !== 0) {
-            url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
