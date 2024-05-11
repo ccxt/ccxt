@@ -1340,7 +1340,7 @@ class bitmex(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # see response sample under "fetchMarkets" because same endpoint is being used here
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -2016,7 +2016,7 @@ class bitmex(Exchange, ImplicitAPI):
         leverages = await self.fetch_positions(symbols, params)
         return self.parse_leverages(leverages, symbols, 'symbol')
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         return {
             'info': leverage,

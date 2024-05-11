@@ -907,6 +907,16 @@ public partial class Exchange
         return isEqual(res, 0);
     }
 
+    public virtual object safeIntegerOmitZero(object obj, object key, object defaultValue = null)
+    {
+        object timestamp = this.safeInteger(obj, key, defaultValue);
+        if (isTrue(isTrue(isEqual(timestamp, null)) || isTrue(isEqual(timestamp, 0))))
+        {
+            return null;
+        }
+        return timestamp;
+    }
+
     public virtual void afterConstruct()
     {
         this.createNetworksByIdObject();
@@ -2401,7 +2411,7 @@ public partial class Exchange
         return networkId;
     }
 
-    public virtual object networkIdToCode(object networkId, object currencyCode = null)
+    public virtual object networkIdToCode(object networkId = null, object currencyCode = null)
     {
         /**
          * @ignore
@@ -5018,6 +5028,7 @@ public partial class Exchange
         //
         // the value of tickers is either a dict or a list
         //
+        //
         // dict
         //
         //     {
@@ -5140,7 +5151,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object isTriggerOrder(object parameters)
+    public virtual object handleTriggerAndParams(object parameters)
     {
         object isTrigger = this.safeBool2(parameters, "trigger", "stop");
         if (isTrue(isTrigger))
@@ -5148,6 +5159,12 @@ public partial class Exchange
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         }
         return new List<object>() {isTrigger, parameters};
+    }
+
+    public virtual object isTriggerOrder(object parameters)
+    {
+        // for backwards compatibility
+        return this.handleTriggerAndParams(parameters);
     }
 
     public virtual object isPostOnly(object isMarketOrder, object exchangeSpecificParam, object parameters = null)
@@ -5912,6 +5929,9 @@ public partial class Exchange
                 if (isTrue(isEqual(method, "fetchAccounts")))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+                } else if (isTrue(isEqual(method, "getLeverageTiersPaginated")))
+                {
+                    response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, parameters }));
                 } else
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));
@@ -6360,6 +6380,18 @@ public partial class Exchange
             }
         }
         return marginModifications;
+    }
+
+    public async virtual Task<object> fetchTransfer(object id, object code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTransfer () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
     }
 }
 

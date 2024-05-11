@@ -1,5 +1,5 @@
 import Exchange from './abstract/exmo.js';
-import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary } from './base/types.js';
 /**
  * @class exmo
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OH
 export default class exmo extends Exchange {
     describe(): any;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
@@ -25,7 +25,7 @@ export default class exmo extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: Market): Trade;

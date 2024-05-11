@@ -108,6 +108,9 @@ interface Exchange {
     privateSpotGetV2SpotAccountSubaccountAssets (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotAccountBills (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotAccountTransferRecords (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountFundingAssets (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountBotAssets (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountAllAccountBalance (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletDepositAddress (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletDepositRecords (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletWithdrawalRecords (params?: {}): Promise<implicitReturnType>;

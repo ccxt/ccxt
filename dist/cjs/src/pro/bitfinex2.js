@@ -682,6 +682,8 @@ class bitfinex2 extends bitfinex2$1 {
         const responseChecksum = this.safeInteger(message, 2);
         if (responseChecksum !== localChecksum) {
             const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject(error, messageHash);
         }
     }

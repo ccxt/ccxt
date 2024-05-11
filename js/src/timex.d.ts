@@ -1,5 +1,5 @@
 import Exchange from './abstract/timex.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 /**
  * @class timex
  * @augments Exchange
@@ -54,7 +54,7 @@ export default class timex extends Exchange {
         };
         networks: {};
     };
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     parseTrade(trade: any, market?: Market): Trade;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseOrder(order: any, market?: Market): Order;

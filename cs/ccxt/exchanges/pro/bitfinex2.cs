@@ -753,6 +753,8 @@ public partial class bitfinex2 : ccxt.bitfinex2
         if (isTrue(!isEqual(responseChecksum, localChecksum)))
         {
             var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
             ((WebSocketClient)client).reject(error, messageHash);
         }
     }

@@ -211,7 +211,7 @@ class hyperliquid extends Exchange {
         $request = array(
             'type' => 'meta',
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -278,7 +278,7 @@ class hyperliquid extends Exchange {
         $request = array(
             'type' => 'metaAndAssetCtxs',
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -315,7 +315,7 @@ class hyperliquid extends Exchange {
         $assetCtxs = $this->safe_dict($response, 1, array());
         $result = array();
         for ($i = 0; $i < count($meta); $i++) {
-            $data = array_merge(
+            $data = $this->extend(
                 $this->safe_dict($meta, $i, array()),
                 $this->safe_dict($assetCtxs, $i, array())
             );
@@ -335,7 +335,7 @@ class hyperliquid extends Exchange {
         $request = array(
             'type' => 'spotMetaAndAssetCtxs',
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         // array(
         //     array(
@@ -627,7 +627,7 @@ class hyperliquid extends Exchange {
             'type' => $reqType,
             'user' => $userAddress,
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     {
         //         "assetPositions" => array(),
@@ -707,7 +707,7 @@ class hyperliquid extends Exchange {
             'type' => 'l2Book',
             'coin' => $market['swap'] ? $market['base'] : $market['id'],
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     {
         //         "coin" => "ETH",
@@ -770,7 +770,7 @@ class hyperliquid extends Exchange {
                 'endTime' => $until,
             ),
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -847,7 +847,7 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1152,7 +1152,7 @@ class hyperliquid extends Exchange {
             if ($clientOrderId !== null) {
                 $orderObj['c'] = $clientOrderId;
             }
-            $orderReq[] = array_merge($orderObj, $orderParams);
+            $orderReq[] = $this->extend($orderObj, $orderParams);
         }
         $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
         $orderAction = array(
@@ -1175,7 +1175,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1274,7 +1274,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         //
         //     {
         //         "status":"ok",
@@ -1346,7 +1346,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         //
         //     {
         //         "status":"ok",
@@ -1391,7 +1391,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         //
         //     {
         //         "status":"err",
@@ -1509,7 +1509,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1579,7 +1579,7 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1625,7 +1625,7 @@ class hyperliquid extends Exchange {
             'type' => 'openOrders',
             'user' => $userAddress,
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1660,7 +1660,7 @@ class hyperliquid extends Exchange {
             'type' => 'historicalOrders',
             'user' => $userAddress,
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1695,7 +1695,7 @@ class hyperliquid extends Exchange {
             'oid' => $this->parse_to_numeric($id),
             'user' => $userAddress,
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     {
         //         "order" => array(
@@ -1898,7 +1898,7 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2001,7 +2001,7 @@ class hyperliquid extends Exchange {
             'type' => 'clearinghouseState',
             'user' => $userAddress,
         );
-        $response = $this->publicPostInfo (array_merge($request, $params));
+        $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     {
         //         "assetPositions" => array(
@@ -2159,7 +2159,7 @@ class hyperliquid extends Exchange {
                 $vaultAddress = str_replace('0x', '', $vaultAddress);
             }
         }
-        $extendedAction = array_merge($updateAction, $params);
+        $extendedAction = $this->extend($updateAction, $params);
         $signature = $this->sign_l1_action($extendedAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $extendedAction,
@@ -2219,7 +2219,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         //
         //     {
         //         'response' => array(
@@ -2282,7 +2282,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         //
         //     {
         //         'response' => array(
@@ -2291,12 +2291,12 @@ class hyperliquid extends Exchange {
         //         'status' => 'ok'
         //     }
         //
-        return array_merge($this->parse_margin_modification($response, $market), array(
+        return $this->extend($this->parse_margin_modification($response, $market), array(
             'code' => $this->safe_string($response, 'status'),
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         //    {
         //        'type' => 'default'
@@ -2349,7 +2349,7 @@ class hyperliquid extends Exchange {
             );
             $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
             $innerRequest = array(
-                'action' => array_merge($action, $params),
+                'action' => $this->extend($action, $params),
                 'nonce' => $nonce,
                 'signature' => $signature,
             );
@@ -2382,7 +2382,7 @@ class hyperliquid extends Exchange {
             'nonce' => $nonce,
             'signature' => $sig,
         );
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         return $response;
     }
 
@@ -2423,7 +2423,7 @@ class hyperliquid extends Exchange {
             'nonce' => $nonce,
             'signature' => $sig,
         );
-        $response = $this->privatePostExchange (array_merge($request, $params));
+        $response = $this->privatePostExchange ($this->extend($request, $params));
         return $response;
     }
 

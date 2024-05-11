@@ -509,7 +509,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # {
         #     "pair":"XBTAUD",
         #     "timestamp":1642201439301,

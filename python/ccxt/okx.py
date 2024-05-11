@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, Leverage, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -25,6 +25,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import ContractUnavailable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -503,6 +504,7 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/grid/adjust-investment': 1,
                         'tradingBot/signal/create-signal': 1,
                         'tradingBot/signal/order-algo': 1,
                         'tradingBot/signal/stop-order-algo': 1,
@@ -912,7 +914,24 @@ class okx(Exchange, ImplicitAPI):
                     '60017': BadRequest,  # Invalid url path
                     '60018': BadRequest,  # The {0} {1} {2} {3} {4} does not exist
                     '60019': BadRequest,  # Invalid op {op}
+                    '60020': ExchangeError,  # APIKey subscription amount exceeds the limit
+                    '60021': AccountNotEnabled,  # This operation does not support multiple accounts login
+                    '60022': AuthenticationError,  # Bulk login partially succeeded
+                    '60023': DDoSProtection,  # Bulk login requests too frequent
+                    '60024': AuthenticationError,  # Wrong passphrase
+                    '60025': ExchangeError,  # Token subscription amount exceeds the limit
+                    '60026': AuthenticationError,  # Batch login by APIKey and token simultaneously is not supported
+                    '60027': ArgumentsRequired,  # Parameter {0} can not be empty
+                    '60028': NotSupported,  # The current operation is not supported by self URL
+                    '60029': AccountNotEnabled,  # Only users who are VIP5 and above in trading fee tier are allowed to subscribe to books-l2-tbt channel
+                    '60030': AccountNotEnabled,  # Only users who are VIP4 and above in trading fee tier are allowed to subscribe to books50-l2-tbt channel
+                    '60031': AuthenticationError,  # The WebSocket endpoint does not support multiple account batch login,
+                    '60032': AuthenticationError,  # API key doesn't exist,
                     '63999': ExchangeError,  # Internal system error
+                    '64000': BadRequest,  # Subscription parameter uly is unavailable anymore, please replace uly with instFamily. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64001': BadRequest,  # This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64002': BadRequest,  # This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
+                    '64003': AccountNotEnabled,  # Your trading fee tier doesnt meet the requirement to access self channel
                     '70010': BadRequest,  # Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest,  # endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest,  # Please specify your instrument settings for at least one instType.
@@ -1740,7 +1759,7 @@ class okx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(first, 'ts')
         return self.parse_order_book(first, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "instType": "SPOT",
@@ -4960,7 +4979,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = None
         marginMode = None
         longLeverage = None
@@ -5367,7 +5386,7 @@ class okx(Exchange, ImplicitAPI):
         rawTransfer = self.safe_dict(data, 0, {})
         return self.parse_transfer(rawTransfer, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -5443,13 +5462,13 @@ class okx(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'success': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_transfer(self, id: str, code: Str = None, params={}):
+    def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
         self.load_markets()
         request = {
             'transId': id,
@@ -5480,7 +5499,7 @@ class okx(Exchange, ImplicitAPI):
         transfer = self.safe_dict(data, 0)
         return self.parse_transfer(transfer)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
@@ -5599,6 +5618,22 @@ class okx(Exchange, ImplicitAPI):
         #        "nextFundingRate": "0.00017",
         #        "nextFundingTime": "1634284800000"
         #    }
+        # ws
+        #     {
+        #        "fundingRate":"0.0001875391284828",
+        #        "fundingTime":"1700726400000",
+        #        "instId":"BTC-USD-SWAP",
+        #        "instType":"SWAP",
+        #        "method": "next_period",
+        #        "maxFundingRate":"0.00375",
+        #        "minFundingRate":"-0.00375",
+        #        "nextFundingRate":"0.0002608059239328",
+        #        "nextFundingTime":"1700755200000",
+        #        "premium": "0.0001233824646391",
+        #        "settFundingRate":"0.0001699799259033",
+        #        "settState":"settled",
+        #        "ts":"1700724675402"
+        #     }
         #
         # in the response above nextFundingRate is actually two funding rates from now
         #
@@ -6200,7 +6235,7 @@ class okx(Exchange, ImplicitAPI):
             'status': 'ok' if (errorCode == '0') else 'failed',
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # addMargin/reduceMargin
         #
@@ -7013,7 +7048,7 @@ class okx(Exchange, ImplicitAPI):
                 return self.parse_greeks(entry, market)
         return None
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "askVol": "0",
@@ -7211,7 +7246,7 @@ class okx(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         return self.parse_option_chain(result, None, 'instId')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "instType": "OPTION",
@@ -7446,7 +7481,7 @@ class okx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'data', [])
         return self.parse_conversions(rows, code, 'baseCcy', 'quoteCcy', since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
         #

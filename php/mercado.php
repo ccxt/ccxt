@@ -262,11 +262,11 @@ class mercado extends Exchange {
         $request = array(
             'coin' => $market['base'],
         );
-        $response = $this->publicGetCoinOrderbook (array_merge($request, $params));
+        $response = $this->publicGetCoinOrderbook ($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"103.96000000",
@@ -318,7 +318,7 @@ class mercado extends Exchange {
         $request = array(
             'coin' => $market['base'],
         );
-        $response = $this->publicGetCoinTicker (array_merge($request, $params));
+        $response = $this->publicGetCoinTicker ($this->extend($request, $params));
         $ticker = $this->safe_value($response, 'ticker', array());
         //
         //     {
@@ -393,7 +393,7 @@ class mercado extends Exchange {
         if ($to !== null) {
             $method .= 'To';
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -459,7 +459,7 @@ class mercado extends Exchange {
                 $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
             }
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         // TODO => replace this with a call to parseOrder for unification
         return $this->safe_order(array(
             'info' => $response,
@@ -484,7 +484,7 @@ class mercado extends Exchange {
             'coin_pair' => $market['id'],
             'order_id' => $id,
         );
-        $response = $this->privatePostCancelOrder (array_merge($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
         //
         //     {
         //         "response_data" => {
@@ -611,7 +611,7 @@ class mercado extends Exchange {
             'coin_pair' => $market['id'],
             'order_id' => intval($id),
         );
-        $response = $this->privatePostGetOrder (array_merge($request, $params));
+        $response = $this->privatePostGetOrder ($this->extend($request, $params));
         $responseData = $this->safe_value($response, 'response_data', array());
         $order = $this->safe_dict($responseData, 'order');
         return $this->parse_order($order, $market);
@@ -656,7 +656,7 @@ class mercado extends Exchange {
                 }
             }
         }
-        $response = $this->privatePostWithdrawCoin (array_merge($request, $params));
+        $response = $this->privatePostWithdrawCoin ($this->extend($request, $params));
         //
         //     {
         //         "response_data" => {
@@ -757,7 +757,7 @@ class mercado extends Exchange {
             $request['to'] = $this->seconds();
             $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
         }
-        $response = $this->v4PublicNetGetCandles (array_merge($request, $params));
+        $response = $this->v4PublicNetGetCandles ($this->extend($request, $params));
         $candles = $this->convert_trading_view_to_ohlcv($response, 't', 'o', 'h', 'l', 'c', 'v');
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
@@ -779,7 +779,7 @@ class mercado extends Exchange {
         $request = array(
             'coin_pair' => $market['id'],
         );
-        $response = $this->privatePostListOrders (array_merge($request, $params));
+        $response = $this->privatePostListOrders ($this->extend($request, $params));
         $responseData = $this->safe_value($response, 'response_data', array());
         $orders = $this->safe_list($responseData, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -803,7 +803,7 @@ class mercado extends Exchange {
             'coin_pair' => $market['id'],
             'status_list' => '[2]', // open only
         );
-        $response = $this->privatePostListOrders (array_merge($request, $params));
+        $response = $this->privatePostListOrders ($this->extend($request, $params));
         $responseData = $this->safe_value($response, 'response_data', array());
         $orders = $this->safe_list($responseData, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -827,7 +827,7 @@ class mercado extends Exchange {
             'coin_pair' => $market['id'],
             'has_fills' => true,
         );
-        $response = $this->privatePostListOrders (array_merge($request, $params));
+        $response = $this->privatePostListOrders ($this->extend($request, $params));
         $responseData = $this->safe_value($response, 'response_data', array());
         $ordersRaw = $this->safe_value($responseData, 'orders', array());
         $orders = $this->parse_orders($ordersRaw, $market, $since, $limit);
@@ -858,7 +858,7 @@ class mercado extends Exchange {
             $this->check_required_credentials();
             $url .= $this->version . '/';
             $nonce = $this->nonce();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'tapi_method' => $path,
                 'tapi_nonce' => $nonce,
             ), $params));

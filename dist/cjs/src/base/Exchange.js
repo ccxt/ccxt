@@ -44,7 +44,7 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
+const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -83,6 +83,7 @@ class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
+        this.fundingRates = {};
         this.bidsasks = {};
         this.orders = undefined;
         this.triggerOrders = undefined;
@@ -232,6 +233,7 @@ class Exchange {
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
         this.packb = packb;
+        this.urlencodeBase64 = urlencodeBase64;
         this.httpProxyAgentModule = undefined;
         this.httpsProxyAgentModule = undefined;
         this.socksProxyAgentModule = undefined;
@@ -586,6 +588,7 @@ class Exchange {
                 'apiKey': true,
                 'secret': true,
                 'uid': false,
+                'accountId': false,
                 'login': false,
                 'password': false,
                 'twofa': false,
@@ -2158,6 +2161,13 @@ class Exchange {
         const res = this.parseToNumeric((value % 1));
         return res === 0;
     }
+    safeIntegerOmitZero(obj, key, defaultValue = undefined) {
+        const timestamp = this.safeInteger(obj, key, defaultValue);
+        if (timestamp === undefined || timestamp === 0) {
+            return undefined;
+        }
+        return timestamp;
+    }
     afterConstruct() {
         this.createNetworksByIdObject();
     }
@@ -3383,7 +3393,7 @@ class Exchange {
         }
         return networkId;
     }
-    networkIdToCode(networkId, currencyCode = undefined) {
+    networkIdToCode(networkId = undefined, currencyCode = undefined) {
         /**
          * @ignore
          * @method
@@ -5246,6 +5256,7 @@ class Exchange {
         //
         // the value of tickers is either a dict or a list
         //
+        //
         // dict
         //
         //     {
@@ -5340,12 +5351,16 @@ class Exchange {
         }
         return result;
     }
-    isTriggerOrder(params) {
+    handleTriggerAndParams(params) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit(params, ['trigger', 'stop']);
         }
         return [isTrigger, params];
+    }
+    isTriggerOrder(params) {
+        // for backwards compatibility
+        return this.handleTriggerAndParams(params);
     }
     isPostOnly(isMarketOrder, exchangeSpecificParam, params = {}) {
         /**
@@ -5933,6 +5948,9 @@ class Exchange {
                 if (method === 'fetchAccounts') {
                     response = await this[method](params);
                 }
+                else if (method === 'getLeverageTiersPaginated') {
+                    response = await this[method](symbol, params);
+                }
                 else {
                     response = await this[method](symbol, since, maxEntriesPerRequest, params);
                 }
@@ -6297,6 +6315,31 @@ class Exchange {
             }
         }
         return marginModifications;
+    }
+    async fetchTransfer(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {[string]} code unified currency code
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchTransfer () is not supported yet');
+    }
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchTransfer
+         * @description fetches a transfer
+         * @param {string} id transfer id
+         * @param {int} [since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [limit] the maximum amount of transfers to fetch
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchTransfers () is not supported yet');
     }
 }
 

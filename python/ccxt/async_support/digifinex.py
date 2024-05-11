@@ -8,7 +8,7 @@ from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1095,7 +1095,7 @@ class digifinex(Exchange, ImplicitAPI):
             result = self.extend({'date': date}, firstTicker)
         return self.parse_ticker(result, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -2680,13 +2680,13 @@ class digifinex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '0': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -3439,7 +3439,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch the transfer history, only transfers between spot and swap accounts are supported
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
@@ -3792,7 +3792,7 @@ class digifinex(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",

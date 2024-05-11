@@ -1482,7 +1482,7 @@ class bitteam(Exchange, ImplicitAPI):
         pair = self.safe_dict(result, 'pair', {})
         return self.parse_ticker(pair, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #     {

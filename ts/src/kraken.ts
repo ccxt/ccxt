@@ -832,7 +832,7 @@ export default class kraken extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "a":["2432.77000","1","1.000"],
@@ -2950,7 +2950,7 @@ export default class kraken extends Exchange {
         });
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //

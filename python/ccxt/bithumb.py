@@ -355,7 +355,7 @@ class bithumb(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker, fetchTickers
         #

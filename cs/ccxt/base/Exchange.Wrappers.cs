@@ -148,15 +148,15 @@ public partial class Exchange
         var res = await this.fetchFundingRates(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
-    public async Task<Dictionary<string, object>> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     public async Task<Dictionary<string, object>> WatchFundingRatesForSymbols(List<string> symbols, Dictionary<string, object> parameters = null)
     {
@@ -374,10 +374,10 @@ public partial class Exchange
         var res = await this.fetchPositionsRisk(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -1099,6 +1099,18 @@ public partial class Exchange
         var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
+    public async Task<TransferEntry> FetchTransfer(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTransfer(id, code, parameters);
+        return new TransferEntry(res);
+    }
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTransfers(code, since, limit, parameters);
+        return new TransferEntries(res);
+    }
 }
 // class wrappers
 public class  Ace: ace { public Ace(object args = null) : base(args) { } }
@@ -1201,6 +1213,7 @@ public class  Wavesexchange: wavesexchange { public Wavesexchange(object args = 
 public class  Wazirx: wazirx { public Wazirx(object args = null) : base(args) { } }
 public class  Whitebit: whitebit { public Whitebit(object args = null) : base(args) { } }
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
+public class  Woofipro: woofipro { public Woofipro(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
 public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

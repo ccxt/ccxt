@@ -816,7 +816,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -974,7 +974,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
         //
         // spot
         //
@@ -1271,7 +1271,7 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetL2orderbookSymbol (array_merge($request, $params));
+        $response = $this->publicGetL2orderbookSymbol ($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -1409,7 +1409,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTradesSymbol (array_merge($request, $params));
+        $response = $this->publicGetTradesSymbol ($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -1486,7 +1486,7 @@ class delta extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $params = $this->omit($params, 'price');
-        $response = $this->publicGetHistoryCandles (array_merge($request, $params));
+        $response = $this->publicGetHistoryCandles ($this->extend($request, $params));
         //
         //     {
         //         "success":true,
@@ -1564,7 +1564,7 @@ class delta extends Exchange {
         $request = array(
             'product_id' => $market['numericId'],
         );
-        $response = $this->privateGetPositions (array_merge($request, $params));
+        $response = $this->privateGetPositions ($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -1821,7 +1821,7 @@ class delta extends Exchange {
             $request['reduce_only'] = $reduceOnly;
             $params = $this->omit($params, 'reduceOnly');
         }
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        $response = $this->privatePostOrders ($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -1889,7 +1889,7 @@ class delta extends Exchange {
         if ($price !== null) {
             $request['limit_price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePutOrders (array_merge($request, $params));
+        $response = $this->privatePutOrders ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1929,7 +1929,7 @@ class delta extends Exchange {
             'id' => intval($id),
             'product_id' => $market['numericId'],
         );
-        $response = $this->privateDeleteOrders (array_merge($request, $params));
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -1988,7 +1988,7 @@ class delta extends Exchange {
             // 'cancel_limit_orders' => 'true',
             // 'cancel_stop_orders' => 'true',
         );
-        $response = $this->privateDeleteOrdersAll (array_merge($request, $params));
+        $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
         //
         //     {
         //         "result":array(),
@@ -2049,9 +2049,9 @@ class delta extends Exchange {
         }
         $response = null;
         if ($method === 'privateGetOrders') {
-            $response = $this->privateGetOrders (array_merge($request, $params));
+            $response = $this->privateGetOrders ($this->extend($request, $params));
         } elseif ($method === 'privateGetOrdersHistory') {
-            $response = $this->privateGetOrdersHistory (array_merge($request, $params));
+            $response = $this->privateGetOrdersHistory ($this->extend($request, $params));
         }
         //
         //     {
@@ -2111,7 +2111,7 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->privateGetFills (array_merge($request, $params));
+        $response = $this->privateGetFills ($this->extend($request, $params));
         //
         //     {
         //         "meta":array(
@@ -2187,7 +2187,7 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->privateGetWalletTransactions (array_merge($request, $params));
+        $response = $this->privateGetWalletTransactions ($this->extend($request, $params));
         //
         //     {
         //         "meta":array("after":null,"before":null,"limit":10,"total_count":1),
@@ -2304,7 +2304,7 @@ class delta extends Exchange {
             $request['network'] = $this->network_code_to_id($networkCode, $code);
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privateGetDepositsAddress (array_merge($request, $params));
+        $response = $this->privateGetDepositsAddress ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -2370,7 +2370,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2433,7 +2433,7 @@ class delta extends Exchange {
         $request = array(
             'contract_types' => 'perpetual_futures',
         );
-        $response = $this->publicGetTickers (array_merge($request, $params));
+        $response = $this->publicGetTickers ($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2589,7 +2589,7 @@ class delta extends Exchange {
             'product_id' => $market['numericId'],
             'delta_margin' => $amount,
         );
-        $response = $this->privatePostPositionsChangeMargin (array_merge($request, $params));
+        $response = $this->privatePostPositionsChangeMargin ($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2617,7 +2617,7 @@ class delta extends Exchange {
         return $this->parse_margin_modification($result, $market);
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         //     {
         //         "auto_topup" => false,
@@ -2670,7 +2670,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2804,7 +2804,7 @@ class delta extends Exchange {
         $request = array(
             'product_id' => $market['numericId'],
         );
-        $response = $this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params));
+        $response = $this->privateGetProductsProductIdOrdersLeverage ($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2822,7 +2822,7 @@ class delta extends Exchange {
         return $this->parse_leverage($result, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'index_symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -2863,7 +2863,7 @@ class delta extends Exchange {
         //         "success" => true
         //     }
         //
-        return $this->privatePostProductsProductIdOrdersLeverage (array_merge($request, $params));
+        return $this->privatePostProductsProductIdOrdersLeverage ($this->extend($request, $params));
     }
 
     public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2887,7 +2887,7 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->publicGetProducts (array_merge($request, $params));
+        $response = $this->publicGetProducts ($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -3038,7 +3038,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -3095,7 +3095,7 @@ class delta extends Exchange {
         return $this->parse_greeks($result, $market);
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
         //         "close" => 6793.0,
@@ -3187,7 +3187,7 @@ class delta extends Exchange {
             'close_all_isolated' => true,
             // 'user_id' => 12345,
         );
-        $response = $this->privatePostPositionsCloseAll (array_merge($request, $params));
+        $response = $this->privatePostPositionsCloseAll ($this->extend($request, $params));
         //
         // array("result":array(),"success":true)
         //
@@ -3301,7 +3301,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -3358,7 +3358,7 @@ class delta extends Exchange {
         return $this->parse_option($result, null, $market);
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
         //
         //     {
         //         "close" => 6793.0,

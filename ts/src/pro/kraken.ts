@@ -788,6 +788,8 @@ export default class kraken extends krakenRest {
                 const localChecksum = this.crc32 (payload, false);
                 if (localChecksum !== c) {
                     const error = new InvalidNonce (this.id + ' invalid checksum');
+                    delete client.subscriptions[messageHash];
+                    delete this.orderbooks[symbol];
                     client.reject (error, messageHash);
                     return;
                 }

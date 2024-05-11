@@ -53,7 +53,11 @@ function select_argv ($argsArray, $needle) {
     return count($foundArray) > 0 ? $foundArray : null;
 }
 
-$argvExchange = filter_argvs ($argv, '--', false)[0];
+$argvs = filter_argvs ($argv, '--', false);
+$argvExchange = null;
+if (count($argvs) > 0) {
+    $argvExchange = $argvs[0];
+}
 $argvSymbol   = select_argv ($argv, '/');
 $argvMethod   = select_argv ($argv, '()');
 // #################################################### //
@@ -1362,6 +1366,7 @@ class testMainClass extends baseMainTestClass {
             'privateKey' => '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid' => 'uid',
             'token' => 'token',
+            'accountId' => 'accountId',
             'accounts' => [array(
     'id' => 'myAccount',
     'code' => 'USDT',
@@ -1385,6 +1390,15 @@ class testMainClass extends baseMainTestClass {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         $exchange = $this->init_offline_exchange($exchange_name);
         $global_options = $exchange->safe_dict($exchange_data, 'options', array());
+        // read apiKey/secret from the test file
+        $api_key = $exchange->safe_string($exchange_data, 'apiKey');
+        if ($api_key) {
+            $exchange->api_key = ((string) $api_key);
+        }
+        $secret = $exchange->safe_string($exchange_data, 'secret');
+        if ($secret) {
+            $exchange->secret = ((string) $secret);
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         $exchange->extend_exchange_options($global_options);
         $methods = $exchange->safe_value($exchange_data, 'methods', array());
@@ -1420,6 +1434,15 @@ class testMainClass extends baseMainTestClass {
 
     public function test_exchange_response_statically($exchange_name, $exchange_data, $test_name = null) {
         $exchange = $this->init_offline_exchange($exchange_name);
+        // read apiKey/secret from the test file
+        $api_key = $exchange->safe_string($exchange_data, 'apiKey');
+        if ($api_key) {
+            $exchange->api_key = ((string) $api_key);
+        }
+        $secret = $exchange->safe_string($exchange_data, 'secret');
+        if ($secret) {
+            $exchange->secret = ((string) $secret);
+        }
         $methods = $exchange->safe_value($exchange_data, 'methods', array());
         $options = $exchange->safe_value($exchange_data, 'options', array());
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
@@ -1528,7 +1551,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1880,6 +1903,23 @@ class testMainClass extends baseMainTestClass {
         }
         $client_order_id = $request['client_order_id'];
         assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+        close($exchange);
+        return true;
+    }
+
+    public function test_woofi_pro() {
+        $exchange = $this->init_offline_exchange('woofipro');
+        $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        $id = 'CCXT';
+        $exchange->load_markets();
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $broker_id = $request['order_tag'];
+        assert($broker_id === $id, 'woofipro - id: ' . $id . ' different from  broker_id: ' . $broker_id);
         close($exchange);
         return true;
     }

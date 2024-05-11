@@ -560,7 +560,10 @@ class bitget extends bitget$1 {
                 const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
                     const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                    delete client.subscriptions[messageHash];
+                    delete this.orderbooks[symbol];
                     client.reject(error, messageHash);
+                    return;
                 }
             }
         }
@@ -969,9 +972,9 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         let market = undefined;
         let marketId = undefined;
-        const isStop = this.safeBool(params, 'stop', false);
-        params = this.omit(params, 'stop');
-        let messageHash = (isStop) ? 'triggerOrder' : 'order';
+        let isTrigger = undefined;
+        [isTrigger, params] = this.isTriggerOrder(params);
+        let messageHash = (isTrigger) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -984,19 +987,16 @@ class bitget extends bitget$1 {
         if ((type === 'spot') && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        if (isStop && type === 'spot') {
-            throw new errors.NotSupported(this.id + ' watchOrders does not support stop orders for ' + type + ' markets.');
-        }
         let instType = undefined;
         [instType, params] = this.getInstType(market, params);
         if (type === 'spot') {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
-        if (isStop) {
+        if (isTrigger) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        let channel = isStop ? 'orders-algo' : 'orders';
+        let channel = isTrigger ? 'orders-algo' : 'orders';
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
         if (marginMode !== undefined) {
@@ -1027,25 +1027,7 @@ class bitget extends bitget$1 {
         //         "action": "snapshot",
         //         "arg": { "instType": "SPOT", "channel": "orders", "instId": "BTCUSDT" },
         //         "data": [
-        //             {
-        //                 "instId": "BTCUSDT",
-        //                 "orderId": "1116512721422422017",
-        //                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        //                 "price": "35000.00",
-        //                 "size": "7.0000",
-        //                 "newSize": "500.0000",
-        //                 "notional": "7.000000",
-        //                 "orderType": "limit",
-        //                 "force": "gtc",
-        //                 "side": "buy",
-        //                 "accBaseVolume": "0.0000",
-        //                 "priceAvg": "0.00",
-        //                 "status": "live",
-        //                 "cTime": "1701923297267",
-        //                 "uTime": "1701923297267",
-        //                 "feeDetail": [],
-        //                 "enterPointSource": "WEB"
-        //             }
+        //             // see all examples in parseWsOrder
         //         ],
         //         "ts": 1701923297285
         //     }
@@ -1056,73 +1038,9 @@ class bitget extends bitget$1 {
         //         "action": "snapshot",
         //         "arg": { "instType": "USDT-FUTURES", "channel": "orders", "instId": "default" },
         //         "data": [
-        //             {
-        //                 "accBaseVolume": "0",
-        //                 "cTime": "1701920553759",
-        //                 "clientOid": "1116501214318198793",
-        //                 "enterPointSource": "WEB",
-        //                 "feeDetail": [{
-        //                     "feeCoin": "USDT",
-        //                     "fee": "-0.162003"
-        //                 }],
-        //                 "force": "gtc",
-        //                 "instId": "BTCUSDT",
-        //                 "leverage": "20",
-        //                 "marginCoin": "USDT",
-        //                 "marginMode": "isolated",
-        //                 "notionalUsd": "105",
-        //                 "orderId": "1116501214293032964",
-        //                 "orderType": "limit",
-        //                 "posMode": "hedge_mode",
-        //                 "posSide": "long",
-        //                 "price": "35000",
-        //                 "reduceOnly": "no",
-        //                 "side": "buy",
-        //                 "size": "0.003",
-        //                 "status": "canceled",
-        //                 "tradeSide": "open",
-        //                 "uTime": "1701920595866"
-        //             }
+        //             // see all examples in parseWsOrder
         //         ],
         //         "ts": 1701920595879
-        //     }
-        //
-        // trigger
-        //
-        //     {
-        //         "action": "snapshot",
-        //         "arg": {
-        //             "instType": "USDT-FUTURES",
-        //             "channel": "orders-algo",
-        //             "instId": "default"
-        //         },
-        //         "data": [
-        //             {
-        //                 "instId": "BTCUSDT",
-        //                 "orderId": "1116508960750899201",
-        //                 "clientOid": "1116508960750899200",
-        //                 "triggerPrice": "35000.000000000",
-        //                 "triggerType": "mark_price",
-        //                 "triggerTime": "1701922464373",
-        //                 "planType": "pl",
-        //                 "price": "35000.000000000",
-        //                 "size": "0.001000000",
-        //                 "actualSize": "0.000000000",
-        //                 "orderType": "limit",
-        //                 "side": "buy",
-        //                 "tradeSide": "open",
-        //                 "posSide": "long",
-        //                 "marginCoin": "USDT",
-        //                 "status": "cancelled",
-        //                 "posMode": "hedge_mode",
-        //                 "enterPointSource": "api",
-        //                 "stopSurplusTriggerType": "fill_price",
-        //                 "stopLossTriggerType": "fill_price",
-        //                 "cTime": "1701922400653",
-        //                 "uTime": "1701922464373"
-        //             }
-        //         ],
-        //         "ts": 1701922464417
         //     }
         //
         // isolated and cross margin
@@ -1131,23 +1049,7 @@ class bitget extends bitget$1 {
         //         "action": "snapshot",
         //         "arg": { "instType": "MARGIN", "channel": "orders-crossed", "instId": "BTCUSDT" },
         //         "data": [
-        //             {
-        //                 "enterPointSource": "web",
-        //                 "force": "gtc",
-        //                 "orderType": "limit",
-        //                 "price": "35000.000000000",
-        //                 "quoteSize": "10.500000000",
-        //                 "side": "buy",
-        //                 "status": "live",
-        //                 "baseSize": "0.000300000",
-        //                 "cTime": "1701923982427",
-        //                 "clientOid": "4902047879864dc980c4840e9906db4e",
-        //                 "fillPrice": "0.000000000",
-        //                 "baseVolume": "0.000000000",
-        //                 "fillTotalAmount": "0.000000000",
-        //                 "loanType": "auto-loan-and-repay",
-        //                 "orderId": "1116515595178356737"
-        //             }
+        //             // see examples in parseWsOrder
         //         ],
         //         "ts": 1701923982497
         //     }
@@ -1171,8 +1073,9 @@ class bitget extends bitget$1 {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
             this.triggerOrders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const stored = (channel === 'ordersAlgo') ? this.triggerOrders : this.orders;
-        const messageHash = (channel === 'ordersAlgo') ? 'triggerOrder' : 'order';
+        const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
+        const stored = isTrigger ? this.triggerOrders : this.orders;
+        const messageHash = isTrigger ? 'triggerOrder' : 'order';
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -1195,81 +1098,90 @@ class bitget extends bitget$1 {
         //
         // spot
         //
-        //     {
-        //         "instId": "BTCUSDT",
-        //         "orderId": "1116512721422422017",
-        //         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        //         "price": "35000.00",
-        //         "size": "7.0000",
-        //         "newSize": "500.0000",
-        //         "notional": "7.000000",
-        //         "orderType": "limit",
-        //         "force": "gtc",
-        //         "side": "buy",
-        //         "accBaseVolume": "0.0000",
-        //         "priceAvg": "0.00",
-        //         "status": "live",
-        //         "cTime": "1701923297267",
-        //         "uTime": "1701923297267",
-        //         "feeDetail": [],
-        //         "enterPointSource": "WEB"
-        //     }
+        //   {
+        //         instId: 'EOSUSDT',
+        //         orderId: '1171779081105780739',
+        //         price: '0.81075', // limit price, field not present for market orders
+        //         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
+        //         notional: '5.675250', // this is not cost! but notional
+        //         newSize: '7.0000', // this is not cost! quanity (for limit order or market sell) or cost (for market buy order)
+        //         size: '5.6752', // this is not cost, neither quanity, but notional! this field for "spot" can be ignored at all
+        //         // Note: for limit order (even filled) we don't have cost value in response, only in market order
+        //         orderType: 'limit', // limit, market
+        //         force: 'gtc',
+        //         side: 'buy',
+        //         accBaseVolume: '0.0000', // in case of 'filled', this would be set (for limit orders, this is the only indicator of the amount filled)
+        //         priceAvg: '0.00000', // in case of 'filled', this would be set
+        //         status: 'live', // live, filled, partially_filled
+        //         cTime: '1715099824215',
+        //         uTime: '1715099824215',
+        //         feeDetail: [],
+        //         enterPointSource: 'API'
+        //                   #### trigger order has these additional fields: ####
+        //         "triggerPrice": "35100",
+        //         "price": "35100", // this is same as trigger price
+        //         "executePrice": "35123", // this is limit price
+        //         "triggerType": "fill_price",
+        //         "planType": "amount",
+        //                   #### in case order had fill: ####
+        //         fillPrice: '35123',
+        //         tradeId: '1171775539946528779',
+        //         baseVolume: '7', // field present in market order
+        //         fillTime: '1715098979937',
+        //         fillFee: '-0.0069987',
+        //         fillFeeCoin: 'BTC',
+        //         tradeScope: 'T',
+        //    }
         //
         // contract
         //
         //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
+        //         accBaseVolume: '0', // total amount filled during lifetime for order
+        //         cTime: '1715065875539',
+        //         clientOid: '1171636690041344003',
+        //         enterPointSource: 'API',
+        //         feeDetail: [ {
         //             "feeCoin": "USDT",
         //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
-        //     }
-        //
-        // trigger
-        //
-        //     {
-        //         "instId": "BTCUSDT",
-        //         "orderId": "1116508960750899201",
-        //         "clientOid": "1116508960750899200",
-        //         "triggerPrice": "35000.000000000",
+        //         } ],
+        //         force: 'gtc',
+        //         instId: 'SEOSSUSDT',
+        //         leverage: '10',
+        //         marginCoin: 'USDT',
+        //         marginMode: 'crossed',
+        //         notionalUsd: '10.4468',
+        //         orderId: '1171636690028761089',
+        //         orderType: 'market',
+        //         posMode: 'hedge_mode', // one_way_mode, hedge_mode
+        //         posSide: 'short', // short, long, net
+        //         price: '0', // zero for market order
+        //         reduceOnly: 'no',
+        //         side: 'sell',
+        //         size: '13', // this is contracts amount
+        //         status: 'live', // live, filled, cancelled
+        //         tradeSide: 'open',
+        //         uTime: '1715065875539'
+        //                   #### when filled order is incoming, these additional fields are present too: ###
+        //         baseVolume: '9', // amount filled for the incoming update/trade
+        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        //         fillFee: '-0.0062712',
+        //         fillFeeCoin: 'SUSDT',
+        //         fillNotionalUsd: '10.452',
+        //         fillPrice: '0.804',
+        //         fillTime: '1715065875605',
+        //         pnl: '0',
+        //         priceAvg: '0.804',
+        //         tradeId: '1171636690314407937',
+        //         tradeScope: 'T',
+        //                   #### trigger order has these additional fields:
+        //         "triggerPrice": "0.800000000",
+        //         "price": "0.800000000",  // <-- this is same as trigger price, actual limit-price is not present in initial response
         //         "triggerType": "mark_price",
-        //         "triggerTime": "1701922464373",
+        //         "triggerTime": "1715082796679",
         //         "planType": "pl",
-        //         "price": "35000.000000000",
-        //         "size": "0.001000000",
         //         "actualSize": "0.000000000",
-        //         "orderType": "limit",
-        //         "side": "buy",
-        //         "tradeSide": "open",
-        //         "posSide": "long",
-        //         "marginCoin": "USDT",
-        //         "status": "cancelled",
-        //         "posMode": "hedge_mode",
-        //         "enterPointSource": "api",
         //         "stopSurplusTriggerType": "fill_price",
         //         "stopLossTriggerType": "fill_price",
-        //         "cTime": "1701922400653",
-        //         "uTime": "1701922464373"
         //     }
         //
         // isolated and cross margin
@@ -1277,6 +1189,7 @@ class bitget extends bitget$1 {
         //     {
         //         "enterPointSource": "web",
         //         "force": "gtc",
+        //         "feeDetail": [],
         //         "orderType": "limit",
         //         "price": "35000.000000000",
         //         "quoteSize": "10.500000000",
@@ -1292,6 +1205,8 @@ class bitget extends bitget$1 {
         //         "orderId": "1116515595178356737"
         //     }
         //
+        const isSpot = !('posMode' in order);
+        const isMargin = ('loanType' in order);
         const marketId = this.safeString(order, 'instId');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'cTime');
@@ -1309,24 +1224,54 @@ class bitget extends bitget$1 {
             };
         }
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
-        const price = this.safeString(order, 'price');
+        const isTriggerOrder = (triggerPrice !== undefined);
+        let price = undefined;
+        if (!isTriggerOrder) {
+            price = this.safeNumber(order, 'price');
+        }
+        else if (isSpot && isTriggerOrder) {
+            // for spot trigger order, limit price is this
+            price = this.safeNumber(order, 'executePrice');
+        }
         const avgPrice = this.omitZero(this.safeString2(order, 'priceAvg', 'fillPrice'));
-        let cost = this.safeStringN(order, ['notional', 'notionalUsd', 'quoteSize']);
         const side = this.safeString(order, 'side');
         const type = this.safeString(order, 'orderType');
-        if (side === 'buy' && market['spot'] && (type === 'market')) {
-            cost = this.safeString(order, 'newSize', cost);
+        const accBaseVolume = this.omitZero(this.safeString(order, 'accBaseVolume'));
+        const newSizeValue = this.omitZero(this.safeString(order, 'newSize'));
+        const isMarketOrder = (type === 'market');
+        const isBuy = (side === 'buy');
+        let totalAmount = undefined;
+        let filledAmount = undefined;
+        let cost = undefined;
+        if (isSpot) {
+            if (isMargin) {
+                filledAmount = this.omitZero(this.safeString(order, 'fillTotalAmount'));
+                totalAmount = this.omitZero(this.safeString(order, 'baseSize')); // for margin trading
+                cost = this.safeString(order, 'quoteSize');
+            }
+            else {
+                filledAmount = this.omitZero(this.safeString2(order, 'accBaseVolume', 'baseVolume'));
+                if (isMarketOrder) {
+                    if (isBuy) {
+                        totalAmount = accBaseVolume;
+                        cost = newSizeValue;
+                    }
+                    else {
+                        totalAmount = newSizeValue;
+                        // we don't have cost for market-sell order
+                    }
+                }
+                else {
+                    totalAmount = this.safeString(order, 'newSize');
+                    // we don't have cost for limit order
+                }
+            }
         }
-        const filled = this.safeString2(order, 'accBaseVolume', 'baseVolume');
-        // if (market['spot'] && (rawStatus !== 'live')) {
-        //     filled = Precise.stringDiv (cost, avgPrice);
-        // }
-        let amount = this.safeString(order, 'baseVolume');
-        if (!market['spot'] || !(side === 'buy' && type === 'market')) {
-            amount = this.safeString(order, 'newSize', amount);
-        }
-        if (market['swap'] && (amount === undefined)) {
-            amount = this.safeString(order, 'size');
+        else {
+            // baseVolume should not be used for "amount" for contracts !
+            filledAmount = this.safeString(order, 'baseVolume');
+            totalAmount = this.safeString(order, 'size');
+            cost = this.safeString(order, 'fillNotionalUsd');
         }
         return this.safeOrder({
             'info': order,
@@ -1341,12 +1286,11 @@ class bitget extends bitget$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'amount': amount,
+            'amount': totalAmount,
             'cost': cost,
             'average': avgPrice,
-            'filled': filled,
+            'filled': filledAmount,
             'remaining': undefined,
             'status': this.parseWsOrderStatus(rawStatus),
             'fee': feeObject,
@@ -1771,6 +1715,9 @@ class bitget extends bitget$1 {
             'fill': this.handleMyTrades,
             'orders': this.handleOrder,
             'ordersAlgo': this.handleOrder,
+            'orders-algo': this.handleOrder,
+            'orders-crossed': this.handleOrder,
+            'orders-isolated': this.handleOrder,
             'account': this.handleBalance,
             'positions': this.handlePositions,
             'account-isolated': this.handleBalance,

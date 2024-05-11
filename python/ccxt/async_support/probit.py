@@ -659,7 +659,7 @@ class probit(Exchange, ImplicitAPI):
             raise BadResponse(self.id + ' fetchTicker() returned an empty response')
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "last":"0.022902",

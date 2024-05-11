@@ -780,7 +780,7 @@ class currencycom(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -1737,7 +1737,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_leverage(response, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         leverageValue = self.safe_integer(leverage, 'value')
         return {
             'info': leverage,

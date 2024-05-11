@@ -841,7 +841,7 @@ class gemini(Exchange, ImplicitAPI):
             return self.fetch_ticker_v2(symbol, params)
         return self.fetch_ticker_v1_and_v2(symbol, params)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #

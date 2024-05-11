@@ -73,6 +73,31 @@ public partial class okx
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// watch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    public async Task<FundingRates> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
@@ -194,6 +219,7 @@ public partial class okx
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -205,6 +231,12 @@ public partial class okx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.depth</term>
+    /// <description>
+    /// string : okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
     /// </description>
     /// </item>
     /// </list>
@@ -220,6 +252,7 @@ public partial class okx
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -231,6 +264,12 @@ public partial class okx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.depth</term>
+    /// <description>
+    /// string : okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
     /// </description>
     /// </item>
     /// </list>

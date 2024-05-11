@@ -20,11 +20,11 @@ class bybit extends \ccxt\async\bybit {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'createOrderWs' => false, // available only in sandbox
-                'editOrderWs' => false,
+                'createOrderWs' => true,
+                'editOrderWs' => true,
                 'fetchOpenOrdersWs' => false,
                 'fetchOrderWs' => false,
-                'cancelOrderWs' => false,
+                'cancelOrderWs' => true,
                 'cancelOrdersWs' => false,
                 'cancelAllOrdersWs' => false,
                 'fetchTradesWs' => false,
@@ -58,7 +58,7 @@ class bybit extends \ccxt\async\bybit {
                             ),
                             'contract' => 'wss://stream.{hostname}/v5/private',
                             'usdc' => 'wss://stream.{hostname}/trade/option/usdc/private/v1',
-                            'trade' => 'wss://stream-testnet.bybit.com/v5/trade',
+                            'trade' => 'wss://stream.bybit.com/v5/trade',
                         ),
                     ),
                 ),
@@ -289,11 +289,13 @@ class bybit extends \ccxt\async\bybit {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $orderRequest = $this->cancelOrderRequest ($id, $symbol, $params);
+            $orderRequest = $this->cancel_order_request($id, $symbol, $params);
             $url = $this->urls['api']['ws']['private']['trade'];
             Async\await($this->authenticate($url));
             $requestId = (string) $this->request_id();
-            unset($orderRequest['orderFilter']);
+            if (is_array($orderRequest) && array_key_exists('orderFilter', $orderRequest)) {
+                unset($orderRequest['orderFilter']);
+            }
             $request = array(
                 'op' => 'order.cancel',
                 'reqId' => $requestId,
@@ -504,7 +506,7 @@ class bybit extends \ccxt\async\bybit {
             // update the info in place
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
-            $merged = array_merge($rawTicker, $data);
+            $merged = $this->extend($rawTicker, $data);
             $parsed = $this->parse_ticker($merged);
         }
         $timestamp = $this->safe_integer($message, 'ts');
@@ -1837,7 +1839,7 @@ class bybit extends \ccxt\async\bybit {
                 'req_id' => $this->request_id(),
                 'args' => $topics,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $message, $topics));
         }) ();
     }
@@ -1861,7 +1863,7 @@ class bybit extends \ccxt\async\bybit {
                         $this->apiKey, $expires, $signature,
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);

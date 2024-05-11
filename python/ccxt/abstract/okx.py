@@ -267,6 +267,7 @@ class ImplicitAPI:
     private_post_tradingbot_grid_compute_margin_balance = privatePostTradingBotGridComputeMarginBalance = Entry('tradingBot/grid/compute-margin-balance', 'private', 'POST', {'cost': 1})
     private_post_tradingbot_grid_margin_balance = privatePostTradingBotGridMarginBalance = Entry('tradingBot/grid/margin-balance', 'private', 'POST', {'cost': 1})
     private_post_tradingbot_grid_min_investment = privatePostTradingBotGridMinInvestment = Entry('tradingBot/grid/min-investment', 'private', 'POST', {'cost': 1})
+    private_post_tradingbot_grid_adjust_investment = privatePostTradingBotGridAdjustInvestment = Entry('tradingBot/grid/adjust-investment', 'private', 'POST', {'cost': 1})
     private_post_tradingbot_signal_create_signal = privatePostTradingBotSignalCreateSignal = Entry('tradingBot/signal/create-signal', 'private', 'POST', {'cost': 1})
     private_post_tradingbot_signal_order_algo = privatePostTradingBotSignalOrderAlgo = Entry('tradingBot/signal/order-algo', 'private', 'POST', {'cost': 1})
     private_post_tradingbot_signal_stop_order_algo = privatePostTradingBotSignalStopOrderAlgo = Entry('tradingBot/signal/stop-order-algo', 'private', 'POST', {'cost': 1})

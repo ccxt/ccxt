@@ -734,6 +734,8 @@ class kraken(ccxt.async_support.kraken):
                 localChecksum = self.crc32(payload, False)
                 if localChecksum != c:
                     error = InvalidNonce(self.id + ' invalid checksum')
+                    del client.subscriptions[messageHash]
+                    del self.orderbooks[symbol]
                     client.reject(error, messageHash)
                     return
             orderbook['symbol'] = symbol

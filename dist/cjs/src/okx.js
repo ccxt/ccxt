@@ -480,6 +480,7 @@ class okx extends okx$1 {
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/grid/adjust-investment': 1,
                         'tradingBot/signal/create-signal': 1,
                         'tradingBot/signal/order-algo': 1,
                         'tradingBot/signal/stop-order-algo': 1,
@@ -889,7 +890,24 @@ class okx extends okx$1 {
                     '60017': errors.BadRequest,
                     '60018': errors.BadRequest,
                     '60019': errors.BadRequest,
+                    '60020': errors.ExchangeError,
+                    '60021': errors.AccountNotEnabled,
+                    '60022': errors.AuthenticationError,
+                    '60023': errors.DDoSProtection,
+                    '60024': errors.AuthenticationError,
+                    '60025': errors.ExchangeError,
+                    '60026': errors.AuthenticationError,
+                    '60027': errors.ArgumentsRequired,
+                    '60028': errors.NotSupported,
+                    '60029': errors.AccountNotEnabled,
+                    '60030': errors.AccountNotEnabled,
+                    '60031': errors.AuthenticationError,
+                    '60032': errors.AuthenticationError,
                     '63999': errors.ExchangeError,
+                    '64000': errors.BadRequest,
+                    '64001': errors.BadRequest,
+                    '64002': errors.BadRequest,
+                    '64003': errors.AccountNotEnabled,
                     '70010': errors.BadRequest,
                     '70013': errors.BadRequest,
                     '70016': errors.BadRequest, // Please specify your instrument settings for at least one instType.
@@ -5993,6 +6011,22 @@ class okx extends okx$1 {
         //        "nextFundingRate": "0.00017",
         //        "nextFundingTime": "1634284800000"
         //    }
+        // ws
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
         //
         // in the response above nextFundingRate is actually two funding rates from now
         //
