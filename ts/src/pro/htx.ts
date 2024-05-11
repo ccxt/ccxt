@@ -2305,9 +2305,6 @@ export default class htx extends htxRest {
             'url': url,
             'hostname': hostname,
         };
-        if (type === 'spot') {
-            this.options['ws']['gunzip'] = false;
-        }
         await this.authenticate (authParams);
         return await this.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
     }
