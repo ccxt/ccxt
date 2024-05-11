@@ -4167,49 +4167,65 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->v1PerpetualPublicGetMarketLimitConfig ($params));
+            $request = array();
+            if ($symbols !== null) {
+                $marketIds = $this->market_ids($symbols);
+                $request['market'] = implode(',', $marketIds);
+            }
+            $response = Async\await($this->v2PublicGetFuturesPositionLevel ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
             //         "data" => array(
-            //             "BTCUSD" => [
-            //                 ["500001", "100", "0.005"],
-            //                 ["1000001", "50", "0.01"],
-            //                 ["2000001", "30", "0.015"],
-            //                 ["5000001", "20", "0.02"],
-            //                 ["10000001", "15", "0.025"],
-            //                 ["20000001", "10", "0.03"]
-            //             ],
-            //             ...
+            //             array(
+            //                 "level" => array(
+            //                     array(
+            //                         "amount" => "20001",
+            //                         "leverage" => "20",
+            //                         "maintenance_margin_rate" => "0.02",
+            //                         "min_initial_margin_rate" => "0.05"
+            //                     ),
+            //                     array(
+            //                         "amount" => "50001",
+            //                         "leverage" => "10",
+            //                         "maintenance_margin_rate" => "0.04",
+            //                         "min_initial_margin_rate" => "0.1"
+            //                     ),
+            //                 ),
+            //                 "market" => "MINAUSDT"
+            //             ),
             //         ),
             //         "message" => "OK"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_leverage_tiers($data, $symbols, null);
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_leverage_tiers($data, $symbols, 'market');
         }) ();
     }
 
-    public function parse_market_leverage_tiers($item, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         $tiers = array();
+        $brackets = $this->safe_list($info, 'level', array());
         $minNotional = 0;
-        for ($j = 0; $j < count($item); $j++) {
-            $bracket = $item[$j];
-            $maxNotional = $this->safe_number($bracket, 0);
+        for ($i = 0; $i < count($brackets); $i++) {
+            $tier = $brackets[$i];
+            $marketId = $this->safe_string($info, 'market');
+            $market = $this->safe_market($marketId, $market, null, 'swap');
+            $maxNotional = $this->safe_number($tier, 'amount');
             $tiers[] = array(
-                'tier' => $j + 1,
+                'tier' => $this->sum($i, 1),
                 'currency' => $market['linear'] ? $market['base'] : $market['quote'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_number($bracket, 2),
-                'maxLeverage' => $this->safe_integer($bracket, 1),
-                'info' => $bracket,
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenance_margin_rate'),
+                'maxLeverage' => $this->safe_integer($tier, 'leverage'),
+                'info' => $tier,
             );
             $minNotional = $maxNotional;
         }

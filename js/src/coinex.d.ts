@@ -71,7 +71,7 @@ export default class coinex extends Exchange {
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(item: any, market?: Market): any[];
+    parseMarketLeverageTiers(info: any, market?: Market): any[];
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: Market): MarginModification;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
