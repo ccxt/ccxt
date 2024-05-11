@@ -1020,7 +1020,7 @@ export default class oxfun extends Exchange {
         //
         const marketId = this.safeString (info, 'marketCode');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol']
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (info, 'matchedAt');
         return {
             'info': info,
