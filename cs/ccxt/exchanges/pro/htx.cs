@@ -2073,7 +2073,7 @@ public partial class htx : ccxt.htx
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        object promise = getValue(client.futures, "authenticated");
+        object promise = getValue(client.futures, "auth");
         callDynamically(promise, "resolve", new object[] {message});
     }
 
@@ -2103,6 +2103,12 @@ public partial class htx : ccxt.htx
         //         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
         //         "ts": 1698419490189
         //     }
+        //     {
+        //         "action":"req",
+        //         "code":2002,
+        //         "ch":"auth",
+        //         "message":"auth.fail"
+        //     }
         //
         object status = this.safeString(message, "status");
         if (isTrue(isEqual(status, "error")))
@@ -2116,6 +2122,7 @@ public partial class htx : ccxt.htx
                 try
                 {
                     this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), errorCode, this.json(message));
+                    throw new ExchangeError ((string)this.json(message)) ;
                 } catch(Exception e)
                 {
                     object messageHash = this.safeString(subscription, "messageHash");
@@ -2129,13 +2136,14 @@ public partial class htx : ccxt.htx
             }
             return false;
         }
-        object code = this.safeInteger2(message, "code", "err-code");
-        if (isTrue(isTrue(!isEqual(code, null)) && isTrue((isTrue((!isEqual(code, 200))) && isTrue((!isEqual(code, 0)))))))
+        object code = this.safeString2(message, "code", "err-code");
+        if (isTrue(isTrue(!isEqual(code, null)) && isTrue((isTrue((!isEqual(code, "200"))) && isTrue((!isEqual(code, "0")))))))
         {
             object feedback = add(add(this.id, " "), this.json(message));
             try
             {
                 this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), code, feedback);
+                throw new ExchangeError ((string)feedback) ;
             } catch(Exception e)
             {
                 if (isTrue(e is AuthenticationError))
@@ -2538,10 +2546,6 @@ public partial class htx : ccxt.htx
             { "url", url },
             { "hostname", hostname },
         };
-        if (isTrue(isEqual(type, "spot")))
-        {
-            ((IDictionary<string,object>)getValue(this.options, "ws"))["gunzip"] = false;
-        }
         await this.authenticate(authParams);
         return await this.watch(url, messageHash, this.extend(request, parameters), channel, extendedSubsription);
     }
@@ -2557,7 +2561,7 @@ public partial class htx : ccxt.htx
             throw new ArgumentsRequired ((string)add(this.id, " authenticate requires a url, hostname and type argument")) ;
         }
         this.checkRequiredCredentials();
-        object messageHash = "authenticated";
+        object messageHash = "auth";
         object relativePath = ((string)url).Replace((string)add("wss://", hostname), (string)"");
         var client = this.client(url);
         var future = client.future(messageHash);

@@ -62,6 +62,7 @@ import type {
     FundingHistory,
     FundingRate,
     FundingRateHistory,
+    FundingRates,
     Greeks,
     IndexType,
     Int,
@@ -375,6 +376,7 @@ export default class Exchange {
     enableRateLimit: boolean = undefined;
     exceptions: Dictionary<string> = {};
     fees: object;
+    fundingRates: Dictionary<FundingRate> = {}
     has: Dictionary<boolean | 'emulated'>;
     hostname: Str = undefined;
     httpExceptions = undefined;
@@ -2498,11 +2500,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async watchFundingRate (symbol: string, params = {}): Promise<{}> {
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         throw new NotSupported (this.id + ' watchFundingRate() is not supported yet');
     }
 
-    async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
+    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
         throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
     }
 
@@ -6608,6 +6610,8 @@ export default class Exchange {
                 let response = undefined;
                 if (method === 'fetchAccounts') {
                     response = await this[method] (params);
+                } else if (method === 'getLeverageTiersPaginated') {
+                    response = await this[method] (symbol, params);
                 } else {
                     response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 }
@@ -6965,7 +6969,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
     }
 

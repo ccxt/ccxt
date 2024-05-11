@@ -180,7 +180,14 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
              */
-            return Async\await($this->subscribe_multiple('RISK', $symbols, $params));
+            $fundingRate = Async\await($this->subscribe_multiple('RISK', $symbols, $params));
+            $symbol = $this->safe_string($fundingRate, 'symbol');
+            if ($this->newUpdates) {
+                $result = array();
+                $result[$symbol] = $fundingRate;
+                return $result;
+            }
+            return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
         }) ();
     }
 
@@ -612,6 +619,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         //
         $channel = $this->safe_string($message, 'channel');
         $fundingRate = $this->parse_funding_rate($message);
+        $this->fundingRates[$fundingRate['symbol']] = $fundingRate;
         $client->resolve ($fundingRate, $channel . '::' . $fundingRate['symbol']);
     }
 

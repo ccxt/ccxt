@@ -308,7 +308,7 @@ class coinex(Exchange, ImplicitAPI):
                 'v2': {
                     'public': {
                         'get': {
-                            'maintain-info': 1,
+                            'maintain/info': 1,
                             'ping': 1,
                             'time': 1,
                             'spot/market': 1,
@@ -3925,47 +3925,62 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
-        response = await self.v1PerpetualPublicGetMarketLimitConfig(params)
+        request = {}
+        if symbols is not None:
+            marketIds = self.market_ids(symbols)
+            request['market'] = ','.join(marketIds)
+        response = await self.v2PublicGetFuturesPositionLevel(self.extend(request, params))
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "BTCUSD": [
-        #                 ["500001", "100", "0.005"],
-        #                 ["1000001", "50", "0.01"],
-        #                 ["2000001", "30", "0.015"],
-        #                 ["5000001", "20", "0.02"],
-        #                 ["10000001", "15", "0.025"],
-        #                 ["20000001", "10", "0.03"]
-        #             ],
-        #             ...
-        #         },
+        #         "data": [
+        #             {
+        #                 "level": [
+        #                     {
+        #                         "amount": "20001",
+        #                         "leverage": "20",
+        #                         "maintenance_margin_rate": "0.02",
+        #                         "min_initial_margin_rate": "0.05"
+        #                     },
+        #                     {
+        #                         "amount": "50001",
+        #                         "leverage": "10",
+        #                         "maintenance_margin_rate": "0.04",
+        #                         "min_initial_margin_rate": "0.1"
+        #                     },
+        #                 ],
+        #                 "market": "MINAUSDT"
+        #             },
+        #         ],
         #         "message": "OK"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_leverage_tiers(data, symbols, None)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_leverage_tiers(data, symbols, 'market')
 
-    def parse_market_leverage_tiers(self, item, market: Market = None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         tiers = []
+        brackets = self.safe_list(info, 'level', [])
         minNotional = 0
-        for j in range(0, len(item)):
-            bracket = item[j]
-            maxNotional = self.safe_number(bracket, 0)
+        for i in range(0, len(brackets)):
+            tier = brackets[i]
+            marketId = self.safe_string(info, 'market')
+            market = self.safe_market(marketId, market, None, 'swap')
+            maxNotional = self.safe_number(tier, 'amount')
             tiers.append({
-                'tier': j + 1,
+                'tier': self.sum(i, 1),
                 'currency': market['base'] if market['linear'] else market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': self.safe_number(bracket, 2),
-                'maxLeverage': self.safe_integer(bracket, 1),
-                'info': bracket,
+                'maintenanceMarginRate': self.safe_number(tier, 'maintenance_margin_rate'),
+                'maxLeverage': self.safe_integer(tier, 'leverage'),
+                'info': tier,
             })
             minNotional = maxNotional
         return tiers
@@ -4043,7 +4058,7 @@ class coinex(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # addMargin/reduceMargin
         #

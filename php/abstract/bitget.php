@@ -304,6 +304,15 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_spot_get_v2_spot_account_transferrecords($params = array()) {
         return $this->request('v2/spot/account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_get_v2_account_funding_assets($params = array()) {
+        return $this->request('v2/account/funding-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_v2_account_bot_assets($params = array()) {
+        return $this->request('v2/account/bot-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_v2_account_all_account_balance($params = array()) {
+        return $this->request('v2/account/all-account-balance', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_spot_get_v2_spot_wallet_deposit_address($params = array()) {
         return $this->request('v2/spot/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1803,6 +1812,15 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateSpotGetV2SpotAccountTransferRecords($params = array()) {
         return $this->request('v2/spot/account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotGetV2AccountFundingAssets($params = array()) {
+        return $this->request('v2/account/funding-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetV2AccountBotAssets($params = array()) {
+        return $this->request('v2/account/bot-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetV2AccountAllAccountBalance($params = array()) {
+        return $this->request('v2/account/all-account-balance', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateSpotGetV2SpotWalletDepositAddress($params = array()) {
         return $this->request('v2/spot/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));

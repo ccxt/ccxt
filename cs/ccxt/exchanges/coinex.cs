@@ -278,7 +278,7 @@ public partial class coinex : Exchange
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "maintain-info", 1 },
+                            { "maintain/info", 1 },
                             { "ping", 1 },
                             { "time", 1 },
                             { "spot/market", 1 },
@@ -3256,51 +3256,68 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchLeverageTiers
         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.v1PerpetualPublicGetMarketLimitConfig(parameters);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object marketIds = this.marketIds(symbols);
+            ((IDictionary<string,object>)request)["market"] = String.Join(",", ((IList<object>)marketIds).ToArray());
+        }
+        object response = await this.v2PublicGetFuturesPositionLevel(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "BTCUSD": [
-        //                 ["500001", "100", "0.005"],
-        //                 ["1000001", "50", "0.01"],
-        //                 ["2000001", "30", "0.015"],
-        //                 ["5000001", "20", "0.02"],
-        //                 ["10000001", "15", "0.025"],
-        //                 ["20000001", "10", "0.03"]
-        //             ],
-        //             ...
-        //         },
+        //         "data": [
+        //             {
+        //                 "level": [
+        //                     {
+        //                         "amount": "20001",
+        //                         "leverage": "20",
+        //                         "maintenance_margin_rate": "0.02",
+        //                         "min_initial_margin_rate": "0.05"
+        //                     },
+        //                     {
+        //                         "amount": "50001",
+        //                         "leverage": "10",
+        //                         "maintenance_margin_rate": "0.04",
+        //                         "min_initial_margin_rate": "0.1"
+        //                     },
+        //                 ],
+        //                 "market": "MINAUSDT"
+        //             },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return this.parseLeverageTiers(data, symbols, null);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverageTiers(data, symbols, "market");
     }
 
-    public override object parseMarketLeverageTiers(object item, object market = null)
+    public override object parseMarketLeverageTiers(object info, object market = null)
     {
         object tiers = new List<object>() {};
+        object brackets = this.safeList(info, "level", new List<object>() {});
         object minNotional = 0;
-        for (object j = 0; isLessThan(j, getArrayLength(item)); postFixIncrement(ref j))
+        for (object i = 0; isLessThan(i, getArrayLength(brackets)); postFixIncrement(ref i))
         {
-            object bracket = getValue(item, j);
-            object maxNotional = this.safeNumber(bracket, 0);
+            object tier = getValue(brackets, i);
+            object marketId = this.safeString(info, "market");
+            market = this.safeMarket(marketId, market, null, "swap");
+            object maxNotional = this.safeNumber(tier, "amount");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
-                { "tier", add(j, 1) },
+                { "tier", this.sum(i, 1) },
                 { "currency", ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
-                { "maintenanceMarginRate", this.safeNumber(bracket, 2) },
-                { "maxLeverage", this.safeInteger(bracket, 1) },
-                { "info", bracket },
+                { "maintenanceMarginRate", this.safeNumber(tier, "maintenance_margin_rate") },
+                { "maxLeverage", this.safeInteger(tier, "leverage") },
+                { "info", tier },
             });
             minNotional = maxNotional;
         }

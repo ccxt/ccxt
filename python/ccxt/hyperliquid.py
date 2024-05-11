@@ -2190,7 +2190,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'code': self.safe_string(response, 'status'),
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #    {
         #        'type': 'default'

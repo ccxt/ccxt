@@ -211,6 +211,7 @@ export default class bybit extends Exchange {
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
+    getLeverageTiersPaginated(symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
     parseMarketLeverageTiers(info: any, market?: Market): any[];
