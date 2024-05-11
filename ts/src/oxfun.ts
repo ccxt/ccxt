@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -256,6 +256,7 @@ export default class oxfun extends Exchange {
                     // {"success":false,"message":null,"code":"500","timestamp":"2024-05-09T13:15:30.418+0000","data":null}
                     // {"success":false,"code":"20001","message":"This market does not have a funding rate"}
                     // {"success":false,"code":"30001","message":"Required parameter 'asset' is missing"}
+                    // {"success":false,"code":"20001","message":"startTime and endTime must be within 7 days of each other"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -1668,6 +1669,115 @@ export default class oxfun extends Exchange {
             'network': undefined,
             'info': depositAddress,
         };
+    }
+
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name oxfun#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @see https://docs.ox.fun/?json#get-v3-deposit
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = 1714906800000;
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetV3Deposit (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "asset":"USDC",
+        //                 "network":"Ethereum",
+        //                 "address": "0x998dEc76151FB723963Bd8AFD517687b38D33dE8",
+        //                 "quantity":"50",
+        //                 "id":"5914",
+        //                 "status": "COMPLETED",
+        //                 "txId":"0xf5e79663830a0c6f94d46638dcfbc134566c12facf1832396f81ecb55d3c75dc",
+        //                 "creditedAt":"1714821645154"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        //
+        //  fetchDeposits
+        //     {
+        //         "asset":"USDC",
+        //         "network":"Ethereum",
+        //         "address": "0x998dEc76151FB723963Bd8AFD517687b38D33dE8",
+        //         "quantity":"50",
+        //         "id":"5914",
+        //         "status": "COMPLETED",
+        //         "txId":"0xf5e79663830a0c6f94d46638dcfbc134566c12facf1832396f81ecb55d3c75dc",
+        //         "creditedAt":"1714821645154"
+        //     }
+        //
+        // todo: this is in progress
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        const txid = this.safeString (transaction, 'txId');
+        const currencyId = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const network = this.safeString (transaction, 'network');
+        const networkCode = this.networkIdToCode (network);
+        const timestamp = this.safeInteger (transaction, 'creditedAt');
+        const status = this.parseDepositStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeNumber (transaction, 'quantity');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': networkCode,
+            'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': 'deposit', // todo after fetchWithdrawals
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
+    }
+
+    parseDepositStatus (status) {
+        const statuses = {
+            'COMPLETED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
