@@ -43,30 +43,66 @@ if (platform === 'win32') {
 }
 class Transpiler {
 
+
+    baseMethodsList = null;
+
+    defineImplicitMethodsList () {
+        if (!this.baseMethodsList) {
+            const exchange = new Exchange();
+            let all = Object.getOwnPropertyNames(Object.getPrototypeOf(exchange));
+            all = all.concat (Object.getOwnPropertyNames(exchange));
+            this.baseMethodsList = [ ... all.filter(m => 'function' === typeof exchange[m])];
+        }
+    }
+
     trimmedUnCamelCase(word) {
-        // don't modify implicit api methods
-        if (
-            word.startsWith('v1') || word.startsWith('v2') || word.startsWith('v3') || word.startsWith('v4') ||
-            word.startsWith('private') || word.startsWith('public')
-        ) {
+        // we only need base methods
+        let found = false;
+        for (const methodName of this.baseMethodsList) {
+            if (word.toLowerCase ().replace(' ','') === 'this.' + methodName.toLowerCase () + '(') {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
             return word;
         }
         // remove JS space between method name and (
-        // example: this.myMethod ( -> this.myMethod() 
-        word = word.replace(' ', '').replace ('(', '');
+        word = word.replace ('(', '').replace (' ', '');
         // unCamelCase needs to have an input of plain word, so, remove and re-add the parentheses
         const uncameled = unCamelCase (word) + '(';
+        const reserved = {
+            'safe_value2': 'safe_value_2',
+            'safe_integer2': 'safe_integer_2',
+            'safe_string2': 'safe_string_2',
+            'safe_float2': 'safe_float_2',
+            'safe_dict2': 'safe_dict_2',
+            'safe_list2': 'safe_list_2',
+            'safe_integer_product2': 'safe_integer_product_2',
+            'fetch_ohlc_vs': 'fetch_ohlcvs',
+            'parse_ohlc_vs': 'parse_ohlcvs',
+            'fetchOHLCVWs': 'fetch_ohlcv_ws',
+            'buildOHLCVC': 'build_ohlcv',
+            '2_4hr': '_24hr',
+            'int_to_base1_6': 'int_to_base_16',
+        };
+        for (const [key, value] of Object.entries (reserved)) {
+            if (uncameled.includes (key)) {
+                return uncameled.replace (key, value);
+            }
+        }
         return uncameled;
     }
 
     getCommonRegexes () {
+
         return [
             [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
-            [ /\'use strict\';?\s+/g, '' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
+            [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
-            [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase ],
-            [ /super\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase ],
+            [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
+            [ /super\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -181,9 +217,9 @@ class Transpiler {
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
             [ /Object\.values\s*\((.*)\)/g, 'list($1.values())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
-            [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
-            [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
-            [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
+            [ /hash\s*\(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
+            [ /hmac\s*\(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
+            [ /hmac\s*\(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'raise $1($2)'],
             [ /throw ([\S]+)/g, 'raise $1'],
             [ /try {/g, 'try:'],
@@ -593,13 +629,14 @@ class Transpiler {
     regexAll (text, array) {
         for (const i in array) {
             let regex = array[i][0]
+            let replaceStringOrCallback = array[i][1]
             const flags = (typeof regex === 'string') ? 'g' : undefined
             regex = new RegExp (regex, flags)
             if (typeof array[i][1] !== 'function') {
-                text = text.replace (regex, array[i][1])
+                text = text.replace (regex, replaceStringOrCallback)
             } else {
                 text = text.replace (regex, function (matched) {
-                    return array[i][1] (matched)
+                    return replaceStringOrCallback (matched)
                 })
             }
         }
@@ -2585,6 +2622,7 @@ class Transpiler {
 
 
     async transpileEverything (force = false, child = false) {
+        this.defineImplicitMethodsList ();
 
         // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
