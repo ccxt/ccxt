@@ -1160,6 +1160,29 @@
                 ]
             }
         ],
+        "fetchLeverageTiers": [
+            {
+                "description": "Fetch leverage tiers for multiple swap markets at once",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.coinex.com/v2/futures/position-level?market=BTCUSDT%2CLTCUSDT",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "Fetch the leverage tiers for a specified swap symbol",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.coinex.com/v2/futures/position-level?market=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "setMarginMode": [
             {
                 "description": "Swap set the margin mode and leverage of a trading pair",
