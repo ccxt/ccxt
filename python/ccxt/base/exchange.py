@@ -5854,7 +5854,7 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data: dict, market: Market = None):
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
 
     def parse_margin_modifications(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):

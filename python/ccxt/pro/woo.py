@@ -531,6 +531,16 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
+    async def watch_private_multiple(self, messageHashes, message, params={}):
+        await self.authenticate(params)
+        url = self.urls['api']['ws']['private'] + '/' + self.uid
+        requestId = self.request_id(url)
+        subscribe = {
+            'id': requestId,
+        }
+        request = self.extend(subscribe, message)
+        return await self.watch_multiple(url, messageHashes, request, messageHashes, subscribe)
+
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.woo.org/#executionreport
@@ -540,10 +550,13 @@ class woo(ccxt.async_support.woo):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.trigger]: True if trigger order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        topic = 'executionreport'
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
+        topic = 'algoexecutionreportv2' if (trigger) else 'executionreport'
+        params = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
         if symbol is not None:
             market = self.market(symbol)
@@ -562,15 +575,19 @@ class woo(ccxt.async_support.woo):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://docs.woo.org/#executionreport
+        :see: https://docs.woo.org/#algoexecutionreportv2
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.trigger]: True if trigger order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        topic = 'executionreport'
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
+        topic = 'algoexecutionreportv2' if (trigger) else 'executionreport'
+        params = self.omit(params, ['stop', 'trigger'])
         messageHash = 'myTrades'
         if symbol is not None:
             market = self.market(symbol)
@@ -692,14 +709,24 @@ class woo(ccxt.async_support.woo):
         #         }
         #     }
         #
-        order = self.safe_dict(message, 'data')
-        tradeId = self.safe_string(order, 'tradeId')
-        if (tradeId is not None) and (tradeId != '0'):
-            self.handle_my_trade(client, order)
-        self.handle_order(client, order)
+        topic = self.safe_string(message, 'topic')
+        data = self.safe_value(message, 'data')
+        if isinstance(data, list):
+            # algoexecutionreportv2
+            for i in range(0, len(data)):
+                order = data[i]
+                tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+                if tradeId is not None:
+                    self.handle_my_trade(client, order)
+                self.handle_order(client, order, topic)
+        else:
+            # executionreport
+            tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+            if tradeId is not None:
+                self.handle_my_trade(client, data)
+            self.handle_order(client, data, topic)
 
-    def handle_order(self, client: Client, message):
-        topic = 'executionreport'
+    def handle_order(self, client: Client, message, topic):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -776,11 +803,14 @@ class woo(ccxt.async_support.woo):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        messageHash = ''
+        messageHashes = []
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
-            messageHash = '::' + ','.join(symbols)
-        messageHash = 'positions' + messageHash
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                messageHashes.append('positions::' + symbol)
+        else:
+            messageHashes.append('positions')
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         client = self.client(url)
         self.set_positions_cache(client, symbols)
@@ -793,7 +823,7 @@ class woo(ccxt.async_support.woo):
             'event': 'subscribe',
             'topic': 'position',
         }
-        newPositions = await self.watch_private(messageHash, request, params)
+        newPositions = await self.watch_private_multiple(messageHashes, request, params)
         if self.newUpdates:
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
@@ -862,15 +892,8 @@ class woo(ccxt.async_support.woo):
             position = self.parse_position(rawPosition, market)
             newPositions.append(position)
             cache.append(position)
-        messageHashes = self.find_message_hashes(client, 'positions::')
-        for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
-            symbolsString = parts[1]
-            symbols = symbolsString.split(',')
-            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
-            if not self.is_empty(positions):
-                client.resolve(positions, messageHash)
+            messageHash = 'positions::' + market['symbol']
+            client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
     async def watch_balance(self, params={}) -> Balances:
@@ -978,6 +1001,7 @@ class woo(ccxt.async_support.woo):
             'kline': self.handle_ohlcv,
             'auth': self.handle_auth,
             'executionreport': self.handle_order_update,
+            'algoexecutionreportv2': self.handle_order_update,
             'trade': self.handle_trade,
             'balance': self.handle_balance,
             'position': self.handle_positions,

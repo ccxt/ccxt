@@ -7230,7 +7230,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification(array $data, ?array $market = null) {
         throw new NotSupported($this->id . ' parseMarginModification() is not supported yet');
     }
 
