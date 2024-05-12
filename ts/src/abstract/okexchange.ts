@@ -13,7 +13,6 @@ interface Exchange {
     publicGetOapiV1OtcTickers (params?: {}): Promise<implicitReturnType>;
     publicGetSnoOapiMarketCandle (params?: {}): Promise<implicitReturnType>;
     publicGetOapiV1MarketOrderbook (params?: {}): Promise<implicitReturnType>;
-    privatePostBalance (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
