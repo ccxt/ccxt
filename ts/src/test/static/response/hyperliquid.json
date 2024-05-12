@@ -221,6 +221,81 @@
                         "stopLossPrice": null
                     }
                 ]
+            },
+            {
+              "description": "trigger open order",
+              "method": "fetchOpenOrders",
+              "input": [
+                "ADA/USDC:USDC"
+              ],
+              "httpResponse": [
+                {
+                  "children": [],
+                  "cloid": null,
+                  "coin": "ADA",
+                  "isPositionTpsl": false,
+                  "isTrigger": true,
+                  "limitPx": "0.4",
+                  "oid": "8670685324",
+                  "orderType": "Stop Limit",
+                  "origSz": "40.0",
+                  "reduceOnly": false,
+                  "side": "B",
+                  "sz": "40.0",
+                  "tif": null,
+                  "timestamp": "1715524233290",
+                  "triggerCondition": "Price above 0.6",
+                  "triggerPx": "0.6"
+                }
+              ],
+              "parsedResponse": [
+                {
+                  "info": {
+                    "children": [],
+                    "cloid": null,
+                    "coin": "ADA",
+                    "isPositionTpsl": false,
+                    "isTrigger": true,
+                    "limitPx": "0.4",
+                    "oid": "8670685324",
+                    "orderType": "Stop Limit",
+                    "origSz": "40.0",
+                    "reduceOnly": false,
+                    "side": "B",
+                    "sz": "40.0",
+                    "tif": null,
+                    "timestamp": "1715524233290",
+                    "triggerCondition": "Price above 0.6",
+                    "triggerPx": "0.6"
+                  },
+                  "id": "8670685324",
+                  "clientOrderId": null,
+                  "timestamp": 1715524233290,
+                  "datetime": "2024-05-12T14:30:33.290Z",
+                  "lastTradeTimestamp": null,
+                  "lastUpdateTimestamp": null,
+                  "symbol": "ADA/USDC:USDC",
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "reduceOnly": false,
+                  "side": "buy",
+                  "price": 0.4,
+                  "triggerPrice": 0.6,
+                  "amount": 40,
+                  "cost": null,
+                  "average": null,
+                  "filled": null,
+                  "remaining": null,
+                  "status": null,
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "stopPrice": 0.6,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+              ]
             }
         ],
         "fetchOrder": [
