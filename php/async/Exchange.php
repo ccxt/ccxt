@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.18';
+$version = '4.3.20';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.18';
+    const VERSION = '4.3.20';
 
     public $browser;
     public $marketsLoading = null;
@@ -5111,6 +5111,8 @@ class Exchange extends \ccxt\Exchange {
                     $response = null;
                     if ($method === 'fetchAccounts') {
                         $response = Async\await($this->$method ($params));
+                    } elseif ($method === 'getLeverageTiersPaginated') {
+                        $response = Async\await($this->$method ($symbol, $params));
                     } else {
                         $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
                     }
@@ -5468,7 +5470,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
     }
 
-    public function parse_margin_modification($data, ?array $market = null) {
+    public function parse_margin_modification(array $data, ?array $market = null) {
         throw new NotSupported($this->id . ' parseMarginModification() is not supported yet');
     }
 

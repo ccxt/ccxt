@@ -32,6 +32,8 @@ class okx extends \ccxt\async\okx {
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchPositions' => true,
+                'watchFundingRate' => true,
+                'watchFundingRates' => true,
                 'createOrderWs' => true,
                 'editOrderWs' => true,
                 'cancelOrderWs' => true,
@@ -260,6 +262,91 @@ class okx extends \ccxt\async\okx {
             }
             $stored->append ($trade);
             $client->resolve ($stored, $messageHash);
+        }
+    }
+
+    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate
+             * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            $symbol = $this->symbol($symbol);
+            $fr = Async\await($this->watch_funding_rates(array( $symbol ), $params));
+            return $fr[$symbol];
+        }) ();
+    }
+
+    public function watch_funding_rates(array $symbols, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watch the funding rate for multiple markets
+             * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-$channel
+             * @param {string[]} $symbols list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $channel = 'funding-rate';
+            $topics = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $messageHashes[] = $channel . ':' . $symbol;
+                $marketId = $this->market_id($symbol);
+                $topic = array(
+                    'channel' => $channel,
+                    'instId' => $marketId,
+                );
+                $topics[] = $topic;
+            }
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $topics,
+            );
+            $url = $this->get_url($channel, 'public');
+            $fundingRate = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+            if ($this->newUpdates) {
+                $symbol = $this->safe_string($fundingRate, 'symbol');
+                $result = array();
+                $result[$symbol] = $fundingRate;
+                return $result;
+            }
+            return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_funding_rate(Client $client, $message) {
+        //
+        // "data":array(
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method" => "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium" => "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
+        // )
+        //
+        $data = $this->safe_list($message, 'data', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $rawfr = $data[$i];
+            $fundingRate = $this->parse_funding_rate($rawfr);
+            $symbol = $fundingRate['symbol'];
+            $this->fundingRates[$symbol] = $fundingRate;
+            $client->resolve ($fundingRate, 'funding-rate' . ':' . $fundingRate['symbol']);
         }
     }
 
@@ -1678,6 +1765,7 @@ class okx extends \ccxt\async\okx {
                 'block-tickers' => array($this, 'handle_ticker'),
                 'trades' => array($this, 'handle_trades'),
                 'account' => array($this, 'handle_balance'),
+                'funding-rate' => array($this, 'handle_funding_rate'),
                 // 'margin_account' => array($this, 'handle_balance'),
                 'orders' => array($this, 'handle_orders'),
                 'orders-algo' => array($this, 'handle_orders'),

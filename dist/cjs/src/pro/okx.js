@@ -24,6 +24,8 @@ class okx extends okx$1 {
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
+                'watchFundingRate': true,
+                'watchFundingRates': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -243,6 +245,88 @@ class okx extends okx$1 {
             }
             stored.append(trade);
             client.resolve(stored, messageHash);
+        }
+    }
+    async watchFundingRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#watchFundingRate
+         * @description watch the current funding rate
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        symbol = this.symbol(symbol);
+        const fr = await this.watchFundingRates([symbol], params);
+        return fr[symbol];
+    }
+    async watchFundingRates(symbols, params = {}) {
+        /**
+         * @method
+         * @name coinbaseinternational#watchFundingRates
+         * @description watch the funding rate for multiple markets
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+         * @param {string[]} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const channel = 'funding-rate';
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push(channel + ':' + symbol);
+            const marketId = this.marketId(symbol);
+            const topic = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push(topic);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const url = this.getUrl(channel, 'public');
+        const fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        if (this.newUpdates) {
+            const symbol = this.safeString(fundingRate, 'symbol');
+            const result = {};
+            result[symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, 'symbol', symbols);
+    }
+    handleFundingRate(client, message) {
+        //
+        // "data":[
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
+        // ]
+        //
+        const data = this.safeList(message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawfr = data[i];
+            const fundingRate = this.parseFundingRate(rawfr);
+            const symbol = fundingRate['symbol'];
+            this.fundingRates[symbol] = fundingRate;
+            client.resolve(fundingRate, 'funding-rate' + ':' + fundingRate['symbol']);
         }
     }
     async watchTicker(symbol, params = {}) {
@@ -1633,6 +1717,7 @@ class okx extends okx$1 {
                 'block-tickers': this.handleTicker,
                 'trades': this.handleTrades,
                 'account': this.handleBalance,
+                'funding-rate': this.handleFundingRate,
                 // 'margin_account': this.handleBalance,
                 'orders': this.handleOrders,
                 'orders-algo': this.handleOrders,

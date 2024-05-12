@@ -295,7 +295,7 @@ class coinex extends coinex$1 {
                 'v2': {
                     'public': {
                         'get': {
-                            'maintain-info': 1,
+                            'maintain/info': 1,
                             'ping': 1,
                             'time': 1,
                             'spot/market': 1,
@@ -4171,47 +4171,63 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
-        const response = await this.v1PerpetualPublicGetMarketLimitConfig(params);
+        const request = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds(symbols);
+            request['market'] = marketIds.join(',');
+        }
+        const response = await this.v2PublicGetFuturesPositionLevel(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "BTCUSD": [
-        //                 ["500001", "100", "0.005"],
-        //                 ["1000001", "50", "0.01"],
-        //                 ["2000001", "30", "0.015"],
-        //                 ["5000001", "20", "0.02"],
-        //                 ["10000001", "15", "0.025"],
-        //                 ["20000001", "10", "0.03"]
-        //             ],
-        //             ...
-        //         },
+        //         "data": [
+        //             {
+        //                 "level": [
+        //                     {
+        //                         "amount": "20001",
+        //                         "leverage": "20",
+        //                         "maintenance_margin_rate": "0.02",
+        //                         "min_initial_margin_rate": "0.05"
+        //                     },
+        //                     {
+        //                         "amount": "50001",
+        //                         "leverage": "10",
+        //                         "maintenance_margin_rate": "0.04",
+        //                         "min_initial_margin_rate": "0.1"
+        //                     },
+        //                 ],
+        //                 "market": "MINAUSDT"
+        //             },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        return this.parseLeverageTiers(data, symbols, undefined);
+        const data = this.safeList(response, 'data', []);
+        return this.parseLeverageTiers(data, symbols, 'market');
     }
-    parseMarketLeverageTiers(item, market = undefined) {
+    parseMarketLeverageTiers(info, market = undefined) {
         const tiers = [];
+        const brackets = this.safeList(info, 'level', []);
         let minNotional = 0;
-        for (let j = 0; j < item.length; j++) {
-            const bracket = item[j];
-            const maxNotional = this.safeNumber(bracket, 0);
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            const marketId = this.safeString(info, 'market');
+            market = this.safeMarket(marketId, market, undefined, 'swap');
+            const maxNotional = this.safeNumber(tier, 'amount');
             tiers.push({
-                'tier': j + 1,
+                'tier': this.sum(i, 1),
                 'currency': market['linear'] ? market['base'] : market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeNumber(bracket, 2),
-                'maxLeverage': this.safeInteger(bracket, 1),
-                'info': bracket,
+                'maintenanceMarginRate': this.safeNumber(tier, 'maintenance_margin_rate'),
+                'maxLeverage': this.safeInteger(tier, 'leverage'),
+                'info': tier,
             });
             minNotional = maxNotional;
         }

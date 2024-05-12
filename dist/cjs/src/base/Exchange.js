@@ -83,6 +83,7 @@ class Exchange {
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
+        this.fundingRates = {};
         this.bidsasks = {};
         this.orders = undefined;
         this.triggerOrders = undefined;
@@ -5946,6 +5947,9 @@ class Exchange {
                 let response = undefined;
                 if (method === 'fetchAccounts') {
                     response = await this[method](params);
+                }
+                else if (method === 'getLeverageTiersPaginated') {
+                    response = await this[method](symbol, params);
                 }
                 else {
                     response = await this[method](symbol, since, maxEntriesPerRequest, params);

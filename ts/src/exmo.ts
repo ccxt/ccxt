@@ -264,7 +264,7 @@ export default class exmo extends Exchange {
         return margin;
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //      {}
         //

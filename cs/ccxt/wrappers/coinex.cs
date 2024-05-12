@@ -890,7 +890,7 @@ public partial class coinex
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
