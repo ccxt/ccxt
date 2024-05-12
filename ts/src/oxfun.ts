@@ -257,6 +257,7 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"20001","message":"This market does not have a funding rate"}
                     // {"success":false,"code":"30001","message":"Required parameter 'asset' is missing"}
                     // {"success":false,"code":"20001","message":"startTime and endTime must be within 7 days of each other"}
+                    // {"success":false,"code":"30001","message":"Required parameter 'timestamp' is missing","data":null}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -1031,7 +1032,7 @@ export default class oxfun extends Exchange {
         const marketId = this.safeString (info, 'marketCode');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (info, 'matchedAt');
+        const timestamp = this.safeInteger (info, 'createdAt');
         return {
             'info': info,
             'symbol': symbol,
