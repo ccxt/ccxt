@@ -1698,7 +1698,7 @@ export default class oxfun extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = 1714906800000;
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
             params = this.omit (params, 'until');
@@ -1948,8 +1948,8 @@ export default class oxfun extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let queryString = '';
         if (method === 'GET' || method === 'DELETE') {
-            if (query.length !== 0) {
-                queryString = this.urlencode (query);
+            queryString = this.urlencode (query);
+            if (queryString.length !== 0) {
                 url += '?' + queryString;
             }
         }
