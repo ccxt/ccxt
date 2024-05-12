@@ -70,7 +70,7 @@ export default class oxfun extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -94,7 +94,7 @@ export default class oxfun extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
@@ -156,13 +156,13 @@ export default class oxfun extends Exchange {
                         'v3/markets': 1, // unified
                         'v3/assets': 1, // unified
                         'v3/tickers': 1, // unified
-                        'v3/funding/estimates': 1,
+                        'v3/funding/estimates': 1, // unified
                         'v3/candles': 1, // unified
                         'v3/depth': 1, // unified
                         'v3/markets/operational': 1, // todo check if it is useful
                         'v3/exchange-trades': 1, // unified
-                        'v3/funding/rates': 1,
-                        'v3/leverage/tiers': 1,
+                        'v3/funding/rates': 1, // unified
+                        'v3/leverage/tiers': 1, // unified todo complete
                     },
                 },
                 'private': {
@@ -170,12 +170,12 @@ export default class oxfun extends Exchange {
                         'v3/account': 1,
                         'v3/account/names': 1, // unified
                         'v3/wallet': 1, // retruns only FUNDING in OX
-                        'v3/transfer': 1,
+                        'v3/transfer': 1, // unified
                         'v3/balances': 1, // unified
-                        'v3/positions': 1,
+                        'v3/positions': 1, // unified
                         'v3/funding': 1,
-                        'v3/deposit-addresses': 1,
-                        'v3/deposit': 1,
+                        'v3/deposit-addresses': 1, // unified
+                        'v3/deposit': 1, // unified
                         'v3/withdrawal-addresses': 1,
                         'v3/withdrawal': 1,
                         'v3/withdrawal-fees': 1,
@@ -959,6 +959,76 @@ export default class oxfun extends Exchange {
         const timestamp = this.safeInteger (data, 'lastUpdatedAt');
         return this.parseOrderBook (data, market['symbol'], timestamp);
     }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#fetchFundingRates
+         * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+         * @description fetch the current funding rates
+         * @param {string[]} symbols unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV3FundingEstimates (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "marketCode": "OX-USD-SWAP-LIN",
+        //                 "fundingAt": "1715515200000",
+        //                 "estFundingRate": "0.000200000"
+        //             },
+        //             {
+        //                 "marketCode": "BTC-USD-SWAP-LIN",
+        //                 "fundingAt": "1715515200000",
+        //                 "estFundingRate": "0.000003"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = this.parseFundingRates (data);
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    parseFundingRate (fundingRate, market: Market = undefined) {
+        //
+        //     {
+        //         "marketCode": "OX-USD-SWAP-LIN",
+        //         "fundingAt": "1715515200000",
+        //         "estFundingRate": "0.000200000"
+        //     },
+        //
+        //
+        const symbol = this.safeString (fundingRate, 'marketCode');
+        market = this.market (symbol);
+        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'fundingAt');
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': estFundingRateTimestamp,
+            'datetime': this.iso8601 (estFundingRateTimestamp),
+            'fundingRate': this.safeNumber (fundingRate, 'estFundingRate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
