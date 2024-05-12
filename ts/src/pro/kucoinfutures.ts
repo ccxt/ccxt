@@ -607,6 +607,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         /**
          * @method
          * @name kucoinfutures#watchOHLCV
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -663,19 +664,18 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const ohlcv = this.safeList (data, 'candles');
         const parsed = [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 6), // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 6), // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         ];
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
+        if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
+        const stored = this.ohlcvs[symbol][timeframe];
         stored.append (parsed);
         client.resolve (stored, messageHash);
     }
