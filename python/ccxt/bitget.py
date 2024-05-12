@@ -4033,8 +4033,8 @@ class bitget(Exchange, ImplicitAPI):
                     request['reduceOnly'] = 'YES'
                     if hedged:
                         request['tradeSide'] = 'Close'
-                    # on bitget if the position is long the side is always buy, and if the position is short the side is always sell
-                    requestSide = 'sell' if (side == 'buy') else 'buy'
+                        # on bitget if the position is long the side is always buy, and if the position is short the side is always sell
+                        requestSide = 'sell' if (side == 'buy') else 'buy'
                 else:
                     if hedged:
                         request['tradeSide'] = 'Open'
