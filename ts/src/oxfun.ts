@@ -112,7 +112,7 @@ export default class oxfun extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
@@ -177,7 +177,7 @@ export default class oxfun extends Exchange {
                         'v3/deposit-addresses': 1, // unified
                         'v3/deposit': 1, // unified
                         'v3/withdrawal-addresses': 1,
-                        'v3/withdrawal': 1,
+                        'v3/withdrawal': 1, // unified
                         'v3/withdrawal-fees': 1,
                         'v3/orders/status': 1,
                         'v3/orders/working': 1,
@@ -1883,7 +1883,80 @@ export default class oxfun extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            data[i]['type'] = 'deposit';
+        }
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name oxfun#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @see https://docs.ox.fun/?json#get-v3-withdrawal
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetV3Withdrawal (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         data: [
+        //             {
+        //                 id: '968163212989431811',
+        //                 asset: 'OX',
+        //                 network: 'Arbitrum',
+        //                 address: '0x90fc1fB49a4ED8f485dd02A2a1Cf576897f6Bfc9',
+        //                 quantity: '11.7444',
+        //                 fee: '1.744400000',
+        //                 status: 'COMPLETED',
+        //                 txId: '0xe96b2d128b737fdbca927edf355cff42202e65b0fb960e64ffb9bd68c121f69f',
+        //                 requestedAt: '1715530365450',
+        //                 completedAt: '1715530527000'
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            data[i]['type'] = 'withdrawal';
+        }
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+        let result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            transactions[i] = this.extend (transactions[i], params);
+            const transaction = this.parseTransaction (transactions[i], currency);
+            result.push (transaction);
+        }
+        result = this.sortBy (result, 'timestamp');
+        const code = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
@@ -1900,17 +1973,49 @@ export default class oxfun extends Exchange {
         //         "creditedAt":"1714821645154"
         //     }
         //
+        // fetchWithdrawals
+        //     {
+        //         id: '968163212989431811',
+        //         asset: 'OX',
+        //         network: 'Arbitrum',
+        //         address: '0x90fc1fB49a4ED8f485dd02A2a1Cf576897f6Bfc9',
+        //         quantity: '11.7444',
+        //         fee: '1.744400000',
+        //         status: 'COMPLETED',
+        //         txId: '0xe96b2d128b737fdbca927edf355cff42202e65b0fb960e64ffb9bd68c121f69f',
+        //         requestedAt: '1715530365450',
+        //         completedAt: '1715530527000'
+        //     }
+        //
         // todo: this is in progress
         const id = this.safeString (transaction, 'id');
-        const address = this.safeString (transaction, 'address');
+        const type = this.safeString (transaction, 'type');
+        transaction = this.omit (transaction, 'type');
+        let address = undefined;
+        let addressTo = undefined;
+        let status = undefined;
+        if (type === 'deposit') {
+            address = this.safeString (transaction, 'address');
+            status = this.parseDepositStatus (this.safeString (transaction, 'status'));
+        } else if (type === 'withdrawal') {
+            addressTo = this.safeString (transaction, 'address');
+            status = this.parseWithdrawalStatus (this.safeString (transaction, 'status'));
+        }
         const txid = this.safeString (transaction, 'txId');
-        const currencyId = this.safeString (transaction, 'coin');
+        const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         const network = this.safeString (transaction, 'network');
         const networkCode = this.networkIdToCode (network);
-        const timestamp = this.safeInteger (transaction, 'creditedAt');
-        const status = this.parseDepositStatus (this.safeString (transaction, 'status'));
+        const timestamp = this.safeInteger2 (transaction, 'creditedAt', 'completedAt');
         const amount = this.safeNumber (transaction, 'quantity');
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
@@ -1919,25 +2024,38 @@ export default class oxfun extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'network': networkCode,
             'address': address,
-            'addressTo': undefined,
+            'addressTo': addressTo,
             'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': 'deposit', // todo after fetchWithdrawals
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
             'updated': undefined,
             'internal': undefined,
             'comment': undefined,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
     parseDepositStatus (status) {
         const statuses = {
             'COMPLETED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWithdrawalStatus (status) {
+        const statuses = {
+            'COMPLETED': 'ok',
+            'PROCESSING': 'pending',
+            'IN SWEEPING': 'pending',
+            'PENDING': 'pending',
+            'ON HOLD': 'pending',
+            'CANCELED': 'canceled',
+            'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
