@@ -67,7 +67,7 @@ export default class oxfun extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -173,7 +173,7 @@ export default class oxfun extends Exchange {
                         'v3/transfer': 1, // unified
                         'v3/balances': 1, // unified
                         'v3/positions': 1, // unified
-                        'v3/funding': 1,
+                        'v3/funding': 1, // unified
                         'v3/deposit-addresses': 1, // unified
                         'v3/deposit': 1, // unified
                         'v3/withdrawal-addresses': 1,
@@ -258,6 +258,7 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"30001","message":"Required parameter 'asset' is missing"}
                     // {"success":false,"code":"20001","message":"startTime and endTime must be within 7 days of each other"}
                     // {"success":false,"code":"30001","message":"Required parameter 'timestamp' is missing","data":null}
+                    // {"success":false,"code":"20001","message":"subAcc is invalid"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -1029,7 +1030,6 @@ export default class oxfun extends Exchange {
         };
     }
 
-
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -1109,6 +1109,97 @@ export default class oxfun extends Exchange {
             'fundingRate': this.safeNumber (info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#fetchFundingHistory
+         * @description fetches the history of funding payments
+         * @see https://docs.ox.fun/?json#get-v3-funding
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketCode': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetV3Funding (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         data: [
+        //             {
+        //                 id: '966709913041305605',
+        //                 marketCode: 'ETH-USD-SWAP-LIN',
+        //                 payment: '-0.00430822',
+        //                 fundingRate: '0.000014',
+        //                 position: '0.001',
+        //                 indexPrice: '3077.3',
+        //                 createdAt: '1715086852890'
+        //             },
+        //             {
+        //                 id: '966698111997509637',
+        //                 marketCode: 'ETH-USD-SWAP-LIN',
+        //                 payment: '-0.0067419',
+        //                 fundingRate: '0.000022',
+        //                 position: '0.001',
+        //                 indexPrice: '3064.5',
+        //                 createdAt: '1715083251516'
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const result = this.safeList (response, 'data', []);
+        return this.parseIncomes (result, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        //     {
+        //         id: '966709913041305605',
+        //         marketCode: 'ETH-USD-SWAP-LIN',
+        //         payment: '-0.00430822',
+        //         fundingRate: '0.000014',
+        //         position: '0.001',
+        //         indexPrice: '3077.3',
+        //         createdAt: '1715086852890'
+        //     },
+        //
+        const marketId = this.safeString (income, 'marketCode');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeNumber (income, 'payment');
+        const code = this.safeCurrencyCode ('OX');
+        const id = this.safeString (income, 'id');
+        const timestamp = this.safeTimestamp (income, 'createdAt');
+        const rate = this.safeNumber (income, 'fundingRate');
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'amount': amount,
+            'rate': rate,
         };
     }
 
@@ -1522,7 +1613,7 @@ export default class oxfun extends Exchange {
         /**
          * @method
          * @name oxfun#fetchAccounts
-         * @description fetch sub accounts associated with a profile
+         * @description fetch accounts associated with a profile
          * @see https://docs.ox.fun/?json#get-v3-account-names
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
