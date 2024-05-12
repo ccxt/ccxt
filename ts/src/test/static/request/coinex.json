@@ -1197,6 +1197,30 @@
                 ],
                 "output": "{\"leverage\":1,\"margin_mode\":\"isolated\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
             }
+        ],
+        "addMargin": [
+            {
+                "description": "Swap add margin to a position",
+                "method": "addMargin",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-margin",
+                "input": [
+                  "BTC/USDT:USDT",
+                  2.1
+                ],
+                "output": "{\"amount\":\"2.1\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Swap reduce margin from a position",
+                "method": "reduceMargin",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-margin",
+                "input": [
+                  "BTC/USDT:USDT",
+                  7.4
+                ],
+                "output": "{\"amount\":\"-7.4\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
         ]
     },
     "disabledTests": {}
