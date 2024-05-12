@@ -358,7 +358,7 @@ export default class woofipro extends woofiproRest {
         const symbol = market['symbol'];
         const interval = this.safeString (data, 'type');
         const timeframe = this.findTimeframe (interval);
-        const parsed = [
+        const parsed: OHLCV = [
             this.safeInteger (data, 'startTime'),
             this.safeNumber (data, 'open'),
             this.safeNumber (data, 'high'),
@@ -370,7 +370,7 @@ export default class woofipro extends woofiproRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const ohlcvCache = this.ohlcvs[symbol][timeframe];
@@ -428,7 +428,7 @@ export default class woofipro extends woofiproRest {
         const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const stored = new ArrayCache (limit);
+            const stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const trades = this.trades[symbol];
