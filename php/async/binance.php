@@ -137,7 +137,7 @@ class binance extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => true,
-                'fetchPremiumIndexOHLCV' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -786,6 +786,7 @@ class binance extends Exchange {
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'premiumIndexKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'fundingRate' => 1,
                         'fundingInfo' => 1,
                         'premiumIndex' => 1,
@@ -4263,6 +4264,12 @@ class binance extends Exchange {
                     $response = Async\await($this->dapiPublicGetIndexPriceKlines ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->fapiPublicGetIndexPriceKlines ($this->extend($request, $params)));
+                }
+            } elseif ($price === 'premiumIndex') {
+                if ($market['inverse']) {
+                    $response = Async\await($this->dapiPublicGetPremiumIndexKlines ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->fapiPublicGetPremiumIndexKlines ($this->extend($request, $params)));
                 }
             } elseif ($market['linear']) {
                 $response = Async\await($this->fapiPublicGetKlines ($this->extend($request, $params)));

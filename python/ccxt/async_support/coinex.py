@@ -3988,72 +3988,59 @@ class coinex(Exchange, ImplicitAPI):
     async def modify_margin_helper(self, symbol: str, amount, addOrReduce, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        rawAmount = self.amount_to_precision(symbol, amount)
+        requestAmount = rawAmount
+        if addOrReduce == 'reduce':
+            requestAmount = Precise.string_neg(rawAmount)
         request = {
             'market': market['id'],
-            'amount': self.amount_to_precision(symbol, amount),
-            'type': addOrReduce,
+            'market_type': 'FUTURES',
+            'amount': requestAmount,
         }
-        response = await self.v1PerpetualPrivatePostPositionAdjustMargin(self.extend(request, params))
+        response = await self.v2PrivatePostFuturesAdjustPositionMargin(self.extend(request, params))
         #
         #     {
         #         "code": 0,
         #         "data": {
-        #             "adl_sort": 1,
-        #             "adl_sort_val": "0.00004320",
-        #             "amount": "0.0005",
-        #             "amount_max": "0.0005",
-        #             "amount_max_margin": "6.57352000000000000000",
-        #             "bkr_price": "16294.08000000000000011090",
-        #             "bkr_price_imply": "0.00000000000000000000",
-        #             "close_left": "0.0005",
-        #             "create_time": 1651202571.320778,
-        #             "deal_all": "19.72000000000000000000",
-        #             "deal_asset_fee": "0.00000000000000000000",
-        #             "fee_asset": "",
-        #             "finish_type": 1,
-        #             "first_price": "39441.12",
-        #             "insurance": "0.00000000000000000000",
-        #             "latest_price": "39441.12",
+        #             "adl_level": 1,
+        #             "ath_margin_size": "2.034928",
+        #             "ath_position_amount": "0.0001",
+        #             "avg_entry_price": "61047.84",
+        #             "bkr_price": "30698.5600000000000004142",
+        #             "close_avbl": "0.0001",
+        #             "cml_position_value": "6.104784",
+        #             "created_at": 1715488472908,
         #             "leverage": "3",
-        #             "liq_amount": "0.00000000000000000000",
-        #             "liq_order_price": "0",
-        #             "liq_order_time": 0,
-        #             "liq_price": "16491.28560000000000011090",
-        #             "liq_price_imply": "0.00000000000000000000",
-        #             "liq_profit": "0.00000000000000000000",
-        #             "liq_time": 0,
-        #             "mainten_margin": "0.005",
-        #             "mainten_margin_amount": "0.09860280000000000000",
-        #             "maker_fee": "0.00000000000000000000",
-        #             "margin_amount": "11.57352000000000000000",
+        #             "liq_price": "30852.82412060301507579316",
+        #             "maintenance_margin_rate": "0.005",
+        #             "maintenance_margin_value": "0.03051465",
+        #             "margin_avbl": "3.034928",
+        #             "margin_mode": "isolated",
         #             "market": "BTCUSDT",
-        #             "open_margin": "0.58687582908396110455",
-        #             "open_margin_imply": "0.00000000000000000000",
-        #             "open_price": "39441.12000000000000000000",
-        #             "open_val": "19.72056000000000000000",
-        #             "open_val_max": "19.72056000000000000000",
-        #             "position_id": 65171206,
-        #             "profit_clearing": "-0.00986028000000000000",
-        #             "profit_real": "-0.00986028000000000000",
-        #             "profit_unreal": "0.00",
-        #             "side": 2,
-        #             "stop_loss_price": "0.00000000000000000000",
-        #             "stop_loss_type": 0,
-        #             "s ys": 0,
-        #             "take_profit_price": "0.00000000000000000000",
-        #             "take_profit_type": 0,
-        #             "taker_fee": "0.00000000000000000000",
-        #             "total": 3464,
-        #             "type": 1,
-        #             "update_time": 1651202638.911212,
-        #             "user_id": 3620173
+        #             "market_type": "FUTURES",
+        #             "max_position_value": "6.104784",
+        #             "open_interest": "0.0001",
+        #             "position_id": 306458800,
+        #             "position_margin_rate": "0.49713929272518077625",
+        #             "realized_pnl": "-0.003052392",
+        #             "settle_price": "61047.84",
+        #             "settle_value": "6.104784",
+        #             "side": "long",
+        #             "stop_loss_price": "0",
+        #             "stop_loss_type": "",
+        #             "take_profit_price": "0",
+        #             "take_profit_type": "",
+        #             "unrealized_pnl": "0",
+        #             "updated_at": 1715488805563
         #         },
-        #         "message":"OK"
+        #         "message": "OK"
         #     }
         #
         data = self.safe_dict(response, 'data')
-        status = self.safe_string(response, 'message')
+        status = self.safe_string_lower(response, 'message')
+        type = 'reduce' if (addOrReduce == 'reduce') else 'add'
         return self.extend(self.parse_margin_modification(data, market), {
+            'type': type,
             'amount': self.parse_number(amount),
             'status': status,
         })
@@ -4062,86 +4049,66 @@ class coinex(Exchange, ImplicitAPI):
         #
         # addMargin/reduceMargin
         #
-        #    {
-        #        "adl_sort": 1,
-        #        "adl_sort_val": "0.00004320",
-        #        "amount": "0.0005",
-        #        "amount_max": "0.0005",
-        #        "amount_max_margin": "6.57352000000000000000",
-        #        "bkr_price": "16294.08000000000000011090",
-        #        "bkr_price_imply": "0.00000000000000000000",
-        #        "close_left": "0.0005",
-        #        "create_time": 1651202571.320778,
-        #        "deal_all": "19.72000000000000000000",
-        #        "deal_asset_fee": "0.00000000000000000000",
-        #        "fee_asset": "",
-        #        "finish_type": 1,
-        #        "first_price": "39441.12",
-        #        "insurance": "0.00000000000000000000",
-        #        "latest_price": "39441.12",
-        #        "leverage": "3",
-        #        "liq_amount": "0.00000000000000000000",
-        #        "liq_order_price": "0",
-        #        "liq_order_time": 0,
-        #        "liq_price": "16491.28560000000000011090",
-        #        "liq_price_imply": "0.00000000000000000000",
-        #        "liq_profit": "0.00000000000000000000",
-        #        "liq_time": 0,
-        #        "mainten_margin": "0.005",
-        #        "mainten_margin_amount": "0.09860280000000000000",
-        #        "maker_fee": "0.00000000000000000000",
-        #        "margin_amount": "11.57352000000000000000",
-        #        "market": "BTCUSDT",
-        #        "open_margin": "0.58687582908396110455",
-        #        "open_margin_imply": "0.00000000000000000000",
-        #        "open_price": "39441.12000000000000000000",
-        #        "open_val": "19.72056000000000000000",
-        #        "open_val_max": "19.72056000000000000000",
-        #        "position_id": 65171206,
-        #        "profit_clearing": "-0.00986028000000000000",
-        #        "profit_real": "-0.00986028000000000000",
-        #        "profit_unreal": "0.00",
-        #        "side": 2,
-        #        "stop_loss_price": "0.00000000000000000000",
-        #        "stop_loss_type": 0,
-        #        "sy s": 0,
-        #        "take_profit_price": "0.00000000000000000000",
-        #        "take_profit_type": 0,
-        #        "taker_fee": "0.00000000000000000000",
-        #        "total": 3464,
-        #        "type": 1,
-        #        "update_time": 1651202638.911212,
-        #        "user_id": 3620173
-        #    }
+        #     {
+        #         "adl_level": 1,
+        #         "ath_margin_size": "2.034928",
+        #         "ath_position_amount": "0.0001",
+        #         "avg_entry_price": "61047.84",
+        #         "bkr_price": "30698.5600000000000004142",
+        #         "close_avbl": "0.0001",
+        #         "cml_position_value": "6.104784",
+        #         "created_at": 1715488472908,
+        #         "leverage": "3",
+        #         "liq_price": "30852.82412060301507579316",
+        #         "maintenance_margin_rate": "0.005",
+        #         "maintenance_margin_value": "0.03051465",
+        #         "margin_avbl": "3.034928",
+        #         "margin_mode": "isolated",
+        #         "market": "BTCUSDT",
+        #         "market_type": "FUTURES",
+        #         "max_position_value": "6.104784",
+        #         "open_interest": "0.0001",
+        #         "position_id": 306458800,
+        #         "position_margin_rate": "0.49713929272518077625",
+        #         "realized_pnl": "-0.003052392",
+        #         "settle_price": "61047.84",
+        #         "settle_value": "6.104784",
+        #         "side": "long",
+        #         "stop_loss_price": "0",
+        #         "stop_loss_type": "",
+        #         "take_profit_price": "0",
+        #         "take_profit_type": "",
+        #         "unrealized_pnl": "0",
+        #         "updated_at": 1715488805563
+        #     }
         #
         # fetchMarginAdjustmentHistory
         #
-        #    {
-        #        bkr_price: '0',
-        #        leverage: '3',
-        #        liq_price: '0',
-        #        margin_amount: '5.33236666666666666666',
-        #        margin_change: '3',
-        #        market: 'XRPUSDT',
-        #        position_amount: '11',
-        #        position_id: '297155652',
-        #        position_type: '2',
-        #        settle_price: '0.6361',
-        #        time: '1711050906.382891',
-        #        type: '1',
-        #        user_id: '3685860'
-        #    }
+        #     {
+        #         "bkr_pirce": "24698.56000000000000005224",
+        #         "created_at": 1715489978697,
+        #         "leverage": "3",
+        #         "liq_price": "24822.67336683417085432386",
+        #         "margin_avbl": "3.634928",
+        #         "margin_change": "-1.5",
+        #         "margin_mode": "isolated",
+        #         "market": "BTCUSDT",
+        #         "market_type": "FUTURES",
+        #         "open_interest": "0.0001",
+        #         "position_id": 306458800,
+        #         "settle_price": "61047.84"
+        #     }
         #
         marketId = self.safe_string(data, 'market')
-        type = self.safe_string(data, 'type')
-        timestamp = self.safe_integer_product_2(data, 'time', 'update_time', 1000)
+        timestamp = self.safe_integer_2(data, 'updated_at', 'created_at')
+        change = self.safe_string(data, 'margin_change')
         return {
             'info': data,
             'symbol': self.safe_symbol(marketId, market, None, 'swap'),
-            'type': 'add' if (type == '1') else 'reduce',
+            'type': None,
             'marginMode': 'isolated',
-            'amount': self.safe_number(data, 'margin_change'),
-            'total': self.safe_number(data, 'position_amount'),
+            'amount': self.parse_number(Precise.string_abs(change)),
+            'total': self.safe_number(data, 'margin_avbl'),
             'code': market['quote'],
             'status': None,
             'timestamp': timestamp,
@@ -4151,24 +4118,24 @@ class coinex(Exchange, ImplicitAPI):
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
+        :see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
-        return await self.modify_margin_helper(symbol, amount, 1, params)
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
+        :see: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
-        return await self.modify_margin_helper(symbol, amount, 2, params)
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5593,65 +5560,60 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> List[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
-        :param str [symbol]: unified market symbol
+        :see: https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history
+        :param str symbol: unified market symbol
         :param str [type]: not used by coinex fetchMarginAdjustmentHistory
         :param int [since]: timestamp in ms of the earliest change to fetch
-        :param int [limit]: the maximum amount of changes to fetch, default=100, max=100
+        :param int [limit]: the maximum amount of changes to fetch, default is 10
         :param dict params: extra parameters specific to the exchange api endpoint
         :param int [params.until]: timestamp in ms of the latest change to fetch
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-        :param int [params.offset]: offset
+        :param int [params.positionId]: the id of the position that you want to retrieve margin adjustment history for
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
-        until = self.safe_integer(params, 'until')
-        params = self.omit(params, 'until')
-        if limit is None:
-            limit = 100
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a symbol argument')
+        positionId = self.safe_integer_2(params, 'positionId', 'position_id')
+        params = self.omit(params, 'positionId')
+        if positionId is None:
+            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a positionId parameter')
+        market = self.market(symbol)
         request = {
-            'market': '',
-            'position_id': 0,
-            'offset': 0,
-            'limit': limit,
+            'market': market['id'],
+            'market_type': 'FUTURES',
+            'position_id': positionId,
         }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        request, params = self.handle_until_option('end_time', request, params)
         if since is not None:
             request['start_time'] = since
-        if until is not None:
-            request['end_time'] = until
-        response = await self.v1PerpetualPrivateGetPositionMarginHistory(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.v2PrivateGetFuturesPositionMarginHistory(self.extend(request, params))
         #
-        #    {
-        #        code: '0',
-        #        data: {
-        #            limit: '100',
-        #            offset: '0',
-        #            records: [
-        #                {
-        #                    bkr_price: '0',
-        #                    leverage: '3',
-        #                    liq_price: '0',
-        #                    margin_amount: '5.33236666666666666666',
-        #                    margin_change: '3',
-        #                    market: 'XRPUSDT',
-        #                    position_amount: '11',
-        #                    position_id: '297155652',
-        #                    position_type: '2',
-        #                    settle_price: '0.6361',
-        #                    time: '1711050906.382891',
-        #                    type: '1',
-        #                    user_id: '3685860'
-        #                }
-        #            ]
-        #        },
-        #        message: 'OK'
-        #    }
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "bkr_pirce": "24698.56000000000000005224",
+        #                 "created_at": 1715489978697,
+        #                 "leverage": "3",
+        #                 "liq_price": "24822.67336683417085432386",
+        #                 "margin_avbl": "3.634928",
+        #                 "margin_change": "-1.5",
+        #                 "margin_mode": "isolated",
+        #                 "market": "BTCUSDT",
+        #                 "market_type": "FUTURES",
+        #                 "open_interest": "0.0001",
+        #                 "position_id": 306458800,
+        #                 "settle_price": "61047.84"
+        #             },
+        #         ],
+        #         "message": "OK",
+        #         "pagination": {
+        #             "has_next": True
+        #         }
+        #     }
         #
-        data = self.safe_dict(response, 'data', {})
-        records = self.safe_list(data, 'records', [])
-        modifications = self.parse_margin_modifications(records, None, 'market', 'swap')
+        data = self.safe_list(response, 'data', [])
+        modifications = self.parse_margin_modifications(data, None, 'market', 'swap')
         return self.filter_by_symbol_since_limit(modifications, symbol, since, limit)

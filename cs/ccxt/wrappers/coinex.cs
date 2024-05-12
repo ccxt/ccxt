@@ -1307,14 +1307,8 @@ public partial class coinex
     /// fetches the history of margin added or reduced from contract isolated positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbol
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>type</term>
     /// <description>
@@ -1330,7 +1324,7 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of changes to fetch, default=100, max=100
+    /// int : the maximum amount of changes to fetch, default is 10
     /// </description>
     /// </item>
     /// <item>
@@ -1340,9 +1334,9 @@ public partial class coinex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.offset</term>
+    /// <term>params.positionId</term>
     /// <description>
-    /// int : offset
+    /// int : the id of the position that you want to retrieve margin adjustment history for
     /// </description>
     /// </item>
     /// </list>
