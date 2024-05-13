@@ -5168,7 +5168,7 @@ public partial class coinex : Exchange
         object code = this.safeString(response, "code");
         object data = this.safeValue(response, "data");
         object message = this.safeString(response, "message");
-        if (isTrue(isTrue((!isEqual(code, "0"))) || isTrue((isTrue(isTrue(isTrue((!isEqual(message, "Success"))) && isTrue((!isEqual(message, "Succeeded")))) && isTrue((!isEqual(message, "Ok")))) && !isTrue(data)))))
+        if (isTrue(isTrue((!isEqual(code, "0"))) || isTrue((isTrue(isTrue(isTrue((!isEqual(message, "Success"))) && isTrue((!isEqual(message, "Succeeded")))) && isTrue((!isEqual(((string)message).ToLower(), "ok")))) && !isTrue(data)))))
         {
             object feedback = add(add(this.id, " "), message);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

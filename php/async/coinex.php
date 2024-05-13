@@ -5933,7 +5933,7 @@ class coinex extends Exchange {
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
         $message = $this->safe_string($response, 'message');
-        if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && ($message !== 'Ok') && !$data)) {
+        if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && !$data)) {
             $feedback = $this->id . ' ' . $message;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

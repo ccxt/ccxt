@@ -1658,6 +1658,26 @@ class phemex(Exchange, ImplicitAPI):
         #         "execId": "8718cae",
         #         "execStatus": 6
         #     }
+        # spot with fees paid using PT token
+        #     "createdAt": "1714990724076",
+        #     "symbol": "BTCUSDT",
+        #     "currency": "USDT",
+        #     "action": "1",
+        #     "tradeType": "1",
+        #     "execQtyRq": "0.003",
+        #     "execPriceRp": "64935",
+        #     "side": "2",
+        #     "orderQtyRq": "0.003",
+        #     "priceRp": "51600",
+        #     "execValueRv": "194.805",
+        #     "feeRateRr": "0.000495",
+        #     "execFeeRv": "0",
+        #     "ordType": "3",
+        #     "execId": "XXXXXX",
+        #     "execStatus": "7",
+        #     "posSide": "1",
+        #     "ptFeeRv": "0.110012249248",
+        #     "ptPriceRp": "0.876524893"
         #
         priceString: Str
         amountString: Str
@@ -1706,10 +1726,16 @@ class phemex(Exchange, ImplicitAPI):
                 priceString = self.safe_string(trade, 'execPriceRp')
                 amountString = self.safe_string(trade, 'execQtyRq')
                 costString = self.safe_string(trade, 'execValueRv')
-                feeCostString = self.safe_string(trade, 'execFeeRv')
+                feeCostString = self.omit_zero(self.safe_string(trade, 'execFeeRv'))
                 feeRateString = self.safe_string(trade, 'feeRateRr')
-                currencyId = self.safe_string(trade, 'currency')
-                feeCurrencyCode = self.safe_currency_code(currencyId)
+                if feeCostString is not None:
+                    currencyId = self.safe_string(trade, 'currency')
+                    feeCurrencyCode = self.safe_currency_code(currencyId)
+                else:
+                    ptFeeRv = self.omit_zero(self.safe_string(trade, 'ptFeeRv'))
+                    if ptFeeRv is not None:
+                        feeCostString = ptFeeRv
+                        feeCurrencyCode = 'PT'
             else:
                 side = self.safe_string_lower(trade, 'side')
                 type = self.parse_order_type(self.safe_string(trade, 'ordType'))
@@ -1720,7 +1746,7 @@ class phemex(Exchange, ImplicitAPI):
                 amountString = self.from_ev(self.safe_string(trade, 'execBaseQtyEv'), market)
                 amountString = self.safe_string(trade, 'execQty', amountString)
                 costString = self.from_er(self.safe_string_2(trade, 'execQuoteQtyEv', 'execValueEv'), market)
-                feeCostString = self.from_er(self.safe_string(trade, 'execFeeEv'), market)
+                feeCostString = self.from_er(self.omit_zero(self.safe_string(trade, 'execFeeEv')), market)
                 if feeCostString is not None:
                     feeRateString = self.from_er(self.safe_string(trade, 'feeRateEr'), market)
                     if market['spot']:
@@ -1730,6 +1756,10 @@ class phemex(Exchange, ImplicitAPI):
                         if info is not None:
                             settlementCurrencyId = self.safe_string(info, 'settlementCurrency')
                             feeCurrencyCode = self.safe_currency_code(settlementCurrencyId)
+                else:
+                    feeCostString = self.safe_string(trade, 'ptFeeRv')
+                    if feeCostString is not None:
+                        feeCurrencyCode = 'PT'
             fee = {
                 'cost': feeCostString,
                 'rate': feeRateString,

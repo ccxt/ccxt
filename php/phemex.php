@@ -1693,6 +1693,26 @@ class phemex extends Exchange {
         //         "execId" => "8718cae",
         //         "execStatus" => 6
         //     }
+        // spot with fees paid using PT token
+        //     "createdAt" => "1714990724076",
+        //     "symbol" => "BTCUSDT",
+        //     "currency" => "USDT",
+        //     "action" => "1",
+        //     "tradeType" => "1",
+        //     "execQtyRq" => "0.003",
+        //     "execPriceRp" => "64935",
+        //     "side" => "2",
+        //     "orderQtyRq" => "0.003",
+        //     "priceRp" => "51600",
+        //     "execValueRv" => "194.805",
+        //     "feeRateRr" => "0.000495",
+        //     "execFeeRv" => "0",
+        //     "ordType" => "3",
+        //     "execId" => "XXXXXX",
+        //     "execStatus" => "7",
+        //     "posSide" => "1",
+        //     "ptFeeRv" => "0.110012249248",
+        //     "ptPriceRp" => "0.876524893"
         //
         $id = null;
         $side = null;
@@ -1743,10 +1763,18 @@ class phemex extends Exchange {
                 $priceString = $this->safe_string($trade, 'execPriceRp');
                 $amountString = $this->safe_string($trade, 'execQtyRq');
                 $costString = $this->safe_string($trade, 'execValueRv');
-                $feeCostString = $this->safe_string($trade, 'execFeeRv');
+                $feeCostString = $this->omit_zero($this->safe_string($trade, 'execFeeRv'));
                 $feeRateString = $this->safe_string($trade, 'feeRateRr');
-                $currencyId = $this->safe_string($trade, 'currency');
-                $feeCurrencyCode = $this->safe_currency_code($currencyId);
+                if ($feeCostString !== null) {
+                    $currencyId = $this->safe_string($trade, 'currency');
+                    $feeCurrencyCode = $this->safe_currency_code($currencyId);
+                } else {
+                    $ptFeeRv = $this->omit_zero($this->safe_string($trade, 'ptFeeRv'));
+                    if ($ptFeeRv !== null) {
+                        $feeCostString = $ptFeeRv;
+                        $feeCurrencyCode = 'PT';
+                    }
+                }
             } else {
                 $side = $this->safe_string_lower($trade, 'side');
                 $type = $this->parse_order_type($this->safe_string($trade, 'ordType'));
@@ -1758,7 +1786,7 @@ class phemex extends Exchange {
                 $amountString = $this->from_ev($this->safe_string($trade, 'execBaseQtyEv'), $market);
                 $amountString = $this->safe_string($trade, 'execQty', $amountString);
                 $costString = $this->from_er($this->safe_string_2($trade, 'execQuoteQtyEv', 'execValueEv'), $market);
-                $feeCostString = $this->from_er($this->safe_string($trade, 'execFeeEv'), $market);
+                $feeCostString = $this->from_er($this->omit_zero($this->safe_string($trade, 'execFeeEv')), $market);
                 if ($feeCostString !== null) {
                     $feeRateString = $this->from_er($this->safe_string($trade, 'feeRateEr'), $market);
                     if ($market['spot']) {
@@ -1769,6 +1797,11 @@ class phemex extends Exchange {
                             $settlementCurrencyId = $this->safe_string($info, 'settlementCurrency');
                             $feeCurrencyCode = $this->safe_currency_code($settlementCurrencyId);
                         }
+                    }
+                } else {
+                    $feeCostString = $this->safe_string($trade, 'ptFeeRv');
+                    if ($feeCostString !== null) {
+                        $feeCurrencyCode = 'PT';
                     }
                 }
             }

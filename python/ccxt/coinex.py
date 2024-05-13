@@ -5549,7 +5549,7 @@ class coinex(Exchange, ImplicitAPI):
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
-        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message != 'Ok') and not data):
+        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
             feedback = self.id + ' ' + message
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
