@@ -65,7 +65,7 @@ git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.git
 node build/cleanup-old-tags --limit
 git push origin --tags HEAD:master
 if [ "$SHOULD_TAG" = "true" ]; then
-    echo "Creating release..."
+    echo "Creating github release..."
     gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
 fi
 echo "Done executing build/push.sh"
