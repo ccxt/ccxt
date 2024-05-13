@@ -2,7 +2,7 @@
 import { ROUND_UP, ROUND_DOWN } from './number.js'
 import { asFloat } from './type.js'
 import { NotSupported } from '../errors.js'
-import { OHLCVC, Trade } from '../types.js'
+import { Dictionary, Num } from '../types.js'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
@@ -10,7 +10,7 @@ const parseTimeframe = (timeframe: string): number => {
 
     const amount = asFloat (timeframe.slice (0, -1));
     const unit = timeframe.slice (-1);
-    let scale: number = undefined;
+    let scale: Num = undefined;
 
     if (unit === 'y') {
         scale = 60 * 60 * 24 * 365;
@@ -33,14 +33,14 @@ const parseTimeframe = (timeframe: string): number => {
     return amount * scale;
 };
 
-const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
+const roundTimeframe = (timeframe: string, timestamp: number, direction = ROUND_DOWN) => {
     const ms = parseTimeframe (timeframe) * 1000;
     // Get offset based on timeframe in milliseconds
     const offset = timestamp % ms;
     return timestamp - offset + ((direction === ROUND_UP) ? ms : 0);
 };
 
-const extractParams = (string) => {
+const extractParams = (string: string): string[] => {
     /**
      * @ignore
      * @method
@@ -57,7 +57,7 @@ const extractParams = (string) => {
     return matches;
 };
 
-const implodeParams = (string, params) => {
+const implodeParams = (string: string, params: Dictionary<any> | any[]): string => {
     if (!Array.isArray (params)) {
         const keys = Object.keys (params);
         for (let i = 0; i < keys.length; i++) {
@@ -70,24 +70,24 @@ const implodeParams = (string, params) => {
     return string;
 };
 
-function vwap (baseVolume, quoteVolume) {
+function vwap (baseVolume: number, quoteVolume: number): Num {
     return ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) ? (quoteVolume / baseVolume) : undefined;
 }
 
 /*  ------------------------------------------------------------------------ */
 
-function aggregate (bidasks) {
+function aggregate (bidasks) {  // TODO: Parameter 'bidasks' implicitly has an 'any' type.ts(7006)
 
     const result = {}
 
     for (let i = 0; i < bidasks.length; i++) {
         const [ price, volume ] = bidasks[i];
         if (volume > 0) {
-            result[price] = (result[price] || 0) + volume
+            result[price] = (result[price] || 0) + volume  // TODO: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.ts(7053)
         }
     }
 
-    return Object.keys (result).map ((price) => [parseFloat (price), parseFloat (result[price])])
+    return Object.keys (result).map ((price) => [parseFloat (price), parseFloat (result[price])])  // TODO: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}',   No index signature with a parameter of type 'string' was found on type '{}'.ts(7053)
 }
 
 export {

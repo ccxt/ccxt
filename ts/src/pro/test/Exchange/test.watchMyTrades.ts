@@ -10,7 +10,7 @@ async function testWatchMyTrades (exchange, skippedProperties, symbol) {
     while (now < ends) {
         let response = undefined;
         try {
-            const response = await exchange.watchMyTrades (symbol);
+            response = await exchange.watchMyTrades (symbol);
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
@@ -18,7 +18,7 @@ async function testWatchMyTrades (exchange, skippedProperties, symbol) {
             now = exchange.milliseconds ();
             continue;
         }
-        assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
+        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
         now = exchange.milliseconds ();
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, skippedProperties, method, response[i], symbol, now);

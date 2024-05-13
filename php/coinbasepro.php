@@ -13,7 +13,7 @@ class coinbasepro extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbasepro',
-            'name' => 'Coinbase Pro',
+            'name' => 'Coinbase Pro(Deprecated)',
             'countries' => array( 'US' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome'],
@@ -39,6 +39,7 @@ class coinbasepro extends Exchange {
                 'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
+                'fetchFundingRate' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -49,7 +50,13 @@ class coinbasepro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -143,6 +150,7 @@ class coinbasepro extends Exchange {
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions/fees',
                     ),
                     'post' => array(
                         'conversions',
@@ -224,7 +232,7 @@ class coinbasepro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
@@ -294,7 +302,7 @@ class coinbasepro extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for coinbasepro
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
@@ -361,7 +369,7 @@ class coinbasepro extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
-            $result[] = array_merge($this->fees['trading'], array(
+            $result[] = $this->extend($this->fees['trading'], array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
@@ -414,7 +422,7 @@ class coinbasepro extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
@@ -510,7 +518,7 @@ class coinbasepro extends Exchange {
             'id' => $this->market_id($symbol),
             'level' => 2, // 1 best bidask, 2 aggregated, 3 full
         );
-        $response = $this->publicGetProductsIdBook (array_merge($request, $params));
+        $response = $this->publicGetProductsIdBook ($this->extend($request, $params));
         //
         //     {
         //         "sequence":1924393896,
@@ -531,7 +539,7 @@ class coinbasepro extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -623,7 +631,7 @@ class coinbasepro extends Exchange {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array();
-        $response = $this->publicGetProductsSparkLines (array_merge($request, $params));
+        $response = $this->publicGetProductsSparkLines ($this->extend($request, $params));
         //
         //     {
         //         YYY-USD => array(
@@ -673,7 +681,7 @@ class coinbasepro extends Exchange {
         );
         // publicGetProductsIdTicker or publicGetProductsIdStats
         $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         // publicGetProductsIdTicker
         //
@@ -808,7 +816,7 @@ class coinbasepro extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
-        $response = $this->privateGetFills (array_merge($request, $params));
+        $response = $this->privateGetFills ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -830,7 +838,7 @@ class coinbasepro extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
-        $response = $this->publicGetProductsIdTrades (array_merge($request, $params));
+        $response = $this->publicGetProductsIdTrades ($this->extend($request, $params));
         //
         //    array(
         //        array(
@@ -845,7 +853,7 @@ class coinbasepro extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
@@ -949,7 +957,7 @@ class coinbasepro extends Exchange {
                 $request['end'] = $this->iso8601($until);
             }
         }
-        $response = $this->publicGetProductsIdCandles (array_merge($request, $params));
+        $response = $this->publicGetProductsIdCandles ($this->extend($request, $params));
         //
         //     [
         //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
@@ -1084,7 +1092,7 @@ class coinbasepro extends Exchange {
             $request['client_oid'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -1106,7 +1114,7 @@ class coinbasepro extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateGetFills (array_merge($request, $params));
+        $response = $this->privateGetFills ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -1124,7 +1132,7 @@ class coinbasepro extends Exchange {
         $request = array(
             'status' => 'all',
         );
-        return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1162,7 +1170,7 @@ class coinbasepro extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
-        $response = $this->privateGetOrders (array_merge($request, $params));
+        $response = $this->privateGetOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1180,10 +1188,10 @@ class coinbasepro extends Exchange {
         $request = array(
             'status' => 'done',
         );
-        return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
          * create a trade order
@@ -1252,7 +1260,7 @@ class coinbasepro extends Exchange {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
             }
         }
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        $response = $this->privatePostOrders ($this->extend($request, $params));
         //
         //     {
         //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
@@ -1303,7 +1311,7 @@ class coinbasepro extends Exchange {
             $market = $this->market($symbol);
             $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
         }
-        return $this->$method (array_merge($request, $params));
+        return $this->$method ($this->extend($request, $params));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1321,14 +1329,14 @@ class coinbasepro extends Exchange {
             $market = $this->market($symbol);
             $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
         }
-        return $this->privateDeleteOrders (array_merge($request, $params));
+        return $this->privateDeleteOrders ($this->extend($request, $params));
     }
 
     public function fetch_payment_methods($params = array ()) {
         return $this->privateGetPaymentMethods ($params);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
@@ -1360,7 +1368,7 @@ class coinbasepro extends Exchange {
                 $request['destination_tag'] = $tag;
             }
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         if (!$response) {
             throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
         }
@@ -1494,7 +1502,7 @@ class coinbasepro extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
-        $response = $this->privateGetAccountsIdLedger (array_merge($request, $params));
+        $response = $this->privateGetAccountsIdLedger ($this->extend($request, $params));
         for ($i = 0; $i < count($response); $i++) {
             $response[$i]['currency'] = $code;
         }
@@ -1537,7 +1545,7 @@ class coinbasepro extends Exchange {
         }
         $response = null;
         if ($id === null) {
-            $response = $this->privateGetTransfers (array_merge($request, $params));
+            $response = $this->privateGetTransfers ($this->extend($request, $params));
             //
             //    array(
             //        {
@@ -1573,7 +1581,7 @@ class coinbasepro extends Exchange {
                 $response[$i]['currency'] = $codeInner;
             }
         } else {
-            $response = $this->privateGetAccountsIdTransfers (array_merge($request, $params));
+            $response = $this->privateGetAccountsIdTransfers ($this->extend($request, $params));
             //
             //    array(
             //        {
@@ -1618,7 +1626,7 @@ class coinbasepro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge(array( 'type' => 'deposit' ), $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend(array( 'type' => 'deposit' ), $params));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1632,7 +1640,7 @@ class coinbasepro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge(array( 'type' => 'withdraw' ), $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend(array( 'type' => 'withdraw' ), $params));
     }
 
     public function parse_transaction_status($transaction) {
@@ -1757,7 +1765,7 @@ class coinbasepro extends Exchange {
         $request = array(
             'id' => $account['id'],
         );
-        $response = $this->privatePostCoinbaseAccountsIdAddresses (array_merge($request, $params));
+        $response = $this->privatePostCoinbaseAccountsIdAddresses ($this->extend($request, $params));
         $address = $this->safe_string($response, 'address');
         $tag = $this->safe_string($response, 'destination_tag');
         return array(

@@ -16,7 +16,7 @@ class coinbasepro extends coinbasepro$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbasepro',
-            'name': 'Coinbase Pro',
+            'name': 'Coinbase Pro(Deprecated)',
             'countries': ['US'],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome'],
@@ -42,6 +42,7 @@ class coinbasepro extends coinbasepro$1 {
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
+                'fetchFundingRate': false,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -52,7 +53,13 @@ class coinbasepro extends coinbasepro$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -146,6 +153,7 @@ class coinbasepro extends coinbasepro$1 {
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions/fees',
                     ],
                     'post': [
                         'conversions',

@@ -26,7 +26,7 @@ export default class currencycom extends currencycomRest {
         cost: number;
         fee: any;
     };
-    handleTrades(client: Client, message: any, subscription: any): void;
+    handleTrades(client: Client, message: any): void;
     findTimeframe(timeframe: any, defaultTimeframes?: any): string;
     handleOHLCV(client: Client, message: any): void;
     requestId(): any;
@@ -39,5 +39,5 @@ export default class currencycom extends currencycomRest {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

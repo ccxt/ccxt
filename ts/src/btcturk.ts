@@ -6,7 +6,7 @@ import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './ba
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ export default class btcturk extends Exchange {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -40,6 +41,9 @@ export default class btcturk extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -58,8 +62,11 @@ export default class btcturk extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -77,9 +84,9 @@ export default class btcturk extends Exchange {
                 '30m': 30,
                 '1h': 60,
                 '4h': 240,
-                '1d': '1 day',
-                '1w': '1 week',
-                '1y': '1 year',
+                '1d': '1 d',
+                '1w': '1 w',
+                '1y': '1 y',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
@@ -142,11 +149,12 @@ export default class btcturk extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name btcturk#fetchMarkets
          * @description retrieves data on all markets for btcturk
+         * @see https://docs.btcturk.com/public-endpoints/exchange-info
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -299,6 +307,7 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.btcturk.com/private-endpoints/account-balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -328,6 +337,7 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.btcturk.com/public-endpoints/orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -355,7 +365,7 @@ export default class btcturk extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //   {
         //     "pair": "BTCTRY",
@@ -410,13 +420,14 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.btcturk.com/public-endpoints/ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
-        const tickers = this.safeValue (response, 'data');
+        const tickers = this.safeList (response, 'data');
         return this.parseTickers (tickers, symbols);
     }
 
@@ -425,6 +436,7 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.btcturk.com/public-endpoints/ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -502,6 +514,7 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.btcturk.com/public-endpoints/trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -535,7 +548,7 @@ export default class btcturk extends Exchange {
         //       ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -588,6 +601,7 @@ export default class btcturk extends Exchange {
             limit = 100; // default value
         }
         if (limit !== undefined) {
+            limit = Math.min (limit, 11000); // max 11000 candles diapason can be covered
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
@@ -597,7 +611,7 @@ export default class btcturk extends Exchange {
                 const to = this.parseToInt (since / 1000) + limitSeconds;
                 request['to'] = Math.min (request['to'], to);
             } else {
-                request['from'] = this.parseToInt (until / 1000) - limitSeconds;
+                request['from'] = this.parseToInt (0 / 1000) - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory (this.extend (request, params));
@@ -662,11 +676,12 @@ export default class btcturk extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0) as OHLCV[];
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#createOrder
          * @description create a trade order
+         * @see https://docs.btcturk.com/private-endpoints/submit-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -692,7 +707,7 @@ export default class btcturk extends Exchange {
             request['newClientOrderId'] = this.uuid ();
         }
         const response = await this.privatePostOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -701,6 +716,7 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#cancelOrder
          * @description cancels an open order
+         * @see https://docs.btcturk.com/private-endpoints/cancel-order
          * @param {string} id order id
          * @param {string} symbol not used by btcturk cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -717,6 +733,7 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.btcturk.com/private-endpoints/open-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -733,7 +750,7 @@ export default class btcturk extends Exchange {
         const response = await this.privateGetOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const bids = this.safeValue (data, 'bids', []);
-        const asks = this.safeValue (data, 'asks', []);
+        const asks = this.safeList (data, 'asks', []);
         return this.parseOrders (this.arrayConcat (bids, asks), market, since, limit);
     }
 
@@ -742,6 +759,7 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://docs.btcturk.com/private-endpoints/all-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -781,7 +799,7 @@ export default class btcturk extends Exchange {
         //     }
         //   ]
         // }
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -867,6 +885,7 @@ export default class btcturk extends Exchange {
          * @method
          * @name btcturk#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.btcturk.com/private-endpoints/user-transactions
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -900,7 +919,7 @@ export default class btcturk extends Exchange {
         //       "code": "0"
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 

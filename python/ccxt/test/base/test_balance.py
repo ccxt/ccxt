@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_balance(exchange, skipped_properties, method, entry):
     format = {
@@ -30,6 +28,9 @@ def test_balance(exchange, skipped_properties, method, entry):
     codes_total = list(entry['total'].keys())
     codes_free = list(entry['free'].keys())
     codes_used = list(entry['used'].keys())
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, codes_total, 'total')
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, codes_free, 'free')
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, codes_used, 'used')
     all_codes = exchange.array_concat(codes_total, codes_free)
     all_codes = exchange.array_concat(all_codes, codes_used)
     codes_length = len(codes_total)

@@ -1,7 +1,8 @@
 {
     "exchange": "kucoinfutures",
     "skipKeys": [
-        "clientOid"
+        "clientOid",
+        "to"
     ],
     "outputType": "json",
     "methods": {
@@ -42,6 +43,83 @@
                     50
                 ],
                 "output": "{\"clientOid\":\"f93da405-f3b7-410b-ae44-542f6821108f\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"limit\",\"size\":1,\"leverage\":1,\"price\":\"50\"}"
+            },
+            {
+                "description": "test order with triggerPrice",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/test",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 90,
+                        "test": true
+                    }
+                ],
+                "output": "{\"clientOid\":\"4c74b57d-3c63-4bcf-966b-e40aabd2f656\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1,\"stop\":\"up\",\"stopPrice\":\"90\",\"stopPriceType\":\"MP\"}"
+            },
+            {
+                "description": "Stop loss test order",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/test",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "stopLossPrice": 40,
+                        "test": true
+                    }
+                ],
+                "output": "{\"clientOid\":\"a2c6585b-45b7-42ef-b6b6-51302f83c6f5\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1,\"stop\":\"down\",\"stopPrice\":\"40\",\"reduceOnly\":true,\"stopPriceType\":\"MP\"}"
+            },
+            {
+                "description": "take profit test order",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/test",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "takeProfitPrice": 100,
+                        "test": true
+                    }
+                ],
+                "output": "{\"clientOid\":\"ea0dd8f4-476a-485d-8af7-5d615c4859ab\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1,\"stop\":\"up\",\"stopPrice\":\"100\",\"reduceOnly\":true,\"stopPriceType\":\"MP\"}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "Swap market buy",
+                "method": "createOrders",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/multi",
+                "input": [
+                    [
+                        {
+                            "symbol": "LTC/USDT:USDT",
+                            "amount": 1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60
+                        },
+                        {
+                            "symbol": "LTC/USDT:USDT",
+                            "amount": 1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61
+                        }
+                    ]
+                ],
+                "output": "[{\"clientOid\":\"77f3887d-e4e7-4c8f-9502-1c35debab7d3\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"limit\",\"size\":1,\"leverage\":1,\"price\":\"60\"},{\"clientOid\":\"8e9c0d99-96bb-460a-aa61-38c0409657bc\",\"side\":\"buy\",\"symbol\":\"LTCUSDTM\",\"type\":\"limit\",\"size\":1,\"leverage\":1,\"price\":\"61\"}]"
             }
         ],
         "fetchMyTrades": [
@@ -103,7 +181,7 @@
                 "method": "cancelOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders/126611245292855296",
                 "input": [
-                  "126611245292855296"
+                    "126611245292855296"
                 ]
             },
             {
@@ -111,11 +189,11 @@
                 "method": "cancelOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders/client-order/order2?symbol=LTCUSDTM",
                 "input": [
-                  "",
-                  "LTC/USDT:USDT",
-                  {
-                    "clientOrderId": "order2"
-                  }
+                    "",
+                    "LTC/USDT:USDT",
+                    {
+                        "clientOrderId": "order2"
+                    }
                 ]
             }
         ],
@@ -246,6 +324,132 @@
                     "ADA/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"ADAUSDTM\",\"closeOrder\":true,\"clientOid\":\"1702639752693\",\"type\":\"market\"}"
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/contract/funding-rates?symbol=XBTUSDTM&from=1702209600000&to=1704283200000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1702209600000,
+                    null,
+                    {
+                        "until": 1704283200000
+                    }
+                ]
+            },
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/contract/funding-rates?symbol=XBTUSDTM&from=0&to=1709992986415",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "linear funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api-futures.kucoin.com/api/v1/funding-rate/XBTUSDTM/current",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api-futures.kucoin.com/api/v1/funding-rate/XBTUSDTM/current",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api-futures.kucoin.com/api/v1/timestamp",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api-futures.kucoin.com/api/v1/trade/history?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api-futures.kucoin.com/api/v1/level2/depth20?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "without args",
+                "method": "fetchTickers",
+                "url": "https://api-futures.kucoin.com/api/v1/contracts/active",
+                "input": []
+            },
+            {
+                "description": "+symbols",
+                "method": "fetchTickers",
+                "url": "https://api-futures.kucoin.com/api/v1/contracts/active",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            }
+
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-futures.kucoin.com/api/v1/kline/query?symbol=XBTUSDTM&granularity=1&to=1709992986055",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbols=XBTUSDTM",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetchPositionsHistory",
+                "method": "fetchPositionsHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/history-positions?limit=200",
+                "input": []
             }
         ]
     }

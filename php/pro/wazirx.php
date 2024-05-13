@@ -315,7 +315,7 @@ class wazirx extends \ccxt\async\wazirx {
                 'event' => 'subscribe',
                 'streams' => array( $messageHash ),
             );
-            $request = array_merge($message, $params);
+            $request = $this->extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -754,7 +754,8 @@ class wazirx extends \ccxt\async\wazirx {
     public function handle_message(Client $client, $message) {
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
-            return $this->handle_error($client, $message);
+            $this->handle_error($client, $message);
+            return;
         }
         $event = $this->safe_string($message, 'event');
         $eventHandlers = array(
@@ -764,7 +765,8 @@ class wazirx extends \ccxt\async\wazirx {
         );
         $eventHandler = $this->safe_value($eventHandlers, $event);
         if ($eventHandler !== null) {
-            return $eventHandler($client, $message);
+            $eventHandler($client, $message);
+            return;
         }
         $stream = $this->safe_string($message, 'stream', '');
         $streamHandlers = array(
@@ -778,9 +780,11 @@ class wazirx extends \ccxt\async\wazirx {
         );
         $streams = is_array($streamHandlers) ? array_keys($streamHandlers) : array();
         for ($i = 0; $i < count($streams); $i++) {
-            if ($this->in_array($streams[$i], $stream)) {
+            $streamContains = mb_strpos($stream, $streams[$i]) > -1;
+            if ($streamContains) {
                 $handler = $streamHandlers[$streams[$i]];
-                return $handler($client, $message);
+                $handler($client, $message);
+                return;
             }
         }
         throw new NotSupported($this->id . ' this $message type is not supported yet. Message => ' . $this->json($message));

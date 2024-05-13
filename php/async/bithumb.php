@@ -22,6 +22,7 @@ class bithumb extends Exchange {
             'name' => 'Bithumb',
             'countries' => array( 'KR' ), // South Korea
             'rateLimit' => 500,
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -57,7 +58,11 @@ class bithumb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -91,6 +96,11 @@ class bithumb extends Exchange {
                         'orderbook/ALL_{quoteId}',
                         'orderbook/{baseId}_{quoteId}',
                         'transaction_history/{baseId}_{quoteId}',
+                        'network-info',
+                        'assetsstatus/multichain/ALL',
+                        'assetsstatus/multichain/{currency}',
+                        'withdraw/minimum/ALL',
+                        'withdraw/minimum/{currency}',
                         'assetsstatus/ALL',
                         'assetsstatus/{baseId}',
                         'candlestick/{baseId}_{quoteId}/{interval}',
@@ -177,7 +187,7 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
         // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
@@ -189,10 +199,11 @@ class bithumb extends Exchange {
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bithumb
+             * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market $data
              */
@@ -206,7 +217,7 @@ class bithumb extends Exchange {
                 $request = array(
                     'quoteId' => $quoteId,
                 );
-                $response = Async\await($this->publicGetTickerALLQuoteId (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTickerALLQuoteId ($this->extend($request, $params)));
                 $data = $this->safe_value($response, 'data');
                 $currencyIds = is_array($data) ? array_keys($data) : array();
                 for ($j = 0; $j < count($currencyIds); $j++) {
@@ -297,6 +308,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://apidocs.bithumb.com/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -304,7 +316,7 @@ class bithumb extends Exchange {
             $request = array(
                 'currency' => 'ALL',
             );
-            $response = Async\await($this->privatePostInfoBalance (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoBalance ($this->extend($request, $params)));
             return $this->parse_balance($response);
         }) ();
     }
@@ -313,6 +325,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @see https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -327,7 +340,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 30, max 30
             }
-            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -354,7 +367,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -407,6 +420,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -421,7 +435,7 @@ class bithumb extends Exchange {
                 $request = array(
                     'quoteId' => $quoteId,
                 );
-                $response = Async\await($this->publicGetTickerALLQuoteId (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTickerALLQuoteId ($this->extend($request, $params)));
                 //
                 //     {
                 //         "status":"0000",
@@ -465,6 +479,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -475,7 +490,7 @@ class bithumb extends Exchange {
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetTickerBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickerBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -495,7 +510,7 @@ class bithumb extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
         }) ();
     }
@@ -525,6 +540,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://apidocs.bithumb.com/reference/candlestick-rest-api
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -539,7 +555,7 @@ class bithumb extends Exchange {
                 'quoteId' => $market['quoteId'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -563,7 +579,7 @@ class bithumb extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -650,6 +666,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://apidocs.bithumb.com/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -665,7 +682,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 20, max 100
             }
-            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -680,15 +697,18 @@ class bithumb extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://apidocs.bithumb.com/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+             * @see https://apidocs.bithumb.com/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
+             * @see https://apidocs.bithumb.com/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -711,7 +731,7 @@ class bithumb extends Exchange {
             } else {
                 $method = 'privatePostTradeMarket' . $this->capitalize($side);
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             $id = $this->safe_string($response, 'order_id');
             if ($id === null) {
                 throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
@@ -730,6 +750,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -745,7 +766,7 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            $response = Async\await($this->privatePostInfoOrderDetail (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoOrderDetail ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -773,8 +794,8 @@ class bithumb extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
-            return $this->parse_order(array_merge($data, array( 'order_id' => $id )), $market);
+            $data = $this->safe_dict($response, 'data');
+            return $this->parse_order($this->extend($data, array( 'order_id' => $id )), $market);
         }) ();
     }
 
@@ -890,6 +911,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -912,7 +934,7 @@ class bithumb extends Exchange {
             if ($since !== null) {
                 $request['after'] = $since;
             }
-            $response = Async\await($this->privatePostInfoOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoOrders ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -930,7 +952,7 @@ class bithumb extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -939,6 +961,7 @@ class bithumb extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -961,7 +984,7 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            return Async\await($this->privatePostTradeCancel (array_merge($request, $params)));
+            return Async\await($this->privatePostTradeCancel ($this->extend($request, $params)));
         }) ();
     }
 
@@ -970,14 +993,15 @@ class bithumb extends Exchange {
             $request = array(
                 'side' => $order['side'],
             );
-            return Async\await($this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params)));
+            return Async\await($this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params)));
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://apidocs.bithumb.com/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -1002,7 +1026,7 @@ class bithumb extends Exchange {
                     $request['destination'] = $tag;
                 }
             }
-            $response = Async\await($this->privatePostTradeBtcWithdrawal (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeBtcWithdrawal ($this->extend($request, $params)));
             //
             // array( "status" : "0000")
             //
@@ -1067,7 +1091,7 @@ class bithumb extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce();

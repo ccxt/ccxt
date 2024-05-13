@@ -45,6 +45,7 @@ class poloniex extends poloniex$1 {
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingRate': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -68,6 +69,7 @@ class poloniex extends poloniex$1 {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'sandbox': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -710,7 +712,10 @@ class poloniex extends poloniex$1 {
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
             const networkId = this.safeString(currency, 'blockchain');
-            const networkCode = this.networkIdToCode(networkId, code);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId, code);
+            }
             const delisted = this.safeValue(currency, 'delisted');
             const walletEnabled = this.safeString(currency, 'walletState') === 'ENABLED';
             const depositEnabled = this.safeString(currency, 'walletDepositState') === 'ENABLED';
@@ -1841,12 +1846,11 @@ class poloniex extends poloniex$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, fromAccount);
         const request = {
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,

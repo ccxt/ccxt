@@ -24,6 +24,10 @@ export default class phemex extends phemexRest {
                 'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchPositions': undefined, // TODO
+                // mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
+                'watchOrderBookForSymbols': false,
+                'watchTradesForSymbols': false,
+                'watchOHLCVForSymbols': false,
             },
             'urls': {
                 'test': {
@@ -576,9 +580,10 @@ export default class phemex extends phemexRest {
         /**
          * @method
          * @name phemex#watchOrderBook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
-         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-full-orderbook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -648,14 +653,14 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleDelta (bookside, delta, market = undefined) {
+    customHandleDelta (bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas, market = undefined) {
+    customHandleDeltas (bookside, deltas, market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i], market);
+            this.customHandleDelta (bookside, deltas[i], market);
         }
     }
 
@@ -725,8 +730,8 @@ export default class phemex extends phemexRest {
                 const changes = this.safeValue2 (message, 'book', 'orderbook_p', {});
                 const asks = this.safeValue (changes, 'asks', []);
                 const bids = this.safeValue (changes, 'bids', []);
-                this.handleDeltas (orderbook['asks'], asks, market);
-                this.handleDeltas (orderbook['bids'], bids, market);
+                this.customHandleDeltas (orderbook['asks'], asks, market);
+                this.customHandleDeltas (orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
                 orderbook['timestamp'] = timestamp;
                 orderbook['datetime'] = this.iso8601 (timestamp);
@@ -1427,18 +1432,23 @@ export default class phemex extends phemexRest {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
             if (method !== true) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
+                return;
             }
         }
         const methodName = this.safeString (message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf ('perp_market24h_pack_p') >= 0)) {
-            return this.handleTicker (client, message);
+            this.handleTicker (client, message);
+            return;
         } else if (('trades' in message) || ('trades_p' in message)) {
-            return this.handleTrades (client, message);
+            this.handleTrades (client, message);
+            return;
         } else if (('kline' in message) || ('kline_p' in message)) {
-            return this.handleOHLCV (client, message);
+            this.handleOHLCV (client, message);
+            return;
         } else if (('book' in message) || ('orderbook_p' in message)) {
-            return this.handleOrderBook (client, message);
+            this.handleOrderBook (client, message);
+            return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
             const orders = this.safeValue2 (message, 'orders', 'orders_p', {});
@@ -1524,9 +1534,9 @@ export default class phemex extends phemexRest {
             if (!(messageHash in client.subscriptions)) {
                 client.subscriptions[subscriptionHash] = this.handleAuthenticate;
             }
-            future = this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

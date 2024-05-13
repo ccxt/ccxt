@@ -225,7 +225,7 @@ class alpaca(ccxt.async_support.alpaca):
         symbol = self.safe_symbol(marketId)
         datetime = self.safe_string(message, 't')
         timestamp = self.parse8601(datetime)
-        isSnapshot = self.safe_value(message, 'r', False)
+        isSnapshot = self.safe_bool(message, 'r', False)
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             orderbook = self.order_book()
@@ -562,7 +562,7 @@ class alpaca(ccxt.async_support.alpaca):
                     },
                 }
             self.watch(url, messageHash, request, messageHash, future)
-        return future
+        return await future
 
     def handle_error_message(self, client: Client, message):
         #
@@ -589,13 +589,16 @@ class alpaca(ccxt.async_support.alpaca):
         for i in range(0, len(message)):
             data = message[i]
             T = self.safe_string(data, 'T')
-            msg = self.safe_value(data, 'msg', {})
+            msg = self.safe_string(data, 'msg')
             if T == 'subscription':
-                return self.handle_subscription(client, data)
+                self.handle_subscription(client, data)
+                return
             if T == 'success' and msg == 'connected':
-                return self.handle_connected(client, data)
+                self.handle_connected(client, data)
+                return
             if T == 'success' and msg == 'authenticated':
-                return self.handle_authenticate(client, data)
+                self.handle_authenticate(client, data)
+                return
             methods = {
                 'error': self.handle_error_message,
                 'b': self.handle_ohlcv,
@@ -620,7 +623,8 @@ class alpaca(ccxt.async_support.alpaca):
 
     def handle_message(self, client: Client, message):
         if isinstance(message, list):
-            return self.handle_crypto_message(client, message)
+            self.handle_crypto_message(client, message)
+            return
         self.handle_trading_message(client, message)
 
     def handle_authenticate(self, client: Client, message):

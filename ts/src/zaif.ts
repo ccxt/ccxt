@@ -6,7 +6,7 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -143,7 +143,7 @@ export default class zaif extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name zaif#fetchMarkets
@@ -296,7 +296,7 @@ export default class zaif extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // {
         //     "last": 9e-08,
@@ -445,7 +445,7 @@ export default class zaif extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name zaif#createOrder
@@ -597,7 +597,7 @@ export default class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name zaif#withdraw
@@ -644,7 +644,7 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        const returnData = this.safeValue (result, 'return');
+        const returnData = this.safeDict (result, 'return');
         return this.parseTransaction (returnData, currency);
     }
 
@@ -696,7 +696,7 @@ export default class zaif extends Exchange {
     }
 
     customNonce () {
-        const num = (this.milliseconds () / 1000).toString ();
+        const num = this.numberToString (this.milliseconds () / 1000);
         const nonce = parseFloat (num);
         return nonce.toFixed (8);
     }
@@ -744,7 +744,7 @@ export default class zaif extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
-        const success = this.safeValue (response, 'success', true);
+        const success = this.safeBool (response, 'success', true);
         if (!success) {
             throw new ExchangeError (feedback);
         }

@@ -46,6 +46,9 @@ class okcoin extends okcoin$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -242,6 +245,16 @@ class okcoin extends okcoin$1 {
                     '50026': errors.ExchangeNotAvailable,
                     '50027': errors.PermissionDenied,
                     '50028': errors.ExchangeError,
+                    '50029': errors.ExchangeError,
+                    '50030': errors.PermissionDenied,
+                    '50032': errors.AccountSuspended,
+                    '50033': errors.AccountSuspended,
+                    '50035': errors.BadRequest,
+                    '50036': errors.BadRequest,
+                    '50037': errors.BadRequest,
+                    '50038': errors.ExchangeError,
+                    '50039': errors.ExchangeError,
+                    '50041': errors.ExchangeError,
                     '50044': errors.BadRequest,
                     // API Class
                     '50100': errors.ExchangeError,
@@ -285,9 +298,25 @@ class okcoin extends okcoin$1 {
                     '51024': errors.AccountSuspended,
                     '51025': errors.ExchangeError,
                     '51026': errors.BadSymbol,
+                    '51030': errors.InvalidOrder,
+                    '51031': errors.InvalidOrder,
+                    '51032': errors.InvalidOrder,
+                    '51033': errors.InvalidOrder,
+                    '51037': errors.InvalidOrder,
+                    '51038': errors.InvalidOrder,
+                    '51044': errors.InvalidOrder,
                     '51046': errors.InvalidOrder,
                     '51047': errors.InvalidOrder,
-                    '51031': errors.InvalidOrder,
+                    '51048': errors.InvalidOrder,
+                    '51049': errors.InvalidOrder,
+                    '51050': errors.InvalidOrder,
+                    '51051': errors.InvalidOrder,
+                    '51052': errors.InvalidOrder,
+                    '51053': errors.InvalidOrder,
+                    '51054': errors.BadRequest,
+                    '51056': errors.InvalidOrder,
+                    '51058': errors.InvalidOrder,
+                    '51059': errors.InvalidOrder,
                     '51100': errors.InvalidOrder,
                     '51102': errors.InvalidOrder,
                     '51103': errors.InvalidOrder,
@@ -854,7 +883,7 @@ class okcoin extends okcoin$1 {
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
-        const spot = this.safeValue(market, 'spot', false);
+        const spot = this.safeBool(market, 'spot', false);
         const quoteVolume = spot ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
@@ -943,7 +972,7 @@ class okcoin extends okcoin$1 {
             'instType': 'SPOT',
         };
         const response = await this.publicGetMarketTickers(this.extend(request, params));
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTickers(data, symbols, params);
     }
     parseTrade(trade, market = undefined) {
@@ -1052,7 +1081,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.publicGetMarketHistoryTrades(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1104,8 +1133,10 @@ class okcoin extends okcoin$1 {
         const request = {
             'instId': market['id'],
             'bar': bar,
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'method', 'publicGetMarketCandles');
         let response = undefined;
@@ -1115,7 +1146,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.publicGetMarketHistoryCandles(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseAccountBalance(response) {
@@ -1398,7 +1429,7 @@ class okcoin extends okcoin$1 {
         }
         else {
             marginMode = defaultMarginMode;
-            margin = this.safeValue(params, 'margin', false);
+            margin = this.safeBool(params, 'margin', false);
         }
         if (margin) {
             const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
@@ -1636,7 +1667,7 @@ class okcoin extends okcoin$1 {
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
     parseIds(ids) {
@@ -1737,7 +1768,7 @@ class okcoin extends okcoin$1 {
         //     }
         //
         //
-        const ordersData = this.safeValue(response, 'data', []);
+        const ordersData = this.safeList(response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
     }
     parseOrderStatus(status) {
@@ -1971,7 +2002,7 @@ class okcoin extends okcoin$1 {
             // 'ordId': id,
         };
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        const stop = this.safeValue(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
         if (stop) {
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
@@ -1988,7 +2019,7 @@ class okcoin extends okcoin$1 {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit(params, ['clientOrderId', 'stop']);
+        const query = this.omit(params, ['clientOrderId', 'stop', 'trigger']);
         let response = undefined;
         if (stop) {
             response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
@@ -1997,7 +2028,7 @@ class okcoin extends okcoin$1 {
             response = await this.privateGetTradeOrder(this.extend(request, query));
         }
         const data = this.safeValue(response, 'data', []);
-        const order = this.safeValue(data, 0);
+        const order = this.safeDict(data, 0);
         return this.parseOrder(order);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2045,7 +2076,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.privateGetTradeOrdersPending(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2134,7 +2165,7 @@ class okcoin extends okcoin$1 {
         //         "msg":""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -2350,7 +2381,7 @@ class okcoin extends okcoin$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const rawTransfer = this.safeValue(data, 0, {});
+        const rawTransfer = this.safeDict(data, 0, {});
         return this.parseTransfer(rawTransfer, currency);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -2493,7 +2524,7 @@ class okcoin extends okcoin$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const transaction = this.safeValue(data, 0);
+        const transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2567,7 +2598,7 @@ class okcoin extends okcoin$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2633,7 +2664,7 @@ class okcoin extends okcoin$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
     parseTransactionStatus(status) {
@@ -2804,7 +2835,7 @@ class okcoin extends okcoin$1 {
         else {
             response = await this.privateGetTradeFills(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -66,7 +66,13 @@ class cex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -224,7 +230,7 @@ class cex extends Exchange {
             $now = $this->milliseconds();
             if (($timestamp === null) || (($now - $timestamp) > $expires)) {
                 $response = Async\await($this->publicGetCurrencyProfile ($params));
-                $this->options['fetchCurrencies'] = array_merge($options, array(
+                $this->options['fetchCurrencies'] = $this->extend($options, array(
                     'response' => $response,
                     'timestamp' => $now,
                 ));
@@ -233,7 +239,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -340,7 +346,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for cex
@@ -506,7 +512,7 @@ class cex extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderBookPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderBookPair ($this->extend($request, $params)));
             $timestamp = $this->safe_timestamp($response, 'timestamp');
             return $this->parse_order_book($response, $market['symbol'], $timestamp);
         }) ();
@@ -559,7 +565,7 @@ class cex extends Exchange {
                 'yyyymmdd' => $this->yyyymmdd($since, ''),
             );
             try {
-                $response = Async\await($this->publicGetOhlcvHdYyyymmddPair (array_merge($request, $params)));
+                $response = Async\await($this->publicGetOhlcvHdYyyymmddPair ($this->extend($request, $params)));
                 //
                 //     {
                 //         "time":20200606,
@@ -579,7 +585,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $volume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'high');
@@ -626,7 +632,7 @@ class cex extends Exchange {
             $request = array(
                 'currencies' => implode('/', $currencies),
             );
-            $response = Async\await($this->publicGetTickersCurrencies (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersCurrencies ($this->extend($request, $params)));
             $tickers = $this->safe_value($response, 'data', array());
             $result = array();
             for ($t = 0; $t < count($tickers); $t++) {
@@ -654,7 +660,7 @@ class cex extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetTickerPair (array_merge($request, $params)));
+            $ticker = Async\await($this->publicGetTickerPair ($this->extend($request, $params)));
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -711,12 +717,12 @@ class cex extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeHistoryPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeHistoryPair ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.cex.io/#get-my-$fee
@@ -759,7 +765,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.cex.io/#place-order
@@ -810,7 +816,7 @@ class cex extends Exchange {
             } else {
                 $request['order_type'] = $type;
             }
-            $response = Async\await($this->privatePostPlaceOrderPair (array_merge($request, $params)));
+            $response = Async\await($this->privatePostPlaceOrderPair ($this->extend($request, $params)));
             //
             //     {
             //         "id" => "12978363524",
@@ -868,9 +874,9 @@ class cex extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
             // 'true'
-            return array_merge($this->parse_order(array()), array( 'info' => $response, 'type' => null, 'id' => $id, 'status' => 'canceled' ));
+            return $this->extend($this->parse_order(array()), array( 'info' => $response, 'type' => null, 'id' => $id, 'status' => 'canceled' ));
         }) ();
     }
 
@@ -892,7 +898,7 @@ class cex extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $orders = Async\await($this->privatePostCancelOrdersPair (array_merge($request, $params)));
+            $orders = Async\await($this->privatePostCancelOrdersPair ($this->extend($request, $params)));
             //
             //  {
             //      "e":"cancel_orders",
@@ -1181,16 +1187,17 @@ class cex extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $method = 'privatePostOpenOrders';
             $market = null;
+            $orders = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
-                $method .= 'Pair';
+                $orders = Async\await($this->privatePostOpenOrdersPair ($this->extend($request, $params)));
+            } else {
+                $orders = Async\await($this->privatePostOpenOrders ($this->extend($request, $params)));
             }
-            $orders = Async\await($this->$method (array_merge($request, $params)));
             for ($i = 0; $i < count($orders); $i++) {
-                $orders[$i] = array_merge($orders[$i], array( 'status' => 'open' ));
+                $orders[$i] = $this->extend($orders[$i], array( 'status' => 'open' ));
             }
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
@@ -1211,10 +1218,9 @@ class cex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $method = 'privatePostArchivedOrdersPair';
             $market = $this->market($symbol);
             $request = array( 'pair' => $market['id'] );
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->privatePostArchivedOrdersPair ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1232,7 +1238,7 @@ class cex extends Exchange {
             $request = array(
                 'id' => (string) $id,
             );
-            $response = Async\await($this->privatePostGetOrderTx (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetOrderTx ($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data', array());
             //
             //     {
@@ -1356,7 +1362,7 @@ class cex extends Exchange {
                 'pair' => $market['id'],
                 'dateFrom' => $since,
             );
-            $response = Async\await($this->privatePostArchivedOrdersPair (array_merge($request, $params)));
+            $response = Async\await($this->privatePostArchivedOrdersPair ($this->extend($request, $params)));
             $results = array();
             for ($i = 0; $i < count($response); $i++) {
                 // cancelled (unfilled):
@@ -1564,7 +1570,7 @@ class cex extends Exchange {
         return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1594,7 +1600,7 @@ class cex extends Exchange {
                 'price' => $price,
                 'order_id' => $id,
             );
-            $response = Async\await($this->privatePostCancelReplaceOrderPair (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelReplaceOrderPair ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -1615,7 +1621,7 @@ class cex extends Exchange {
             );
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
             // atm, cex doesn't support network in the $request
-            $response = Async\await($this->privatePostGetCryptoAddress (array_merge($request, $query)));
+            $response = Async\await($this->privatePostGetCryptoAddress ($this->extend($request, $query)));
             //
             //    {
             //         "e" => "get_crypto_address",
@@ -1669,7 +1675,7 @@ class cex extends Exchange {
             $nonce = (string) $this->nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $body = $this->json(array_merge(array(
+            $body = $this->json($this->extend(array(
                 'key' => $this->apiKey,
                 'signature' => strtoupper($signature),
                 'nonce' => $nonce,

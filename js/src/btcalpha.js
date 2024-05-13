@@ -33,6 +33,7 @@ export default class btcalpha extends Exchange {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -45,6 +46,9 @@ export default class btcalpha extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDeposit': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -66,8 +70,11 @@ export default class btcalpha extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -156,6 +163,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchMarkets
          * @description retrieves data on all markets for btcalpha
+         * @see https://btc-alpha.github.io/api-docs/#list-all-currencies
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -362,7 +370,7 @@ export default class btcalpha extends Exchange {
         const response = await this.publicGetOrderbookPairName(this.extend(request, params));
         return this.parseOrderBook(response, market['symbol'], undefined, 'buy', 'sell', 'price', 'amount');
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1) {
+    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
             const bidask = bidasks[i];
@@ -426,6 +434,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://btc-alpha.github.io/api-docs/#list-all-exchanges
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -450,6 +459,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://btc-alpha.github.io/api-docs/#list-own-deposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -479,6 +489,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://btc-alpha.github.io/api-docs/#list-own-made-withdraws
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -586,6 +597,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://btc-alpha.github.io/api-docs/#charts
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -633,6 +645,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://btc-alpha.github.io/api-docs/#list-own-wallets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -680,7 +693,7 @@ export default class btcalpha extends Exchange {
         const marketId = this.safeString(order, 'pair');
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
-        const success = this.safeValue(order, 'success', false);
+        const success = this.safeBool(order, 'success', false);
         let timestamp = undefined;
         if (success) {
             timestamp = this.safeTimestamp(order, 'date');
@@ -820,6 +833,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://btc-alpha.github.io/api-docs/#list-own-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -836,6 +850,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://btc-alpha.github.io/api-docs/#list-own-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -852,6 +867,7 @@ export default class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://btc-alpha.github.io/api-docs/#list-own-exchanges
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve

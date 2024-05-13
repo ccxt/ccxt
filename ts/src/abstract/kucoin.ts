@@ -86,10 +86,12 @@ interface Exchange {
     privateGetIsolatedAccountSymbol (params?: {}): Promise<implicitReturnType>;
     privateGetMarginBorrow (params?: {}): Promise<implicitReturnType>;
     privateGetMarginRepay (params?: {}): Promise<implicitReturnType>;
+    privateGetMarginInterest (params?: {}): Promise<implicitReturnType>;
     privateGetProjectList (params?: {}): Promise<implicitReturnType>;
     privateGetProjectMarketInterestRate (params?: {}): Promise<implicitReturnType>;
     privateGetRedeemOrders (params?: {}): Promise<implicitReturnType>;
     privateGetPurchaseOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetBrokerApiRebaseDownload (params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated (params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKey (params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKeyUpdate (params?: {}): Promise<implicitReturnType>;
@@ -157,6 +159,7 @@ interface Exchange {
     futuresPublicGetPremiumQuery (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetTradeStatistics (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetFundingRateSymbolCurrent (params?: {}): Promise<implicitReturnType>;
+    futuresPublicGetContractFundingRates (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetTimestamp (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetStatus (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetLevel2MessageQuery (params?: {}): Promise<implicitReturnType>;
@@ -175,13 +178,16 @@ interface Exchange {
     futuresPrivateGetOpenOrderStatistics (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetPosition (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetPositions (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetMarginMaxWithdrawMargin (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetContractsRiskLimitSymbol (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetFundingHistory (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferOut (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferIn (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrdersTest (params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostOrdersMulti (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionMarginAutoDepositStatus (params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostMarginWithdrawMargin (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionMarginDepositMargin (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionRiskLimitLevelChange (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostBulletPrivate (params?: {}): Promise<implicitReturnType>;
@@ -190,6 +196,15 @@ interface Exchange {
     futuresPrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteStopOrders (params?: {}): Promise<implicitReturnType>;
     webExchangeGetCurrencyCurrencyChainInfo (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdInfo (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdAccount (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdRebaseDownload (params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdTransfer (params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccount (params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccountUpdateApikey (params?: {}): Promise<implicitReturnType>;
+    brokerDeleteBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

@@ -9,8 +9,8 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class okcoin(ccxt.async_support.okcoin):
@@ -662,7 +662,8 @@ class okcoin(ccxt.async_support.okcoin):
         # }
         #
         if message == 'pong':
-            return self.handle_pong(client, message)
+            self.handle_pong(client, message)
+            return
         table = self.safe_string(message, 'table')
         if table is None:
             event = self.safe_string(message, 'event')
@@ -674,10 +675,8 @@ class okcoin(ccxt.async_support.okcoin):
                     'subscribe': self.handle_subscription_status,
                 }
                 method = self.safe_value(methods, event)
-                if method is None:
-                    return message
-                else:
-                    return method(client, message)
+                if method is not None:
+                    method(client, message)
         else:
             parts = table.split('/')
             name = self.safe_string(parts, 1)
@@ -695,7 +694,5 @@ class okcoin(ccxt.async_support.okcoin):
             method = self.safe_value(methods, name)
             if name.find('candle') >= 0:
                 method = self.handle_ohlcv
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)

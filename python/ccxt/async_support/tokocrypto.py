@@ -7,9 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -29,7 +30,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
@@ -637,7 +637,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://www.tokocrypto.com/apidocs/#get-all-supported-trading-symbol
         retrieves data on all markets for tokocrypto
@@ -706,7 +706,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
                     break
-            isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
+            isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1013,8 +1013,28 @@ class tokocrypto(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
-            data = self.safe_value(responseInner, 'data', {})
-            return self.parse_trades(data, market, since, limit)
+            #
+            #    {
+            #       "code": 0,
+            #       "msg": "success",
+            #       "data": {
+            #           "list": [
+            #                {
+            #                    "id": 28457,
+            #                    "price": "4.00000100",
+            #                    "qty": "12.00000000",
+            #                    "time": 1499865549590,
+            #                    "isBuyerMaker": True,
+            #                    "isBestMatch": True
+            #                }
+            #            ]
+            #        },
+            #        "timestamp": 1571921637091
+            #    }
+            #
+            data = self.safe_dict(responseInner, 'data', {})
+            list = self.safe_list(data, 'list', [])
+            return self.parse_trades(list, market, since, limit)
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         defaultMethod = 'binanceGetTrades'
@@ -1068,7 +1088,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -1183,7 +1203,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         response = await self.binanceGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
-            firstTicker = self.safe_value(response, 0, {})
+            firstTicker = self.safe_dict(response, 0, {})
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
@@ -1291,7 +1311,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         #     ]
         #
-        data = self.safe_value(response, 'data', response)
+        data = self.safe_list(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -1335,9 +1355,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659666786943
         #     }
         #
-        return self.parse_balance(response, type, marginMode)
+        return self.parse_balance_custom(response, type, marginMode)
 
-    def parse_balance(self, response, type=None, marginMode=None):
+    def parse_balance_custom(self, response, type=None, marginMode=None):
         timestamp = self.safe_integer(response, 'updateTime')
         result = {
             'info': response,
@@ -1537,7 +1557,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://www.tokocrypto.com/apidocs/#new-order--signed
@@ -1555,7 +1575,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         # only supported for spot/margin api
         if postOnly:
             type = 'LIMIT_MAKER'
@@ -1692,7 +1712,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp": 1662710994975
         #     }
         #
-        rawOrder = self.safe_value(response, 'data', {})
+        rawOrder = self.safe_dict(response, 'data', {})
         return self.parse_order(rawOrder, market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1739,7 +1759,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         list = self.safe_value(data, 'list', [])
-        rawOrder = self.safe_value(list, 0, {})
+        rawOrder = self.safe_dict(list, 0, {})
         return self.parse_order(rawOrder)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1805,7 +1825,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        orders = self.safe_value(data, 'list', [])
+        orders = self.safe_list(data, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1874,7 +1894,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp": 1662710683634
         #     }
         #
-        rawOrder = self.safe_value(response, 'data', {})
+        rawOrder = self.safe_dict(response, 'data', {})
         return self.parse_order(rawOrder)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1929,7 +1949,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'list', [])
+        trades = self.safe_list(data, 'list', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code: str, params={}):
@@ -2036,7 +2056,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        deposits = self.safe_value(data, 'list', [])
+        deposits = self.safe_list(data, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2088,7 +2108,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        withdrawals = self.safe_value(data, 'list', [])
+        withdrawals = self.safe_list(data, 'list', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
@@ -2217,7 +2237,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#withdraw-signed
         make a withdrawal
@@ -2328,7 +2348,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None

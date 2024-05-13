@@ -34,6 +34,7 @@ class btcmarkets extends Exchange {
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
@@ -42,6 +43,9 @@ class btcmarkets extends Exchange {
                 'fetchClosedOrders' => 'emulated',
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -63,8 +67,11 @@ class btcmarkets extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -190,7 +197,7 @@ class btcmarkets extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency, $since, $limit);
         }) ();
     }
@@ -199,6 +206,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/{1v3}1transfers/get
              * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -213,6 +221,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/{1v3}1deposits/get
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -227,6 +236,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/{1v3}1withdrawals/get
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -360,10 +370,11 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for btcmarkets
+             * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/{1v3}1markets/get
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -457,6 +468,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             * @see https://docs.btcmarkets.net/v3/#tag/Misc-APIs/paths/{1v3}1time/get
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -488,6 +500,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://docs.btcmarkets.net/v3/#tag/Account-APIs/paths/{1v3}1accounts{1me}1balances/get
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -522,6 +535,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/{1v3}1markets{1}marketId~~1candles/get
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -544,9 +558,9 @@ class btcmarkets extends Exchange {
                 $request['from'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default is 10, max 200
+                $request['limit'] = min ($limit, 200); // default is 10, max 200
             }
-            $response = Async\await($this->publicGetMarketsMarketIdCandles (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketsMarketIdCandles ($this->extend($request, $params)));
             //
             //     [
             //         ["2020-09-12T18:30:00.000000Z","14409.45","14409.45","14403.91","14403.91","0.01571701"],
@@ -562,6 +576,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/{1v3}1markets{1}marketId~~1orderbook/get
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -572,7 +587,7 @@ class btcmarkets extends Exchange {
             $request = array(
                 'marketId' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketsMarketIdOrderbook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketsMarketIdOrderbook ($this->extend($request, $params)));
             //
             //     {
             //         "marketId":"BTC-AUD",
@@ -596,7 +611,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -651,6 +666,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/{1v3}1markets{1}marketId~~1ticker/get
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -660,7 +676,7 @@ class btcmarkets extends Exchange {
             $request = array(
                 'marketId' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketsMarketIdTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketsMarketIdTicker ($this->extend($request, $params)));
             //
             //     {
             //         "marketId":"BAT-AUD",
@@ -687,7 +703,7 @@ class btcmarkets extends Exchange {
             $request = array(
                 'id' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketsMarketIdTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketsMarketIdTicker ($this->extend($request, $params)));
             return $this->parse_ticker($response, $market);
         }) ();
     }
@@ -763,6 +779,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/{1v3}1markets{1}marketId~~1trades/get
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -775,7 +792,7 @@ class btcmarkets extends Exchange {
                 // 'since' => 59868345231,
                 'marketId' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketsMarketIdTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketsMarketIdTrades ($this->extend($request, $params)));
             //
             //     array(
             //         array("id":"6191646611","price":"539.98","amount":"0.5","timestamp":"2020-08-09T15:21:05.016000Z","side":"Ask"),
@@ -787,10 +804,11 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://docs.btcmarkets.net/v3/#tag/Order-Placement-APIs/paths/{1v3}1orders/post
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -859,7 +877,7 @@ class btcmarkets extends Exchange {
                 $request['clientOrderId'] = $clientOrderId;
             }
             $params = $this->omit($params, 'clientOrderId');
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             //
             //     {
             //         "orderId" => "7524",
@@ -887,6 +905,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/{1v3}1batchorders{1}$ids~/delete
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by btcmarkets cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -899,7 +918,7 @@ class btcmarkets extends Exchange {
             $request = array(
                 'ids' => $ids,
             );
-            return Async\await($this->privateDeleteBatchordersIds (array_merge($request, $params)));
+            return Async\await($this->privateDeleteBatchordersIds ($this->extend($request, $params)));
         }) ();
     }
 
@@ -907,6 +926,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
              * @param {string} $id order $id
              * @param {string} $symbol not used by btcmarket cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -916,11 +936,20 @@ class btcmarkets extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privateDeleteOrdersId (array_merge($request, $params)));
+            return Async\await($this->privateDeleteOrdersId ($this->extend($request, $params)));
         }) ();
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        /**
+         * calculates the presumptive fee that would be charged for an order
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type not used by btcmarkets.calculate_fee         * @param {string} $side not used by btcmarkets.calculate_fee         * @param {float} $amount how much you want to trade, in units of the base $currency on most exchanges, or number of contracts
+         * @param {float} $price the $price for the order to be filled at, in units of the quote $currency
+         * @param {string} $takerOrMaker 'taker' or 'maker'
+         * @param {array} $params
+         * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote $currency, for the order
+         */
         $market = $this->markets[$symbol];
         $currency = null;
         $cost = null;
@@ -1028,6 +1057,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://docs.btcmarkets.net/v3/#operation/getOrderById
              * @param {string} $symbol not used by btcmarkets fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1036,7 +1066,7 @@ class btcmarkets extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateGetOrdersId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersId ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -1045,6 +1075,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             * @see https://docs.btcmarkets.net/v3/#operation/listOrders
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1066,7 +1097,7 @@ class btcmarkets extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1075,6 +1106,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://docs.btcmarkets.net/v3/#operation/listOrders
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -1082,7 +1114,7 @@ class btcmarkets extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array( 'status' => 'open' );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1090,6 +1122,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
+             * @see https://docs.btcmarkets.net/v3/#operation/listOrders
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1105,6 +1138,7 @@ class btcmarkets extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://docs.btcmarkets.net/v3/#operation/getTrades
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1124,7 +1158,7 @@ class btcmarkets extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTrades ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1156,10 +1190,11 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/{1v3}1withdrawals/post
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -1181,7 +1216,7 @@ class btcmarkets extends Exchange {
             if ($tag !== null) {
                 $request['toAddress'] = $address . '?dt=' . $tag;
             }
-            $response = Async\await($this->privatePostWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawals ($this->extend($request, $params)));
             //
             //      {
             //          "id" => "4126657",

@@ -43,12 +43,14 @@ class bitmex extends Exchange {
                 'option' => false,
                 'addMargin' => null,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createTrailingAmountOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -65,9 +67,11 @@ class bitmex extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
-                'fetchLeverage' => false,
+                'fetchLeverage' => 'emulated',
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -79,7 +83,9 @@ class bitmex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -89,6 +95,7 @@ class bitmex extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => null,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => null,
                 'setMarginMode' => true,
@@ -107,7 +114,7 @@ class bitmex extends Exchange {
                     'public' => 'https://testnet.bitmex.com',
                     'private' => 'https://testnet.bitmex.com',
                 ),
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
+                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445',
                 'api' => array(
                     'public' => 'https://www.bitmex.com',
                     'private' => 'https://www.bitmex.com',
@@ -118,7 +125,10 @@ class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ),
                 'fees' => 'https://www.bitmex.com/app/fees',
-                'referral' => 'https://www.bitmex.com/register/upZpOX',
+                'referral' => array(
+                    'url' => 'https://www.bitmex.com/app/register/NZTR1q',
+                    'discount' => 0.1,
+                ),
             ),
             'api' => array(
                 'public' => array(
@@ -130,6 +140,7 @@ class bitmex extends Exchange {
                         'chat/connected' => 5,
                         'chat/pinned' => 5,
                         'funding' => 5,
+                        'guild' => 5,
                         'instrument' => 5,
                         'instrument/active' => 5,
                         'instrument/activeAndIndices' => 5,
@@ -158,6 +169,7 @@ class bitmex extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'address' => 5,
                         'apiKey' => 5,
                         'execution' => 5,
                         'execution/tradeHistory' => 5,
@@ -170,21 +182,33 @@ class bitmex extends Exchange {
                         'user/affiliateStatus' => 5,
                         'user/checkReferralCode' => 5,
                         'user/commission' => 5,
+                        'user/csa' => 5,
                         'user/depositAddress' => 5,
                         'user/executionHistory' => 5,
+                        'user/getWalletTransferAccounts' => 5,
                         'user/margin' => 5,
                         'user/quoteFillRatio' => 5,
                         'user/quoteValueRatio' => 5,
+                        'user/staking' => 5,
+                        'user/staking/instruments' => 5,
+                        'user/staking/tiers' => 5,
                         'user/tradingVolume' => 5,
+                        'user/unstakingRequests' => 5,
                         'user/wallet' => 5,
                         'user/walletHistory' => 5,
                         'user/walletSummary' => 5,
+                        'userAffiliates' => 5,
                         'userEvent' => 5,
                     ),
                     'post' => array(
+                        'address' => 5,
                         'chat' => 5,
+                        'guild' => 5,
+                        'guild/archive' => 5,
                         'guild/join' => 5,
+                        'guild/kick' => 5,
                         'guild/leave' => 5,
+                        'guild/sharesTrades' => 5,
                         'order' => 1,
                         'order/cancelAllAfter' => 5,
                         'order/closePosition' => 5,
@@ -192,6 +216,7 @@ class bitmex extends Exchange {
                         'position/leverage' => 1,
                         'position/riskLimit' => 5,
                         'position/transferMargin' => 1,
+                        'user/addSubaccount' => 5,
                         'user/cancelWithdrawal' => 5,
                         'user/communicationToken' => 5,
                         'user/confirmEmail' => 5,
@@ -199,13 +224,18 @@ class bitmex extends Exchange {
                         'user/logout' => 5,
                         'user/preferences' => 5,
                         'user/requestWithdrawal' => 5,
+                        'user/unstakingRequests' => 5,
+                        'user/updateSubaccount' => 5,
+                        'user/walletTransfer' => 5,
                     ),
                     'put' => array(
+                        'guild' => 5,
                         'order' => 1,
                     ),
                     'delete' => array(
                         'order' => 1,
                         'order/all' => 1,
+                        'user/unstakingRequests' => 5,
                     ),
                 ),
             ),
@@ -218,6 +248,7 @@ class bitmex extends Exchange {
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
                     'Invalid price' => '\\ccxt\\InvalidOrder',
                     'Invalid stopPx for ordType' => '\\ccxt\\InvalidOrder',
+                    'Account is restricted' => '\\ccxt\\PermissionDenied', // array("error":array("message":"Account is restricted","name":"HTTPError"))
                 ),
                 'broad' => array(
                     'Signature not valid' => '\\ccxt\\AuthenticationError',
@@ -261,10 +292,11 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -322,8 +354,8 @@ class bitmex extends Exchange {
                     $network = $this->network_id_to_code($networkId);
                     $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
                     $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
-                    $isDepositEnabled = $this->safe_value($chain, 'depositEnabled', false);
-                    $isWithdrawEnabled = $this->safe_value($chain, 'withdrawalEnabled', false);
+                    $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
+                    $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
                     $active = ($isDepositEnabled && $isWithdrawEnabled);
                     if ($isDepositEnabled) {
                         $depositEnabled = true;
@@ -440,7 +472,7 @@ class bitmex extends Exchange {
         return $this->convert_from_raw_quantity($symbol, $rawQuantity, 'quote');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitmex
@@ -751,6 +783,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://www.bitmex.com/api/explorer/#!/User/User_getMargin
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -758,7 +791,7 @@ class bitmex extends Exchange {
             $request = array(
                 'currency' => 'all',
             );
-            $response = Async\await($this->privateGetUserMargin (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserMargin ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -814,6 +847,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2
              * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
              * @param {int} [$limit] the maximum $amount of $order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -827,7 +861,7 @@ class bitmex extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderBookL2 (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderBookL2 ($this->extend($request, $params)));
             $result = array(
                 'symbol' => $symbol,
                 'bids' => array(),
@@ -858,6 +892,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -928,6 +963,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -947,6 +983,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
+             * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -962,8 +999,8 @@ class bitmex extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
              * fetch all trades made by the user
+             * @see https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1174,6 +1211,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
@@ -1197,7 +1235,7 @@ class bitmex extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetUserWalletHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserWalletHistory ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1226,6 +1264,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -1250,7 +1289,7 @@ class bitmex extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetUserWalletHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserWalletHistory ($this->extend($request, $params)));
             $transactions = $this->filter_by_array($response, 'transactType', array( 'Withdrawal', 'Deposit' ), false);
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         }) ();
@@ -1346,6 +1385,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -1355,7 +1395,7 @@ class bitmex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetInstrument (array_merge($request, $params)));
+            $response = Async\await($this->publicGetInstrument ($this->extend($request, $params)));
             $ticker = $this->safe_value($response, 0);
             if ($ticker === null) {
                 throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
@@ -1368,6 +1408,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1388,7 +1429,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1453,8 +1494,8 @@ class bitmex extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] $timestamp in ms of the earliest candle to fetch
@@ -1495,19 +1536,19 @@ class bitmex extends Exchange {
                 $request['endTime'] = $this->iso8601($until);
             }
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $fetchOHLCVOpenTimestamp = $this->safe_value($this->options, 'fetchOHLCVOpenTimestamp', true);
+            $fetchOHLCVOpenTimestamp = $this->safe_bool($this->options, 'fetchOHLCVOpenTimestamp', true);
             // if $since is not set, they will return candles starting from 2017-01-01
             if ($since !== null) {
                 $timestamp = $since;
                 if ($fetchOHLCVOpenTimestamp) {
                     $timestamp = $this->sum($timestamp, $duration);
                 }
-                $ymdhms = $this->ymdhms($timestamp);
-                $request['startTime'] = $ymdhms; // starting date $filter for results
+                $startTime = $this->iso8601($timestamp);
+                $request['startTime'] = $startTime; // starting date $filter for results
             } else {
                 $request['reverse'] = true;
             }
-            $response = Async\await($this->publicGetTradeBucketed (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeBucketed ($this->extend($request, $params)));
             //
             //     array(
             //         array("timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
@@ -1610,13 +1651,11 @@ class bitmex extends Exchange {
         $fee = null;
         $feeCostString = $this->number_to_string($this->convert_from_raw_cost($symbol, $this->safe_string($trade, 'execComm')));
         if ($feeCostString !== null) {
-            $currencyId = $this->safe_string($trade, 'settlCurrency');
-            $feeCurrencyCode = $this->safe_currency_code($currencyId);
-            $feeRateString = $this->safe_string($trade, 'commission');
+            $currencyId = $this->safe_string_2($trade, 'settlCurrency', 'currency');
             $fee = array(
-                'cost' => Precise::string_abs($feeCostString),
-                'currency' => $feeCurrencyCode,
-                'rate' => Precise::string_abs($feeRateString),
+                'cost' => $feeCostString,
+                'currency' => $this->safe_currency_code($currencyId),
+                'rate' => $this->safe_string($trade, 'commission'),
             );
         }
         // Trade or Funding
@@ -1720,7 +1759,7 @@ class bitmex extends Exchange {
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
             $isInverse = ($defaultSubType === 'inverse');
         } else {
-            $isInverse = $this->safe_value($market, 'inverse', false);
+            $isInverse = $this->safe_bool($market, 'inverse', false);
         }
         if ($isInverse) {
             $cost = $this->convert_from_raw_quantity($symbol, $qty);
@@ -1772,8 +1811,8 @@ class bitmex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
              * get the list of most recent trades for a particular $symbol
+             * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1805,7 +1844,7 @@ class bitmex extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['endTime'] = $this->iso8601($until);
             }
-            $response = Async\await($this->publicGetTrade (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTrade ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1838,7 +1877,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1851,6 +1890,7 @@ class bitmex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'above' or 'below'
+             * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
@@ -1858,7 +1898,7 @@ class bitmex extends Exchange {
             $orderType = $this->capitalize($type);
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
             if ($reduceOnly !== null) {
-                if (($market['type'] !== 'swap') && ($market['type'] !== 'future')) {
+                if ((!$market['swap']) && (!$market['future'])) {
                     throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
                 }
             }
@@ -1871,55 +1911,95 @@ class bitmex extends Exchange {
                 'ordType' => $orderType,
                 'text' => $brokerId,
             );
-            $customTriggerType = ($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched');
             // support for unified trigger format
             $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
-            if (($triggerPrice !== null) && !$customTriggerType) {
-                $request['stopPx'] = floatval($this->price_to_precision($symbol, $triggerPrice));
+            $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');
+            $isTriggerOrder = $triggerPrice !== null;
+            $isTrailingAmountOrder = $trailingAmount !== null;
+            if ($isTriggerOrder || $isTrailingAmountOrder) {
                 $triggerDirection = $this->safe_string($params, 'triggerDirection');
-                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection' ));
                 $triggerAbove = ($triggerDirection === 'above');
-                $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
-                $this->check_required_argument('createOrder', $side, 'side', array( 'buy', 'sell' ));
+                if (($type === 'limit') || ($type === 'market')) {
+                    $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
+                }
                 if ($type === 'limit') {
-                    $request['price'] = floatval($this->price_to_precision($symbol, $price));
                     if ($side === 'buy') {
-                        $request['ordType'] = $triggerAbove ? 'StopLimit' : 'LimitIfTouched';
+                        $orderType = $triggerAbove ? 'StopLimit' : 'LimitIfTouched';
                     } else {
-                        $request['ordType'] = $triggerAbove ? 'LimitIfTouched' : 'StopLimit';
+                        $orderType = $triggerAbove ? 'LimitIfTouched' : 'StopLimit';
                     }
                 } elseif ($type === 'market') {
                     if ($side === 'buy') {
-                        $request['ordType'] = $triggerAbove ? 'Stop' : 'MarketIfTouched';
+                        $orderType = $triggerAbove ? 'Stop' : 'MarketIfTouched';
                     } else {
-                        $request['ordType'] = $triggerAbove ? 'MarketIfTouched' : 'Stop';
+                        $orderType = $triggerAbove ? 'MarketIfTouched' : 'Stop';
                     }
                 }
-            } elseif ($customTriggerType) {
-                if ($triggerPrice === null) {
-                    // if exchange specific trigger types were provided
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice (stopPx|stopPrice) parameter for the ' . $orderType . ' order type');
+                if ($isTrailingAmountOrder) {
+                    $isStopSellOrder = ($side === 'sell') && (($orderType === 'Stop') || ($orderType === 'StopLimit'));
+                    $isBuyIfTouchedOrder = ($side === 'buy') && (($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched'));
+                    if ($isStopSellOrder || $isBuyIfTouchedOrder) {
+                        $trailingAmount = '-' . $trailingAmount;
+                    }
+                    $request['pegOffsetValue'] = $this->parse_to_numeric($trailingAmount);
+                    $request['pegPriceType'] = 'TrailingStopPeg';
+                } else {
+                    if ($triggerPrice === null) {
+                        // if exchange specific trigger types were provided
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice (stopPx|stopPrice) parameter for the ' . $orderType . ' order type');
+                    }
+                    $request['stopPx'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
                 }
-                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stopPx' ));
-                $request['stopPx'] = floatval($this->price_to_precision($symbol, $triggerPrice));
+                $request['ordType'] = $orderType;
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount' ));
             }
             if (($orderType === 'Limit') || ($orderType === 'StopLimit') || ($orderType === 'LimitIfTouched')) {
-                $request['price'] = floatval($this->price_to_precision($symbol, $price));
+                $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
             $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
             if ($clientOrderId !== null) {
                 $request['clOrdID'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
             }
-            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $request = array();
+            $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');
+            $isTrailingAmountOrder = $trailingAmount !== null;
+            if ($isTrailingAmountOrder) {
+                $triggerDirection = $this->safe_string($params, 'triggerDirection');
+                $triggerAbove = ($triggerDirection === 'above');
+                if (($type === 'limit') || ($type === 'market')) {
+                    $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
+                }
+                $orderType = null;
+                if ($type === 'limit') {
+                    if ($side === 'buy') {
+                        $orderType = $triggerAbove ? 'StopLimit' : 'LimitIfTouched';
+                    } else {
+                        $orderType = $triggerAbove ? 'LimitIfTouched' : 'StopLimit';
+                    }
+                } elseif ($type === 'market') {
+                    if ($side === 'buy') {
+                        $orderType = $triggerAbove ? 'Stop' : 'MarketIfTouched';
+                    } else {
+                        $orderType = $triggerAbove ? 'MarketIfTouched' : 'Stop';
+                    }
+                }
+                $isStopSellOrder = ($side === 'sell') && (($orderType === 'Stop') || ($orderType === 'StopLimit'));
+                $isBuyIfTouchedOrder = ($side === 'buy') && (($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched'));
+                if ($isStopSellOrder || $isBuyIfTouchedOrder) {
+                    $trailingAmount = '-' . $trailingAmount;
+                }
+                $request['pegOffsetValue'] = $this->parse_to_numeric($trailingAmount);
+                $params = $this->omit($params, array( 'triggerDirection', 'trailingAmount' ));
+            }
             $origClOrdID = $this->safe_string_2($params, 'origClOrdID', 'clientOrderId');
             if ($origClOrdID !== null) {
                 $request['origClOrdID'] = $origClOrdID;
@@ -1940,7 +2020,7 @@ class bitmex extends Exchange {
             }
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
             $request['text'] = $brokerId;
-            $response = Async\await($this->privatePutOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePutOrder ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -1949,6 +2029,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
+             * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
              * @param {string} $id $order $id
              * @param {string} $symbol not used by bitmex cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1964,7 +2045,7 @@ class bitmex extends Exchange {
                 $request['clOrdID'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
             }
-            $response = Async\await($this->privateDeleteOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
             $order = $this->safe_value($response, 0, array());
             $error = $this->safe_string($order, 'error');
             if ($error !== null) {
@@ -1980,6 +2061,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by bitmex cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1996,7 +2078,7 @@ class bitmex extends Exchange {
                 $request['clOrdID'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
             }
-            $response = Async\await($this->privateDeleteOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
             return $this->parse_orders($response);
         }) ();
     }
@@ -2005,6 +2087,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -2016,7 +2099,7 @@ class bitmex extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateDeleteOrderAll (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrderAll ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -2060,10 +2143,61 @@ class bitmex extends Exchange {
         }) ();
     }
 
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the api result
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'timeout' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
+            );
+            $response = Async\await($this->privatePostOrderCancelAllAfter ($this->extend($request, $params)));
+            //
+            //     {
+            //         now => '2024-04-09T09:01:56.560Z',
+            //         cancelTime => '2024-04-09T09:01:56.660Z'
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the set leverage for all contract markets
+             * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+             * @param {string[]} [$symbols] a list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             */
+            Async\await($this->load_markets());
+            $leverages = Async\await($this->fetch_positions($symbols, $params));
+            return $this->parse_leverages($leverages, $symbols, 'symbol');
+        }) ();
+    }
+
+    public function parse_leverage(array $leverage, ?array $market = null): array {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $this->safe_integer($leverage, 'leverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'leverage'),
+        );
+    }
+
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -2319,10 +2453,11 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -2345,7 +2480,7 @@ class bitmex extends Exchange {
                 // 'otpToken' => '123456', // requires if two-factor auth (OTP) is enabled
                 // 'fee' => 0.001, // bitcoin network fee
             );
-            $response = Async\await($this->privatePostUserRequestWithdrawal (array_merge($request, $params)));
+            $response = Async\await($this->privatePostUserRequestWithdrawal ($this->extend($request, $params)));
             //
             //     {
             //         "transactID" => "3aece414-bb29-76c8-6c6d-16a477a51a1e",
@@ -2371,6 +2506,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
+             * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
@@ -2383,7 +2519,7 @@ class bitmex extends Exchange {
                 $item = $response[$i];
                 $marketId = $this->safe_string($item, 'symbol');
                 $market = $this->safe_market($marketId);
-                $swap = $this->safe_value($market, 'swap', false);
+                $swap = $this->safe_bool($market, 'swap', false);
                 if ($swap) {
                     $filteredResponse[] = $item;
                 }
@@ -2424,6 +2560,7 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * Fetches the history of funding rates
+             * @see https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
@@ -2460,13 +2597,15 @@ class bitmex extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till');
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
             if ($until !== null) {
                 $request['endTime'] = $this->iso8601($until);
             }
-            $request['reverse'] = true;
-            $response = Async\await($this->publicGetFunding (array_merge($request, $params)));
+            if (($since === null) && ($until === null)) {
+                $request['reverse'] = true;
+            }
+            $response = Async\await($this->publicGetFunding ($this->extend($request, $params)));
             //
             //    array(
             //        {
@@ -2503,10 +2642,11 @@ class bitmex extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             * @see https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2527,14 +2667,15 @@ class bitmex extends Exchange {
                 'symbol' => $market['id'],
                 'leverage' => $leverage,
             );
-            return Async\await($this->privatePostPositionLeverage (array_merge($request, $params)));
+            return Async\await($this->privatePostPositionLeverage ($this->extend($request, $params)));
         }) ();
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
+             * @see https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2557,7 +2698,7 @@ class bitmex extends Exchange {
                 'symbol' => $market['id'],
                 'enabled' => $enabled,
             );
-            return Async\await($this->privatePostPositionIsolate (array_merge($request, $params)));
+            return Async\await($this->privatePostPositionIsolate ($this->extend($request, $params)));
         }) ();
     }
 
@@ -2578,15 +2719,12 @@ class bitmex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
             }
             $currency = $this->currency($code);
-            $currencyId = $currency['id'];
-            $idLength = count($currencyId);
-            $currencyId = strtolower(mb_substr($currencyId, 0, $idLength - 1 - 0) . mb_substr($currencyId, $idLength - 1, $idLength - $idLength - 1));  // make the last letter lowercase
             $params = $this->omit($params, 'network');
             $request = array(
-                'currency' => $currencyId,
+                'currency' => $currency['id'],
                 'network' => $this->network_code_to_id($networkCode, $currency['code']),
             );
-            $response = Async\await($this->privateGetUserDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserDepositAddress ($this->extend($request, $params)));
             //
             //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
             //
@@ -2751,7 +2889,7 @@ class bitmex extends Exchange {
                 $request['count'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->publicGetLiquidation (array_merge($request, $params)));
+            $response = Async\await($this->publicGetLiquidation ($this->extend($request, $params)));
             //
             //     array(
             //         {

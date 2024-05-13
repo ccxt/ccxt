@@ -1,6 +1,68 @@
 {
     "exchange": "hollaex",
-    "skipKeys": [],
+    "skipKeys": ["to", "from"],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "Spot fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.hollaex.com/v2/orderbook?symbol=btc-usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.hollaex.com/v2/orderbook?symbol=btc-usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.hollaex.com/v2/trades?symbol=btc-usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.hollaex.com/v2/ticker?symbol=btc-usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.hollaex.com/v2/tickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.hollaex.com/v2/chart?symbol=btc-usdt&resolution=1m&to=1709992985&from=1709932985",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
 }

@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.poloniex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +22,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -60,6 +60,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
+                'fetchFundingRate': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -83,6 +84,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'sandbox': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -479,7 +481,7 @@ class poloniex(Exchange, ImplicitAPI):
             self.options['currenciesByNumericId'] = self.index_by(self.currencies, 'numericId')
         return markets
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for poloniex
         :see: https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
@@ -578,7 +580,7 @@ class poloniex(Exchange, ImplicitAPI):
         response = await self.publicGetTimestamp(params)
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol" : "BTC_USDT",
@@ -670,7 +672,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
@@ -712,7 +714,9 @@ class poloniex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             networkId = self.safe_string(currency, 'blockchain')
-            networkCode = self.network_id_to_code(networkId, code)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(currency, 'delisted')
             walletEnabled = self.safe_string(currency, 'walletState') == 'ENABLED'
             depositEnabled = self.safe_string(currency, 'walletDepositState') == 'ENABLED'
@@ -1211,7 +1215,7 @@ class poloniex(Exchange, ImplicitAPI):
         extension = {'status': 'open'}
         return self.parse_orders(response, market, since, limit, extension)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
@@ -1299,7 +1303,7 @@ class poloniex(Exchange, ImplicitAPI):
         # remember the timestamp before issuing the request
         return [request, params]
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
@@ -1567,7 +1571,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
@@ -1735,7 +1739,7 @@ class poloniex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer
@@ -1748,12 +1752,11 @@ class poloniex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        amount = self.currency_to_precision(code, amount)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, fromAccount)
         request = {
-            'amount': amount,
+            'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -1766,7 +1769,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    {
         #        "transferId" : "168041074"
@@ -1784,7 +1787,7 @@ class poloniex(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-currency

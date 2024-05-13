@@ -5,7 +5,7 @@ import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -42,6 +42,9 @@ export default class mercado extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -62,8 +65,11 @@ export default class mercado extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -157,7 +163,7 @@ export default class mercado extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name mercado#fetchMarkets
@@ -268,7 +274,7 @@ export default class mercado extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "high":"103.96000000",
@@ -435,7 +441,7 @@ export default class mercado extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name mercado#createOrder
@@ -521,7 +527,7 @@ export default class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue (response, 'response_data', {});
-        const order = this.safeValue (responseData, 'order', {});
+        const order = this.safeDict (responseData, 'order', {});
         return this.parseOrder (order, market);
     }
 
@@ -627,11 +633,11 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const order = this.safeValue (responseData, 'order');
+        const order = this.safeDict (responseData, 'order');
         return this.parseOrder (order, market);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name mercado#withdraw
@@ -693,7 +699,7 @@ export default class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue (response, 'response_data', {});
-        const withdrawal = this.safeValue (responseData, 'withdrawal');
+        const withdrawal = this.safeDict (responseData, 'withdrawal');
         return this.parseTransaction (withdrawal, currency);
     }
 
@@ -801,7 +807,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const orders = this.safeValue (responseData, 'orders', []);
+        const orders = this.safeList (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -827,7 +833,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const orders = this.safeValue (responseData, 'orders', []);
+        const orders = this.safeList (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 

@@ -39,7 +39,7 @@ class alpaca extends Exchange {
                     'market' => 'https://data.sandbox.{hostname}',
                 ),
                 'doc' => 'https://alpaca.markets/docs/',
-                'fees' => 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
+                'fees' => 'https://docs.alpaca.markets/docs/crypto-fees',
             ),
             'has' => array(
                 'CORS' => false,
@@ -53,7 +53,7 @@ class alpaca extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
-                'fetchBalance' => true,
+                'fetchBalance' => false,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
@@ -74,7 +74,13 @@ class alpaca extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => false,
                 'fetchTickers' => false,
@@ -86,6 +92,7 @@ class alpaca extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
@@ -211,28 +218,28 @@ class alpaca extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('0.003'),
-                    'taker' => $this->parse_number('0.003'),
+                    'maker' => $this->parse_number('0.0015'),
+                    'taker' => $this->parse_number('0.0025'),
                     'tiers' => array(
                         'taker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.003') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0028') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0025') ),
-                            array( $this->parse_number('5000000'), $this->parse_number('0.002') ),
-                            array( $this->parse_number('10000000'), $this->parse_number('0.0018') ),
-                            array( $this->parse_number('25000000'), $this->parse_number('0.0015') ),
-                            array( $this->parse_number('50000000'), $this->parse_number('0.00125') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0025') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0022') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.0012') ),
                             array( $this->parse_number('100000000'), $this->parse_number('0.001') ),
                         ),
                         'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.003') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0028') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0025') ),
-                            array( $this->parse_number('5000000'), $this->parse_number('0.002') ),
-                            array( $this->parse_number('10000000'), $this->parse_number('0.0018') ),
-                            array( $this->parse_number('25000000'), $this->parse_number('0.0015') ),
-                            array( $this->parse_number('50000000'), $this->parse_number('0.00125') ),
-                            array( $this->parse_number('100000000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.00') ),
                         ),
                     ),
                 ),
@@ -294,7 +301,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for alpaca
@@ -306,7 +313,7 @@ class alpaca extends Exchange {
                 'asset_class' => 'crypto',
                 'status' => 'active',
             );
-            $assets = Async\await($this->traderPrivateGetV2Assets (array_merge($request, $params)));
+            $assets = Async\await($this->traderPrivateGetV2Assets ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -356,10 +363,16 @@ class alpaca extends Exchange {
         //
         $marketId = $this->safe_string($asset, 'symbol');
         $parts = explode('/', $marketId);
+        $assetClass = $this->safe_string($asset, 'class');
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        // Us equity markets do not include $quote in $symbol->
+        // We can safely coerce us_equity $quote to USD
+        if ($quote === null && $assetClass === 'us_equity') {
+            $quote = 'USD';
+        }
         $symbol = $base . '/' . $quote;
         $status = $this->safe_string($asset, 'status');
         $active = ($status === 'active');
@@ -441,7 +454,7 @@ class alpaca extends Exchange {
                 'loc' => $loc,
             );
             $params = $this->omit($params, array( 'loc', 'method' ));
-            $response = null;
+            $symbolTrades = null;
             if ($method === 'marketPublicGetV1beta3CryptoLocTrades') {
                 if ($since !== null) {
                     $request['start'] = $this->iso8601($since);
@@ -449,44 +462,45 @@ class alpaca extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocTrades (array_merge($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocTrades ($this->extend($request, $params)));
+                //
+                //    {
+                //        "next_page_token" => null,
+                //        "trades" => {
+                //            "BTC/USD" => array(
+                //                {
+                //                    "i" => 36440704,
+                //                    "p" => 22625,
+                //                    "s" => 0.0001,
+                //                    "t" => "2022-07-21T11:47:31.073391Z",
+                //                    "tks" => "B"
+                //                }
+                //            )
+                //        }
+                //    }
+                //
+                $trades = $this->safe_dict($response, 'trades', array());
+                $symbolTrades = $this->safe_list($trades, $marketId, array());
             } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestTrades (array_merge($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestTrades ($this->extend($request, $params)));
+                //
+                //    {
+                //       "trades" => {
+                //            "BTC/USD" => {
+                //                "i" => 36440704,
+                //                "p" => 22625,
+                //                "s" => 0.0001,
+                //                "t" => "2022-07-21T11:47:31.073391Z",
+                //                "tks" => "B"
+                //            }
+                //        }
+                //    }
+                //
+                $trades = $this->safe_dict($response, 'trades', array());
+                $symbolTrades = $this->safe_dict($trades, $marketId, array());
+                $symbolTrades = array( $symbolTrades );
             } else {
                 throw new NotSupported($this->id . ' fetchTrades() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
-            }
-            //
-            // {
-            //     "next_page_token":null,
-            //     "trades":{
-            //        "BTC/USD":array(
-            //           {
-            //              "i":36440704,
-            //              "p":22625,
-            //              "s":0.0001,
-            //              "t":"2022-07-21T11:47:31.073391Z",
-            //              "tks":"B"
-            //           }
-            //        )
-            //     }
-            // }
-            //
-            // {
-            //     "trades":{
-            //        "BTC/USD":{
-            //           "i":36440704,
-            //           "p":22625,
-            //           "s":0.0001,
-            //           "t":"2022-07-21T11:47:31.073391Z",
-            //           "tks":"B"
-            //        }
-            //     }
-            // }
-            //
-            $trades = $this->safe_value($response, 'trades', array());
-            $symbolTrades = $this->safe_value($trades, $marketId, array());
-            if (gettype($symbolTrades) !== 'array' || array_keys($symbolTrades) !== array_keys(array_keys($symbolTrades))) {
-                $symbolTrades = array( $symbolTrades );
             }
             return $this->parse_trades($symbolTrades, $market, $since, $limit);
         }) ();
@@ -511,7 +525,7 @@ class alpaca extends Exchange {
                 'symbols' => $id,
                 'loc' => $loc,
             );
-            $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestOrderbooks (array_merge($request, $params)));
+            $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestOrderbooks ($this->extend($request, $params)));
             //
             //   {
             //       "orderbooks":{
@@ -581,7 +595,7 @@ class alpaca extends Exchange {
                 'loc' => $loc,
             );
             $params = $this->omit($params, array( 'loc', 'method' ));
-            $response = null;
+            $ohlcvs = null;
             if ($method === 'marketPublicGetV1beta3CryptoLocBars') {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
@@ -590,60 +604,61 @@ class alpaca extends Exchange {
                     $request['start'] = $this->yyyymmdd($since);
                 }
                 $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars (array_merge($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars ($this->extend($request, $params)));
+                //
+                //    {
+                //        "bars" => {
+                //           "BTC/USD" => array(
+                //              array(
+                //                 "c" => 22887,
+                //                 "h" => 22888,
+                //                 "l" => 22873,
+                //                 "n" => 11,
+                //                 "o" => 22883,
+                //                 "t" => "2022-07-21T05:00:00Z",
+                //                 "v" => 1.1138,
+                //                 "vw" => 22883.0155324116
+                //              ),
+                //              array(
+                //                 "c" => 22895,
+                //                 "h" => 22895,
+                //                 "l" => 22884,
+                //                 "n" => 6,
+                //                 "o" => 22884,
+                //                 "t" => "2022-07-21T05:01:00Z",
+                //                 "v" => 0.001,
+                //                 "vw" => 22889.5
+                //              }
+                //           )
+                //        ),
+                //        "next_page_token" => "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+                //     }
+                //
+                $bars = $this->safe_dict($response, 'bars', array());
+                $ohlcvs = $this->safe_list($bars, $marketId, array());
             } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars (array_merge($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars ($this->extend($request, $params)));
+                //
+                //    {
+                //        "bars" => {
+                //           "BTC/USD" => {
+                //              "c" => 22887,
+                //              "h" => 22888,
+                //              "l" => 22873,
+                //              "n" => 11,
+                //              "o" => 22883,
+                //              "t" => "2022-07-21T05:00:00Z",
+                //              "v" => 1.1138,
+                //              "vw" => 22883.0155324116
+                //           }
+                //        }
+                //     }
+                //
+                $bars = $this->safe_dict($response, 'bars', array());
+                $ohlcvs = $this->safe_dict($bars, $marketId, array());
+                $ohlcvs = array( $ohlcvs );
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
-            }
-            //
-            //    {
-            //        "bars":{
-            //           "BTC/USD":array(
-            //              array(
-            //                 "c":22887,
-            //                 "h":22888,
-            //                 "l":22873,
-            //                 "n":11,
-            //                 "o":22883,
-            //                 "t":"2022-07-21T05:00:00Z",
-            //                 "v":1.1138,
-            //                 "vw":22883.0155324116
-            //              ),
-            //              array(
-            //                 "c":22895,
-            //                 "h":22895,
-            //                 "l":22884,
-            //                 "n":6,
-            //                 "o":22884,
-            //                 "t":"2022-07-21T05:01:00Z",
-            //                 "v":0.001,
-            //                 "vw":22889.5
-            //              }
-            //           )
-            //        ),
-            //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-            //     }
-            //
-            //    {
-            //        "bars":{
-            //           "BTC/USD":{
-            //              "c":22887,
-            //              "h":22888,
-            //              "l":22873,
-            //              "n":11,
-            //              "o":22883,
-            //              "t":"2022-07-21T05:00:00Z",
-            //              "v":1.1138,
-            //              "vw":22883.0155324116
-            //           }
-            //        }
-            //     }
-            //
-            $bars = $this->safe_value($response, 'bars', array());
-            $ohlcvs = $this->safe_value($bars, $marketId, array());
-            if (gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs))) {
-                $ohlcvs = array( $ohlcvs );
             }
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();
@@ -674,7 +689,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -722,7 +737,7 @@ class alpaca extends Exchange {
             $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
             $request['client_order_id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId' ));
-            $order = Async\await($this->traderPrivatePostV2Orders (array_merge($request, $params)));
+            $order = Async\await($this->traderPrivatePostV2Orders ($this->extend($request, $params)));
             //
             //   {
             //      "id" => "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -776,7 +791,7 @@ class alpaca extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->traderPrivateDeleteV2OrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->traderPrivateDeleteV2OrdersOrderId ($this->extend($request, $params)));
             //
             //   {
             //       "code" => 40410000,
@@ -819,7 +834,7 @@ class alpaca extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $order = Async\await($this->traderPrivateGetV2OrdersOrderId (array_merge($request, $params)));
+            $order = Async\await($this->traderPrivateGetV2OrdersOrderId ($this->extend($request, $params)));
             $marketId = $this->safe_string($order, 'symbol');
             $market = $this->safe_market($marketId);
             return $this->parse_order($order, $market);
@@ -858,7 +873,7 @@ class alpaca extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->traderPrivateGetV2Orders (array_merge($request, $params)));
+            $response = Async\await($this->traderPrivateGetV2Orders ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -918,7 +933,7 @@ class alpaca extends Exchange {
             $request = array(
                 'status' => 'open',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -937,7 +952,7 @@ class alpaca extends Exchange {
             $request = array(
                 'status' => 'closed',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 

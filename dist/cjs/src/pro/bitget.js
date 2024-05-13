@@ -28,7 +28,7 @@ class bitget extends bitget$1 {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': true,
+                'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -83,19 +83,25 @@ class bitget extends bitget$1 {
                         '30015': errors.AuthenticationError,
                         '30016': errors.BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
+                    'broad': {},
                 },
             },
         });
     }
     getInstType(market, params = {}) {
         let instType = undefined;
-        if ((market['swap']) || (market['future'])) {
+        if (market === undefined) {
+            [instType, params] = this.handleProductTypeAndParams(undefined, params);
+        }
+        else if ((market['swap']) || (market['future'])) {
             [instType, params] = this.handleProductTypeAndParams(market, params);
         }
         else {
             instType = 'SPOT';
         }
-        [instType, params] = this.handleOptionAndParams(params, 'getInstType', 'instType', instType);
+        let instypeAux = undefined;
+        [instypeAux, params] = this.handleOptionAndParams(params, 'getInstType', 'instType', instType);
+        instType = instypeAux;
         return [instType, params];
     }
     async watchTicker(symbol, params = {}) {
@@ -153,7 +159,9 @@ class bitget extends bitget$1 {
         }
         const tickers = await this.watchPublicMultiple(messageHashes, topics, params);
         if (this.newUpdates) {
-            return tickers;
+            const result = {};
+            result[tickers['symbol']] = tickers;
+            return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -444,7 +452,7 @@ class bitget extends bitget$1 {
         symbols = this.marketSymbols(symbols);
         let channel = 'books';
         let incrementalFeed = true;
-        if ((limit === 5) || (limit === 15)) {
+        if ((limit === 1) || (limit === 5) || (limit === 15)) {
             channel += limit.toString();
             incrementalFeed = false;
         }
@@ -514,20 +522,22 @@ class bitget extends bitget$1 {
         const rawOrderBook = this.safeValue(data, 0);
         const timestamp = this.safeInteger(rawOrderBook, 'ts');
         const incrementalBook = channel === 'books';
-        let storedOrderBook = undefined;
         if (incrementalBook) {
-            storedOrderBook = this.safeValue(this.orderbooks, symbol);
-            if (storedOrderBook === undefined) {
-                storedOrderBook = this.countedOrderBook({});
-                storedOrderBook['symbol'] = symbol;
+            // storedOrderBook = this.safeValue (this.orderbooks, symbol);
+            if (!(symbol in this.orderbooks)) {
+                // const ob = this.orderBook ({});
+                const ob = this.countedOrderBook({});
+                ob['symbol'] = symbol;
+                this.orderbooks[symbol] = ob;
             }
+            const storedOrderBook = this.orderbooks[symbol];
             const asks = this.safeValue(rawOrderBook, 'asks', []);
             const bids = this.safeValue(rawOrderBook, 'bids', []);
             this.handleDeltas(storedOrderBook['asks'], asks);
             this.handleDeltas(storedOrderBook['bids'], bids);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
-            const checksum = this.safeValue(this.options, 'checksum', true);
+            const checksum = this.safeBool(this.options, 'checksum', true);
             const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
             if (!isSnapshot && checksum) {
                 const storedAsks = storedOrderBook['asks'];
@@ -550,15 +560,20 @@ class bitget extends bitget$1 {
                 const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
                     const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                    delete client.subscriptions[messageHash];
+                    delete this.orderbooks[symbol];
                     client.reject(error, messageHash);
+                    return;
                 }
             }
         }
         else {
-            storedOrderBook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            const orderbook = this.orderBook({});
+            const parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            orderbook.reset(parsedOrderbook);
+            this.orderbooks[symbol] = orderbook;
         }
-        this.orderbooks[symbol] = storedOrderBook;
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(this.orderbooks[symbol], messageHash);
     }
     handleDelta(bookside, delta) {
         const bidAsk = this.parseBidAsk(delta, 0, 1);
@@ -658,9 +673,12 @@ class bitget extends bitget$1 {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue(message, 'data', []);
-        for (let j = 0; j < data.length; j++) {
-            const rawTrade = data[j];
+        const data = this.safeList(message, 'data', []);
+        const length = data.length;
+        // fix chronological order by reversing
+        for (let i = 0; i < length; i++) {
+            const index = length - i - 1;
+            const rawTrade = data[index];
             const parsed = this.parseWsTrade(rawTrade, market);
             stored.append(parsed);
         }
@@ -676,23 +694,87 @@ class bitget extends bitget$1 {
         //         "side": "buy",
         //         "tradeId": "1116461060594286593"
         //     }
+        // swap private
         //
-        market = this.safeMarket(undefined, market);
-        const timestamp = this.safeInteger(trade, 'ts');
+        //            {
+        //               "orderId": "1169142761031114781",
+        //               "tradeId": "1169142761312637004",
+        //               "symbol": "LTCUSDT",
+        //               "orderType": "market",
+        //               "side": "buy",
+        //               "price": "80.87",
+        //               "baseVolume": "0.1",
+        //               "quoteVolume": "8.087",
+        //               "profit": "0",
+        //               "tradeSide": "open",
+        //               "posMode": "hedge_mode",
+        //               "tradeScope": "taker",
+        //               "feeDetail": [
+        //                  {
+        //                     "feeCoin": "USDT",
+        //                     "deduction": "no",
+        //                     "totalDeductionFee": "0",
+        //                     "totalFee": "-0.0048522"
+        //                  }
+        //               ],
+        //               "cTime": "1714471276596",
+        //               "uTime": "1714471276596"
+        //            }
+        // spot private
+        //        {
+        //           "orderId": "1169142457356959747",
+        //           "tradeId": "1169142457636958209",
+        //           "symbol": "LTCUSDT",
+        //           "orderType": "market",
+        //           "side": "buy",
+        //           "priceAvg": "81.069",
+        //           "size": "0.074",
+        //           "amount": "5.999106",
+        //           "tradeScope": "taker",
+        //           "feeDetail": [
+        //              {
+        //                 "feeCoin": "LTC",
+        //                 "deduction": "no",
+        //                 "totalDeductionFee": "0",
+        //                 "totalFee": "0.000074"
+        //              }
+        //           ],
+        //           "cTime": "1714471204194",
+        //           "uTime": "1714471204194"
+        //        }
+        //
+        const instId = this.safeString2(trade, 'symbol', 'instId');
+        const posMode = this.safeString(trade, 'posMode');
+        const defaultType = (posMode !== undefined) ? 'contract' : 'spot';
+        if (market === undefined) {
+            market = this.safeMarket(instId, undefined, undefined, defaultType);
+        }
+        const timestamp = this.safeIntegerN(trade, ['uTime', 'cTime', 'ts']);
+        const feeDetail = this.safeList(trade, 'feeDetail', []);
+        const first = this.safeDict(feeDetail, 0);
+        let fee = undefined;
+        if (first !== undefined) {
+            const feeCurrencyId = this.safeString(first, 'feeCoin');
+            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = {
+                'cost': Precise["default"].stringAbs(this.safeString(first, 'totalFee')),
+                'currency': feeCurrencyCode,
+            };
+        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'tradeId'),
-            'order': undefined,
+            'order': this.safeString(trade, 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
+            'type': this.safeString(trade, 'orderType'),
             'side': this.safeString(trade, 'side'),
-            'takerOrMaker': undefined,
-            'price': this.safeString(trade, 'price'),
-            'amount': this.safeString(trade, 'size'),
-            'cost': undefined,
-            'fee': undefined,
+            'takerOrMaker': this.safeString(trade, 'tradeScope'),
+            'price': this.safeString2(trade, 'priceAvg', 'price'),
+            'amount': this.safeString2(trade, 'size', 'baseVolume'),
+            'cost': this.safeString2(trade, 'amount', 'quoteVolume'),
+            'fee': fee,
         }, market);
     }
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
@@ -890,9 +972,9 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         let market = undefined;
         let marketId = undefined;
-        const isStop = this.safeValue(params, 'stop', false);
-        params = this.omit(params, 'stop');
-        let messageHash = (isStop) ? 'triggerOrder' : 'order';
+        let isTrigger = undefined;
+        [isTrigger, params] = this.isTriggerOrder(params);
+        let messageHash = (isTrigger) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -905,19 +987,16 @@ class bitget extends bitget$1 {
         if ((type === 'spot') && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        if (isStop && type === 'spot') {
-            throw new errors.NotSupported(this.id + ' watchOrders does not support stop orders for ' + type + ' markets.');
-        }
         let instType = undefined;
         [instType, params] = this.getInstType(market, params);
         if (type === 'spot') {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
-        if (isStop) {
+        if (isTrigger) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        let channel = isStop ? 'orders-algo' : 'orders';
+        let channel = isTrigger ? 'orders-algo' : 'orders';
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
         if (marginMode !== undefined) {
@@ -940,7 +1019,7 @@ class bitget extends bitget$1 {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrder(client, message, subscription = undefined) {
+    handleOrder(client, message) {
         //
         // spot
         //
@@ -948,24 +1027,7 @@ class bitget extends bitget$1 {
         //         "action": "snapshot",
         //         "arg": { "instType": "SPOT", "channel": "orders", "instId": "BTCUSDT" },
         //         "data": [
-        //             {
-        //                 "instId": "BTCUSDT",
-        //                 "orderId": "1116512721422422017",
-        //                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        //                 "price": "35000.00",
-        //                 "size": "7.0000",
-        //                 "notional": "7.000000",
-        //                 "orderType": "limit",
-        //                 "force": "gtc",
-        //                 "side": "buy",
-        //                 "accBaseVolume": "0.0000",
-        //                 "priceAvg": "0.00",
-        //                 "status": "live",
-        //                 "cTime": "1701923297267",
-        //                 "uTime": "1701923297267",
-        //                 "feeDetail": [],
-        //                 "enterPointSource": "WEB"
-        //             }
+        //             // see all examples in parseWsOrder
         //         ],
         //         "ts": 1701923297285
         //     }
@@ -976,73 +1038,9 @@ class bitget extends bitget$1 {
         //         "action": "snapshot",
         //         "arg": { "instType": "USDT-FUTURES", "channel": "orders", "instId": "default" },
         //         "data": [
-        //             {
-        //                 "accBaseVolume": "0",
-        //                 "cTime": "1701920553759",
-        //                 "clientOid": "1116501214318198793",
-        //                 "enterPointSource": "WEB",
-        //                 "feeDetail": [{
-        //                     "feeCoin": "USDT",
-        //                     "fee": "-0.162003"
-        //                 }],
-        //                 "force": "gtc",
-        //                 "instId": "BTCUSDT",
-        //                 "leverage": "20",
-        //                 "marginCoin": "USDT",
-        //                 "marginMode": "isolated",
-        //                 "notionalUsd": "105",
-        //                 "orderId": "1116501214293032964",
-        //                 "orderType": "limit",
-        //                 "posMode": "hedge_mode",
-        //                 "posSide": "long",
-        //                 "price": "35000",
-        //                 "reduceOnly": "no",
-        //                 "side": "buy",
-        //                 "size": "0.003",
-        //                 "status": "canceled",
-        //                 "tradeSide": "open",
-        //                 "uTime": "1701920595866"
-        //             }
+        //             // see all examples in parseWsOrder
         //         ],
         //         "ts": 1701920595879
-        //     }
-        //
-        // trigger
-        //
-        //     {
-        //         "action": "snapshot",
-        //         "arg": {
-        //             "instType": "USDT-FUTURES",
-        //             "channel": "orders-algo",
-        //             "instId": "default"
-        //         },
-        //         "data": [
-        //             {
-        //                 "instId": "BTCUSDT",
-        //                 "orderId": "1116508960750899201",
-        //                 "clientOid": "1116508960750899200",
-        //                 "triggerPrice": "35000.000000000",
-        //                 "triggerType": "mark_price",
-        //                 "triggerTime": "1701922464373",
-        //                 "planType": "pl",
-        //                 "price": "35000.000000000",
-        //                 "size": "0.001000000",
-        //                 "actualSize": "0.000000000",
-        //                 "orderType": "limit",
-        //                 "side": "buy",
-        //                 "tradeSide": "open",
-        //                 "posSide": "long",
-        //                 "marginCoin": "USDT",
-        //                 "status": "cancelled",
-        //                 "posMode": "hedge_mode",
-        //                 "enterPointSource": "api",
-        //                 "stopSurplusTriggerType": "fill_price",
-        //                 "stopLossTriggerType": "fill_price",
-        //                 "cTime": "1701922400653",
-        //                 "uTime": "1701922464373"
-        //             }
-        //         ],
-        //         "ts": 1701922464417
         //     }
         //
         // isolated and cross margin
@@ -1051,23 +1049,7 @@ class bitget extends bitget$1 {
         //         "action": "snapshot",
         //         "arg": { "instType": "MARGIN", "channel": "orders-crossed", "instId": "BTCUSDT" },
         //         "data": [
-        //             {
-        //                 "enterPointSource": "web",
-        //                 "force": "gtc",
-        //                 "orderType": "limit",
-        //                 "price": "35000.000000000",
-        //                 "quoteSize": "10.500000000",
-        //                 "side": "buy",
-        //                 "status": "live",
-        //                 "baseSize": "0.000300000",
-        //                 "cTime": "1701923982427",
-        //                 "clientOid": "4902047879864dc980c4840e9906db4e",
-        //                 "fillPrice": "0.000000000",
-        //                 "baseVolume": "0.000000000",
-        //                 "fillTotalAmount": "0.000000000",
-        //                 "loanType": "auto-loan-and-repay",
-        //                 "orderId": "1116515595178356737"
-        //             }
+        //             // see examples in parseWsOrder
         //         ],
         //         "ts": 1701923982497
         //     }
@@ -1091,8 +1073,9 @@ class bitget extends bitget$1 {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
             this.triggerOrders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const stored = (channel === 'ordersAlgo') ? this.triggerOrders : this.orders;
-        const messageHash = (channel === 'ordersAlgo') ? 'triggerOrder' : 'order';
+        const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
+        const stored = isTrigger ? this.triggerOrders : this.orders;
+        const messageHash = isTrigger ? 'triggerOrder' : 'order';
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -1115,80 +1098,90 @@ class bitget extends bitget$1 {
         //
         // spot
         //
-        //     {
-        //         "instId": "BTCUSDT",
-        //         "orderId": "1116512721422422017",
-        //         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        //         "price": "35000.00",
-        //         "size": "7.0000",
-        //         "notional": "7.000000",
-        //         "orderType": "limit",
-        //         "force": "gtc",
-        //         "side": "buy",
-        //         "accBaseVolume": "0.0000",
-        //         "priceAvg": "0.00",
-        //         "status": "live",
-        //         "cTime": "1701923297267",
-        //         "uTime": "1701923297267",
-        //         "feeDetail": [],
-        //         "enterPointSource": "WEB"
-        //     }
+        //   {
+        //         instId: 'EOSUSDT',
+        //         orderId: '1171779081105780739',
+        //         price: '0.81075', // limit price, field not present for market orders
+        //         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
+        //         notional: '5.675250', // this is not cost! but notional
+        //         newSize: '7.0000', // this is not cost! quanity (for limit order or market sell) or cost (for market buy order)
+        //         size: '5.6752', // this is not cost, neither quanity, but notional! this field for "spot" can be ignored at all
+        //         // Note: for limit order (even filled) we don't have cost value in response, only in market order
+        //         orderType: 'limit', // limit, market
+        //         force: 'gtc',
+        //         side: 'buy',
+        //         accBaseVolume: '0.0000', // in case of 'filled', this would be set (for limit orders, this is the only indicator of the amount filled)
+        //         priceAvg: '0.00000', // in case of 'filled', this would be set
+        //         status: 'live', // live, filled, partially_filled
+        //         cTime: '1715099824215',
+        //         uTime: '1715099824215',
+        //         feeDetail: [],
+        //         enterPointSource: 'API'
+        //                   #### trigger order has these additional fields: ####
+        //         "triggerPrice": "35100",
+        //         "price": "35100", // this is same as trigger price
+        //         "executePrice": "35123", // this is limit price
+        //         "triggerType": "fill_price",
+        //         "planType": "amount",
+        //                   #### in case order had fill: ####
+        //         fillPrice: '35123',
+        //         tradeId: '1171775539946528779',
+        //         baseVolume: '7', // field present in market order
+        //         fillTime: '1715098979937',
+        //         fillFee: '-0.0069987',
+        //         fillFeeCoin: 'BTC',
+        //         tradeScope: 'T',
+        //    }
         //
         // contract
         //
         //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
+        //         accBaseVolume: '0', // total amount filled during lifetime for order
+        //         cTime: '1715065875539',
+        //         clientOid: '1171636690041344003',
+        //         enterPointSource: 'API',
+        //         feeDetail: [ {
         //             "feeCoin": "USDT",
         //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
-        //     }
-        //
-        // trigger
-        //
-        //     {
-        //         "instId": "BTCUSDT",
-        //         "orderId": "1116508960750899201",
-        //         "clientOid": "1116508960750899200",
-        //         "triggerPrice": "35000.000000000",
+        //         } ],
+        //         force: 'gtc',
+        //         instId: 'SEOSSUSDT',
+        //         leverage: '10',
+        //         marginCoin: 'USDT',
+        //         marginMode: 'crossed',
+        //         notionalUsd: '10.4468',
+        //         orderId: '1171636690028761089',
+        //         orderType: 'market',
+        //         posMode: 'hedge_mode', // one_way_mode, hedge_mode
+        //         posSide: 'short', // short, long, net
+        //         price: '0', // zero for market order
+        //         reduceOnly: 'no',
+        //         side: 'sell',
+        //         size: '13', // this is contracts amount
+        //         status: 'live', // live, filled, cancelled
+        //         tradeSide: 'open',
+        //         uTime: '1715065875539'
+        //                   #### when filled order is incoming, these additional fields are present too: ###
+        //         baseVolume: '9', // amount filled for the incoming update/trade
+        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        //         fillFee: '-0.0062712',
+        //         fillFeeCoin: 'SUSDT',
+        //         fillNotionalUsd: '10.452',
+        //         fillPrice: '0.804',
+        //         fillTime: '1715065875605',
+        //         pnl: '0',
+        //         priceAvg: '0.804',
+        //         tradeId: '1171636690314407937',
+        //         tradeScope: 'T',
+        //                   #### trigger order has these additional fields:
+        //         "triggerPrice": "0.800000000",
+        //         "price": "0.800000000",  // <-- this is same as trigger price, actual limit-price is not present in initial response
         //         "triggerType": "mark_price",
-        //         "triggerTime": "1701922464373",
+        //         "triggerTime": "1715082796679",
         //         "planType": "pl",
-        //         "price": "35000.000000000",
-        //         "size": "0.001000000",
         //         "actualSize": "0.000000000",
-        //         "orderType": "limit",
-        //         "side": "buy",
-        //         "tradeSide": "open",
-        //         "posSide": "long",
-        //         "marginCoin": "USDT",
-        //         "status": "cancelled",
-        //         "posMode": "hedge_mode",
-        //         "enterPointSource": "api",
         //         "stopSurplusTriggerType": "fill_price",
         //         "stopLossTriggerType": "fill_price",
-        //         "cTime": "1701922400653",
-        //         "uTime": "1701922464373"
         //     }
         //
         // isolated and cross margin
@@ -1196,6 +1189,7 @@ class bitget extends bitget$1 {
         //     {
         //         "enterPointSource": "web",
         //         "force": "gtc",
+        //         "feeDetail": [],
         //         "orderType": "limit",
         //         "price": "35000.000000000",
         //         "quoteSize": "10.500000000",
@@ -1211,6 +1205,8 @@ class bitget extends bitget$1 {
         //         "orderId": "1116515595178356737"
         //     }
         //
+        const isSpot = !('posMode' in order);
+        const isMargin = ('loanType' in order);
         const marketId = this.safeString(order, 'instId');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'cTime');
@@ -1223,11 +1219,60 @@ class bitget extends bitget$1 {
         if (feeAmount !== undefined) {
             const feeCurrency = this.safeString(fee, 'feeCoin');
             feeObject = {
-                'cost': Precise["default"].stringAbs(feeAmount),
+                'cost': this.parseNumber(Precise["default"].stringAbs(feeAmount)),
                 'currency': this.safeCurrencyCode(feeCurrency),
             };
         }
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
+        const isTriggerOrder = (triggerPrice !== undefined);
+        let price = undefined;
+        if (!isTriggerOrder) {
+            price = this.safeNumber(order, 'price');
+        }
+        else if (isSpot && isTriggerOrder) {
+            // for spot trigger order, limit price is this
+            price = this.safeNumber(order, 'executePrice');
+        }
+        const avgPrice = this.omitZero(this.safeString2(order, 'priceAvg', 'fillPrice'));
+        const side = this.safeString(order, 'side');
+        const type = this.safeString(order, 'orderType');
+        const accBaseVolume = this.omitZero(this.safeString(order, 'accBaseVolume'));
+        const newSizeValue = this.omitZero(this.safeString(order, 'newSize'));
+        const isMarketOrder = (type === 'market');
+        const isBuy = (side === 'buy');
+        let totalAmount = undefined;
+        let filledAmount = undefined;
+        let cost = undefined;
+        if (isSpot) {
+            if (isMargin) {
+                filledAmount = this.omitZero(this.safeString(order, 'fillTotalAmount'));
+                totalAmount = this.omitZero(this.safeString(order, 'baseSize')); // for margin trading
+                cost = this.safeString(order, 'quoteSize');
+            }
+            else {
+                filledAmount = this.omitZero(this.safeString2(order, 'accBaseVolume', 'baseVolume'));
+                if (isMarketOrder) {
+                    if (isBuy) {
+                        totalAmount = accBaseVolume;
+                        cost = newSizeValue;
+                    }
+                    else {
+                        totalAmount = newSizeValue;
+                        // we don't have cost for market-sell order
+                    }
+                }
+                else {
+                    totalAmount = this.safeString(order, 'newSize');
+                    // we don't have cost for limit order
+                }
+            }
+        }
+        else {
+            // baseVolume should not be used for "amount" for contracts !
+            filledAmount = this.safeString(order, 'baseVolume');
+            totalAmount = this.safeString(order, 'size');
+            cost = this.safeString(order, 'fillNotionalUsd');
+        }
         return this.safeOrder({
             'info': order,
             'symbol': symbol,
@@ -1236,17 +1281,16 @@ class bitget extends bitget$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': this.safeInteger(order, 'uTime'),
-            'type': this.safeString(order, 'orderType'),
+            'type': type,
             'timeInForce': this.safeStringUpper(order, 'force'),
             'postOnly': undefined,
-            'side': this.safeString(order, 'side'),
-            'price': this.safeString(order, 'price'),
-            'stopPrice': triggerPrice,
+            'side': side,
+            'price': price,
             'triggerPrice': triggerPrice,
-            'amount': this.safeString2(order, 'size', 'baseSize'),
-            'cost': this.safeStringN(order, ['notional', 'notionalUsd', 'quoteSize']),
-            'average': this.omitZero(this.safeString2(order, 'priceAvg', 'fillPrice')),
-            'filled': this.safeString2(order, 'accBaseVolume', 'baseVolume'),
+            'amount': totalAmount,
+            'cost': cost,
+            'average': avgPrice,
+            'filled': filledAmount,
             'remaining': undefined,
             'status': this.parseWsOrderStatus(rawStatus),
             'fee': feeObject,
@@ -1275,8 +1319,6 @@ class bitget extends bitget$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        // only contracts stream provides the trade info consistently in between order updates
-        // the spot stream only provides on limit orders updates so we can't support it for spot
         await this.loadMarkets();
         let market = undefined;
         let messageHash = 'myTrades';
@@ -1285,17 +1327,12 @@ class bitget extends bitget$1 {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
-        if (type === 'spot') {
-            throw new errors.NotSupported(this.id + ' watchMyTrades is not supported for ' + type + ' markets.');
-        }
         let instType = undefined;
         [instType, params] = this.getInstType(market, params);
-        const subscriptionHash = 'order:trades';
+        const subscriptionHash = 'fill:' + instType;
         const args = {
             'instType': instType,
-            'channel': 'orders',
+            'channel': 'fill',
             'instId': 'default',
         };
         const trades = await this.watchPrivate(messageHash, subscriptionHash, args, params);
@@ -1306,34 +1343,74 @@ class bitget extends bitget$1 {
     }
     handleMyTrades(client, message) {
         //
-        // order and trade mixin (contract)
-        //
+        // spot
+        // {
+        //     "action": "snapshot",
+        //     "arg": {
+        //        "instType": "SPOT",
+        //        "channel": "fill",
+        //        "instId": "default"
+        //     },
+        //     "data": [
+        //        {
+        //           "orderId": "1169142457356959747",
+        //           "tradeId": "1169142457636958209",
+        //           "symbol": "LTCUSDT",
+        //           "orderType": "market",
+        //           "side": "buy",
+        //           "priceAvg": "81.069",
+        //           "size": "0.074",
+        //           "amount": "5.999106",
+        //           "tradeScope": "taker",
+        //           "feeDetail": [
+        //              {
+        //                 "feeCoin": "LTC",
+        //                 "deduction": "no",
+        //                 "totalDeductionFee": "0",
+        //                 "totalFee": "0.000074"
+        //              }
+        //           ],
+        //           "cTime": "1714471204194",
+        //           "uTime": "1714471204194"
+        //        }
+        //     ],
+        //     "ts": 1714471204270
+        // }
+        // swap
         //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
-        //             "feeCoin": "USDT",
-        //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
+        //         "action": "snapshot",
+        //         "arg": {
+        //            "instType": "USDT-FUTURES",
+        //            "channel": "fill",
+        //            "instId": "default"
+        //         },
+        //         "data": [
+        //            {
+        //               "orderId": "1169142761031114781",
+        //               "tradeId": "1169142761312637004",
+        //               "symbol": "LTCUSDT",
+        //               "orderType": "market",
+        //               "side": "buy",
+        //               "price": "80.87",
+        //               "baseVolume": "0.1",
+        //               "quoteVolume": "8.087",
+        //               "profit": "0",
+        //               "tradeSide": "open",
+        //               "posMode": "hedge_mode",
+        //               "tradeScope": "taker",
+        //               "feeDetail": [
+        //                  {
+        //                     "feeCoin": "USDT",
+        //                     "deduction": "no",
+        //                     "totalDeductionFee": "0",
+        //                     "totalFee": "-0.0048522"
+        //                  }
+        //               ],
+        //               "cTime": "1714471276596",
+        //               "uTime": "1714471276596"
+        //            }
+        //         ],
+        //         "ts": 1714471276629
         //     }
         //
         if (this.myTrades === undefined) {
@@ -1341,75 +1418,18 @@ class bitget extends bitget$1 {
             this.myTrades = new Cache.ArrayCache(limit);
         }
         const stored = this.myTrades;
-        const parsed = this.parseWsMyTrade(message);
-        stored.append(parsed);
-        const symbol = parsed['symbol'];
+        const data = this.safeList(message, 'data', []);
+        const length = data.length;
         const messageHash = 'myTrades';
-        client.resolve(stored, messageHash);
-        const symbolSpecificMessageHash = 'myTrades:' + symbol;
-        client.resolve(stored, symbolSpecificMessageHash);
-    }
-    parseWsMyTrade(trade, market = undefined) {
-        //
-        // order and trade mixin (contract)
-        //
-        //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
-        //             "feeCoin": "USDT",
-        //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
-        //     }
-        //
-        const marketId = this.safeString(trade, 'instId');
-        market = this.safeMarket(marketId, market, undefined, 'contract');
-        const timestamp = this.safeInteger2(trade, 'uTime', 'cTime');
-        const orderFee = this.safeValue(trade, 'feeDetail', []);
-        const fee = this.safeValue(orderFee, 0);
-        const feeAmount = this.safeString(fee, 'fee');
-        let feeObject = undefined;
-        if (feeAmount !== undefined) {
-            const feeCurrency = this.safeString(fee, 'feeCoin');
-            feeObject = {
-                'cost': Precise["default"].stringAbs(feeAmount),
-                'currency': this.safeCurrencyCode(feeCurrency),
-            };
+        for (let i = 0; i < length; i++) {
+            const trade = data[i];
+            const parsed = this.parseWsTrade(trade);
+            stored.append(parsed);
+            const symbol = parsed['symbol'];
+            const symbolSpecificMessageHash = 'myTrades:' + symbol;
+            client.resolve(stored, symbolSpecificMessageHash);
         }
-        return this.safeTrade({
-            'info': trade,
-            'id': undefined,
-            'order': this.safeString(trade, 'orderId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': this.safeString(trade, 'orderType'),
-            'side': this.safeString(trade, 'side'),
-            'takerOrMaker': undefined,
-            'price': this.safeString(trade, 'price'),
-            'amount': this.safeString(trade, 'size'),
-            'cost': this.safeString(trade, 'notionalUsd'),
-            'fee': feeObject,
-        }, market);
+        client.resolve(stored, messageHash);
     }
     async watchBalance(params = {}) {
         /**
@@ -1582,7 +1602,7 @@ class bitget extends bitget$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchPrivate(messageHash, subscriptionHash, args, params = {}) {
         await this.authenticate();
@@ -1692,10 +1712,16 @@ class bitget extends bitget$1 {
         const methods = {
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
+            'fill': this.handleMyTrades,
             'orders': this.handleOrder,
             'ordersAlgo': this.handleOrder,
+            'orders-algo': this.handleOrder,
+            'orders-crossed': this.handleOrder,
+            'orders-isolated': this.handleOrder,
             'account': this.handleBalance,
             'positions': this.handlePositions,
+            'account-isolated': this.handleBalance,
+            'account-crossed': this.handleBalance,
         };
         const arg = this.safeValue(message, 'arg', {});
         const topic = this.safeValue(arg, 'channel', '');

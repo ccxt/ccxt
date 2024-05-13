@@ -295,7 +295,7 @@ class zonda extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/ticker-1
          * retrieves data on all $markets for zonda
@@ -407,8 +407,8 @@ class zonda extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $response = $this->v1_01PrivateGetTradingOffer (array_merge($request, $params));
-        $items = $this->safe_value($response, 'items', array());
+        $response = $this->v1_01PrivateGetTradingOffer ($this->extend($request, $params));
+        $items = $this->safe_list($response, 'items', array());
         return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
     }
 
@@ -480,7 +480,7 @@ class zonda extends Exchange {
             $symbol = $this->symbol($symbol);
             $request['markets'] = $markets;
         }
-        $query = array( 'query' => $this->json(array_merge($request, $params)) );
+        $query = array( 'query' => $this->json($this->extend($request, $params)) );
         $response = $this->v1_01PrivateGetTradingHistoryTransactions ($query);
         //
         //     {
@@ -554,7 +554,7 @@ class zonda extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1_01PublicGetTradingOrderbookSymbol (array_merge($request, $params));
+        $response = $this->v1_01PublicGetTradingOrderbookSymbol ($this->extend($request, $params));
         //
         //     {
         //         "status":"Ok",
@@ -585,7 +585,7 @@ class zonda extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // version 1
         //
@@ -652,7 +652,7 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
          * @see https://docs.zondacrypto.exchange/reference/market-statistics
@@ -671,7 +671,7 @@ class zonda extends Exchange {
         $fetchTickerMethod = $this->safe_string_2($params, 'method', 'fetchTickerMethod', $defaultMethod);
         $response = null;
         if ($fetchTickerMethod === $method) {
-            $response = $this->v1_01PublicGetTradingTickerSymbol (array_merge($request, $params));
+            $response = $this->v1_01PublicGetTradingTickerSymbol ($this->extend($request, $params));
             //
             //    {
             //        "status" => "Ok",
@@ -701,7 +701,7 @@ class zonda extends Exchange {
             //    }
             //
         } elseif ($fetchTickerMethod === 'v1_01PublicGetTradingStatsSymbol') {
-            $response = $this->v1_01PublicGetTradingStatsSymbol (array_merge($request, $params));
+            $response = $this->v1_01PublicGetTradingStatsSymbol ($this->extend($request, $params));
             //
             //    {
             //        "status" => "Ok",
@@ -789,7 +789,7 @@ class zonda extends Exchange {
         } else {
             throw new BadRequest($this->id . ' fetchTickers $params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
         }
-        $items = $this->safe_value($response, 'items');
+        $items = $this->safe_dict($response, 'items');
         return $this->parse_tickers($items, $symbols);
     }
 
@@ -817,7 +817,7 @@ class zonda extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $request = array_merge($request, $params);
+        $request = $this->extend($request, $params);
         $response = $this->v1_01PrivateGetBalancesBITBAYHistory (array( 'query' => $this->json($request) ));
         $items = $response['items'];
         return $this->parse_ledger($items, null, $since, $limit);
@@ -1191,6 +1191,8 @@ class zonda extends Exchange {
         );
         if ($limit === null) {
             $limit = 100;
+        } else {
+            $limit = min ($limit, 11000); // supports up to 11k candles diapason
         }
         $duration = $this->parse_timeframe($timeframe);
         $timerange = $limit * $duration * 1000;
@@ -1201,7 +1203,7 @@ class zonda extends Exchange {
             $request['from'] = $since;
             $request['to'] = $this->sum($request['from'], $timerange);
         }
-        $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
+        $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution ($this->extend($request, $params));
         //
         //     {
         //         "status":"Ok",
@@ -1212,7 +1214,7 @@ class zonda extends Exchange {
         //         ]
         //     }
         //
-        $items = $this->safe_value($response, 'items', array());
+        $items = $this->safe_list($response, 'items', array());
         return $this->parse_ohlcvs($items, $market, $timeframe, $since, $limit);
     }
 
@@ -1316,12 +1318,12 @@ class zonda extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default - 10, max - 300
         }
-        $response = $this->v1_01PublicGetTradingTransactionsSymbol (array_merge($request, $params));
-        $items = $this->safe_value($response, 'items');
+        $response = $this->v1_01PublicGetTradingTransactionsSymbol ($this->extend($request, $params));
+        $items = $this->safe_list($response, 'items');
         return $this->parse_trades($items, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1363,9 +1365,9 @@ class zonda extends Exchange {
                 throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-$market orders');
             }
             $request['stopRate'] = $this->price_to_precision($symbol, $stopLossPrice);
-            $response = $this->v1_01PrivatePostTradingStopOfferSymbol (array_merge($request, $params));
+            $response = $this->v1_01PrivatePostTradingStopOfferSymbol ($this->extend($request, $params));
         } else {
-            $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
+            $response = $this->v1_01PrivatePostTradingOfferSymbol ($this->extend($request, $params));
         }
         //
         // unfilled (open order)
@@ -1422,7 +1424,7 @@ class zonda extends Exchange {
         //     }
         //
         $id = $this->safe_string_2($response, 'offerId', 'stopOfferId');
-        $completed = $this->safe_value($response, 'completed', false);
+        $completed = $this->safe_bool($response, 'completed', false);
         $status = $completed ? 'closed' : 'open';
         $transactions = $this->safe_value($response, 'transactions');
         return $this->safe_order(array(
@@ -1475,7 +1477,7 @@ class zonda extends Exchange {
         );
         // array( status => "Fail", errors => array( "NOT_RECOGNIZED_OFFER_TYPE" ) )  -- if required $params are missing
         // array( status => "Ok", errors => array() )
-        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge($request, $params));
+        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params));
     }
 
     public function is_fiat($currency) {
@@ -1484,7 +1486,7 @@ class zonda extends Exchange {
             'EUR' => true,
             'PLN' => true,
         );
-        return $this->safe_value($fiatCurrencies, $currency, false);
+        return $this->safe_bool($fiatCurrencies, $currency, false);
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
@@ -1523,7 +1525,7 @@ class zonda extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (array_merge($request, $params));
+        $response = $this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses ($this->extend($request, $params));
         //
         //     {
         //         "status" => "Ok",
@@ -1538,11 +1540,11 @@ class zonda extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $first = $this->safe_value($data, 0);
+        $first = $this->safe_dict($data, 0);
         return $this->parse_deposit_address($first, $currency);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
          * fetch deposit addresses for multiple currencies and chain types
@@ -1565,11 +1567,11 @@ class zonda extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/internal-$transfer
          * $transfer $currency internally between wallets on the same account
@@ -1588,7 +1590,7 @@ class zonda extends Exchange {
             'currency' => $code,
             'funds' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (array_merge($request, $params));
+        $response = $this->v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination ($this->extend($request, $params));
         //
         //     {
         //         "status" => "Ok",
@@ -1619,14 +1621,14 @@ class zonda extends Exchange {
         //
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+        $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $transfer['amount'] = $amount;
         }
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "status" => "Ok",
@@ -1674,7 +1676,7 @@ class zonda extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'Ok' => 'ok',
             'Fail' => 'failed',
@@ -1682,7 +1684,7 @@ class zonda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
          * make a withdrawal
@@ -1706,12 +1708,12 @@ class zonda extends Exchange {
         );
         if ($this->is_fiat($code)) {
             // $request['swift'] = $params['swift']; // Bank identifier, if required.
-            $response = $this->v1_01PrivatePostApiPaymentsWithdrawalsFiat (array_merge($request, $params));
+            $response = $this->v1_01PrivatePostApiPaymentsWithdrawalsFiat ($this->extend($request, $params));
         } else {
             if ($tag !== null) {
                 $request['tag'] = $tag;
             }
-            $response = $this->v1_01PrivatePostApiPaymentsWithdrawalsCrypto (array_merge($request, $params));
+            $response = $this->v1_01PrivatePostApiPaymentsWithdrawalsCrypto ($this->extend($request, $params));
         }
         //
         //     {
@@ -1721,7 +1723,7 @@ class zonda extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_transaction($data, $currency);
     }
 
@@ -1796,7 +1798,7 @@ class zonda extends Exchange {
             );
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'moment' => $this->nonce(),
             ), $params));

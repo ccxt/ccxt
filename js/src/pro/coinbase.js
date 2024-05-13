@@ -28,10 +28,12 @@ export default class coinbase extends coinbaseRest {
                 'watchMyTrades': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -49,7 +51,7 @@ export default class coinbase extends coinbaseRest {
             },
         });
     }
-    async subscribe(name, symbol = undefined, params = {}) {
+    async subscribe(name, isPrivate, symbol = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -61,7 +63,6 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} subscription to a websocket channel
          */
         await this.loadMarkets();
-        this.checkRequiredCredentials();
         let market = undefined;
         let messageHash = name;
         let productIds = [];
@@ -77,22 +78,84 @@ export default class coinbase extends coinbaseRest {
             productIds = [market['id']];
         }
         const url = this.urls['api']['ws'];
-        const timestamp = this.numberToString(this.seconds());
-        const auth = timestamp + name + productIds.join(',');
-        const subscribe = {
+        let subscribe = {
             'type': 'subscribe',
             'product_ids': productIds,
             'channel': name,
-            'api_key': this.apiKey,
-            'timestamp': timestamp,
-            'signature': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
+            // 'api_key': this.apiKey,
+            // 'timestamp': timestamp,
+            // 'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         };
+        if (isPrivate) {
+            subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
+        }
         return await this.watch(url, messageHash, subscribe, messageHash);
+    }
+    async subscribeMultiple(name, isPrivate, symbols = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description subscribes to a websocket channel
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+         * @param {string} name the name of the channel
+         * @param {string[]} [symbols] unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} subscription to a websocket channel
+         */
+        await this.loadMarkets();
+        const productIds = [];
+        const messageHashes = [];
+        symbols = this.marketSymbols(symbols, undefined, false);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const marketId = market['id'];
+            productIds.push(marketId);
+            messageHashes.push(name + '::' + marketId);
+        }
+        const url = this.urls['api']['ws'];
+        let subscribe = {
+            'type': 'subscribe',
+            'product_ids': productIds,
+            'channel': name,
+        };
+        if (isPrivate) {
+            subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
+        }
+        return await this.watchMultiple(url, messageHashes, subscribe, messageHashes);
+    }
+    createWSAuth(name, productIds) {
+        const subscribe = {};
+        const timestamp = this.numberToString(this.seconds());
+        this.checkRequiredCredentials();
+        const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
+        const auth = timestamp + name + productIds.join(',');
+        if (!isCloudAPiKey) {
+            subscribe['api_key'] = this.apiKey;
+            subscribe['timestamp'] = timestamp;
+            subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+        }
+        else {
+            if (this.apiKey.startsWith('-----BEGIN')) {
+                throw new ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
+            }
+            const currentToken = this.safeString(this.options, 'wsToken');
+            const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
+            const seconds = this.seconds();
+            if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
+                // we should generate new token
+                const token = this.createAuthToken(seconds);
+                this.options['wsToken'] = token;
+                this.options['wsTokenTimestamp'] = seconds;
+            }
+            subscribe['jwt'] = this.safeString(this.options, 'wsToken');
+        }
+        return subscribe;
     }
     async watchTicker(symbol, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchTicker
+         * @name coinbase#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
          * @param {string} [symbol] unified symbol of the market to fetch the ticker for
@@ -100,12 +163,12 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const name = 'ticker';
-        return await this.subscribe(name, symbol, params);
+        return await this.subscribe(name, false, symbol, params);
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchTickers
+         * @name coinbase#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
@@ -113,11 +176,14 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         if (symbols === undefined) {
-            throw new ArgumentsRequired(this.id + ' watchTickers requires a symbols argument');
+            symbols = this.symbols;
         }
         const name = 'ticker_batch';
-        const tickers = await this.subscribe(name, symbols, params);
-        return tickers;
+        const tickers = await this.subscribe(name, false, symbols, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.tickers;
     }
     handleTickers(client, message) {
         //
@@ -140,6 +206,11 @@ export default class coinbase extends coinbaseRest {
         //                        "low_52_w": "15460",
         //                        "high_52_w": "48240",
         //                        "price_percent_chg_24_h": "-4.15775596190603"
+        // new as of 2024-04-12
+        //                        "best_bid":"21835.29",
+        //                        "best_bid_quantity": "0.02000000",
+        //                        "best_ask":"23011.18",
+        //                        "best_ask_quantity": "0.01500000"
         //                    }
         //                ]
         //            }
@@ -165,6 +236,11 @@ export default class coinbase extends coinbaseRest {
         //                        "low_52_w": "0.04908",
         //                        "high_52_w": "0.1801",
         //                        "price_percent_chg_24_h": "0.50177456859626"
+        // new as of 2024-04-12
+        //                        "best_bid":"0.07989",
+        //                        "best_bid_quantity": "500.0",
+        //                        "best_ask":"0.08308",
+        //                        "best_ask_quantity": "300.0"
         //                    }
         //                ]
         //            }
@@ -186,6 +262,9 @@ export default class coinbase extends coinbaseRest {
                 const messageHash = channel + '::' + wsMarketId;
                 newTickers.push(result);
                 client.resolve(result, messageHash);
+                if (messageHash.endsWith('USD')) {
+                    client.resolve(result, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker_batch::');
@@ -197,6 +276,9 @@ export default class coinbase extends coinbaseRest {
             const tickers = this.filterByArray(newTickers, 'symbol', symbols);
             if (!this.isEmpty(tickers)) {
                 client.resolve(tickers, messageHash);
+                if (messageHash.endsWith('USD')) {
+                    client.resolve(tickers, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
         return message;
@@ -213,6 +295,11 @@ export default class coinbase extends coinbaseRest {
         //         "low_52_w": "0.04908",
         //         "high_52_w": "0.1801",
         //         "price_percent_chg_24_h": "0.50177456859626"
+        // new as of 2024-04-12
+        //         "best_bid":"0.07989",
+        //         "best_bid_quantity": "500.0",
+        //         "best_ask":"0.08308",
+        //         "best_ask_quantity": "300.0"
         //     }
         //
         const marketId = this.safeString(ticker, 'product_id');
@@ -225,10 +312,10 @@ export default class coinbase extends coinbaseRest {
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high_24_h'),
             'low': this.safeString(ticker, 'low_24_h'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': this.safeString(ticker, 'best_bid'),
+            'bidVolume': this.safeString(ticker, 'best_bid_quantity'),
+            'ask': this.safeString(ticker, 'best_ask'),
+            'askVolume': this.safeString(ticker, 'best_ask_quantity'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -244,7 +331,7 @@ export default class coinbase extends coinbaseRest {
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchTrades
+         * @name coinbase#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
          * @param {string} symbol unified symbol of the market to fetch trades for
@@ -256,16 +343,38 @@ export default class coinbase extends coinbaseRest {
         await this.loadMarkets();
         symbol = this.symbol(symbol);
         const name = 'market_trades';
-        const trades = await this.subscribe(name, symbol, params);
+        const trades = await this.subscribe(name, false, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets();
+        const name = 'market_trades';
+        const trades = await this.subscribeMultiple(name, false, symbols, params);
+        if (this.newUpdates) {
+            const first = this.safeDict(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchOrders
+         * @name coinbase#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
          * @param {string} [symbol] unified market symbol of the market orders were made in
@@ -276,7 +385,7 @@ export default class coinbase extends coinbaseRest {
          */
         await this.loadMarkets();
         const name = 'user';
-        const orders = await this.subscribe(name, symbol, params);
+        const orders = await this.subscribe(name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
@@ -285,7 +394,7 @@ export default class coinbase extends coinbaseRest {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#watchOrderBook
+         * @name coinbase#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -297,7 +406,23 @@ export default class coinbase extends coinbaseRest {
         const name = 'level2';
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const orderbook = await this.subscribe(name, symbol, params);
+        const orderbook = await this.subscribe(name, false, symbol, params);
+        return orderbook.limit();
+    }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        const name = 'level2';
+        const orderbook = await this.subscribeMultiple(name, false, symbols, params);
         return orderbook.limit();
     }
     handleTrade(client, message) {
@@ -346,6 +471,9 @@ export default class coinbase extends coinbaseRest {
             }
         }
         client.resolve(tradesArray, messageHash);
+        if (marketId.endsWith('USD')) {
+            client.resolve(tradesArray, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+        }
         return message;
     }
     handleOrder(client, message) {
@@ -401,6 +529,9 @@ export default class coinbase extends coinbaseRest {
             const marketId = marketIds[i];
             const messageHash = 'user::' + marketId;
             client.resolve(this.orders, messageHash);
+            if (messageHash.endsWith('USD')) {
+                client.resolve(this.orders, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+            }
         }
         client.resolve(this.orders, 'user');
         return message;
@@ -461,7 +592,8 @@ export default class coinbase extends coinbaseRest {
             const side = this.safeString(this.options['sides'], sideId);
             const price = this.safeNumber(trade, 'price_level');
             const amount = this.safeNumber(trade, 'new_quantity');
-            orderbook[side].store(price, amount);
+            const orderbookSide = orderbook[side];
+            orderbookSide.store(price, amount);
         }
     }
     handleOrderBook(client, message) {
@@ -508,10 +640,13 @@ export default class coinbase extends coinbaseRest {
                 this.orderbooks[symbol] = this.orderBook({}, limit);
                 const orderbook = this.orderbooks[symbol];
                 this.handleOrderBookHelper(orderbook, updates);
-                orderbook['timestamp'] = undefined;
-                orderbook['datetime'] = undefined;
+                orderbook['timestamp'] = this.parse8601(datetime);
+                orderbook['datetime'] = datetime;
                 orderbook['symbol'] = symbol;
                 client.resolve(orderbook, messageHash);
+                if (messageHash.endsWith('USD')) {
+                    client.resolve(orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
             else if (type === 'update') {
                 const orderbook = this.orderbooks[symbol];
@@ -520,9 +655,11 @@ export default class coinbase extends coinbaseRest {
                 orderbook['timestamp'] = this.parse8601(datetime);
                 orderbook['symbol'] = symbol;
                 client.resolve(orderbook, messageHash);
+                if (messageHash.endsWith('USD')) {
+                    client.resolve(orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
+                }
             }
         }
-        return message;
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -554,6 +691,6 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError(errorMessage);
         }
         const method = this.safeValue(methods, channel);
-        return method.call(this, client, message);
+        method.call(this, client, message);
     }
 }

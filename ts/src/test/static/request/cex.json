@@ -16,6 +16,13 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"E0FF3BC8F3993A914F01E91E51DAB61B5DFEA42694B2C66D35FA0312BF00DB17\",\"nonce\":\"1699458293441\"}"
+            },
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://cex.io/api/open_orders/",
+                "input": [],
+                "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"E0FF3BC8F3993A914F01E91E51DAB61B5DFEA42694B2C66D35FA0312BF00DB17\",\"nonce\":\"1699458293441\"}"
             }
         ],
         "fetchClosedOrders": [
@@ -70,10 +77,10 @@
                 "method": "createOrder",
                 "url": "https://cex.io/api/place_order/ADA/USDT/",
                 "input": [
-                  "ADA/USDT",
-                  "market",
-                  "sell",
-                  25
+                    "ADA/USDT",
+                    "market",
+                    "sell",
+                    25
                 ],
                 "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"2CB04E933B6879A267FFA72AE044F8844F9DCDBB4727AE8B1CD63202A3B4182E\",\"nonce\":\"1701456773083\",\"type\":\"sell\",\"amount\":\"25\",\"order_type\":\"market\"}"
             },
@@ -82,11 +89,11 @@
                 "method": "createOrder",
                 "url": "https://cex.io/api/place_order/ADA/USDT/",
                 "input": [
-                  "ADA/USDT",
-                  "limit",
-                  "buy",
-                  100,
-                  0.1
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.1
                 ],
                 "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"07AEF74E40D9F94DC04BF2BDC5E224CF75D3E482A7578E92FF31C992744307E2\",\"nonce\":\"1701456826846\",\"type\":\"buy\",\"amount\":\"100\",\"price\":\"0.1\"}"
             }
@@ -97,7 +104,7 @@
                 "method": "cancelAllOrders",
                 "url": "https://cex.io/api/cancel_orders/ADA/USDT/",
                 "input": [
-                  "ADA/USDT"
+                    "ADA/USDT"
                 ],
                 "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"34129B378E0BC9314449554ACFF58EB594D0BFF8C6C1C85B5FFD0C6486BEF258\",\"nonce\":\"1701456852632\"}"
             }
@@ -108,10 +115,40 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://cex.io/api/place_order/LTC/USDT/",
                 "input": [
-                  "LTC/USDT",
-                  10
+                    "LTC/USDT",
+                    10
                 ],
                 "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"B451A19ED09702E88B96F77CA230264F5FC4DBA812F3922F1F3C08414D00C0AC\",\"nonce\":\"1702114325194\",\"type\":\"buy\",\"amount\":\"10\",\"order_type\":\"market\"}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://cex.io/api/trade_history/BTC/USDT/",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://cex.io/api/order_book/BTC/USDT/",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://cex.io/api/ticker/BTC/USDT/",
+                "input": [
+                    "BTC/USDT"
+                ]
             }
         ]
     }

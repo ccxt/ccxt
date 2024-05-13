@@ -1,6 +1,5 @@
 import Exchange from './abstract/wavesexchange.js';
-import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class wavesexchange
  * @augments Exchange
@@ -16,7 +15,7 @@ export default class wavesexchange extends Exchange {
         cost: number;
     }>;
     getQuotes(): Promise<any>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: Int): any[];
     checkRequiredKeys(): void;
@@ -27,7 +26,7 @@ export default class wavesexchange extends Exchange {
         headers: any;
     };
     signIn(params?: {}): Promise<any>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -46,14 +45,14 @@ export default class wavesexchange extends Exchange {
     getAssetId(currencyId: any): any;
     customPriceToPrecision(symbol: any, price: any): number;
     customAmountToPrecision(symbol: any, amount: any): number;
-    currencyToPrecision(code: any, amount: any, networkCode?: any): number;
+    customCurrencyToPrecision(code: any, amount: any, networkCode?: any): number;
     fromPrecision(amount: any, scale: any): string;
-    toPrecision(amount: any, scale: any): Precise;
+    toPrecision(amount: any, scale: any): string;
     currencyFromPrecision(currency: any, amount: any): string;
     priceFromPrecision(symbol: any, price: any): string;
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
         info: any;
         id: string;
@@ -89,6 +88,6 @@ export default class wavesexchange extends Exchange {
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): any;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
 }

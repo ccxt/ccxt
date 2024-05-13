@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.huobijp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -21,7 +22,6 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -419,7 +419,7 @@ class huobijp(Exchange, ImplicitAPI):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobijp
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -530,7 +530,7 @@ class huobijp(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -837,7 +837,7 @@ class huobijp(Exchange, ImplicitAPI):
         response = self.privateGetOrderMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit=1000, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -910,7 +910,7 @@ class huobijp(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit=1000, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = 1000, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -927,7 +927,7 @@ class huobijp(Exchange, ImplicitAPI):
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, 2000)
         response = self.marketGetHistoryKline(self.extend(request, params))
         #
         #     {
@@ -941,10 +941,10 @@ class huobijp(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -954,7 +954,7 @@ class huobijp(Exchange, ImplicitAPI):
         response = self.privateGetAccountAccounts(params)
         return response['data']
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1013,7 +1013,7 @@ class huobijp(Exchange, ImplicitAPI):
             depositEnabled = self.safe_value(currency, 'deposit-enabled')
             withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
             countryDisabled = self.safe_value(currency, 'country-disabled')
-            visible = self.safe_value(currency, 'visible', False)
+            visible = self.safe_bool(currency, 'visible', False)
             state = self.safe_string(currency, 'state')
             active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
             name = self.safe_string(currency, 'display-name')
@@ -1125,7 +1125,7 @@ class huobijp(Exchange, ImplicitAPI):
             'id': id,
         }
         response = self.privateGetOrderOrdersId(self.extend(request, params))
-        order = self.safe_value(response, 'data')
+        order = self.safe_dict(response, 'data')
         return self.parse_order(order)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1210,7 +1210,7 @@ class huobijp(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def parse_order_status(self, status):
@@ -1305,7 +1305,7 @@ class huobijp(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1320,7 +1320,7 @@ class huobijp(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1377,13 +1377,12 @@ class huobijp(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         method = self.options['createOrderMethod']
         response = getattr(self, method)(self.extend(request, params))
-        timestamp = self.milliseconds()
         id = self.safe_string(response, 'data')
         return self.safe_order({
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': None,
             'symbol': symbol,
@@ -1697,7 +1696,7 @@ class huobijp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -68,8 +68,11 @@ export default class coinone extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -79,7 +82,7 @@ export default class coinone extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'ws': false,
+                'ws': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -515,7 +518,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'tickers', []);
+        const data = this.safeList(response, 'tickers', []);
         return this.parseTickers(data, symbols);
     }
     async fetchTicker(symbol, params = {}) {
@@ -569,7 +572,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'tickers', []);
-        const ticker = this.safeValue(data, 0, {});
+        const ticker = this.safeDict(data, 0, {});
         return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
@@ -712,7 +715,7 @@ export default class coinone extends Exchange {
             'target_currency': market['base'],
         };
         if (limit !== undefined) {
-            request['size'] = limit; // only support 10, 50, 100, 150, 200
+            request['size'] = Math.min(limit, 200);
         }
         const response = await this.v2PublicGetTradesQuoteCurrencyTargetCurrency(this.extend(request, params));
         //
@@ -733,7 +736,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'transactions', []);
+        const data = this.safeList(response, 'transactions', []);
         return this.parseTrades(data, market, since, limit);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -979,7 +982,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const limitOrders = this.safeValue(response, 'limitOrders', []);
+        const limitOrders = this.safeList(response, 'limitOrders', []);
         return this.parseOrders(limitOrders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1022,7 +1025,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const completeOrders = this.safeValue(response, 'completeOrders', []);
+        const completeOrders = this.safeList(response, 'completeOrders', []);
         return this.parseTrades(completeOrders, market, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {

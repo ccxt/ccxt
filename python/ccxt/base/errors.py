@@ -10,9 +10,12 @@ error_hierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
-                'NoChange': {},
-                'OperationRejected': {},
+            },
+            'OperationRejected': {
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
+                'MarketClosed': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -32,12 +35,12 @@ error_hierarchy = {
             },
             'NotSupported': {},
             'ProxyError': {},
+            'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
             'NetworkError': {
-                'DDoSProtection': {
-                    'RateLimitExceeded': {},
-                },
+                'DDoSProtection': {},
+                'RateLimitExceeded': {},
                 'ExchangeNotAvailable': {
                     'OnMaintenance': {},
                 },
@@ -85,15 +88,19 @@ class BadSymbol(BadRequest):
     pass
 
 
-class MarginModeAlreadySet(BadRequest):
+class OperationRejected(ExchangeError):
     pass
 
 
-class NoChange(BadRequest):
+class NoChange(OperationRejected):
     pass
 
 
-class OperationRejected(BadRequest):
+class MarginModeAlreadySet(NoChange):
+    pass
+
+
+class MarketClosed(OperationRejected):
     pass
 
 
@@ -157,6 +164,10 @@ class ProxyError(ExchangeError):
     pass
 
 
+class ExchangeClosedByUser(ExchangeError):
+    pass
+
+
 class OperationFailed(BaseError):
     pass
 
@@ -169,7 +180,7 @@ class DDoSProtection(NetworkError):
     pass
 
 
-class RateLimitExceeded(DDoSProtection):
+class RateLimitExceeded(NetworkError):
     pass
 
 
@@ -200,9 +211,10 @@ __all__ = [
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
-    'MarginModeAlreadySet',
-    'NoChange',
     'OperationRejected',
+    'NoChange',
+    'MarginModeAlreadySet',
+    'MarketClosed',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',
@@ -218,6 +230,7 @@ __all__ = [
     'ContractUnavailable',
     'NotSupported',
     'ProxyError',
+    'ExchangeClosedByUser',
     'OperationFailed',
     'NetworkError',
     'DDoSProtection',

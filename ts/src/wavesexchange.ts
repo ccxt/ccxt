@@ -5,7 +5,7 @@ import Exchange from './abstract/wavesexchange.js';
 import { AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -68,8 +68,11 @@ export default class wavesexchange extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -78,6 +81,7 @@ export default class wavesexchange extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -313,7 +317,7 @@ export default class wavesexchange extends Exchange {
                 },
             },
             'currencies': {
-                'WX': this.safeCurrencyStructure ({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseNumber ('8') }),
+                'WX': this.safeCurrencyStructure ({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseToInt ('8') }),
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {
@@ -400,7 +404,7 @@ export default class wavesexchange extends Exchange {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        const isDiscountFee = this.safeValue (params, 'isDiscountFee', false);
+        const isDiscountFee = this.safeBool (params, 'isDiscountFee', false);
         let mode = undefined;
         if (isDiscountFee) {
             mode = this.safeValue (response, 'discount');
@@ -491,7 +495,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name wavesexchange#fetchMarkets
@@ -777,7 +781,7 @@ export default class wavesexchange extends Exchange {
         return undefined;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //       {
         //           "symbol": "WAVES/BTC",
@@ -892,7 +896,7 @@ export default class wavesexchange extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const ticker = this.safeValue (data, 0, {});
-        const dataTicker = this.safeValue (ticker, 'data', {});
+        const dataTicker = this.safeDict (ticker, 'data', {});
         return this.parseTicker (dataTicker, market);
     }
 
@@ -1245,7 +1249,7 @@ export default class wavesexchange extends Exchange {
         return this.parseToInt (parseFloat (amountPrecision));
     }
 
-    currencyToPrecision (code, amount, networkCode = undefined) {
+    customCurrencyToPrecision (code, amount, networkCode = undefined) {
         const amountPrecision = this.numberToString (this.toPrecision (amount, this.currencies[code]['precision']));
         return this.parseToInt (parseFloat (amountPrecision));
     }
@@ -1266,7 +1270,8 @@ export default class wavesexchange extends Exchange {
         // precise.decimals should be integer
         precise.decimals = this.parseToInt (Precise.stringSub (this.numberToString (precise.decimals), this.numberToString (scale)));
         precise.reduce ();
-        return precise;
+        const stringValue = precise.toString ();
+        return stringValue;
     }
 
     currencyFromPrecision (currency, amount) {
@@ -1298,7 +1303,7 @@ export default class wavesexchange extends Exchange {
         return rates;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#createOrder
@@ -1392,7 +1397,7 @@ export default class wavesexchange extends Exchange {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         };
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const chainId = (sandboxMode) ? 84 : 87;
         const body = {
             'senderPublicKey': this.apiKey,
@@ -1473,11 +1478,11 @@ export default class wavesexchange extends Exchange {
         //
         if (isMarketOrder) {
             const response = await this.matcherPostMatcherOrderbookMarket (body);
-            const value = this.safeValue (response, 'message');
+            const value = this.safeDict (response, 'message');
             return this.parseOrder (value, market);
         } else {
             const response = await this.matcherPostMatcherOrderbook (body);
-            const value = this.safeValue (response, 'message');
+            const value = this.safeDict (response, 'message');
             return this.parseOrder (value, market);
         }
     }
@@ -2114,7 +2119,7 @@ export default class wavesexchange extends Exchange {
             'priceAsset': market['quoteId'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 100);
         }
         if (since !== undefined) {
             request['timeStart'] = since;
@@ -2435,7 +2440,7 @@ export default class wavesexchange extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'error');
-        const success = this.safeValue (response, 'success', true);
+        const success = this.safeBool (response, 'success', true);
         const Exception = this.safeValue (this.exceptions, errorCode);
         if (Exception !== undefined) {
             const messageInner = this.safeString (response, 'message');
@@ -2451,7 +2456,7 @@ export default class wavesexchange extends Exchange {
         return undefined;
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#withdraw
@@ -2541,7 +2546,7 @@ export default class wavesexchange extends Exchange {
         const feeAssetId = 'WAVES';
         const type = 4;  // transfer
         const version = 2;
-        const amountInteger = this.currencyToPrecision (code, amount);
+        const amountInteger = this.customCurrencyToPrecision (code, amount);
         const currency = this.currency (code);
         const timestamp = this.milliseconds ();
         const byteArray = [

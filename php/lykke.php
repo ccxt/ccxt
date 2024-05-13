@@ -61,8 +61,13 @@ class lykke extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -179,9 +184,10 @@ class lykke extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
+         * @see https://lykkecity.github.io/Trading-API/#get-all-assets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
@@ -256,9 +262,10 @@ class lykke extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for lykke
+         * @see https://lykkecity.github.io/Trading-API/#get-asset-by-$id
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
@@ -346,7 +353,7 @@ class lykke extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -418,6 +425,8 @@ class lykke extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://lykkecity.github.io/Trading-API/#get-current-prices
+         * @see https://lykkecity.github.io/Trading-API/#24hr-$ticker-price-change-statistics
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -429,7 +438,12 @@ class lykke extends Exchange {
         );
         // publicGetTickers or publicGetPrices
         $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'publicGetPrices') {
+            $response = $this->publicGetPrices ($this->extend($request, $params));
+        } else {
+            $response = $this->publicGetTickers ($this->extend($request, $params));
+        }
         $ticker = $this->safe_value($response, 'payload', array());
         //
         // publicGetTickers
@@ -470,6 +484,7 @@ class lykke extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -500,6 +515,7 @@ class lykke extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://lykkecity.github.io/Trading-API/#asset-pair-order-book-ticker
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -513,7 +529,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit; // default 0
         }
-        $response = $this->publicGetOrderbooks (array_merge($request, $params));
+        $response = $this->publicGetOrderbooks ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload', array());
         //
         //     {
@@ -604,6 +620,7 @@ class lykke extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://lykkecity.github.io/Trading-API/#get-public-trades
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -619,7 +636,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['take'] = $limit;
         }
-        $response = $this->publicGetTradesPublicAssetPairId (array_merge($request, $params));
+        $response = $this->publicGetTradesPublicAssetPairId ($this->extend($request, $params));
         $result = $this->safe_value($response, 'payload', array());
         //
         //     {
@@ -668,6 +685,7 @@ class lykke extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://lykkecity.github.io/Trading-API/#get-the-current-balance
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -761,9 +779,11 @@ class lykke extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://lykkecity.github.io/Trading-API/#place-a-limit-order
+         * @see https://lykkecity.github.io/Trading-API/#place-a-$market-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -782,8 +802,12 @@ class lykke extends Exchange {
         if ($type === 'limit') {
             $query['price'] = floatval($this->price_to_precision($market['symbol'], $price));
         }
-        $method = 'privatePostOrders' . $this->capitalize($type);
-        $result = $this->$method (array_merge($query, $params));
+        $result = null;
+        if ($this->capitalize($type) === 'Market') {
+            $result = $this->privatePostOrdersMarket ($this->extend($query, $params));
+        } else {
+            $result = $this->privatePostOrdersLimit ($this->extend($query, $params));
+        }
         //
         // $market
         //
@@ -834,6 +858,7 @@ class lykke extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://lykkecity.github.io/Trading-API/#cancel-orders-by-$id
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -848,12 +873,13 @@ class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return $this->privateDeleteOrdersOrderId (array_merge($request, $params));
+        return $this->privateDeleteOrdersOrderId ($this->extend($request, $params));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         * @see https://lykkecity.github.io/Trading-API/#mass-cancel-orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -873,12 +899,13 @@ class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return $this->privateDeleteOrders (array_merge($request, $params));
+        return $this->privateDeleteOrders ($this->extend($request, $params));
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @see https://lykkecity.github.io/Trading-API/#get-order-by-$id
          * @param {string} $symbol not used by lykke fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -887,7 +914,7 @@ class lykke extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
+        $response = $this->privateGetOrdersOrderId ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload');
         //
         //     {
@@ -914,6 +941,7 @@ class lykke extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         * @see https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -932,7 +960,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['take'] = $limit;
         }
-        $response = $this->privateGetOrdersActive (array_merge($request, $params));
+        $response = $this->privateGetOrdersActive ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload');
         //
         //     {
@@ -961,6 +989,7 @@ class lykke extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         * @see https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -979,7 +1008,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['take'] = $limit;
         }
-        $response = $this->privateGetOrdersClosed (array_merge($request, $params));
+        $response = $this->privateGetOrdersClosed ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload');
         //
         //     {
@@ -1008,6 +1037,7 @@ class lykke extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://lykkecity.github.io/Trading-API/#get-trade-history
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1032,7 +1062,7 @@ class lykke extends Exchange {
         if ($since !== null) {
             $request['from'] = $since;
         }
-        $response = $this->privateGetTrades (array_merge($request, $params));
+        $response = $this->privateGetTrades ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload');
         //
         //     {
@@ -1058,7 +1088,7 @@ class lykke extends Exchange {
         return $this->parse_trades($payload, $market, $since, $limit);
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_string($bidask, $priceKey);
         $amount = Precise::string_abs($this->safe_string($bidask, $amountKey));
         return array( $this->parse_number($price), $this->parse_number($amount) );
@@ -1067,6 +1097,7 @@ class lykke extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         * @see https://lykkecity.github.io/Trading-API/#get-deposit-$address-for-a-given-asset
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1076,7 +1107,7 @@ class lykke extends Exchange {
         $request = array(
             'assetId' => $this->safe_string($currency, 'id'),
         );
-        $response = $this->privateGetOperationsDepositsAddressesAssetId (array_merge($request, $params));
+        $response = $this->privateGetOperationsDepositsAddressesAssetId ($this->extend($request, $params));
         //
         //     {
         //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
@@ -1163,6 +1194,7 @@ class lykke extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
+         * @see https://lykkecity.github.io/Trading-API/#get-the-history-of-withdrawals-and-deposits
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -1177,7 +1209,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['take'] = $limit;
         }
-        $response = $this->privateGetOperations (array_merge($request, $params));
+        $response = $this->privateGetOperations ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload', array());
         //
         //     {
@@ -1201,9 +1233,10 @@ class lykke extends Exchange {
         return $this->parse_transactions($payload, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
+         * @see https://lykkecity.github.io/Trading-API/#withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -1223,7 +1256,7 @@ class lykke extends Exchange {
         if ($tag !== null) {
             $request['destinationAddressExtension'] = $tag;
         }
-        $response = $this->privatePostOperationsWithdrawals (array_merge($request, $params));
+        $response = $this->privatePostOperationsWithdrawals ($this->extend($request, $params));
         //
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
         //

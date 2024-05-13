@@ -91,7 +91,7 @@ class idex extends \ccxt\async\idex {
                 'markets' => [ $market['id'] ],
             );
             $messageHash = $name . ':' . $market['id'];
-            return Async\await($this->subscribe(array_merge($subscribeObject, $params), $messageHash));
+            return Async\await($this->subscribe($this->extend($subscribeObject, $params), $messageHash));
         }) ();
     }
 
@@ -343,7 +343,7 @@ class idex extends \ccxt\async\idex {
                         $symbol = $this->safe_symbol($marketId);
                         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
                             $orderbook = $this->counted_order_book(array());
-                            $orderbook->cache = array();
+                            // $orderbook->cache = array(); // cache is never used?
                             $this->orderbooks[$symbol] = $orderbook;
                         }
                         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $symbol);
@@ -520,7 +520,7 @@ class idex extends \ccxt\async\idex {
                     'wallet' => $this->walletAddress,
                     'nonce' => $this->uuidv1(),
                 );
-                $response = Async\await($this->privateGetWsToken (array_merge($request, $params)));
+                $response = Async\await($this->privateGetWsToken ($this->extend($request, $params)));
                 $this->options['lastAuthenticatedTime'] = $time;
                 $this->options['token'] = $this->safe_string($response, 'token');
             }

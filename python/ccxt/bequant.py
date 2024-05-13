@@ -28,6 +28,6 @@ class bequant(hitbtc, ImplicitAPI):
                 'fees': [
                     'https://bequant.io/fees-and-limits',
                 ],
-                'referral': 'https://bequant.io',
+                'referral': 'https://bequant.io/referral/dd104e3bee7634ec',
             },
         })

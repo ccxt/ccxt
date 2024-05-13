@@ -238,6 +238,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function private_get_margin_repay($params = array()) {
         return $this->request('margin/repay', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function private_get_margin_interest($params = array()) {
+        return $this->request('margin/interest', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_project_list($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -249,6 +252,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function private_get_purchase_orders($params = array()) {
         return $this->request('purchase/orders', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_broker_api_rebase_download($params = array()) {
+        return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_post_sub_user_created($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -451,6 +457,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futurespublic_get_funding_rate_symbol_current($params = array()) {
         return $this->request('funding-rate/{symbol}/current', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function futurespublic_get_contract_funding_rates($params = array()) {
+        return $this->request('contract/funding-rates', 'futuresPublic', 'GET', $params, null, null, array("cost" => 7.5));
+    }
     public function futurespublic_get_timestamp($params = array()) {
         return $this->request('timestamp', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
     }
@@ -505,6 +514,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresprivate_get_positions($params = array()) {
         return $this->request('positions', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function futuresprivate_get_margin_maxwithdrawmargin($params = array()) {
+        return $this->request('margin/maxWithdrawMargin', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function futuresprivate_get_contracts_risk_limit_symbol($params = array()) {
         return $this->request('contracts/risk-limit/{symbol}', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -523,8 +535,14 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresprivate_post_orders_test($params = array()) {
         return $this->request('orders/test', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function futuresprivate_post_orders_multi($params = array()) {
+        return $this->request('orders/multi', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 4.5));
+    }
     public function futuresprivate_post_position_margin_auto_deposit_status($params = array()) {
         return $this->request('position/margin/auto-deposit-status', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function futuresprivate_post_margin_withdrawmargin($params = array()) {
+        return $this->request('margin/withdrawMargin', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 15));
     }
     public function futuresprivate_post_position_margin_deposit_margin($params = array()) {
         return $this->request('position/margin/deposit-margin', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 6));
@@ -549,6 +567,33 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function webexchange_get_currency_currency_chain_info($params = array()) {
         return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_get_broker_nd_info($params = array()) {
+        return $this->request('broker/nd/info', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function broker_get_broker_nd_account($params = array()) {
+        return $this->request('broker/nd/account', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function broker_get_broker_nd_account_apikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function broker_get_broker_nd_rebase_download($params = array()) {
+        return $this->request('broker/nd/rebase/download', 'broker', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function broker_post_broker_nd_transfer($params = array()) {
+        return $this->request('broker/nd/transfer', 'broker', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function broker_post_broker_nd_account($params = array()) {
+        return $this->request('broker/nd/account', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function broker_post_broker_nd_account_apikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function broker_post_broker_nd_account_update_apikey($params = array()) {
+        return $this->request('broker/nd/account/update-apikey', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function broker_delete_broker_nd_account_apikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'DELETE', $params, null, null, array("cost" => 3));
     }
     public function publicGetCurrencies($params = array()) {
         return $this->request('currencies', 'public', 'GET', $params, null, null, array("cost" => 4.5));
@@ -781,6 +826,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function privateGetMarginRepay($params = array()) {
         return $this->request('margin/repay', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function privateGetMarginInterest($params = array()) {
+        return $this->request('margin/interest', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateGetProjectList($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -792,6 +840,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function privateGetPurchaseOrders($params = array()) {
         return $this->request('purchase/orders', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetBrokerApiRebaseDownload($params = array()) {
+        return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privatePostSubUserCreated($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -994,6 +1045,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresPublicGetFundingRateSymbolCurrent($params = array()) {
         return $this->request('funding-rate/{symbol}/current', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function futuresPublicGetContractFundingRates($params = array()) {
+        return $this->request('contract/funding-rates', 'futuresPublic', 'GET', $params, null, null, array("cost" => 7.5));
+    }
     public function futuresPublicGetTimestamp($params = array()) {
         return $this->request('timestamp', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
     }
@@ -1048,6 +1102,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresPrivateGetPositions($params = array()) {
         return $this->request('positions', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function futuresPrivateGetMarginMaxWithdrawMargin($params = array()) {
+        return $this->request('margin/maxWithdrawMargin', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function futuresPrivateGetContractsRiskLimitSymbol($params = array()) {
         return $this->request('contracts/risk-limit/{symbol}', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -1066,8 +1123,14 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresPrivatePostOrdersTest($params = array()) {
         return $this->request('orders/test', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function futuresPrivatePostOrdersMulti($params = array()) {
+        return $this->request('orders/multi', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 4.5));
+    }
     public function futuresPrivatePostPositionMarginAutoDepositStatus($params = array()) {
         return $this->request('position/margin/auto-deposit-status', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function futuresPrivatePostMarginWithdrawMargin($params = array()) {
+        return $this->request('margin/withdrawMargin', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 15));
     }
     public function futuresPrivatePostPositionMarginDepositMargin($params = array()) {
         return $this->request('position/margin/deposit-margin', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 6));
@@ -1092,5 +1155,32 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function webExchangeGetCurrencyCurrencyChainInfo($params = array()) {
         return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerGetBrokerNdInfo($params = array()) {
+        return $this->request('broker/nd/info', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function brokerGetBrokerNdAccount($params = array()) {
+        return $this->request('broker/nd/account', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function brokerGetBrokerNdAccountApikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function brokerGetBrokerNdRebaseDownload($params = array()) {
+        return $this->request('broker/nd/rebase/download', 'broker', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function brokerPostBrokerNdTransfer($params = array()) {
+        return $this->request('broker/nd/transfer', 'broker', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPostBrokerNdAccount($params = array()) {
+        return $this->request('broker/nd/account', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function brokerPostBrokerNdAccountApikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function brokerPostBrokerNdAccountUpdateApikey($params = array()) {
+        return $this->request('broker/nd/account/update-apikey', 'broker', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function brokerDeleteBrokerNdAccountApikey($params = array()) {
+        return $this->request('broker/nd/account/apikey', 'broker', 'DELETE', $params, null, null, array("cost" => 3));
     }
 }

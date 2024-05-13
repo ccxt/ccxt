@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import mexcRest from '../mexc.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -247,7 +247,7 @@ export default class mexc extends mexcRest {
         //        "d": {
         //            "e": "spot@public.kline.v3.api",
         //            "k": {
-        //                "t": 1678642260,
+        //                "t": 1678642261,
         //                "o": 20626.94,
         //                "c": 20599.69,
         //                "h": 20626.94,
@@ -453,26 +453,27 @@ export default class mexc extends mexcRest {
         const symbol = this.safeSymbol(marketId);
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue(client.subscriptions, messageHash);
+        const limit = this.safeInteger(subscription, 'limit');
         if (subscription === true) {
             // we set client.subscriptions[messageHash] to 1
             // once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook({});
         }
-        const storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push(data);
             return;
         }
         try {
             this.handleDelta(storedOrderBook, data);
-            const timestamp = this.safeInteger(message, 't');
+            const timestamp = this.safeInteger2(message, 't', 'ts');
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
         }
@@ -502,10 +503,12 @@ export default class mexc extends mexcRest {
         }
     }
     handleDelta(orderbook, delta) {
-        const nonce = this.safeInteger(orderbook, 'nonce');
+        const existingNonce = this.safeInteger(orderbook, 'nonce');
         const deltaNonce = this.safeInteger2(delta, 'r', 'version');
-        if (deltaNonce !== nonce && deltaNonce !== nonce + 1) {
-            throw new ExchangeError(this.id + ' handleOrderBook received an out-of-order nonce');
+        if (deltaNonce < existingNonce) {
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         orderbook['nonce'] = deltaNonce;
         const asks = this.safeValue(delta, 'asks', []);
@@ -704,6 +707,21 @@ export default class mexc extends mexcRest {
         //        "v": "5"
         //    }
         //
+        //
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
+        //   }
         let timestamp = this.safeInteger(trade, 'T');
         let tradeId = this.safeString(trade, 't');
         if (timestamp === undefined) {
@@ -715,6 +733,8 @@ export default class mexc extends mexcRest {
         const rawSide = this.safeString(trade, 'S');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger(trade, 'm');
+        const feeAmount = this.safeNumber(trade, 'n');
+        const feeCurrencyId = this.safeString(trade, 'N');
         return this.safeTrade({
             'info': trade,
             'id': tradeId,
@@ -728,7 +748,10 @@ export default class mexc extends mexcRest {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': undefined,
+            'fee': {
+                'cost': feeAmount,
+                'currency': this.safeCurrencyCode(feeCurrencyId),
+            },
         }, market);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1109,7 +1132,7 @@ export default class mexc extends mexcRest {
         //
         const msg = this.safeString(message, 'msg');
         if (msg === 'PONG') {
-            return this.handlePong(client, message);
+            this.handlePong(client, message);
         }
         else if (msg.indexOf('@') > -1) {
             const parts = msg.split('@');
@@ -1132,7 +1155,8 @@ export default class mexc extends mexcRest {
             return;
         }
         if ('msg' in message) {
-            return this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, message);
+            return;
         }
         const c = this.safeString(message, 'c');
         let channel = undefined;

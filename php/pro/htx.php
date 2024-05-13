@@ -7,11 +7,11 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NetworkError;
 use ccxt\InvalidNonce;
-use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -368,7 +368,7 @@ class htx extends \ccxt\async\htx {
             $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
             $method = array($this, 'handle_order_book_subscription');
             if (!$market['spot']) {
-                $params = array_merge($params);
+                $params = $this->extend($params);
                 $params['data_type'] = 'incremental';
                 $method = null;
             }
@@ -446,6 +446,8 @@ class htx extends \ccxt\async\htx {
                 $client->resolve ($orderbook, $messageHash);
             }
         } catch (Exception $e) {
+            unset($client->subscriptions[$messageHash]);
+            unset($this->orderbooks[$symbol]);
             $client->reject ($e, $messageHash);
         }
     }
@@ -484,6 +486,7 @@ class htx extends \ccxt\async\htx {
                 unset($client->subscriptions[$messageHash]);
                 $client->reject ($e, $messageHash);
             }
+            return null;
         }) ();
     }
 
@@ -939,17 +942,22 @@ class htx extends \ccxt\async\htx {
             // spot updates
             $eventType = $this->safe_string($data, 'eventType');
             if ($eventType === 'trade') {
-                // when a spot $order is filled we get an update $message
+                // when a spot $order is $filled we get an update $message
                 // with the trade info
                 $parsedTrade = $this->parse_order_trade($data, $market);
                 // inject trade in existing $order by faking an $order object
                 $orderId = $this->safe_string($parsedTrade, 'order');
                 $trades = array( $parsedTrade );
+                $status = $this->parse_order_status($this->safe_string_2($data, 'orderStatus', 'status', 'closed'));
+                $filled = $this->safe_string($data, 'execAmt');
+                $remaining = $this->safe_string($data, 'remainAmt');
                 $order = array(
                     'id' => $orderId,
                     'trades' => $trades,
-                    'status' => 'closed',
+                    'status' => $status,
                     'symbol' => $market['symbol'],
+                    'filled' => $this->parse_number($filled),
+                    'remaining' => $this->parse_number($remaining),
                 );
                 $parsedOrder = $order;
             } else {
@@ -1690,14 +1698,14 @@ class htx extends \ccxt\async\htx {
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
             if ($method !== null) {
-                return $method($client, $message, $subscription);
+                $method($client, $message, $subscription);
+                return;
             }
             // clean up
             if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
                 unset($client->subscriptions[$id]);
             }
         }
-        return $message;
     }
 
     public function handle_system_status(Client $client, $message) {
@@ -1808,10 +1816,9 @@ class htx extends \ccxt\async\htx {
                 'kline' => array($this, 'handle_ohlcv'),
             );
             $method = $this->safe_value($methods, $methodName);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
+                return;
             }
         }
         // private spot subjects
@@ -1902,7 +1909,7 @@ class htx extends \ccxt\async\htx {
         //        "data" => array( "user-id" => "35930539" )
         //    }
         //
-        $promise = $client->futures['authenticated'];
+        $promise = $client->futures['auth'];
         $promise->resolve ($message);
     }
 
@@ -1931,6 +1938,12 @@ class htx extends \ccxt\async\htx {
         //         'err-msg' => "Non - single account user is not available, please check through the cross and isolated account asset interface",
         //         "ts" => 1698419490189
         //     }
+        //     {
+        //         "action":"req",
+        //         "code":2002,
+        //         "ch":"auth",
+        //         "message":"auth.fail"
+        //     }
         //
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
@@ -1941,6 +1954,7 @@ class htx extends \ccxt\async\htx {
                 $errorCode = $this->safe_string($message, 'err-code');
                 try {
                     $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $errorCode, $this->json($message));
+                    throw new ExchangeError($this->json($message));
                 } catch (Exception $e) {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject ($e, $messageHash);
@@ -1952,11 +1966,12 @@ class htx extends \ccxt\async\htx {
             }
             return false;
         }
-        $code = $this->safe_integer_2($message, 'code', 'err-code');
-        if ($code !== null && (($code !== 200) && ($code !== 0))) {
+        $code = $this->safe_string_2($message, 'code', 'err-code');
+        if ($code !== null && (($code !== '200') && ($code !== '0'))) {
             $feedback = $this->id . ' ' . $this->json($message);
             try {
                 $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $code, $feedback);
+                throw new ExchangeError($feedback);
             } catch (Exception $e) {
                 if ($e instanceof AuthenticationError) {
                     $client->reject ($e, 'auth');
@@ -2146,7 +2161,7 @@ class htx extends \ccxt\async\htx {
                     $trade = $rawTrades[$i];
                     $parsedTrade = $this->parse_trade($trade, $market);
                     // add extra params (side, type, ...) coming from the order
-                    $parsedTrade = array_merge($parsedTrade, $extendParams);
+                    $parsedTrade = $this->extend($parsedTrade, $extendParams);
                     $cachedTrades->append ($parsedTrade);
                 }
                 // $messageHash here is the orders one, so
@@ -2277,7 +2292,7 @@ class htx extends \ccxt\async\htx {
             if ($method !== null) {
                 $subscription['method'] = $method;
             }
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
         }) ();
     }
 
@@ -2289,7 +2304,7 @@ class htx extends \ccxt\async\htx {
                 'messageHash' => $messageHash,
                 'params' => $params,
             );
-            $extendedSubsription = array_merge($subscription, $subscriptionParams);
+            $extendedSubsription = $this->extend($subscription, $subscriptionParams);
             $request = null;
             if ($type === 'spot') {
                 $request = array(
@@ -2311,83 +2326,82 @@ class htx extends \ccxt\async\htx {
                 'url' => $url,
                 'hostname' => $hostname,
             );
-            if ($type === 'spot') {
-                $this->options['ws']['gunzip'] = false;
-            }
             Async\await($this->authenticate($authParams));
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel, $extendedSubsription));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel, $extendedSubsription));
         }) ();
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->safe_string($params, 'url');
-        $hostname = $this->safe_string($params, 'hostname');
-        $type = $this->safe_string($params, 'type');
-        if ($url === null || $hostname === null || $type === null) {
-            throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
-        }
-        $this->check_required_credentials();
-        $messageHash = 'authenticated';
-        $relativePath = str_replace('wss://' . $hostname, '', $url);
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-            $signatureParams = null;
-            if ($type === 'spot') {
-                $signatureParams = array(
-                    'accessKey' => $this->apiKey,
-                    'signatureMethod' => 'HmacSHA256',
-                    'signatureVersion' => '2.1',
-                    'timestamp' => $timestamp,
-                );
-            } else {
-                $signatureParams = array(
-                    'AccessKeyId' => $this->apiKey,
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'Timestamp' => $timestamp,
-                );
+        return Async\async(function () use ($params) {
+            $url = $this->safe_string($params, 'url');
+            $hostname = $this->safe_string($params, 'hostname');
+            $type = $this->safe_string($params, 'type');
+            if ($url === null || $hostname === null || $type === null) {
+                throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
             }
-            $signatureParams = $this->keysort($signatureParams);
-            $auth = $this->urlencode($signatureParams);
-            $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-            $request = null;
-            if ($type === 'spot') {
-                $newParams = array(
-                    'authType' => 'api',
-                    'accessKey' => $this->apiKey,
-                    'signatureMethod' => 'HmacSHA256',
-                    'signatureVersion' => '2.1',
-                    'timestamp' => $timestamp,
-                    'signature' => $signature,
+            $this->check_required_credentials();
+            $messageHash = 'auth';
+            $relativePath = str_replace('wss://' . $hostname, '', $url);
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $signatureParams = null;
+                if ($type === 'spot') {
+                    $signatureParams = array(
+                        'accessKey' => $this->apiKey,
+                        'signatureMethod' => 'HmacSHA256',
+                        'signatureVersion' => '2.1',
+                        'timestamp' => $timestamp,
+                    );
+                } else {
+                    $signatureParams = array(
+                        'AccessKeyId' => $this->apiKey,
+                        'SignatureMethod' => 'HmacSHA256',
+                        'SignatureVersion' => '2',
+                        'Timestamp' => $timestamp,
+                    );
+                }
+                $signatureParams = $this->keysort($signatureParams);
+                $auth = $this->urlencode($signatureParams);
+                $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+                $request = null;
+                if ($type === 'spot') {
+                    $newParams = array(
+                        'authType' => 'api',
+                        'accessKey' => $this->apiKey,
+                        'signatureMethod' => 'HmacSHA256',
+                        'signatureVersion' => '2.1',
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    );
+                    $request = array(
+                        'params' => $newParams,
+                        'action' => 'req',
+                        'ch' => 'auth',
+                    );
+                } else {
+                    $request = array(
+                        'op' => 'auth',
+                        'type' => 'api',
+                        'AccessKeyId' => $this->apiKey,
+                        'SignatureMethod' => 'HmacSHA256',
+                        'SignatureVersion' => '2',
+                        'Timestamp' => $timestamp,
+                        'Signature' => $signature,
+                    );
+                }
+                $requestId = $this->request_id();
+                $subscription = array(
+                    'id' => $requestId,
+                    'messageHash' => $messageHash,
+                    'params' => $params,
                 );
-                $request = array(
-                    'params' => $newParams,
-                    'action' => 'req',
-                    'ch' => 'auth',
-                );
-            } else {
-                $request = array(
-                    'op' => 'auth',
-                    'type' => 'api',
-                    'AccessKeyId' => $this->apiKey,
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'Timestamp' => $timestamp,
-                    'Signature' => $signature,
-                );
+                $this->watch($url, $messageHash, $request, $messageHash, $subscription);
             }
-            $requestId = $this->request_id();
-            $subscription = array(
-                'id' => $requestId,
-                'messageHash' => $messageHash,
-                'params' => $params,
-            );
-            $this->watch($url, $messageHash, $request, $messageHash, $subscription);
-        }
-        return $future;
+            return Async\await($future);
+        }) ();
     }
 }

@@ -62,8 +62,11 @@ class coinone extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -73,7 +76,7 @@ class coinone extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'ws' => false,
+                'ws' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -196,7 +199,7 @@ class coinone extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @see https://docs.coinone.co.kr/reference/currencies
@@ -261,7 +264,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for coinone
          * @see https://docs.coinone.co.kr/v1.0/reference/tickers
@@ -418,7 +421,7 @@ class coinone extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // only support 5, 10, 15, 16
         }
-        $response = $this->v2PublicGetOrderbookQuoteCurrencyTargetCurrency (array_merge($request, $params));
+        $response = $this->v2PublicGetOrderbookQuoteCurrencyTargetCurrency ($this->extend($request, $params));
         //
         //     {
         //         "result" => "success",
@@ -467,9 +470,9 @@ class coinone extends Exchange {
             $market = $this->market($first);
             $request['quote_currency'] = $market['quote'];
             $request['target_currency'] = $market['base'];
-            $response = $this->v2PublicGetTickerNewQuoteCurrencyTargetCurrency (array_merge($request, $params));
+            $response = $this->v2PublicGetTickerNewQuoteCurrencyTargetCurrency ($this->extend($request, $params));
         } else {
-            $response = $this->v2PublicGetTickerNewQuoteCurrency (array_merge($request, $params));
+            $response = $this->v2PublicGetTickerNewQuoteCurrency ($this->extend($request, $params));
         }
         //
         //     {
@@ -504,7 +507,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'tickers', array());
+        $data = $this->safe_list($response, 'tickers', array());
         return $this->parse_tickers($data, $symbols);
     }
 
@@ -522,7 +525,7 @@ class coinone extends Exchange {
             'quote_currency' => $market['quote'],
             'target_currency' => $market['base'],
         );
-        $response = $this->v2PublicGetTickerNewQuoteCurrencyTargetCurrency (array_merge($request, $params));
+        $response = $this->v2PublicGetTickerNewQuoteCurrencyTargetCurrency ($this->extend($request, $params));
         //
         //     {
         //         "result" => "success",
@@ -557,11 +560,11 @@ class coinone extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'tickers', array());
-        $ticker = $this->safe_value($data, 0, array());
+        $ticker = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "quote_currency" => "krw",
@@ -701,9 +704,9 @@ class coinone extends Exchange {
             'target_currency' => $market['base'],
         );
         if ($limit !== null) {
-            $request['size'] = $limit; // only support 10, 50, 100, 150, 200
+            $request['size'] = min ($limit, 200);
         }
-        $response = $this->v2PublicGetTradesQuoteCurrencyTargetCurrency (array_merge($request, $params));
+        $response = $this->v2PublicGetTradesQuoteCurrencyTargetCurrency ($this->extend($request, $params));
         //
         //     {
         //         "result" => "success",
@@ -722,11 +725,11 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'transactions', array());
+        $data = $this->safe_list($response, 'transactions', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
@@ -750,7 +753,7 @@ class coinone extends Exchange {
             'qty' => $amount,
         );
         $method = 'privatePostOrder' . $this->capitalize($type) . $this->capitalize($side);
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         //     {
         //         "result" => "success",
@@ -777,7 +780,7 @@ class coinone extends Exchange {
             'order_id' => $id,
             'currency' => $market['id'],
         );
-        $response = $this->v2PrivatePostOrderQueryOrder (array_merge($request, $params));
+        $response = $this->v2PrivatePostOrderQueryOrder ($this->extend($request, $params));
         //
         //     {
         //         "result" => "success",
@@ -948,7 +951,7 @@ class coinone extends Exchange {
         $request = array(
             'currency' => $market['id'],
         );
-        $response = $this->privatePostOrderLimitOrders (array_merge($request, $params));
+        $response = $this->privatePostOrderLimitOrders ($this->extend($request, $params));
         //
         //     {
         //         "result" => "success",
@@ -966,7 +969,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $limitOrders = $this->safe_value($response, 'limitOrders', array());
+        $limitOrders = $this->safe_list($response, 'limitOrders', array());
         return $this->parse_orders($limitOrders, $market, $since, $limit);
     }
 
@@ -987,7 +990,7 @@ class coinone extends Exchange {
         $request = array(
             'currency' => $market['id'],
         );
-        $response = $this->v2PrivatePostOrderCompleteOrders (array_merge($request, $params));
+        $response = $this->v2PrivatePostOrderCompleteOrders ($this->extend($request, $params));
         //
         // despite the name of the endpoint it returns trades which may have a duplicate orderId
         // https://github.com/ccxt/ccxt/pull/7067
@@ -1008,7 +1011,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $completeOrders = $this->safe_value($response, 'completeOrders', array());
+        $completeOrders = $this->safe_list($response, 'completeOrders', array());
         return $this->parse_trades($completeOrders, $market, $since, $limit);
     }
 
@@ -1039,7 +1042,7 @@ class coinone extends Exchange {
             'is_ask' => $isAsk,
             'currency' => $this->market_id($symbol),
         );
-        $response = $this->v2PrivatePostOrderCancel (array_merge($request, $params));
+        $response = $this->v2PrivatePostOrderCancel ($this->extend($request, $params));
         //
         //     {
         //         "result" => "success",
@@ -1049,7 +1052,7 @@ class coinone extends Exchange {
         return $response;
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|null} $codes list of unified currency $codes, default is null
@@ -1128,7 +1131,7 @@ class coinone extends Exchange {
             $this->check_required_credentials();
             $url .= $request;
             $nonce = (string) $this->nonce();
-            $json = $this->json(array_merge(array(
+            $json = $this->json($this->extend(array(
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params));

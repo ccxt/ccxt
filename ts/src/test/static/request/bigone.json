@@ -1,6 +1,8 @@
 {
     "exchange": "bigone",
-    "skipKeys": ["guid"],
+    "skipKeys": [
+        "guid"
+    ],
     "outputType": "json",
     "methods": {
         "createOrder": [
@@ -58,6 +60,22 @@
                     }
                 ],
                 "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"BID\",\"amount\":\"10\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "create order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                  "DOT/USDT",
+                  "market",
+                  "sell",
+                  0.9,
+                  null,
+                  {
+                    "client_order_id": "1253"
+                  }
+                ],
+                "output": "{\"asset_pair_name\":\"DOT-USDT\",\"side\":\"ASK\",\"amount\":\"0.9\",\"type\":\"MARKET\",\"client_order_id\":\"1253\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -66,8 +84,8 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://big.one/api/v3/viewer/orders",
                 "input": [
-                  "LTC/USDT",
-                  11
+                    "LTC/USDT",
+                    11
                 ],
                 "output": "{\"asset_pair_name\":\"LTC-USDT\",\"side\":\"BID\",\"amount\":\"11\",\"type\":\"MARKET\"}"
             }
@@ -184,6 +202,113 @@
                 "url": "https://big.one/api/v3/viewer/assets/USDT/address",
                 "input": [
                     "USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://big.one/api/v3/asset_pairs/tickers?pair_names=BTC-USDT",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://big.one/api/contract/v2/instruments",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "XRP/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://big.one/api/v3/asset_pairs/tickers?pair_names=BTC-USDT",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://big.one/api/contract/v2/instruments",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://big.one/api/v3/ping",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/trades",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/depth",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://big.one/api/contract/v2/depth@BTCUSDT/snapshot",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://big.one/api/contract/v2/instruments",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/ticker",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/candles?period=min1&limit=100",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ]

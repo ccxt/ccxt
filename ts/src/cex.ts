@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -64,7 +64,13 @@ export default class cex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -229,7 +235,7 @@ export default class cex extends Exchange {
         return this.safeValue (this.options['fetchCurrencies'], 'response');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name cex#fetchCurrencies
@@ -336,7 +342,7 @@ export default class cex extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name cex#fetchMarkets
@@ -575,7 +581,7 @@ export default class cex extends Exchange {
         return undefined;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const volume = this.safeString (ticker, 'volume');
         const high = this.safeString (ticker, 'high');
@@ -712,7 +718,7 @@ export default class cex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name cex#fetchTradingFees
@@ -755,7 +761,7 @@ export default class cex extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name cex#createOrder
@@ -870,7 +876,7 @@ export default class cex extends Exchange {
         return this.extend (this.parseOrder ({}), { 'info': response, 'type': undefined, 'id': id, 'status': 'canceled' });
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelAllOrders
@@ -1178,14 +1184,15 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let method = 'privatePostOpenOrders';
         let market = undefined;
+        let orders = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
-            method += 'Pair';
+            orders = await this.privatePostOpenOrdersPair (this.extend (request, params));
+        } else {
+            orders = await this.privatePostOpenOrders (this.extend (request, params));
         }
-        const orders = await this[method] (this.extend (request, params));
         for (let i = 0; i < orders.length; i++) {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
@@ -1208,10 +1215,9 @@ export default class cex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const method = 'privatePostArchivedOrdersPair';
         const market = this.market (symbol);
         const request = { 'pair': market['id'] };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privatePostArchivedOrdersPair (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1560,7 +1566,7 @@ export default class cex extends Exchange {
         return this.safeString (this.options['order']['status'], status, status);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name cex#editOrderWs

@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -122,15 +122,19 @@ class whitebit extends \ccxt\async\whitebit {
             $symbol = $market['symbol'];
             $messageHash = 'candles' . ':' . $symbol;
             $parsed = $this->parse_ohlcv($data, $market);
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol);
-            $stored = $this->ohlcvs[$symbol];
-            if ($stored === null) {
+            // $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol);
+            if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+                $this->ohlcvs[$symbol] = array();
+            }
+            // $stored = $this->ohlcvs[$symbol]['unknown']; // we don't know the timeframe but we need to respect the type
+            if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown', $this->ohlcvs[$symbol]))) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol] = $stored;
+                $this->ohlcvs[$symbol]['unknown'] = $stored;
             }
-            $stored->append ($parsed);
-            $client->resolve ($stored, $messageHash);
+            $ohlcv = $this->ohlcvs[$symbol]['unknown'];
+            $ohlcv->append ($parsed);
+            $client->resolve ($ohlcv, $messageHash);
         }
         return $message;
     }
@@ -173,6 +177,7 @@ class whitebit extends \ccxt\async\whitebit {
         //     "params":[
         //        true,
         //        array(
+        //           "timestamp" => 1708679568.940867,
         //           "asks":[
         //              [ "21252.45","0.01957"],
         //              ["21252.55","0.126205"],
@@ -209,13 +214,14 @@ class whitebit extends \ccxt\async\whitebit {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $data = $this->safe_value($params, 1);
-        $orderbook = null;
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-            $orderbook = $this->orderbooks[$symbol];
-        } else {
-            $orderbook = $this->order_book();
-            $this->orderbooks[$symbol] = $orderbook;
+        $timestamp = $this->safe_timestamp($data, 'timestamp');
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $ob = $this->order_book();
+            $this->orderbooks[$symbol] = $ob;
         }
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
         if ($isSnapshot) {
             $snapshot = $this->parse_order_book($data, $symbol);
             $orderbook->reset ($snapshot);
@@ -541,7 +547,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $stored = $this->orders;
         $status = $this->safe_integer($params, 0);
-        $parsed = $this->parse_ws_order(array_merge($data, array( 'status' => $status )));
+        $parsed = $this->parse_ws_order($this->extend($data, array( 'status' => $status )));
         $stored->append ($parsed);
         $symbol = $parsed['symbol'];
         $messageHash = 'orders:' . $symbol;
@@ -726,7 +732,7 @@ class whitebit extends \ccxt\async\whitebit {
                 'method' => $method,
                 'params' => $reqParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -753,14 +759,14 @@ class whitebit extends \ccxt\async\whitebit {
                     'method' => $method,
                     'params' => $marketIds,
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 return Async\await($this->watch($url, $messageHash, $message, $method, $subscription));
             } else {
                 $subscription = $this->safe_value($client->subscriptions, $method, array());
                 $hasSymbolSubscription = true;
                 $market = $this->market($symbol);
                 $marketId = $market['id'];
-                $isSubscribed = $this->safe_value($subscription, $marketId, false);
+                $isSubscribed = $this->safe_bool($subscription, $marketId, false);
                 if (!$isSubscribed) {
                     $subscription[$marketId] = true;
                     $hasSymbolSubscription = false;
@@ -800,7 +806,7 @@ class whitebit extends \ccxt\async\whitebit {
                 'method' => $method,
                 'params' => $reqParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -892,12 +898,10 @@ class whitebit extends \ccxt\async\whitebit {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
-        $result = $this->safe_value($message, 'result', array());
-        if ($result !== null) {
-            if ($result === 'pong') {
-                $this->handle_pong($client, $message);
-                return;
-            }
+        $result = $this->safe_string($message, 'result');
+        if ($result === 'pong') {
+            $this->handle_pong($client, $message);
+            return;
         }
         $id = $this->safe_integer($message, 'id');
         if ($id !== null) {

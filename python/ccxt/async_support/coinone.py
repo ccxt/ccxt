@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -72,8 +72,11 @@ class coinone(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -83,7 +86,7 @@ class coinone(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'ws': False,
+                'ws': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -205,7 +208,7 @@ class coinone(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.coinone.co.kr/reference/currencies
@@ -268,7 +271,7 @@ class coinone(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinone
         :see: https://docs.coinone.co.kr/v1.0/reference/tickers
@@ -503,7 +506,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'tickers', [])
+        data = self.safe_list(response, 'tickers', [])
         return self.parse_tickers(data, symbols)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -555,10 +558,10 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'tickers', [])
-        ticker = self.safe_value(data, 0, {})
+        ticker = self.safe_dict(data, 0, {})
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "quote_currency": "krw",
@@ -694,7 +697,7 @@ class coinone(Exchange, ImplicitAPI):
             'target_currency': market['base'],
         }
         if limit is not None:
-            request['size'] = limit  # only support 10, 50, 100, 150, 200
+            request['size'] = min(limit, 200)
         response = await self.v2PublicGetTradesQuoteCurrencyTargetCurrency(self.extend(request, params))
         #
         #     {
@@ -714,10 +717,10 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'transactions', [])
+        data = self.safe_list(response, 'transactions', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
@@ -942,7 +945,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        limitOrders = self.safe_value(response, 'limitOrders', [])
+        limitOrders = self.safe_list(response, 'limitOrders', [])
         return self.parse_orders(limitOrders, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -982,7 +985,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        completeOrders = self.safe_value(response, 'completeOrders', [])
+        completeOrders = self.safe_list(response, 'completeOrders', [])
         return self.parse_trades(completeOrders, market, since, limit)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1019,7 +1022,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_deposit_addresses(self, codes=None, params={}):
+    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None

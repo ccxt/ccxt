@@ -25,6 +25,7 @@ class bitflyer extends Exchange {
                 'swap' => null, // has but not fully implemented
                 'future' => null, // has but not fully implemented
                 'option' => false,
+                'cancelAllOrders' => null,  // https://lightning.bitflyer.com/docs?lang=en#cancel-all-orders
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -110,6 +111,11 @@ class bitflyer extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'exceptions' => array(
+                'exact' => array(
+                    '-2' => '\\ccxt\\OnMaintenance', // array("status":-2,"error_message":"Under maintenance","data":null)
+                ),
+            ),
         ));
     }
 
@@ -135,14 +141,14 @@ class bitflyer extends Exchange {
         return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         // Since they're the same we just need to return one
         return parent::safe_market($marketId, $market, $delimiter, 'spot');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitflyer
          * @see https://lightning.bitflyer.com/docs?lang=en#$market-list
@@ -353,11 +359,11 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $market['id'],
         );
-        $orderbook = $this->publicGetGetboard (array_merge($request, $params));
+        $orderbook = $this->publicGetGetboard ($this->extend($request, $params));
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_string($ticker, 'ltp');
@@ -398,7 +404,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $market['id'],
         );
-        $response = $this->publicGetGetticker (array_merge($request, $params));
+        $response = $this->publicGetGetticker ($this->extend($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -485,7 +491,7 @@ class bitflyer extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->publicGetGetexecutions (array_merge($request, $params));
+        $response = $this->publicGetGetexecutions ($this->extend($request, $params));
         //
         //    array(
         //     array(
@@ -502,7 +508,7 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
@@ -515,7 +521,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $market['id'],
         );
-        $response = $this->privateGetGettradingcommission (array_merge($request, $params));
+        $response = $this->privateGetGettradingcommission ($this->extend($request, $params));
         //
         //   {
         //       commission_rate => '0.0020'
@@ -527,10 +533,12 @@ class bitflyer extends Exchange {
             'symbol' => $market['symbol'],
             'maker' => $fee,
             'taker' => $fee,
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
@@ -550,7 +558,7 @@ class bitflyer extends Exchange {
             'price' => $price,
             'size' => $amount,
         );
-        $result = $this->privatePostSendchildorder (array_merge($request, $params));
+        $result = $this->privatePostSendchildorder ($this->extend($request, $params));
         // array( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
         $id = $this->safe_string($result, 'child_order_acceptance_id');
         return $this->safe_order(array(
@@ -576,7 +584,7 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
             'child_order_acceptance_id' => $id,
         );
-        return $this->privatePostCancelchildorder (array_merge($request, $params));
+        return $this->privatePostCancelchildorder ($this->extend($request, $params));
     }
 
     public function parse_order_status($status) {
@@ -637,7 +645,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
@@ -656,7 +664,7 @@ class bitflyer extends Exchange {
             'product_code' => $market['id'],
             'count' => $limit,
         );
-        $response = $this->privateGetGetchildorders (array_merge($request, $params));
+        $response = $this->privateGetGetchildorders ($this->extend($request, $params));
         $orders = $this->parse_orders($response, $market, $since, $limit);
         if ($symbol !== null) {
             $orders = $this->filter_by($orders, 'symbol', $symbol);
@@ -664,7 +672,7 @@ class bitflyer extends Exchange {
         return $orders;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -677,10 +685,10 @@ class bitflyer extends Exchange {
         $request = array(
             'child_order_state' => 'ACTIVE',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -693,7 +701,7 @@ class bitflyer extends Exchange {
         $request = array(
             'child_order_state' => 'COMPLETED',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -736,7 +744,7 @@ class bitflyer extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->privateGetGetexecutions (array_merge($request, $params));
+        $response = $this->privateGetGetexecutions ($this->extend($request, $params));
         //
         //    array(
         //     array(
@@ -769,7 +777,7 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $this->market_ids($symbols),
         );
-        $response = $this->privateGetGetpositions (array_merge($request, $params));
+        $response = $this->privateGetGetpositions ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -791,7 +799,7 @@ class bitflyer extends Exchange {
         return $response;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
@@ -813,7 +821,7 @@ class bitflyer extends Exchange {
             'amount' => $amount,
             // 'bank_account_id' => 1234,
         );
-        $response = $this->privatePostWithdraw (array_merge($request, $params));
+        $response = $this->privatePostWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "message_id" => "69476620-5056-4003-bcbe-42658a2b041b"
@@ -841,7 +849,7 @@ class bitflyer extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 100
         }
-        $response = $this->privateGetGetcoinins (array_merge($request, $params));
+        $response = $this->privateGetGetcoinins ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -878,7 +886,7 @@ class bitflyer extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 100
         }
-        $response = $this->privateGetGetcoinouts (array_merge($request, $params));
+        $response = $this->privateGetGetcoinouts ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1026,5 +1034,20 @@ class bitflyer extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return null; // fallback to the default error handler
+        }
+        $feedback = $this->id . ' ' . $body;
+        // i.e. array("status":-2,"error_message":"Under maintenance","data":null)
+        $errorMessage = $this->safe_string($response, 'error_message');
+        $statusCode = $this->safe_number($response, 'status');
+        if ($errorMessage !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+        }
+        return null;
     }
 }

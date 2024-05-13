@@ -628,7 +628,7 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        const returnData = this.safeValue(result, 'return');
+        const returnData = this.safeDict(result, 'return');
         return this.parseTransaction(returnData, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -678,7 +678,7 @@ export default class zaif extends Exchange {
         };
     }
     customNonce() {
-        const num = (this.milliseconds() / 1000).toString();
+        const num = this.numberToString(this.milliseconds() / 1000);
         const nonce = parseFloat(num);
         return nonce.toFixed(8);
     }
@@ -728,7 +728,7 @@ export default class zaif extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             throw new ExchangeError(feedback);
         }

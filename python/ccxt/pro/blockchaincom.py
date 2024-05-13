@@ -5,12 +5,12 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, IndexType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class blockchaincom(ccxt.async_support.blockchaincom):
@@ -42,7 +42,6 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                     },
                     'noOriginHeader': False,
                 },
-                'sequenceNumbers': {},
             },
             'streaming': {
             },
@@ -107,7 +106,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         event = self.safe_string(message, 'event')
         if event == 'subscribed':
-            return message
+            return
         result = {'info': message}
         balances = self.safe_value(message, 'balances', [])
         for i in range(0, len(balances)):
@@ -172,10 +171,9 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #     }
         #
         event = self.safe_string(message, 'event')
-        if event == 'subscribed':
-            return message
-        elif event == 'rejected':
-            raise ExchangeError(self.id + ' ' + self.json(message))
+        if event == 'rejected':
+            jsonMessage = self.json(message)
+            raise ExchangeError(self.id + ' ' + jsonMessage)
         elif event == 'updated':
             marketId = self.safe_string(message, 'symbol')
             symbol = self.safe_symbol(marketId, None, '-')
@@ -192,7 +190,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                 self.ohlcvs[symbol][timeframe] = stored
             stored.append(ohlcv)
             client.resolve(stored, messageHash)
-        else:
+        elif event != 'subscribed':
             raise NotSupported(self.id + ' ' + self.json(message))
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -251,7 +249,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         symbol = market['symbol']
         ticker = None
         if event == 'subscribed':
-            return message
+            return
         elif event == 'snapshot':
             ticker = self.parse_ticker(message, market)
         elif event == 'updated':
@@ -345,7 +343,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         event = self.safe_string(message, 'event')
         if event != 'updated':
-            return message
+            return
         marketId = self.safe_string(message, 'symbol')
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(marketId)
@@ -500,7 +498,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         if event == 'subscribed':
-            return message
+            return
         elif event == 'rejected':
             raise ExchangeError(self.id + ' ' + self.json(message))
         elif event == 'snapshot':
@@ -656,79 +654,40 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #     }
         #
         event = self.safe_string(message, 'event')
+        if event == 'subscribed':
+            return
         type = self.safe_string(message, 'channel')
         marketId = self.safe_string(message, 'symbol')
         symbol = self.safe_symbol(marketId)
         messageHash = 'orderbook:' + symbol + ':' + type
         datetime = self.safe_string(message, 'timestamp')
         timestamp = self.parse8601(datetime)
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.counted_order_book({})
-            self.orderbooks[symbol] = storedOrderBook
-        if event == 'subscribed':
-            return message
-        elif event == 'snapshot':
-            snapshot = self.parse_counted_order_book(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num')
-            storedOrderBook.reset(snapshot)
+        if self.safe_value(self.orderbooks, symbol) is None:
+            self.orderbooks[symbol] = self.counted_order_book()
+        orderbook = self.orderbooks[symbol]
+        if event == 'snapshot':
+            snapshot = self.parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num')
+            orderbook.reset(snapshot)
         elif event == 'updated':
             asks = self.safe_value(message, 'asks', [])
             bids = self.safe_value(message, 'bids', [])
-            self.handle_deltas(storedOrderBook['asks'], asks)
-            self.handle_deltas(storedOrderBook['bids'], bids)
-            storedOrderBook['timestamp'] = timestamp
-            storedOrderBook['datetime'] = datetime
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = datetime
         else:
             raise NotSupported(self.id + ' watchOrderBook() does not support ' + event + ' yet')
-        client.resolve(storedOrderBook, messageHash)
-
-    def parse_counted_bid_ask(self, bidAsk, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
-        price = self.safe_number(bidAsk, priceKey)
-        amount = self.safe_number(bidAsk, amountKey)
-        count = self.safe_number(bidAsk, countKey)
-        return [price, amount, count]
-
-    def parse_counted_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
-        bidasks = self.to_array(bidasks)
-        result = []
-        for i in range(0, len(bidasks)):
-            result.append(self.parse_counted_bid_ask(bidasks[i], priceKey, amountKey, countKey))
-        return result
-
-    def parse_counted_order_book(self, orderbook, symbol: str, timestamp: Int = None, bidsKey: IndexType = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
-        bids = self.parse_counted_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countKey)
-        asks = self.parse_counted_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countKey)
-        return {
-            'symbol': symbol,
-            'bids': self.sort_by(bids, 0, True),
-            'asks': self.sort_by(asks, 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'nonce': None,
-        }
+        client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bookArray = self.parse_counted_bid_ask(delta, 'px', 'qty', 'num')
+        bookArray = self.parse_bid_ask(delta, 'px', 'qty', 'num')
         bookside.storeArray(bookArray)
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def check_sequence_number(self, client: Client, message):
-        seqnum = self.safe_integer(message, 'seqnum', 0)
-        channel = self.safe_string(message, 'channel', '')
-        sequenceNumbersByChannel = self.safe_value(self.options, 'sequenceNumbers', {})
-        lastSeqnum = self.safe_integer(sequenceNumbersByChannel, channel)
-        if lastSeqnum is None:
-            self.options['sequenceNumbers'][channel] = seqnum
-        else:
-            if seqnum != lastSeqnum + 1:
-                raise ExchangeError(self.id + ' ' + channel + ' seqnum ' + seqnum + ' is not the expected ' + (lastSeqnum + 1))
-            self.options['sequenceNumbers'][channel] = seqnum
-
     def handle_message(self, client: Client, message):
-        self.check_sequence_number(client, message)
         channel = self.safe_string(message, 'channel')
         handlers = {
             'ticker': self.handle_ticker,
@@ -742,7 +701,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         }
         handler = self.safe_value(handlers, channel)
         if handler is not None:
-            return handler(client, message)
+            handler(client, message)
+            return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
     def handle_authentication_message(self, client: Client, message):
@@ -761,7 +721,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if future is not None:
             future.resolve(True)
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
@@ -775,4 +735,4 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                 'token': self.secret,
             }
             return self.watch(url, messageHash, self.extend(request, params), messageHash)
-        return future
+        return await future

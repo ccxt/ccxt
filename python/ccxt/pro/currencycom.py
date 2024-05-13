@@ -96,7 +96,7 @@ class currencycom(ccxt.async_support.currencycom):
         #                     "accountId": 5470310874305732,
         #                     "collateralCurrency": True,
         #                     "asset": "USD",
-        #                     "free": 47.82576735,
+        #                     "free": 47.82576736,
         #                     "locked": 1.187925,
         #                     "default": True
         #                 },
@@ -194,7 +194,7 @@ class currencycom(ccxt.async_support.currencycom):
             'fee': None,
         }
 
-    def handle_trades(self, client: Client, message, subscription):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "status": "OK",
@@ -445,6 +445,7 @@ class currencycom(ccxt.async_support.currencycom):
         if orderbook is None:
             orderbook = self.order_book()
         orderbook.reset({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
@@ -517,9 +518,10 @@ class currencycom(ccxt.async_support.currencycom):
                         }
                         method = self.safe_value(methods, subscriptionDestination)
                         if method is None:
-                            return message
+                            return
                         else:
-                            return method(client, message, subscription)
+                            method(client, message, subscription)
+                            return
         destination = self.safe_string(message, 'destination')
         if destination is not None:
             methods = {
@@ -529,7 +531,5 @@ class currencycom(ccxt.async_support.currencycom):
                 'ping': self.handle_pong,
             }
             method = self.safe_value(methods, destination)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)

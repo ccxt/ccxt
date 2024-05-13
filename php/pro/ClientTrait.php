@@ -4,6 +4,7 @@ namespace ccxt\pro;
 
 use ccxt\async\Throttler;
 use ccxt\BaseError;
+use ccxt\ExchangeClosedByUser;
 use ccxt\ExchangeError;
 use Exception;
 use React\Async;
@@ -128,20 +129,14 @@ trait ClientTrait {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
-                                    $future->reject($error);
-                                    foreach ($subscribe_hashes as $subscribe_hash) {
-                                        unset($client->subscriptions[$subscribe_hash]);
-                                    }
+                                    $client->on_error($error);
                                 }
                             });
                         } else {
                             try {
                                 Async\await($client->send($message));
                             } catch (Exception $error) {
-                                $future->reject($error);
-                                foreach ($subscribe_hashes as $subscribe_hash) {
-                                    unset($client->subscriptions[$subscribe_hash]);
-                                }
+                                $client->on_error($error);
                             }
                         }
                     }
@@ -187,16 +182,14 @@ trait ClientTrait {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
-                                    $client->reject($error, $message_hash);
-                                    unset($client->subscriptions[$subscribe_hash]);
+                                    $client->on_error($error);
                                 }
                             });
                         } else {
                             try {
                                 Async\await($client->send($message));
                             } catch (Exception $error) {
-                                $client->reject($error, $message_hash);
-                                unset($client->subscriptions[$subscribe_hash]);
+                                $client->on_error($error);
                             }
                         }
                     }
@@ -223,7 +216,7 @@ trait ClientTrait {
 
     public function on_close(Client $client, $message) {
         if ($client->error) {
-            // connection closed due to an error, do nothing
+            // connection closed by the user or due to an error, do nothing
         } else {
             // server disconnected a working connection
             if (array_key_exists($client->url, $this->clients)) {
@@ -236,7 +229,10 @@ trait ClientTrait {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
+            $client->error = new ExchangeClosedByUser ($this->id . ' closed by user');
             $client->close();
+            $url = $client->url;
+            unset($this->clients[$url]);
         }
     }
 

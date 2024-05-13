@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -158,7 +158,7 @@ class paymium(Exchange, ImplicitAPI):
         response = await self.publicGetDataCurrencyDepth(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "high":"33740.82",
@@ -325,7 +325,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    async def fetch_deposit_addresses(self, codes=None, params={}):
+    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
         fetch deposit addresses for multiple currencies and chain types
         :see: https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
@@ -366,7 +366,7 @@ class paymium(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post
@@ -409,7 +409,7 @@ class paymium(Exchange, ImplicitAPI):
         }
         return await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post
@@ -467,7 +467,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -518,7 +518,7 @@ class paymium(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'executed': 'ok',
             # what are the other statuses?

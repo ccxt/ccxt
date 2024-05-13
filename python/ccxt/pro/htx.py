@@ -10,12 +10,12 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Stri
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 
 
 class htx(ccxt.async_support.htx):
@@ -418,6 +418,8 @@ class htx(ccxt.async_support.htx):
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
+            del client.subscriptions[messageHash]
+            del self.orderbooks[symbol]
             client.reject(e, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
@@ -452,6 +454,7 @@ class htx(ccxt.async_support.htx):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+        return None
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -880,11 +883,16 @@ class htx(ccxt.async_support.htx):
                 # inject trade in existing order by faking an order object
                 orderId = self.safe_string(parsedTrade, 'order')
                 trades = [parsedTrade]
+                status = self.parse_order_status(self.safe_string_2(data, 'orderStatus', 'status', 'closed'))
+                filled = self.safe_string(data, 'execAmt')
+                remaining = self.safe_string(data, 'remainAmt')
                 order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': self.parse_number(filled),
+                    'remaining': self.parse_number(remaining),
                 }
                 parsedOrder = order
             else:
@@ -1576,11 +1584,11 @@ class htx(ccxt.async_support.htx):
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:
-                return method(client, message, subscription)
+                method(client, message, subscription)
+                return
             # clean up
             if id in client.subscriptions:
                 del client.subscriptions[id]
-        return message
 
     def handle_system_status(self, client: Client, message):
         #
@@ -1689,10 +1697,9 @@ class htx(ccxt.async_support.htx):
                 'kline': self.handle_ohlcv,
             }
             method = self.safe_value(methods, methodName)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
+                return
         # private spot subjects
         privateParts = ch.split('#')
         privateType = self.safe_string(privateParts, 0, '')
@@ -1765,7 +1772,7 @@ class htx(ccxt.async_support.htx):
         #        "data": {"user-id": "35930539"}
         #    }
         #
-        promise = client.futures['authenticated']
+        promise = client.futures['auth']
         promise.resolve(message)
 
     def handle_error_message(self, client: Client, message):
@@ -1793,6 +1800,12 @@ class htx(ccxt.async_support.htx):
         #         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
         #         "ts": 1698419490189
         #     }
+        #     {
+        #         "action":"req",
+        #         "code":2002,
+        #         "ch":"auth",
+        #         "message":"auth.fail"
+        #     }
         #
         status = self.safe_string(message, 'status')
         if status == 'error':
@@ -1803,6 +1816,7 @@ class htx(ccxt.async_support.htx):
                 errorCode = self.safe_string(message, 'err-code')
                 try:
                     self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], errorCode, self.json(message))
+                    raise ExchangeError(self.json(message))
                 except Exception as e:
                     messageHash = self.safe_string(subscription, 'messageHash')
                     client.reject(e, messageHash)
@@ -1810,11 +1824,12 @@ class htx(ccxt.async_support.htx):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
             return False
-        code = self.safe_integer_2(message, 'code', 'err-code')
-        if code is not None and ((code != 200) and (code != 0)):
+        code = self.safe_string_2(message, 'code', 'err-code')
+        if code is not None and ((code != '200') and (code != '0')):
             feedback = self.id + ' ' + self.json(message)
             try:
                 self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, feedback)
+                raise ExchangeError(feedback)
             except Exception as e:
                 if isinstance(e, AuthenticationError):
                     client.reject(e, 'auth')
@@ -2130,8 +2145,6 @@ class htx(ccxt.async_support.htx):
             'url': url,
             'hostname': hostname,
         }
-        if type == 'spot':
-            self.options['ws']['gunzip'] = False
         await self.authenticate(authParams)
         return await self.watch(url, messageHash, self.extend(request, params), channel, extendedSubsription)
 
@@ -2142,7 +2155,7 @@ class htx(ccxt.async_support.htx):
         if url is None or hostname is None or type is None:
             raise ArgumentsRequired(self.id + ' authenticate requires a url, hostname and type argument')
         self.check_required_credentials()
-        messageHash = 'authenticated'
+        messageHash = 'auth'
         relativePath = url.replace('wss://' + hostname, '')
         client = self.client(url)
         future = client.future(messageHash)
@@ -2200,4 +2213,4 @@ class htx(ccxt.async_support.htx):
                 'params': params,
             }
             self.watch(url, messageHash, request, messageHash, subscription)
-        return future
+        return await future

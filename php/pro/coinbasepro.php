@@ -7,10 +7,10 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
-use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -87,7 +87,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                     $name,
                 ),
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -103,7 +103,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $productIds[] = $market['id'];
-                $messageHashes[] = $messageHashStart . ':' . $market['id'];
+                $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
             }
             $url = $this->urls['api']['ws'];
             if (is_array($params) && array_key_exists('signature', $params)) {
@@ -117,7 +117,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                     $name,
                 ),
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
         }) ();
     }
@@ -135,15 +135,14 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-$channel
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $symbolsLength = count($symbols);
@@ -151,10 +150,12 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 throw new BadSymbol($this->id . ' watchTickers requires a non-empty $symbols array');
             }
             $channel = 'ticker';
-            $messageHash = 'tickers::';
-            $newTickers = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
+            $messageHash = 'ticker';
+            $ticker = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
             if ($this->newUpdates) {
-                return $newTickers;
+                $result = array();
+                $result[$ticker['symbol']] = $ticker;
+                return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
@@ -226,7 +227,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $name = 'user';
             $messageHash = 'myTrades';
             $authentication = $this->authenticate();
-            $trades = Async\await($this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication)));
+            $trades = Async\await($this->subscribe($name, $symbol, $messageHash, $this->extend($params, $authentication)));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -249,7 +250,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $name = 'user';
             $messageHash = 'myTrades';
             $authentication = $this->authenticate();
-            $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, array_merge($params, $authentication)));
+            $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -274,7 +275,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $name = 'user';
             $messageHash = 'orders';
             $authentication = $this->authenticate();
-            $orders = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, array_merge($params, $authentication)));
+            $orders = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
             if ($this->newUpdates) {
                 $first = $this->safe_value($orders, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -302,7 +303,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $name = 'user';
             $messageHash = 'orders';
             $authentication = $this->authenticate();
-            $orders = Async\await($this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication)));
+            $orders = Async\await($this->subscribe($name, $symbol, $messageHash, $this->extend($params, $authentication)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -340,7 +341,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                     $name,
                 ),
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             $subscription = array(
                 'messageHash' => $name,
                 'symbols' => $symbols,
@@ -348,7 +349,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'limit' => $limit,
             );
             $authentication = $this->authenticate();
-            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $authentication), $messageHashes, $subscription));
+            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $authentication), $messageHashes, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -377,7 +378,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                     $name,
                 ),
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             $subscription = array(
                 'messageHash' => $messageHash,
                 'symbol' => $symbol,
@@ -385,7 +386,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'limit' => $limit,
             );
             $authentication = $this->authenticate();
-            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $authentication), $messageHash, $subscription));
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $authentication), $messageHash, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -684,7 +685,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                         $orders->append ($previousOrder);
                         $client->resolve ($orders, $messageHash);
                     } elseif (($type === 'received') || ($type === 'done')) {
-                        $info = array_merge($previousOrder['info'], $message);
+                        $info = $this->extend($previousOrder['info'], $message);
                         $order = $this->parse_ws_order($info);
                         $keys = is_array($order) ? array_keys($order) : array();
                         // update the reference
@@ -778,19 +779,10 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $ticker = $this->parse_ticker($message);
             $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
-            $type = $this->safe_string($message, 'type');
-            $messageHash = $type . ':' . $marketId;
+            $messageHash = 'ticker:' . $symbol;
+            $idMessageHash = 'ticker:' . $marketId;
             $client->resolve ($ticker, $messageHash);
-            $messageHashes = $this->find_message_hashes($client, 'tickers::');
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $currentMessageHash = $messageHashes[$i];
-                $parts = explode('::', $currentMessageHash);
-                $symbolsString = $parts[1];
-                $symbols = explode(',', $symbolsString);
-                if ($this->in_array($symbol, $symbols)) {
-                    $client->resolve ($ticker, $currentMessageHash);
-                }
-            }
+            $client->resolve ($ticker, $idMessageHash);
         }
         return $message;
     }
@@ -998,7 +990,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 }
             }
         } else {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 }

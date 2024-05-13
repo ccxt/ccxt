@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_ohlcv($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
     $format = [1638230400000, $exchange->parse_number('0.123'), $exchange->parse_number('0.125'), $exchange->parse_number('0.121'), $exchange->parse_number('0.122'), $exchange->parse_number('123.456')];
@@ -17,8 +16,10 @@ function test_ohlcv($exchange, $skipped_properties, $method, $entry, $symbol, $n
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now, 0);
     $log_text = log_template($exchange, $method, $entry);
     //
-    $length = count($entry);
-    assert($length >= 6, 'ohlcv array length should be >= 6;' . $log_text);
+    assert(count($entry) >= 6, 'ohlcv array length should be >= 6;' . $log_text);
+    if (!(is_array($skipped_properties) && array_key_exists('roundTimestamp', $skipped_properties))) {
+        assert_round_minute_timestamp($exchange, $skipped_properties, $method, $entry, 0);
+    }
     $high = $exchange->safe_string($entry, 2);
     $low = $exchange->safe_string($entry, 3);
     assert_less_or_equal($exchange, $skipped_properties, $method, $entry, '1', $high);

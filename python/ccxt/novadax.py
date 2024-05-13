@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.novadax import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -21,7 +22,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -33,9 +33,9 @@ class novadax(Exchange, ImplicitAPI):
             'id': 'novadax',
             'name': 'NovaDAX',
             'countries': ['BR'],  # Brazil
-            # 60 requests per second = 1000ms / 60 = 16.6667ms between requests(public endpoints, limited by IP address)
-            # 20 requests per second => cost = 60 / 20 = 3(private endpoints, limited by API Key)
-            'rateLimit': 16.6667,
+            # 6000 weight per min => 100 weight per second => min weight = 1
+            # 100 requests per second =>( 1000ms / 100 ) = 10 ms between requests on average
+            'rateLimit': 10,
             'version': 'v1',
             # new metainfo interface
             'has': {
@@ -89,7 +89,11 @@ class novadax(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -133,33 +137,37 @@ class novadax(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'common/symbol': 1.2,
-                        'common/symbols': 1.2,
-                        'common/timestamp': 1.2,
-                        'market/tickers': 1.2,
-                        'market/ticker': 1.2,
-                        'market/depth': 1.2,
-                        'market/trades': 1.2,
-                        'market/kline/history': 1.2,
+                        'common/symbol': 1,
+                        'common/symbols': 1,
+                        'common/timestamp': 1,
+                        'market/tickers': 5,
+                        'market/ticker': 1,
+                        'market/depth': 1,
+                        'market/trades': 5,
+                        'market/kline/history': 5,
                     },
                 },
                 'private': {
                     'get': {
-                        'orders/get': 3,
-                        'orders/list': 3,
-                        'orders/fill': 3,
-                        'orders/fills': 3,
-                        'account/getBalance': 3,
-                        'account/subs': 3,
-                        'account/subs/balance': 3,
-                        'account/subs/transfer/record': 3,
+                        'orders/get': 1,
+                        'orders/list': 10,
+                        'orders/fill': 3,  # not found in doc
+                        'orders/fills': 10,
+                        'account/getBalance': 1,
+                        'account/subs': 1,
+                        'account/subs/balance': 1,
+                        'account/subs/transfer/record': 10,
                         'wallet/query/deposit-withdraw': 3,
                     },
                     'post': {
-                        'orders/create': 3,
-                        'orders/cancel': 3,
-                        'account/withdraw/coin': 3,
-                        'account/subs/transfer': 3,
+                        'orders/create': 5,
+                        'orders/batch-create': 50,
+                        'orders/cancel': 1,
+                        'orders/batch-cancel': 10,
+                        'orders/cancel-by-symbol': 10,
+                        'account/subs/transfer': 5,
+                        'wallet/withdraw/coin': 3,
+                        'account/withdraw/coin': 3,  # not found in doc
                     },
                 },
             },
@@ -234,7 +242,7 @@ class novadax(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'data')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for novadax
         :see: https://doc.novadax.com/en-US/#get-all-supported-trading-symbol
@@ -322,7 +330,7 @@ class novadax(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker, fetchTickers
         #
@@ -401,7 +409,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message":"Success"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -589,7 +597,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message":"Success"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -640,7 +648,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message": "Success"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -711,7 +719,7 @@ class novadax(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://doc.novadax.com/en-US/#order-introduction
@@ -800,7 +808,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message": "Success"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -826,7 +834,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message": "Success"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -863,7 +871,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message": "Success"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -918,7 +926,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message": "Success"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1079,7 +1087,7 @@ class novadax(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://doc.novadax.com/en-US/#get-sub-account-transfer
@@ -1113,14 +1121,14 @@ class novadax(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #    {
         #        "code":"A10000",
@@ -1135,7 +1143,6 @@ class novadax(Exchange, ImplicitAPI):
             'info': transfer,
             'id': id,
             'amount': None,
-            'code': currencyCode,  # kept here for backward-compatibility, but will be removed soon
             'currency': currencyCode,
             'fromAccount': None,
             'toAccount': None,
@@ -1144,13 +1151,13 @@ class novadax(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'pending',
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://doc.novadax.com/en-US/#send-cryptocurrencies
@@ -1181,7 +1188,7 @@ class novadax(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://doc.novadax.com/en-US/#get-sub-account-list
@@ -1293,7 +1300,7 @@ class novadax(Exchange, ImplicitAPI):
         #         "message": "Success"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
     def parse_transaction_status(self, status):
@@ -1431,7 +1438,7 @@ class novadax(Exchange, ImplicitAPI):
         #          "message": "Success"
         #      }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

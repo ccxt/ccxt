@@ -17,6 +17,7 @@ var misc = require('./functions/misc.js');
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
+exports.isDeno = platform.isDeno;
 exports.isElectron = platform.isElectron;
 exports.isNode = platform.isNode;
 exports.isWebWorker = platform.isWebWorker;
@@ -117,6 +118,7 @@ exports.isJsonEncodedObject = encode.isJsonEncodedObject;
 exports.json = encode.json;
 exports.numberToBE = encode.numberToBE;
 exports.numberToLE = encode.numberToLE;
+exports.packb = encode.packb;
 exports.rawencode = encode.rawencode;
 exports.stringToBase64 = encode.stringToBase64;
 exports.stringToBinary = encode.stringToBinary;

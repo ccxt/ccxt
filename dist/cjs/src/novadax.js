@@ -19,9 +19,9 @@ class novadax extends novadax$1 {
             'id': 'novadax',
             'name': 'NovaDAX',
             'countries': ['BR'],
-            // 60 requests per second = 1000ms / 60 = 16.6667ms between requests (public endpoints, limited by IP address)
-            // 20 requests per second => cost = 60 / 20 = 3 (private endpoints, limited by API Key)
-            'rateLimit': 16.6667,
+            // 6000 weight per min => 100 weight per second => min weight = 1
+            // 100 requests per second => ( 1000ms / 100 ) = 10 ms between requests on average
+            'rateLimit': 10,
             'version': 'v1',
             // new metainfo interface
             'has': {
@@ -75,7 +75,11 @@ class novadax extends novadax$1 {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -119,33 +123,37 @@ class novadax extends novadax$1 {
             'api': {
                 'public': {
                     'get': {
-                        'common/symbol': 1.2,
-                        'common/symbols': 1.2,
-                        'common/timestamp': 1.2,
-                        'market/tickers': 1.2,
-                        'market/ticker': 1.2,
-                        'market/depth': 1.2,
-                        'market/trades': 1.2,
-                        'market/kline/history': 1.2,
+                        'common/symbol': 1,
+                        'common/symbols': 1,
+                        'common/timestamp': 1,
+                        'market/tickers': 5,
+                        'market/ticker': 1,
+                        'market/depth': 1,
+                        'market/trades': 5,
+                        'market/kline/history': 5,
                     },
                 },
                 'private': {
                     'get': {
-                        'orders/get': 3,
-                        'orders/list': 3,
+                        'orders/get': 1,
+                        'orders/list': 10,
                         'orders/fill': 3,
-                        'orders/fills': 3,
-                        'account/getBalance': 3,
-                        'account/subs': 3,
-                        'account/subs/balance': 3,
-                        'account/subs/transfer/record': 3,
+                        'orders/fills': 10,
+                        'account/getBalance': 1,
+                        'account/subs': 1,
+                        'account/subs/balance': 1,
+                        'account/subs/transfer/record': 10,
                         'wallet/query/deposit-withdraw': 3,
                     },
                     'post': {
-                        'orders/create': 3,
-                        'orders/cancel': 3,
-                        'account/withdraw/coin': 3,
-                        'account/subs/transfer': 3,
+                        'orders/create': 5,
+                        'orders/batch-create': 50,
+                        'orders/cancel': 1,
+                        'orders/batch-cancel': 10,
+                        'orders/cancel-by-symbol': 10,
+                        'account/subs/transfer': 5,
+                        'wallet/withdraw/coin': 3,
+                        'account/withdraw/coin': 3, // not found in doc
                     },
                 },
             },
@@ -392,7 +400,7 @@ class novadax extends novadax$1 {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -590,7 +598,7 @@ class novadax extends novadax$1 {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -646,7 +654,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -825,7 +833,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -853,7 +861,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -892,7 +900,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -952,7 +960,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1158,7 +1166,7 @@ class novadax extends novadax$1 {
         //
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -1181,7 +1189,6 @@ class novadax extends novadax$1 {
             'info': transfer,
             'id': id,
             'amount': undefined,
-            'code': currencyCode,
             'currency': currencyCode,
             'fromAccount': undefined,
             'toAccount': undefined,
@@ -1353,7 +1360,7 @@ class novadax extends novadax$1 {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransactionStatus(status) {
@@ -1498,7 +1505,7 @@ class novadax extends novadax$1 {
         //          "message": "Success"
         //      }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

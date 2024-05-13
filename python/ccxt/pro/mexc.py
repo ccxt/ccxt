@@ -9,7 +9,6 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
@@ -241,7 +240,7 @@ class mexc(ccxt.async_support.mexc):
         #        "d": {
         #            "e": "spot@public.kline.v3.api",
         #            "k": {
-        #                "t": 1678642260,
+        #                "t": 1678642261,
         #                "o": 20626.94,
         #                "c": 20599.69,
         #                "h": 20626.94,
@@ -439,23 +438,24 @@ class mexc(ccxt.async_support.mexc):
         symbol = self.safe_symbol(marketId)
         messageHash = 'orderbook:' + symbol
         subscription = self.safe_value(client.subscriptions, messageHash)
+        limit = self.safe_integer(subscription, 'limit')
         if subscription is True:
             # we set client.subscriptions[messageHash] to 1
             # once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1
             self.orderbooks[symbol] = self.counted_order_book({})
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
+        storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             storedOrderBook.cache.append(data)
             return
         try:
             self.handle_delta(storedOrderBook, data)
-            timestamp = self.safe_integer(message, 't')
+            timestamp = self.safe_integer_2(message, 't', 'ts')
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
         except Exception as e:
@@ -480,10 +480,12 @@ class mexc(ccxt.async_support.mexc):
                 bookside.store(price, amount)
 
     def handle_delta(self, orderbook, delta):
-        nonce = self.safe_integer(orderbook, 'nonce')
+        existingNonce = self.safe_integer(orderbook, 'nonce')
         deltaNonce = self.safe_integer_2(delta, 'r', 'version')
-        if deltaNonce != nonce and deltaNonce != nonce + 1:
-            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
+        if deltaNonce < existingNonce:
+            # even when doing < comparison, self happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            # so, we just skip old updates
+            return
         orderbook['nonce'] = deltaNonce
         asks = self.safe_value(delta, 'asks', [])
         bids = self.safe_value(delta, 'bids', [])
@@ -663,6 +665,21 @@ class mexc(ccxt.async_support.mexc):
         #        "v": "5"
         #    }
         #
+        #
+        #   d: {
+        #       p: '1.0005',
+        #       v: '5.71',
+        #       a: '5.712855',
+        #       S: 1,
+        #       T: 1714325698237,
+        #       t: 'edafcd9fdc2f426e82443d114691f724',
+        #       c: '',
+        #       i: 'C02__413321238354677760043',
+        #       m: 0,
+        #       st: 0,
+        #       n: '0.005712855',
+        #       N: 'USDT'
+        #   }
         timestamp = self.safe_integer(trade, 'T')
         tradeId = self.safe_string(trade, 't')
         if timestamp is None:
@@ -673,6 +690,8 @@ class mexc(ccxt.async_support.mexc):
         rawSide = self.safe_string(trade, 'S')
         side = 'buy' if (rawSide == '1') else 'sell'
         isMaker = self.safe_integer(trade, 'm')
+        feeAmount = self.safe_number(trade, 'n')
+        feeCurrencyId = self.safe_string(trade, 'N')
         return self.safe_trade({
             'info': trade,
             'id': tradeId,
@@ -686,7 +705,10 @@ class mexc(ccxt.async_support.mexc):
             'price': priceString,
             'amount': amountString,
             'cost': None,
-            'fee': None,
+            'fee': {
+                'cost': feeAmount,
+                'currency': self.safe_currency_code(feeCurrencyId),
+            },
         }, market)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1048,7 +1070,7 @@ class mexc(ccxt.async_support.mexc):
         #
         msg = self.safe_string(message, 'msg')
         if msg == 'PONG':
-            return self.handle_pong(client, message)
+            self.handle_pong(client, message)
         elif msg.find('@') > -1:
             parts = msg.split('@')
             channel = self.safe_string(parts, 1)
@@ -1066,7 +1088,8 @@ class mexc(ccxt.async_support.mexc):
                 client.reject(error)
             return
         if 'msg' in message:
-            return self.handle_subscription_status(client, message)
+            self.handle_subscription_status(client, message)
+            return
         c = self.safe_string(message, 'c')
         channel = None
         if c is None:

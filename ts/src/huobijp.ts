@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvaila
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -415,7 +415,7 @@ export default class huobijp extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name huobijp#fetchMarkets
@@ -531,7 +531,7 @@ export default class huobijp extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -869,7 +869,7 @@ export default class huobijp extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobijp#fetchTrades
@@ -949,7 +949,7 @@ export default class huobijp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = 1000, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name huobijp#fetchOHLCV
@@ -968,7 +968,7 @@ export default class huobijp extends Exchange {
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min (limit, 2000);
         }
         const response = await this.marketGetHistoryKline (this.extend (request, params));
         //
@@ -983,11 +983,11 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name huobijp#fetchAccounts
@@ -1000,7 +1000,7 @@ export default class huobijp extends Exchange {
         return response['data'];
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name huobijp#fetchCurrencies
@@ -1061,7 +1061,7 @@ export default class huobijp extends Exchange {
             const depositEnabled = this.safeValue (currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
             const countryDisabled = this.safeValue (currency, 'country-disabled');
-            const visible = this.safeValue (currency, 'visible', false);
+            const visible = this.safeBool (currency, 'visible', false);
             const state = this.safeString (currency, 'state');
             const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
             const name = this.safeString (currency, 'display-name');
@@ -1187,7 +1187,7 @@ export default class huobijp extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId (this.extend (request, params));
-        const order = this.safeValue (response, 'data');
+        const order = this.safeDict (response, 'data');
         return this.parseOrder (order);
     }
 
@@ -1290,7 +1290,7 @@ export default class huobijp extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1390,7 +1390,7 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name huobijp#createMarketBuyOrderWithCost
@@ -1409,7 +1409,7 @@ export default class huobijp extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#createOrder
@@ -1473,13 +1473,12 @@ export default class huobijp extends Exchange {
         }
         const method = this.options['createOrderMethod'];
         const response = await this[method] (this.extend (request, params));
-        const timestamp = this.milliseconds ();
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,
@@ -1827,7 +1826,7 @@ export default class huobijp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#withdraw

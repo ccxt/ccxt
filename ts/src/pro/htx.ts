@@ -440,6 +440,8 @@ export default class htx extends htxRest {
                 client.resolve (orderbook, messageHash);
             }
         } catch (e) {
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject (e, messageHash);
         }
     }
@@ -477,6 +479,7 @@ export default class htx extends htxRest {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
+        return undefined;
     }
 
     handleDelta (bookside, delta) {
@@ -937,11 +940,16 @@ export default class htx extends htxRest {
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString (parsedTrade, 'order');
                 const trades = [ parsedTrade ];
+                const status = this.parseOrderStatus (this.safeString2 (data, 'orderStatus', 'status', 'closed'));
+                const filled = this.safeString (data, 'execAmt');
+                const remaining = this.safeString (data, 'remainAmt');
                 const order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': this.parseNumber (filled),
+                    'remaining': this.parseNumber (remaining),
                 };
                 parsedOrder = order;
             } else {
@@ -1682,14 +1690,14 @@ export default class htx extends htxRest {
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
-                return method.call (this, client, message, subscription);
+                method.call (this, client, message, subscription);
+                return;
             }
             // clean up
             if (id in client.subscriptions) {
                 delete client.subscriptions[id];
             }
         }
-        return message;
     }
 
     handleSystemStatus (client: Client, message) {
@@ -1800,10 +1808,9 @@ export default class htx extends htxRest {
                 'kline': this.handleOHLCV,
             };
             const method = this.safeValue (methods, methodName);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
+                return;
             }
         }
         // private spot subjects
@@ -1892,7 +1899,7 @@ export default class htx extends htxRest {
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        const promise = client.futures['authenticated'];
+        const promise = client.futures['auth'];
         promise.resolve (message);
     }
 
@@ -1921,6 +1928,12 @@ export default class htx extends htxRest {
         //         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
         //         "ts": 1698419490189
         //     }
+        //     {
+        //         "action":"req",
+        //         "code":2002,
+        //         "ch":"auth",
+        //         "message":"auth.fail"
+        //     }
         //
         const status = this.safeString (message, 'status');
         if (status === 'error') {
@@ -1931,6 +1944,7 @@ export default class htx extends htxRest {
                 const errorCode = this.safeString (message, 'err-code');
                 try {
                     this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode, this.json (message));
+                    throw new ExchangeError (this.json (message));
                 } catch (e) {
                     const messageHash = this.safeString (subscription, 'messageHash');
                     client.reject (e, messageHash);
@@ -1942,11 +1956,12 @@ export default class htx extends htxRest {
             }
             return false;
         }
-        const code = this.safeInteger2 (message, 'code', 'err-code');
-        if (code !== undefined && ((code !== 200) && (code !== 0))) {
+        const code = this.safeString2 (message, 'code', 'err-code');
+        if (code !== undefined && ((code !== '200') && (code !== '0'))) {
             const feedback = this.id + ' ' + this.json (message);
             try {
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
+                throw new ExchangeError (feedback);
             } catch (e) {
                 if (e instanceof AuthenticationError) {
                     client.reject (e, 'auth');
@@ -2298,9 +2313,6 @@ export default class htx extends htxRest {
             'url': url,
             'hostname': hostname,
         };
-        if (type === 'spot') {
-            this.options['ws']['gunzip'] = false;
-        }
         await this.authenticate (authParams);
         return await this.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
     }
@@ -2313,7 +2325,7 @@ export default class htx extends htxRest {
             throw new ArgumentsRequired (this.id + ' authenticate requires a url, hostname and type argument');
         }
         this.checkRequiredCredentials ();
-        const messageHash = 'authenticated';
+        const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
         const future = client.future (messageHash);
@@ -2374,6 +2386,6 @@ export default class htx extends htxRest {
             };
             this.watch (url, messageHash, request, messageHash, subscription);
         }
-        return future;
+        return await future;
     }
 }

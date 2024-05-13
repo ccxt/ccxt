@@ -6,11 +6,12 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -32,6 +33,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 'swap': None,  # has but not fully implemented
                 'future': None,  # has but not fully implemented
                 'option': False,
+                'cancelAllOrders': None,  # https://lightning.bitflyer.com/docs?lang=en#cancel-all-orders
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -117,6 +119,11 @@ class bitflyer(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    '-2': OnMaintenance,  # {"status":-2,"error_message":"Under maintenance","data":null}
+                },
+            },
         })
 
     def parse_expiry_date(self, expiry):
@@ -140,13 +147,13 @@ class bitflyer(Exchange, ImplicitAPI):
         month = self.safe_string(months, monthName)
         return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         # Bitflyer has a different type of conflict in markets, because
         # some of their ids(ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         # Since they're the same we just need to return one
         return super(bitflyer, self).safe_market(marketId, market, delimiter, 'spot')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitflyer
         :see: https://lightning.bitflyer.com/docs?lang=en#market-list
@@ -351,7 +358,7 @@ class bitflyer(Exchange, ImplicitAPI):
         orderbook = self.publicGetGetboard(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_string(ticker, 'ltp')
@@ -486,7 +493,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fee(self, symbol: str, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
@@ -511,9 +518,11 @@ class bitflyer(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'maker': fee,
             'taker': fee,
+            'percentage': None,
+            'tierBased': None,
         }
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
@@ -614,7 +623,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -638,7 +647,7 @@ class bitflyer(Exchange, ImplicitAPI):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -653,7 +662,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -755,7 +764,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # todo unify parsePosition/parsePositions
         return response
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
@@ -972,3 +981,15 @@ class bitflyer(Exchange, ImplicitAPI):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return None  # fallback to the default error handler
+        feedback = self.id + ' ' + body
+        # i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        errorMessage = self.safe_string(response, 'error_message')
+        statusCode = self.safe_number(response, 'status')
+        if errorMessage is not None:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], statusCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        return None

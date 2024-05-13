@@ -27,13 +27,13 @@
                     "withdrawConfirm": "15",
                     "withdrawFee": "0.0000051",
                     "withdrawable": "true"
-                    }
+                }
             ],
             "coin": "BTC",
             "coinId": "1",
             "transfer": "true"
         },
-        "id": "1",
+        "id": "BTC",
         "code": "BTC",
         "networks": {
             "BTC": {
@@ -273,7 +273,7 @@
             "coinId": "2",
             "transfer": "true"
         },
-        "id": "2",
+        "id": "USDT",
         "code": "USDT",
         "networks": {
             "OMNI": {
@@ -646,7 +646,7 @@
             "coin": "EUR",
             "transfer": "false"
         },
-        "id": "590",
+        "id": "EUR",
         "code": "EUR",
         "networks": {},
         "active": false,
@@ -679,7 +679,7 @@
             "coinId": "5",
             "transfer": "true"
         },
-        "id": "5",
+        "id": "LTC",
         "code": "LTC",
         "networks": {
             "LTC": {
@@ -838,7 +838,7 @@
             "coinId": "3",
             "transfer": "true"
         },
-        "id": "3",
+        "id": "ETH",
         "code": "ETH",
         "networks": {
             "ETH": {
@@ -1109,7 +1109,7 @@
             "coinId": "125",
             "transfer": "true"
         },
-        "id": "125",
+        "id": "ADA",
         "code": "ADA",
         "networks": {
             "CARDANO": {
@@ -1177,7 +1177,7 @@
             "coinId": "56",
             "transfer": "true"
         },
-        "id": "56",
+        "id": "XRP",
         "code": "XRP",
         "networks": {
             "XRP": {
@@ -1336,7 +1336,7 @@
             "coinId": "74",
             "transfer": "true"
         },
-        "id": "74",
+        "id": "USDC",
         "code": "USDC",
         "networks": {
             "ARBITRUMONE": {
@@ -1583,6 +1583,75 @@
             },
             "deposit": {
                 "min": 0.01
+            }
+        }
+    },
+    "$AI": {
+        "info": {
+            "coinId": "1035",
+            "coin": "$AI",
+            "transfer": "false",
+            "chains": [
+                {
+                    "chain": "BEP20",
+                    "needTag": "false",
+                    "withdrawable": "true",
+                    "rechargeable": "true",
+                    "withdrawFee": "0.89235",
+                    "extraWithdrawFee": "0",
+                    "depositConfirm": "15",
+                    "withdrawConfirm": "15",
+                    "minDepositAmount": "0.1",
+                    "minWithdrawAmount": "200",
+                    "browserUrl": "https://bscscan.com/tx/"
+                }
+            ],
+            "areaCoin": "no"
+        },
+        "id": "$AI",
+        "code": "$AI",
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "chain": "BEP20",
+                    "needTag": "false",
+                    "withdrawable": "true",
+                    "rechargeable": "true",
+                    "withdrawFee": "0.89235",
+                    "extraWithdrawFee": "0",
+                    "depositConfirm": "15",
+                    "withdrawConfirm": "15",
+                    "minDepositAmount": "0.1",
+                    "minWithdrawAmount": "200",
+                    "browserUrl": "https://bscscan.com/tx/"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "limits": {
+                    "withdraw": {
+                        "min": 200
+                    },
+                    "deposit": {
+                        "min": 0.1
+                    }
+                },
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "fee": 0.89235
+            }
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.89235,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 200
+            },
+            "deposit": {
+                "min": 0.1
             }
         }
     }

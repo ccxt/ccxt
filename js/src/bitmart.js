@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bitmart.js';
-import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -47,6 +47,7 @@ export default class bitmart extends Exchange {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'createTrailingPercentOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
@@ -199,6 +200,7 @@ export default class bitmart extends Exchange {
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
                         'contract/private/get-open-orders': 1.2,
+                        'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
                     },
                     'post': {
@@ -264,8 +266,8 @@ export default class bitmart extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber('0.0025'),
-                    'maker': this.parseNumber('0.0025'),
+                    'taker': this.parseNumber('0.0040'),
+                    'maker': this.parseNumber('0.0035'),
                     'tiers': {
                         'taker': [
                             [this.parseNumber('0'), this.parseNumber('0.0020')],
@@ -308,7 +310,11 @@ export default class bitmart extends Exchange {
                     '30012': AuthenticationError,
                     '30013': RateLimitExceeded,
                     '30014': ExchangeNotAvailable,
-                    // funding account errors
+                    '30016': OnMaintenance,
+                    '30017': RateLimitExceeded,
+                    '30018': BadRequest,
+                    '30019': PermissionDenied,
+                    // funding account & sub account errors
                     '60000': BadRequest,
                     '60001': BadRequest,
                     '60002': BadRequest,
@@ -325,13 +331,32 @@ export default class bitmart extends Exchange {
                     '60020': PermissionDenied,
                     '60021': PermissionDenied,
                     '60022': PermissionDenied,
+                    '60026': PermissionDenied,
+                    '60027': PermissionDenied,
+                    '60028': AccountSuspended,
+                    '60029': AccountSuspended,
                     '60030': BadRequest,
                     '60031': BadRequest,
                     '60050': ExchangeError,
                     '60051': ExchangeError,
                     '61001': InsufficientFunds,
                     '61003': BadRequest,
-                    // spot errors
+                    '61004': BadRequest,
+                    '61005': BadRequest,
+                    '61006': NotSupported,
+                    '61007': ExchangeError,
+                    '61008': ExchangeError,
+                    // spot public errors
+                    '70000': ExchangeError,
+                    '70001': BadRequest,
+                    '70002': BadSymbol,
+                    '70003': NetworkError,
+                    '71001': BadRequest,
+                    '71002': BadRequest,
+                    '71003': BadRequest,
+                    '71004': BadRequest,
+                    '71005': BadRequest,
+                    // spot & margin errors
                     '50000': BadRequest,
                     '50001': BadSymbol,
                     '50002': BadRequest,
@@ -351,26 +376,75 @@ export default class bitmart extends Exchange {
                     '50016': BadRequest,
                     '50017': BadRequest,
                     '50018': BadRequest,
-                    '50019': BadRequest,
-                    '51004': InsufficientFunds,
-                    // '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
+                    '50019': ExchangeError,
                     '50020': InsufficientFunds,
                     '50021': BadRequest,
                     '50022': ExchangeNotAvailable,
                     '50023': BadSymbol,
+                    '50024': BadRequest,
+                    '50025': BadRequest,
+                    '50026': BadRequest,
+                    '50027': BadRequest,
+                    '50028': BadRequest,
                     '50029': InvalidOrder,
-                    '50030': InvalidOrder,
+                    '50030': OrderNotFound,
+                    '50031': OrderNotFound,
                     '50032': OrderNotFound,
+                    '50033': InvalidOrder,
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
-                    '50035': InvalidOrder,
                     '50034': InvalidOrder,
+                    '50035': InvalidOrder,
+                    '50036': ExchangeError,
+                    '50037': BadRequest,
+                    '50038': BadRequest,
+                    '50039': BadRequest,
+                    '50040': BadSymbol,
+                    '50041': ExchangeError,
+                    '50042': BadRequest,
+                    '51000': BadSymbol,
+                    '51001': ExchangeError,
+                    '51002': ExchangeError,
+                    '51003': ExchangeError,
+                    '51004': InsufficientFunds,
+                    '51005': InvalidOrder,
+                    '51006': InvalidOrder,
+                    '51007': BadRequest,
+                    '51008': ExchangeError,
+                    '51009': InvalidOrder,
+                    '51010': InvalidOrder,
                     '51011': InvalidOrder,
+                    '51012': InvalidOrder,
+                    '51013': InvalidOrder,
+                    '51014': InvalidOrder,
+                    '51015': InvalidOrder,
+                    '52000': BadRequest,
+                    '52001': BadRequest,
+                    '52002': BadRequest,
+                    '52003': BadRequest,
+                    '52004': BadRequest,
                     '53000': AccountSuspended,
                     '53001': AccountSuspended,
+                    '53002': PermissionDenied,
+                    '53003': PermissionDenied,
+                    '53005': PermissionDenied,
+                    '53006': PermissionDenied,
+                    '53007': PermissionDenied,
+                    '53008': PermissionDenied,
+                    '53009': PermissionDenied,
+                    '53010': PermissionDenied,
                     '57001': BadRequest,
                     '58001': BadRequest,
                     '59001': ExchangeError,
                     '59002': ExchangeError,
+                    '59003': ExchangeError,
+                    '59004': ExchangeError,
+                    '59005': PermissionDenied,
+                    '59006': ExchangeError,
+                    '59007': ExchangeError,
+                    '59008': ExchangeError,
+                    '59009': ExchangeError,
+                    '59010': InsufficientFunds,
+                    '59011': ExchangeError,
                     // contract errors
                     '40001': ExchangeError,
                     '40002': ExchangeError,
@@ -406,14 +480,22 @@ export default class bitmart extends Exchange {
                     '40032': InvalidOrder,
                     '40033': InvalidOrder,
                     '40034': BadSymbol,
-                    '53002': PermissionDenied,
-                    '53003': PermissionDenied,
-                    '53005': PermissionDenied,
-                    '53006': PermissionDenied,
-                    '53007': PermissionDenied,
-                    '53008': PermissionDenied,
-                    '53009': PermissionDenied,
-                    '53010': PermissionDenied, // 403 This account is restricted from borrowing
+                    '40035': OrderNotFound,
+                    '40036': InvalidOrder,
+                    '40037': OrderNotFound,
+                    '40038': BadRequest,
+                    '40039': BadRequest,
+                    '40040': InvalidOrder,
+                    '40041': InvalidOrder,
+                    '40042': InvalidOrder,
+                    '40043': InvalidOrder,
+                    '40044': InvalidOrder,
+                    '40045': InvalidOrder,
+                    '40046': PermissionDenied,
+                    '40047': PermissionDenied,
+                    '40048': BadRequest,
+                    '40049': BadRequest,
+                    '40050': InvalidOrder, // 403, Client OrderId duplicated with existing orders
                 },
                 'broad': {},
             },
@@ -434,6 +516,7 @@ export default class bitmart extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'ERC20',
+                    'SOL': 'SOL',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
                     // todo: should be TRX after unification
@@ -456,7 +539,6 @@ export default class bitmart extends Exchange {
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -1045,7 +1127,7 @@ export default class bitmart extends Exchange {
     }
     parseTicker(ticker, market = undefined) {
         //
-        // spot
+        // spot (REST)
         //
         //      {
         //          "symbol": "SOLAR_USDT",
@@ -1065,6 +1147,17 @@ export default class bitmart extends Exchange {
         //          "timestamp": 1667403439367
         //      }
         //
+        // spot (WS)
+        //      {
+        //          "symbol":"BTC_USDT",
+        //          "last_price":"146.24",
+        //          "open_24h":"147.17",
+        //          "high_24h":"147.48",
+        //          "low_24h":"143.88",
+        //          "base_volume_24h":"117387.58", // NOT base, but quote currency!!!
+        //          "s_t": 1610936002
+        //      }
+        //
         // swap
         //
         //      {
@@ -1080,7 +1173,11 @@ export default class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp');
+        let timestamp = this.safeInteger(ticker, 'timestamp');
+        if (timestamp === undefined) {
+            // ticker from WS has a different field (in seconds)
+            timestamp = this.safeIntegerProduct(ticker, 's_t', 1000);
+        }
         const marketId = this.safeString2(ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -1096,9 +1193,20 @@ export default class bitmart extends Exchange {
                 percentage = '0';
             }
         }
-        const baseVolume = this.safeString(ticker, 'base_volume_24h');
+        let baseVolume = this.safeString(ticker, 'base_volume_24h');
         let quoteVolume = this.safeString(ticker, 'quote_volume_24h');
-        quoteVolume = this.safeString(ticker, 'volume_24h', quoteVolume);
+        if (quoteVolume === undefined) {
+            if (baseVolume === undefined) {
+                // this is swap
+                quoteVolume = this.safeString(ticker, 'volume_24h', quoteVolume);
+            }
+            else {
+                // this is a ticker from websockets
+                // contrary to name and documentation, base_volume_24h is actually the quote volume
+                quoteVolume = baseVolume;
+                baseVolume = undefined;
+            }
+        }
         const average = this.safeString2(ticker, 'avg_price', 'index_price');
         const high = this.safeString2(ticker, 'high_24h', 'high_price');
         const low = this.safeString2(ticker, 'low_24h', 'low_price');
@@ -1212,7 +1320,7 @@ export default class bitmart extends Exchange {
         else if (market['swap']) {
             tickersById = this.indexBy(tickers, 'contract_symbol');
         }
-        const ticker = this.safeValue(tickersById, market['id']);
+        const ticker = this.safeDict(tickersById, market['id']);
         return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -1479,7 +1587,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'trades', []);
+        const trades = this.safeList(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1649,7 +1757,7 @@ export default class bitmart extends Exchange {
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        const ohlcv = this.safeValue(response, 'data', []);
+        const ohlcv = this.safeList(response, 'data', []);
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1765,7 +1873,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1786,7 +1894,7 @@ export default class bitmart extends Exchange {
             'orderId': id,
         };
         const response = await this.privatePostSpotV4QueryOrderTrades(this.extend(request, params));
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, undefined, since, limit);
     }
     customParseBalance(response, marketType) {
@@ -1858,7 +1966,7 @@ export default class bitmart extends Exchange {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const marginMode = this.safeString(params, 'marginMode');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, ['margin', 'marginMode']);
         if (marginMode !== undefined || isMargin) {
             marketType = 'margin';
@@ -1990,6 +2098,8 @@ export default class bitmart extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'maker_fee_rate'),
             'taker': this.safeNumber(fee, 'taker_fee_rate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -2128,7 +2238,7 @@ export default class bitmart extends Exchange {
         if (priceString === 'market price') {
             priceString = undefined;
         }
-        const trailingStopActivationPrice = this.safeNumber(order, 'activation_price');
+        const trailingActivationPrice = this.safeNumber(order, 'activation_price');
         return this.safeOrder({
             'id': id,
             'clientOrderId': this.safeString(order, 'client_order_id'),
@@ -2142,8 +2252,8 @@ export default class bitmart extends Exchange {
             'postOnly': postOnly,
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.omitZero(priceString),
-            'stopPrice': trailingStopActivationPrice,
-            'triggerPrice': trailingStopActivationPrice,
+            'stopPrice': trailingActivationPrice,
+            'triggerPrice': trailingActivationPrice,
             'amount': this.omitZero(this.safeString(order, 'size')),
             'cost': this.safeString2(order, 'filled_notional', 'filledNotional'),
             'average': this.safeStringN(order, ['price_avg', 'priceAvg', 'deal_avg_price']),
@@ -2215,6 +2325,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
@@ -2226,12 +2337,20 @@ export default class bitmart extends Exchange {
          * @param {string} [params.clientOrderId] client order id of the order
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
+         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const result = this.handleMarginModeAndParams('createOrder', params);
         const marginMode = this.safeString(result, 0);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
+        const isTriggerOrder = triggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
             const spotRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
@@ -2244,7 +2363,12 @@ export default class bitmart extends Exchange {
         }
         else {
             const swapRequest = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
-            response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
+            if (isTriggerOrder) {
+                response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
+            }
+            else {
+                response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
+            }
         }
         //
         // spot and margin
@@ -2276,6 +2400,7 @@ export default class bitmart extends Exchange {
          * @ignore
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing'
          * @param {string} side 'buy' or 'sell'
@@ -2286,8 +2411,12 @@ export default class bitmart extends Exchange {
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
          * @param {string} [params.clientOrderId] client order id of the order
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
          * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
-         * @param {string} [params.callback_rate] *swap trailing order only* min 0.1, max 5 where 1 is 1%, default is "1"
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market(symbol);
@@ -2300,10 +2429,9 @@ export default class bitmart extends Exchange {
         const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        let reduceOnly = this.safeValue(params, 'reduceOnly');
+        const reduceOnly = this.safeValue(params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
-        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly']);
         const ioc = ((timeInForce === 'IOC') || (mode === 3));
         const isLimitOrder = (type === 'limit') || postOnly || ioc;
         if (timeInForce === 'GTC') {
@@ -2318,14 +2446,39 @@ export default class bitmart extends Exchange {
         if (postOnly) {
             request['mode'] = 4;
         }
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
+        const isTriggerOrder = triggerPrice !== undefined;
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activation_price', this.numberToString(price));
+        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callback_rate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        else if (type === 'trailing') {
-            reduceOnly = true;
-            request['activation_price'] = this.priceToPrecision(symbol, price);
+        else if (type === 'trailing' || isTrailingPercentOrder) {
+            request['callback_rate'] = trailingPercent;
+            request['activation_price'] = this.priceToPrecision(symbol, trailingTriggerPrice);
             request['activation_price_type'] = this.safeInteger(params, 'activation_price_type', 1);
-            request['callback_rate'] = this.safeString(params, 'callback_rate', '1');
+        }
+        if (isTriggerOrder) {
+            request['executive_price'] = this.priceToPrecision(symbol, price);
+            request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
+            request['price_type'] = this.safeInteger(params, 'price_type', 1);
+            if (side === 'buy') {
+                if (reduceOnly) {
+                    request['price_way'] = 2;
+                }
+                else {
+                    request['price_way'] = 1;
+                }
+            }
+            else if (side === 'sell') {
+                if (reduceOnly) {
+                    request['price_way'] = 1;
+                }
+                else {
+                    request['price_way'] = 2;
+                }
+            }
         }
         if (side === 'buy') {
             if (reduceOnly) {
@@ -2352,7 +2505,7 @@ export default class bitmart extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         const leverage = this.safeInteger(params, 'leverage', 1);
-        params = this.omit(params, 'leverage');
+        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice']);
         request['leverage'] = this.numberToString(leverage);
         return this.extend(request, params);
     }
@@ -2399,7 +2552,7 @@ export default class bitmart extends Exchange {
         else if (isMarketOrder) {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
-                let notional = this.safeNumber2(params, 'cost', 'notional');
+                let notional = this.safeString2(params, 'cost', 'notional');
                 params = this.omit(params, 'cost');
                 let createMarketBuyOrderRequiresPrice = true;
                 [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2410,11 +2563,11 @@ export default class bitmart extends Exchange {
                     else {
                         const amountString = this.numberToString(amount);
                         const priceString = this.numberToString(price);
-                        notional = this.parseNumber(Precise.stringMul(amountString, priceString));
+                        notional = Precise.stringMul(amountString, priceString);
                     }
                 }
                 else {
-                    notional = (notional === undefined) ? amount : notional;
+                    notional = (notional === undefined) ? this.numberToString(amount) : notional;
                 }
                 request['notional'] = this.decimalToPrecision(notional, TRUNCATE, market['precision']['price'], this.precisionMode);
             }
@@ -2434,10 +2587,11 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#cancelOrder
+         * @description cancels an open order
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-         * @description cancels an open order
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2466,8 +2620,8 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
         }
         else {
-            const stop = this.safeValue(params, 'stop');
-            params = this.omit(params, ['stop']);
+            const stop = this.safeValue2(params, 'stop', 'trigger');
+            params = this.omit(params, ['stop', 'trigger']);
             if (!stop) {
                 response = await this.privatePostContractPrivateCancelOrder(this.extend(request, params));
             }
@@ -2628,7 +2782,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(data, 'orders', []);
+        const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2637,6 +2791,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchOpenOrders
          * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -2647,6 +2802,8 @@ export default class bitmart extends Exchange {
          * @param {string} [params.type] *swap* order type, 'limit' or 'market'
          * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
          * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
+         * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2679,12 +2836,23 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, params));
         }
         else if (type === 'swap') {
-            const orderType = this.safeString(params, 'orderType');
-            params = this.omit(params, 'orderType');
-            if (orderType !== undefined) {
-                request['type'] = orderType;
+            const isStop = this.safeValue2(params, 'stop', 'trigger');
+            params = this.omit(params, ['stop', 'trigger']);
+            if (isStop) {
+                response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, params));
             }
-            response = await this.privateGetContractPrivateGetOpenOrders(this.extend(request, params));
+            else {
+                const trailing = this.safeBool(params, 'trailing', false);
+                let orderType = this.safeString(params, 'orderType');
+                params = this.omit(params, ['orderType', 'trailing']);
+                if (trailing) {
+                    orderType = 'trailing';
+                }
+                if (orderType !== undefined) {
+                    request['type'] = orderType;
+                }
+                response = await this.privateGetContractPrivateGetOpenOrders(this.extend(request, params));
+            }
         }
         else {
             throw new NotSupported(this.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
@@ -2743,7 +2911,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2797,7 +2965,7 @@ export default class bitmart extends Exchange {
         else {
             response = await this.privateGetContractPrivateOrderHistory(this.extend(request, params));
         }
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2826,6 +2994,7 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
          * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2853,8 +3022,12 @@ export default class bitmart extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
             }
-            const orderType = this.safeString(params, 'orderType');
-            params = this.omit(params, 'orderType');
+            const trailing = this.safeBool(params, 'trailing', false);
+            let orderType = this.safeString(params, 'orderType');
+            params = this.omit(params, ['orderType', 'trailing']);
+            if (trailing) {
+                orderType = 'trailing';
+            }
             if (orderType !== undefined) {
                 request['type'] = orderType;
             }
@@ -2912,7 +3085,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -2920,6 +3093,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2942,40 +3116,57 @@ export default class bitmart extends Exchange {
         }
         const response = await this.privateGetAccountV1DepositAddress(this.extend(request, params));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //        "data": {
+        //            currency: 'ETH',
+        //            chain: 'Ethereum',
+        //            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //            address_memo: ''
+        //        }
+        //    }
         //
-        const data = this.safeValue(response, 'data', {});
-        const address = this.safeString(data, 'address');
-        const tag = this.safeString(data, 'address_memo');
-        const chain = this.safeString(data, 'chain');
+        const data = this.safeDict(response, 'data', {});
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        currency: 'ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
+        const currencyId = this.safeString(depositAddress, 'currency');
+        const address = this.safeString(depositAddress, 'address');
+        const chain = this.safeString(depositAddress, 'chain');
         let network = undefined;
+        currency = this.safeCurrency(currencyId, currency);
         if (chain !== undefined) {
             const parts = chain.split('-');
-            const networkId = this.safeString(parts, 1);
-            network = this.safeNetwork(networkId);
+            const partsLength = parts.length;
+            const networkId = this.safeString(parts, partsLength - 1);
+            network = this.safeNetworkCode(networkId, currency);
         }
         this.checkAddress(address);
         return {
-            'currency': code,
+            'info': depositAddress,
+            'currency': this.safeString(currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': this.safeString(depositAddress, 'address_memo'),
             'network': network,
-            'info': response,
         };
     }
-    safeNetwork(networkId) {
-        // TODO: parse
-        return networkId;
+    safeNetworkCode(networkId, currency = undefined) {
+        const name = this.safeString(currency, 'name');
+        if (networkId === name) {
+            const code = this.safeString(currency, 'code');
+            return code;
+        }
+        return this.networkIdToCode(networkId);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
@@ -3085,7 +3276,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const records = this.safeValue(data, 'records', []);
+        const records = this.safeList(data, 'records', []);
         return this.parseTransactions(records, currency, since, limit);
     }
     async fetchDeposit(id, code = undefined, params = {}) {
@@ -3126,7 +3317,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const record = this.safeValue(data, 'record', {});
+        const record = this.safeDict(data, 'record', {});
         return this.parseTransaction(record);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3180,7 +3371,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const record = this.safeValue(data, 'record', {});
+        const record = this.safeDict(data, 'record', {});
         return this.parseTransaction(record);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3372,14 +3563,13 @@ export default class bitmart extends Exchange {
         //         "repay_id": "2afcc16d99bd4707818c5a355dc89bed",
         //     }
         //
-        const timestamp = this.milliseconds();
         return {
             'id': this.safeString2(info, 'borrow_id', 'repay_id'),
             'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'symbol': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
@@ -3523,12 +3713,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue(response, 'data', {});
         const symbols = this.safeValue(data, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = this.safeValue(symbols, i);
-            result.push(this.parseIsolatedBorrowRate(symbol));
-        }
-        return result;
+        return this.parseIsolatedBorrowRates(symbols);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**
@@ -3704,9 +3889,9 @@ export default class bitmart extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger(params, 'time_end', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['till', 'until']);
+        params = this.omit(params, ['until']);
         if (endTime !== undefined) {
             request['time_end'] = endTime;
         }
@@ -3731,7 +3916,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const records = this.safeValue(data, 'records', []);
+        const records = this.safeList(data, 'records', []);
         return this.parseTransfers(records, currency, since, limit);
     }
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3848,7 +4033,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOpenInterest(data, market);
     }
     parseOpenInterest(interest, market = undefined) {
@@ -4013,7 +4198,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const first = this.safeDict(data, 0, {});
         return this.parsePosition(first, market);
     }
     async fetchPositions(symbols = undefined, params = {}) {

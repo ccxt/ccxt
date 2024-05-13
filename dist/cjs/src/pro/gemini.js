@@ -15,10 +15,13 @@ class gemini extends gemini$1 {
                 'watchBalance': false,
                 'watchTicker': false,
                 'watchTickers': false,
+                'watchBidsAsks': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
             },
             'hostname': 'api.gemini.com',
@@ -67,7 +70,29 @@ class gemini extends gemini$1 {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gemini#watchTradesForSymbols
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        const trades = await this.helperForWatchMultipleConstruct('trades', symbols, params);
+        if (this.newUpdates) {
+            const first = this.safeList(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
     parseWsTrade(trade, market = undefined) {
+        //
+        // regular v2 trade
         //
         //     {
         //         "type": "trade",
@@ -79,11 +104,31 @@ class gemini extends gemini$1 {
         //         "side": "buy"
         //     }
         //
+        // multi data trade
+        //
+        //    {
+        //        "type": "trade",
+        //        "symbol": "ETHUSD",
+        //        "tid": "1683002242170204", // this is not TS, but somewhat ID
+        //        "price": "2299.24",
+        //        "amount": "0.002662",
+        //        "makerSide": "bid"
+        //    }
+        //
         const timestamp = this.safeInteger(trade, 'timestamp');
-        const id = this.safeString(trade, 'event_id');
+        const id = this.safeString2(trade, 'event_id', 'tid');
         const priceString = this.safeString(trade, 'price');
-        const amountString = this.safeString(trade, 'quantity');
-        const side = this.safeStringLower(trade, 'side');
+        const amountString = this.safeString2(trade, 'quantity', 'amount');
+        let side = this.safeStringLower(trade, 'side');
+        if (side === undefined) {
+            const marketSide = this.safeStringLower(trade, 'makerSide');
+            if (marketSide === 'bid') {
+                side = 'sell';
+            }
+            else if (marketSide === 'ask') {
+                side = 'buy';
+            }
+        }
         const marketId = this.safeStringLower(trade, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         return this.safeTrade({
@@ -158,7 +203,7 @@ class gemini extends gemini$1 {
         //                 "time_ms": 1655323185000,
         //                 "result": "failure",
         //                 "highest_bid_price": "21661.90",
-        //                 "lowest_ask_price": "21663.79",
+        //                 "lowest_ask_price": "21663.78",
         //                 "collar_price": "21662.845"
         //             },
         //         ]
@@ -181,6 +226,34 @@ class gemini extends gemini$1 {
             }
             const messageHash = 'trades:' + symbol;
             client.resolve(stored, messageHash);
+        }
+    }
+    handleTradesForMultidata(client, trades, timestamp) {
+        if (trades !== undefined) {
+            const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            const storesForSymbols = {};
+            for (let i = 0; i < trades.length; i++) {
+                const marketId = trades[i]['symbol'];
+                const market = this.safeMarket(marketId.toLowerCase());
+                const symbol = market['symbol'];
+                const trade = this.parseWsTrade(trades[i], market);
+                trade['timestamp'] = timestamp;
+                trade['datetime'] = this.iso8601(timestamp);
+                let stored = this.safeValue(this.trades, symbol);
+                if (stored === undefined) {
+                    stored = new Cache.ArrayCache(tradesLimit);
+                    this.trades[symbol] = stored;
+                }
+                stored.append(trade);
+                storesForSymbols[symbol] = stored;
+            }
+            const symbols = Object.keys(storesForSymbols);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const stored = storesForSymbols[symbol];
+                const messageHash = 'trades:' + symbol;
+                client.resolve(stored, messageHash);
+            }
         }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -328,6 +401,170 @@ class gemini extends gemini$1 {
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gemini#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const orderbook = await this.helperForWatchMultipleConstruct('orderbook', symbols, params);
+        return orderbook.limit();
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name gemini#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.helperForWatchMultipleConstruct('bidsasks', symbols, params);
+    }
+    handleBidsAsksForMultidata(client, rawBidAskChanges, timestamp, nonce) {
+        //
+        // {
+        //     eventId: '1683002916916153',
+        //     events: [
+        //       {
+        //         price: '50945.37',
+        //         reason: 'top-of-book',
+        //         remaining: '0.0',
+        //         side: 'bid',
+        //         symbol: 'BTCUSDT',
+        //         type: 'change'
+        //       },
+        //       {
+        //         price: '50947.75',
+        //         reason: 'top-of-book',
+        //         remaining: '0.11725',
+        //         side: 'bid',
+        //         symbol: 'BTCUSDT',
+        //         type: 'change'
+        //       }
+        //     ],
+        //     socket_sequence: 322,
+        //     timestamp: 1708674495,
+        //     timestampms: 1708674495174,
+        //     type: 'update'
+        // }
+        //
+        const marketId = rawBidAskChanges[0]['symbol'];
+        const market = this.safeMarket(marketId.toLowerCase());
+        const symbol = market['symbol'];
+        if (!(symbol in this.bidsasks)) {
+            this.bidsasks[symbol] = this.parseTicker({});
+            this.bidsasks[symbol]['symbol'] = symbol;
+        }
+        const currentBidAsk = this.bidsasks[symbol];
+        const messageHash = 'bidsasks:' + symbol;
+        // last update always overwrites the previous state and is the latest state
+        for (let i = 0; i < rawBidAskChanges.length; i++) {
+            const entry = rawBidAskChanges[i];
+            const rawSide = this.safeString(entry, 'side');
+            const price = this.safeNumber(entry, 'price');
+            const size = this.safeNumber(entry, 'remaining');
+            if (size === 0) {
+                continue;
+            }
+            if (rawSide === 'bid') {
+                currentBidAsk['bid'] = price;
+                currentBidAsk['bidVolume'] = size;
+            }
+            else {
+                currentBidAsk['ask'] = price;
+                currentBidAsk['askVolume'] = size;
+            }
+        }
+        currentBidAsk['timestamp'] = timestamp;
+        currentBidAsk['datetime'] = this.iso8601(timestamp);
+        currentBidAsk['info'] = rawBidAskChanges;
+        this.bidsasks[symbol] = currentBidAsk;
+        client.resolve(currentBidAsk, messageHash);
+    }
+    async helperForWatchMultipleConstruct(itemHashName, symbols, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false, true, true);
+        const firstMarket = this.market(symbols[0]);
+        if (!firstMarket['spot'] && !firstMarket['linear']) {
+            throw new errors.NotSupported(this.id + ' watchMultiple supports only spot or linear-swap symbols');
+        }
+        const messageHashes = [];
+        const marketIds = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = itemHashName + ':' + symbol;
+            messageHashes.push(messageHash);
+            const market = this.market(symbol);
+            marketIds.push(market['id']);
+        }
+        const queryStr = marketIds.join(',');
+        let url = this.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
+        if (itemHashName === 'orderbook') {
+            url += 'trades=false&bids=true&offers=true';
+        }
+        else if (itemHashName === 'bidsasks') {
+            url += 'trades=false&bids=true&offers=true&top_of_book=true';
+        }
+        else if (itemHashName === 'trades') {
+            url += 'trades=true&bids=false&offers=false';
+        }
+        return await this.watchMultiple(url, messageHashes, undefined);
+    }
+    handleOrderBookForMultidata(client, rawOrderBookChanges, timestamp, nonce) {
+        //
+        // rawOrderBookChanges
+        //
+        // [
+        //   {
+        //     delta: "4105123935484.817624",
+        //     price: "0.000000001",
+        //     reason: "initial", // initial|cancel|place
+        //     remaining: "4105123935484.817624",
+        //     side: "bid", // bid|ask
+        //     symbol: "SHIBUSD",
+        //     type: "change", // seems always change
+        //   },
+        //   ...
+        //
+        const marketId = rawOrderBookChanges[0]['symbol'];
+        const market = this.safeMarket(marketId.toLowerCase());
+        const symbol = market['symbol'];
+        const messageHash = 'orderbook:' + symbol;
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook();
+            this.orderbooks[symbol] = ob;
+        }
+        const orderbook = this.orderbooks[symbol];
+        const bids = orderbook['bids'];
+        const asks = orderbook['asks'];
+        for (let i = 0; i < rawOrderBookChanges.length; i++) {
+            const entry = rawOrderBookChanges[i];
+            const price = this.safeNumber(entry, 'price');
+            const size = this.safeNumber(entry, 'remaining');
+            const rawSide = this.safeString(entry, 'side');
+            if (rawSide === 'bid') {
+                bids.store(price, size);
+            }
+            else {
+                asks.store(price, size);
+            }
+        }
+        orderbook['bids'] = bids;
+        orderbook['asks'] = asks;
+        orderbook['symbol'] = symbol;
+        orderbook['nonce'] = nonce;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601(timestamp);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve(orderbook, messageHash);
+    }
     handleL2Updates(client, message) {
         //
         //     {
@@ -408,6 +645,7 @@ class gemini extends gemini$1 {
         //         "socket_sequence": 7
         //     }
         //
+        client.lastPong = this.milliseconds();
         return message;
     }
     handleSubscription(client, message) {
@@ -481,7 +719,7 @@ class gemini extends gemini$1 {
         //         "socket_sequence": 139
         //     }
         //
-        const timestamp = this.safeNumber(order, 'timestampms');
+        const timestamp = this.safeInteger(order, 'timestampms');
         const status = this.safeString(order, 'type');
         const marketId = this.safeString(order, 'symbol');
         const typeId = this.safeString(order, 'order_type');
@@ -588,7 +826,8 @@ class gemini extends gemini$1 {
         //
         const isArray = Array.isArray(message);
         if (isArray) {
-            return this.handleOrder(client, message);
+            this.handleOrder(client, message);
+            return;
         }
         const reason = this.safeString(message, 'reason');
         if (reason === 'error') {
@@ -602,11 +841,50 @@ class gemini extends gemini$1 {
         };
         const type = this.safeString(message, 'type', '');
         if (type.indexOf('candles') >= 0) {
-            return this.handleOHLCV(client, message);
+            this.handleOHLCV(client, message);
+            return;
         }
         const method = this.safeValue(methods, type);
         if (method !== undefined) {
             method.call(this, client, message);
+        }
+        // handle multimarketdata
+        if (type === 'update') {
+            const ts = this.safeInteger(message, 'timestampms', this.milliseconds());
+            const eventId = this.safeInteger(message, 'eventId');
+            const events = this.safeList(message, 'events');
+            const orderBookItems = [];
+            const bidaskItems = [];
+            const collectedEventsOfTrades = [];
+            const eventsLength = events.length;
+            for (let i = 0; i < events.length; i++) {
+                const event = events[i];
+                const eventType = this.safeString(event, 'type');
+                const isOrderBook = (eventType === 'change') && ('side' in event) && this.inArray(event['side'], ['ask', 'bid']);
+                const eventReason = this.safeString(event, 'reason');
+                const isBidAsk = (eventReason === 'top-of-book') || (isOrderBook && (eventReason === 'initial') && eventsLength === 2);
+                if (isBidAsk) {
+                    bidaskItems.push(event);
+                }
+                else if (isOrderBook) {
+                    orderBookItems.push(event);
+                }
+                else if (eventType === 'trade') {
+                    collectedEventsOfTrades.push(events[i]);
+                }
+            }
+            const lengthBa = bidaskItems.length;
+            if (lengthBa > 0) {
+                this.handleBidsAsksForMultidata(client, bidaskItems, ts, eventId);
+            }
+            const lengthOb = orderBookItems.length;
+            if (lengthOb > 0) {
+                this.handleOrderBookForMultidata(client, orderBookItems, ts, eventId);
+            }
+            const lengthTrades = collectedEventsOfTrades.length;
+            if (lengthTrades > 0) {
+                this.handleTradesForMultidata(client, collectedEventsOfTrades, ts);
+            }
         }
     }
     async authenticate(params = {}) {
@@ -633,7 +911,8 @@ class gemini extends gemini$1 {
                 },
             },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-GEMINI-APIKEY': this.apiKey,

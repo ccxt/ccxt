@@ -19,6 +19,7 @@ class p2b extends p2b$1 {
             'countries': ['LT'],
             'rateLimit': 100,
             'version': 'v2',
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -78,8 +79,11 @@ class p2b extends p2b$1 {
                 'fetchOrderTrades': true,
                 'fetchPermissions': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -566,7 +570,7 @@ class p2b extends p2b$1 {
         //        current_time: '1699255571.413828'
         //    }
         //
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseTrades(result, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -683,7 +687,7 @@ class p2b extends p2b$1 {
         //        current_time: '1699256375.030494'
         //    }
         //
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseOHLCVs(result, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -818,7 +822,7 @@ class p2b extends p2b$1 {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parseOrder(result, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -864,7 +868,7 @@ class p2b extends p2b$1 {
         //        }
         //    }
         //
-        const result = this.safeValue(response, 'result');
+        const result = this.safeDict(response, 'result');
         return this.parseOrder(result);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -919,7 +923,7 @@ class p2b extends p2b$1 {
         //        ]
         //    }
         //
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         return this.parseOrders(result, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -971,7 +975,7 @@ class p2b extends p2b$1 {
         //    }
         //
         const result = this.safeValue(response, 'result', {});
-        const records = this.safeValue(result, 'records', []);
+        const records = this.safeList(result, 'records', []);
         return this.parseTrades(records, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1047,7 +1051,7 @@ class p2b extends p2b$1 {
         //    }
         //
         const result = this.safeValue(response, 'result', {});
-        const deals = this.safeValue(result, 'deals', []);
+        const deals = this.safeList(result, 'deals', []);
         return this.parseTrades(deals, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

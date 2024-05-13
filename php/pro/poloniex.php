@@ -7,9 +7,9 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -110,8 +110,8 @@ class poloniex extends \ccxt\async\poloniex {
                         'signatureVersion' => '2',          // optional
                     ),
                 );
-                $message = array_merge($request, $params);
-                $future = Async\await($this->watch($url, $messageHash, $message));
+                $message = $this->extend($request, $params);
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 //
                 //    {
                 //        "data" => array(
@@ -167,7 +167,7 @@ class poloniex extends \ccxt\async\poloniex {
             if ($name !== 'balances') {
                 $subscribe['symbols'] = $marketIds;
             }
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -183,7 +183,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @return {array} data from the websocket stream
              */
             $url = $this->urls['api']['ws']['private'];
-            $messageHash = $this->nonce();
+            $messageHash = (string) $this->nonce();
             $subscribe = array(
                 'id' => $messageHash,
                 'event' => $name,
@@ -256,7 +256,7 @@ class poloniex extends \ccxt\async\poloniex {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            return Async\await($this->trade_request('createOrder', array_merge($request, $params)));
+            return Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
         }) ();
     }
 
@@ -296,7 +296,7 @@ class poloniex extends \ccxt\async\poloniex {
             $request = array(
                 'orderIds' => $ids,
             );
-            return Async\await($this->trade_request('cancelOrders', array_merge($request, $params)));
+            return Async\await($this->trade_request('cancelOrders', $this->extend($request, $params)));
         }) ();
     }
 
@@ -327,7 +327,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        )]
         //    }
         //
-        $messageHash = $this->safe_integer($message, 'id');
+        $messageHash = $this->safe_string($message, 'id');
         $data = $this->safe_value($message, 'data', array());
         $orders = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -380,7 +380,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -562,7 +562,8 @@ class poloniex extends \ccxt\async\poloniex {
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($symbol);
-        $timeframe = $this->find_timeframe($channel);
+        $timeframes = $this->safe_value($this->options, 'timeframes', array());
+        $timeframe = $this->find_timeframe($channel, $timeframes);
         $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
@@ -676,8 +677,8 @@ class poloniex extends \ccxt\async\poloniex {
             'type' => $this->safe_string_lower($trade, 'type'),
             'side' => $this->safe_string_lower_2($trade, 'takerSide', 'side'),
             'takerOrMaker' => $takerMaker,
-            'price' => $this->omit_zero($this->safe_number_2($trade, 'tradePrice', 'price')),
-            'amount' => $this->omit_zero($this->safe_number_2($trade, 'filledQuantity', 'quantity')),
+            'price' => $this->omit_zero($this->safe_string_2($trade, 'tradePrice', 'price')),
+            'amount' => $this->omit_zero($this->safe_string_2($trade, 'filledQuantity', 'quantity')),
             'cost' => $this->safe_string_2($trade, 'amount', 'filledAmount'),
             'fee' => array(
                 'rate' => null,
@@ -976,7 +977,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $ticker = $this->parse_ticker($item);
                 $symbol = $ticker['symbol'];
                 $this->tickers[$symbol] = $ticker;
-                $newTickers[] = $ticker;
+                $newTickers[$symbol] = $ticker;
             }
         }
         $messageHashes = $this->find_message_hashes($client, 'ticker::');
@@ -1068,7 +1069,8 @@ class poloniex extends \ccxt\async\poloniex {
                         $bid = $this->safe_value($bids, $j);
                         $price = $this->safe_number($bid, 0);
                         $amount = $this->safe_number($bid, 1);
-                        $orderbook['bids'].store ($price, $amount);
+                        $bidsSide = $orderbook['bids'];
+                        $bidsSide->store ($price, $amount);
                     }
                 }
                 if ($asks !== null) {
@@ -1076,7 +1078,8 @@ class poloniex extends \ccxt\async\poloniex {
                         $ask = $this->safe_value($asks, $j);
                         $price = $this->safe_number($ask, 0);
                         $amount = $this->safe_number($ask, 1);
-                        $orderbook['asks'].store ($price, $amount);
+                        $asksSide = $orderbook['asks'];
+                        $asksSide->store ($price, $amount);
                     }
                 }
                 $orderbook['symbol'] = $symbol;
@@ -1213,13 +1216,13 @@ class poloniex extends \ccxt\async\poloniex {
             if ($orderId === '0') {
                 $this->handle_error_message($client, $item);
             } else {
-                return $this->handle_order_request($client, $message);
+                $this->handle_order_request($client, $message);
             }
         } else {
             $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength > 0) {
-                return $method($client, $message);
+                $method($client, $message);
             }
         }
     }

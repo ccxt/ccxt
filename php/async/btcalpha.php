@@ -8,9 +8,9 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\btcalpha as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\InvalidOrder;
 use ccxt\DDoSProtection;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -34,6 +34,7 @@ class btcalpha extends Exchange {
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -46,6 +47,9 @@ class btcalpha extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDeposit' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -67,8 +71,11 @@ class btcalpha extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -153,10 +160,11 @@ class btcalpha extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for btcalpha
+             * @see https://btc-alpha.github.io/api-docs/#list-all-currencies
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -285,7 +293,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             //    {
             //        "timestamp" => "1674658.445272",
@@ -303,7 +311,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "timestamp" => "1674658.445272",
@@ -365,12 +373,12 @@ class btcalpha extends Exchange {
                 $request['limit_sell'] = $limit;
                 $request['limit_buy'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderbookPairName (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbookPairName ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
         }) ();
     }
 
-    public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {
+    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
             $bidask = $bidasks[$i];
@@ -435,6 +443,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://btc-alpha.github.io/api-docs/#list-all-exchanges
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -451,7 +460,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = Async\await($this->publicGetExchanges (array_merge($request, $params)));
+            $trades = Async\await($this->publicGetExchanges ($this->extend($request, $params)));
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -460,6 +469,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://btc-alpha.github.io/api-docs/#list-own-deposits
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -490,6 +500,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             * @see https://btc-alpha.github.io/api-docs/#list-own-made-withdraws
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -503,7 +514,7 @@ class btcalpha extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency_id'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetWithdraws (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdraws ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -601,6 +612,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://btc-alpha.github.io/api-docs/#charts
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -620,7 +632,7 @@ class btcalpha extends Exchange {
             if ($since !== null) {
                 $request['since'] = $this->parse_to_int($since / 1000);
             }
-            $response = Async\await($this->publicGetChartsPairTypeChart (array_merge($request, $params)));
+            $response = Async\await($this->publicGetChartsPairTypeChart ($this->extend($request, $params)));
             //
             //     array(
             //         array("time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624),
@@ -650,6 +662,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://btc-alpha.github.io/api-docs/#list-own-wallets
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -700,7 +713,7 @@ class btcalpha extends Exchange {
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $success = $this->safe_value($order, 'success', false);
+        $success = $this->safe_bool($order, 'success', false);
         $timestamp = null;
         if ($success) {
             $timestamp = $this->safe_timestamp($order, 'date');
@@ -741,7 +754,7 @@ class btcalpha extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://btc-alpha.github.io/api-docs/#create-$order
@@ -765,7 +778,7 @@ class btcalpha extends Exchange {
                 'amount' => $amount,
                 'price' => $this->price_to_precision($symbol, $price),
             );
-            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
             if (!$response['success']) {
                 throw new InvalidOrder($this->id . ' ' . $this->json($response));
             }
@@ -790,7 +803,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'order' => $id,
             );
-            $response = Async\await($this->privatePostOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
             return $response;
         }) ();
     }
@@ -808,7 +821,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $order = Async\await($this->privateGetOrderId (array_merge($request, $params)));
+            $order = Async\await($this->privateGetOrderId ($this->extend($request, $params)));
             return $this->parse_order($order);
         }) ();
     }
@@ -834,7 +847,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $orders = Async\await($this->privateGetOrdersOwn (array_merge($request, $params)));
+            $orders = Async\await($this->privateGetOrdersOwn ($this->extend($request, $params)));
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -843,6 +856,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://btc-alpha.github.io/api-docs/#list-own-orders
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -852,7 +866,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'status' => '1',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -860,6 +874,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             * @see https://btc-alpha.github.io/api-docs/#list-own-orders
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -869,7 +884,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'status' => '3',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -877,6 +892,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             * @see https://btc-alpha.github.io/api-docs/#list-own-exchanges
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -892,7 +908,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = Async\await($this->privateGetExchangesOwn (array_merge($request, $params)));
+            $trades = Async\await($this->privateGetExchangesOwn ($this->extend($request, $params)));
             return $this->parse_trades($trades, null, $since, $limit);
         }) ();
     }

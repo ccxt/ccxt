@@ -66,8 +66,11 @@ class bitso extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -192,7 +195,7 @@ class bitso extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetLedger (array_merge($request, $params));
+        $response = $this->privateGetLedger ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -334,9 +337,10 @@ class bitso extends Exchange {
         ), $currency);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitso
+         * @see https://docs.bitso.com/bitso-api/docs/list-available-books
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
@@ -417,7 +421,7 @@ class bitso extends Exchange {
             $fee['tiers'] = $tiers;
             // TODO => precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies (or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
             $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
-            $result[] = array_merge(array(
+            $result[] = $this->extend(array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
@@ -496,6 +500,7 @@ class bitso extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.bitso.com/bitso-api/docs/get-account-balance
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -532,6 +537,7 @@ class bitso extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.bitso.com/bitso-api/docs/list-order-book
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -542,13 +548,13 @@ class bitso extends Exchange {
         $request = array(
             'book' => $market['id'],
         );
-        $response = $this->publicGetOrderBook (array_merge($request, $params));
+        $response = $this->publicGetOrderBook ($this->extend($request, $params));
         $orderbook = $this->safe_value($response, 'payload');
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'updated_at'));
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"37446.85",
@@ -596,6 +602,7 @@ class bitso extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://docs.bitso.com/bitso-api/docs/ticker
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -605,7 +612,7 @@ class bitso extends Exchange {
         $request = array(
             'book' => $market['id'],
         );
-        $response = $this->publicGetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker ($this->extend($request, $params));
         $ticker = $this->safe_value($response, 'payload');
         //
         //     {
@@ -654,7 +661,7 @@ class bitso extends Exchange {
             $request['end'] = $now;
             $request['start'] = $now - $this->parse_timeframe($timeframe) * 1000 * $limit;
         }
-        $response = $this->publicGetOhlc (array_merge($request, $params));
+        $response = $this->publicGetOhlc ($this->extend($request, $params));
         //
         //     {
         //         "success":true,
@@ -674,7 +681,7 @@ class bitso extends Exchange {
         //         )
         //     }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_list($response, 'payload', array());
         return $this->parse_ohlcvs($payload, $market, $timeframe, $since, $limit);
     }
 
@@ -812,6 +819,7 @@ class bitso extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://docs.bitso.com/bitso-api/docs/list-trades
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -823,13 +831,14 @@ class bitso extends Exchange {
         $request = array(
             'book' => $market['id'],
         );
-        $response = $this->publicGetTrades (array_merge($request, $params));
+        $response = $this->publicGetTrades ($this->extend($request, $params));
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
+         * @see https://docs.bitso.com/bitso-api/docs/list-$fees
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
          */
@@ -897,9 +906,10 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, $limit = 25, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://docs.bitso.com/bitso-api/docs/user-trades
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -919,7 +929,7 @@ class bitso extends Exchange {
         }
         // convert it to an integer unconditionally
         if ($markerInParams) {
-            $params = array_merge($params, array(
+            $params = $this->extend($params, array(
                 'marker' => intval($params['marker']),
             ));
         }
@@ -929,13 +939,14 @@ class bitso extends Exchange {
             // 'sort' => 'desc', // default = desc
             // 'marker' => id, // integer id to start from
         );
-        $response = $this->privateGetUserTrades (array_merge($request, $params));
+        $response = $this->privateGetUserTrades ($this->extend($request, $params));
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://docs.bitso.com/bitso-api/docs/place-an-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -955,7 +966,7 @@ class bitso extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($market['symbol'], $price);
         }
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        $response = $this->privatePostOrders ($this->extend($request, $params));
         $id = $this->safe_string($response['payload'], 'oid');
         return $this->safe_order(array(
             'info' => $response,
@@ -966,6 +977,7 @@ class bitso extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
          * @param {string} $id order $id
          * @param {string} $symbol not used by bitso cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -975,12 +987,13 @@ class bitso extends Exchange {
         $request = array(
             'oid' => $id,
         );
-        return $this->privateDeleteOrdersOid (array_merge($request, $params));
+        return $this->privateDeleteOrdersOid ($this->extend($request, $params));
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple $orders
+         * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -997,7 +1010,7 @@ class bitso extends Exchange {
         $request = array(
             'oids' => $oids,
         );
-        $response = $this->privateDeleteOrders (array_merge($request, $params));
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1016,6 +1029,7 @@ class bitso extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         * @see https://docs.bitso.com/bitso-api/docs/cancel-an-$order
          * @param {null} $symbol bitso does not support canceling orders for only a specific market
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
@@ -1097,9 +1111,10 @@ class bitso extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 25, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
+         * @see https://docs.bitso.com/bitso-api/docs/list-open-$orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
@@ -1119,7 +1134,7 @@ class bitso extends Exchange {
         }
         // convert it to an integer unconditionally
         if ($markerInParams) {
-            $params = array_merge($params, array(
+            $params = $this->extend($params, array(
                 'marker' => intval($params['marker']),
             ));
         }
@@ -1129,7 +1144,7 @@ class bitso extends Exchange {
             // 'sort' => 'desc', // default = desc
             // 'marker' => id, // integer id to start from
         );
-        $response = $this->privateGetOpenOrders (array_merge($request, $params));
+        $response = $this->privateGetOpenOrders ($this->extend($request, $params));
         $orders = $this->parse_orders($response['payload'], $market, $since, $limit);
         return $orders;
     }
@@ -1137,6 +1152,7 @@ class bitso extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
          * @param {string} $symbol not used by bitso fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1158,6 +1174,7 @@ class bitso extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
+         * @see https://docs.bitso.com/bitso-api/docs/list-user-trades
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1170,13 +1187,14 @@ class bitso extends Exchange {
         $request = array(
             'oid' => $id,
         );
-        $response = $this->privateGetOrderTradesOid (array_merge($request, $params));
+        $response = $this->privateGetOrderTradesOid ($this->extend($request, $params));
         return $this->parse_trades($response['payload'], $market);
     }
 
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
+         * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
          * @param {string} $id deposit $id
          * @param {string} $code bitso does not support filtering by currency $code and will ignore this argument
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1186,7 +1204,7 @@ class bitso extends Exchange {
         $request = array(
             'fid' => $id,
         );
-        $response = $this->privateGetFundingsFid (array_merge($request, $params));
+        $response = $this->privateGetFundingsFid ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1211,13 +1229,14 @@ class bitso extends Exchange {
         //     }
         //
         $transactions = $this->safe_value($response, 'payload', array());
-        $first = $this->safe_value($transactions, 0, array());
+        $first = $this->safe_dict($transactions, 0, array());
         return $this->parse_transaction($first);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -1253,7 +1272,7 @@ class bitso extends Exchange {
         //         )]
         //     }
         //
-        $transactions = $this->safe_value($response, 'payload', array());
+        $transactions = $this->safe_list($response, 'payload', array());
         return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
     }
 
@@ -1269,7 +1288,7 @@ class bitso extends Exchange {
         $request = array(
             'fund_currency' => $currency['id'],
         );
-        $response = $this->privateGetFundingDestination (array_merge($request, $params));
+        $response = $this->privateGetFundingDestination ($this->extend($request, $params));
         $address = $this->safe_string($response['payload'], 'account_identifier');
         $tag = null;
         if (mb_strpos($address, '?dt=') !== false) {
@@ -1287,11 +1306,11 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_transaction_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
-         * @see https://bitso.com/api_info#fees
+         * @see https://docs.bitso.com/bitso-api/docs/list-fees
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -1383,7 +1402,7 @@ class bitso extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
-         * @see https://bitso.com/api_info#fees
+         * @see https://docs.bitso.com/bitso-api/docs/list-fees
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -1433,7 +1452,7 @@ class bitso extends Exchange {
         //        }
         //    }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_list($response, 'payload', array());
         return $this->parse_deposit_withdraw_fees($payload, $codes);
     }
 
@@ -1517,7 +1536,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1548,7 +1567,7 @@ class bitso extends Exchange {
             'destination_tag' => $tag,
         );
         $classMethod = 'privatePost' . $method . 'Withdrawal';
-        $response = $this->$classMethod (array_merge($request, $params));
+        $response = $this->$classMethod ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1569,7 +1588,7 @@ class bitso extends Exchange {
         //     }
         //
         $payload = $this->safe_value($response, 'payload', array());
-        $first = $this->safe_value($payload, 0);
+        $first = $this->safe_dict($payload, 0);
         return $this->parse_transaction($first, $currency);
     }
 
@@ -1708,7 +1727,7 @@ class bitso extends Exchange {
             //
             //     array("success":false,"error":array("code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
             //
-            $success = $this->safe_value($response, 'success', false);
+            $success = $this->safe_bool($response, 'success', false);
             if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;

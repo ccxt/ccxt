@@ -8,9 +8,9 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\coinbasepro as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidAddress;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -20,7 +20,7 @@ class coinbasepro extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbasepro',
-            'name' => 'Coinbase Pro',
+            'name' => 'Coinbase Pro(Deprecated)',
             'countries' => array( 'US' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome'],
@@ -46,6 +46,7 @@ class coinbasepro extends Exchange {
                 'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
+                'fetchFundingRate' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -56,7 +57,13 @@ class coinbasepro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -150,6 +157,7 @@ class coinbasepro extends Exchange {
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions/fees',
                     ),
                     'post' => array(
                         'conversions',
@@ -231,7 +239,7 @@ class coinbasepro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -303,7 +311,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinbasepro
@@ -371,7 +379,7 @@ class coinbasepro extends Exchange {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $status = $this->safe_string($market, 'status');
-                $result[] = array_merge($this->fees['trading'], array(
+                $result[] = $this->extend($this->fees['trading'], array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
                     'base' => $base,
@@ -425,7 +433,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -526,7 +534,7 @@ class coinbasepro extends Exchange {
                 'id' => $this->market_id($symbol),
                 'level' => 2, // 1 best bidask, 2 aggregated, 3 full
             );
-            $response = Async\await($this->publicGetProductsIdBook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetProductsIdBook ($this->extend($request, $params)));
             //
             //     {
             //         "sequence":1924393896,
@@ -548,7 +556,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -641,7 +649,7 @@ class coinbasepro extends Exchange {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $request = array();
-            $response = Async\await($this->publicGetProductsSparkLines (array_merge($request, $params)));
+            $response = Async\await($this->publicGetProductsSparkLines ($this->extend($request, $params)));
             //
             //     {
             //         YYY-USD => array(
@@ -693,7 +701,7 @@ class coinbasepro extends Exchange {
             );
             // publicGetProductsIdTicker or publicGetProductsIdStats
             $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             //
             // publicGetProductsIdTicker
             //
@@ -830,7 +838,7 @@ class coinbasepro extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_date'] = $this->iso8601($until);
             }
-            $response = Async\await($this->privateGetFills (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFills ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -854,7 +862,7 @@ class coinbasepro extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
             }
-            $response = Async\await($this->publicGetProductsIdTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetProductsIdTrades ($this->extend($request, $params)));
             //
             //    array(
             //        array(
@@ -870,7 +878,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -977,7 +985,7 @@ class coinbasepro extends Exchange {
                     $request['end'] = $this->iso8601($until);
                 }
             }
-            $response = Async\await($this->publicGetProductsIdCandles (array_merge($request, $params)));
+            $response = Async\await($this->publicGetProductsIdCandles ($this->extend($request, $params)));
             //
             //     [
             //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
@@ -1116,7 +1124,7 @@ class coinbasepro extends Exchange {
                 $request['client_oid'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -1140,7 +1148,7 @@ class coinbasepro extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetFills (array_merge($request, $params)));
+            $response = Async\await($this->privateGetFills ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -1160,7 +1168,7 @@ class coinbasepro extends Exchange {
             $request = array(
                 'status' => 'all',
             );
-            return Async\await($this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1200,7 +1208,7 @@ class coinbasepro extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_date'] = $this->iso8601($until);
             }
-            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1220,11 +1228,11 @@ class coinbasepro extends Exchange {
             $request = array(
                 'status' => 'done',
             );
-            return Async\await($this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
@@ -1294,7 +1302,7 @@ class coinbasepro extends Exchange {
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                 }
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             //
             //     {
             //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
@@ -1347,7 +1355,7 @@ class coinbasepro extends Exchange {
                 $market = $this->market($symbol);
                 $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
             }
-            return Async\await($this->$method (array_merge($request, $params)));
+            return Async\await($this->$method ($this->extend($request, $params)));
         }) ();
     }
 
@@ -1367,7 +1375,7 @@ class coinbasepro extends Exchange {
                 $market = $this->market($symbol);
                 $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
             }
-            return Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            return Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
         }) ();
     }
 
@@ -1377,7 +1385,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1410,7 +1418,7 @@ class coinbasepro extends Exchange {
                     $request['destination_tag'] = $tag;
                 }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             if (!$response) {
                 throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
             }
@@ -1546,7 +1554,7 @@ class coinbasepro extends Exchange {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_date'] = $this->iso8601($until);
             }
-            $response = Async\await($this->privateGetAccountsIdLedger (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountsIdLedger ($this->extend($request, $params)));
             for ($i = 0; $i < count($response); $i++) {
                 $response[$i]['currency'] = $code;
             }
@@ -1591,7 +1599,7 @@ class coinbasepro extends Exchange {
             }
             $response = null;
             if ($id === null) {
-                $response = Async\await($this->privateGetTransfers (array_merge($request, $params)));
+                $response = Async\await($this->privateGetTransfers ($this->extend($request, $params)));
                 //
                 //    array(
                 //        {
@@ -1627,7 +1635,7 @@ class coinbasepro extends Exchange {
                     $response[$i]['currency'] = $codeInner;
                 }
             } else {
-                $response = Async\await($this->privateGetAccountsIdTransfers (array_merge($request, $params)));
+                $response = Async\await($this->privateGetAccountsIdTransfers ($this->extend($request, $params)));
                 //
                 //    array(
                 //        {
@@ -1674,7 +1682,7 @@ class coinbasepro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
-            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, array_merge(array( 'type' => 'deposit' ), $params)));
+            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend(array( 'type' => 'deposit' ), $params)));
         }) ();
     }
 
@@ -1690,7 +1698,7 @@ class coinbasepro extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
-            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, array_merge(array( 'type' => 'withdraw' ), $params)));
+            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend(array( 'type' => 'withdraw' ), $params)));
         }) ();
     }
 
@@ -1817,7 +1825,7 @@ class coinbasepro extends Exchange {
             $request = array(
                 'id' => $account['id'],
             );
-            $response = Async\await($this->privatePostCoinbaseAccountsIdAddresses (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCoinbaseAccountsIdAddresses ($this->extend($request, $params)));
             $address = $this->safe_string($response, 'address');
             $tag = $this->safe_string($response, 'destination_tag');
             return array(

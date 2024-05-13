@@ -32,6 +32,7 @@ class bl3p extends bl3p$1 {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -42,6 +43,9 @@ class bl3p extends bl3p$1 {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -55,8 +59,11 @@ class bl3p extends bl3p$1 {
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -139,6 +146,7 @@ class bl3p extends bl3p$1 {
          * @method
          * @name bl3p#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -146,7 +154,7 @@ class bl3p extends bl3p$1 {
         const response = await this.privatePostGENMKTMoneyInfo(params);
         return this.parseBalance(response);
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeString(bidask, priceKey);
         const size = this.safeString(bidask, amountKey);
         return [
@@ -159,6 +167,7 @@ class bl3p extends bl3p$1 {
          * @method
          * @name bl3p#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#22---orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -169,7 +178,7 @@ class bl3p extends bl3p$1 {
             'market': market['id'],
         };
         const response = await this.publicGetMarketOrderbook(this.extend(request, params));
-        const orderbook = this.safeValue(response, 'data');
+        const orderbook = this.safeDict(response, 'data');
         return this.parseOrderBook(orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
     parseTicker(ticker, market = undefined) {
@@ -220,6 +229,7 @@ class bl3p extends bl3p$1 {
          * @method
          * @name bl3p#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#21---ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -283,6 +293,7 @@ class bl3p extends bl3p$1 {
          * @method
          * @name bl3p#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#23---last-1000-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -315,6 +326,7 @@ class bl3p extends bl3p$1 {
          * @method
          * @name bl3p#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -407,6 +419,7 @@ class bl3p extends bl3p$1 {
          * @method
          * @name bl3p#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#22---cancel-an-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -416,6 +429,49 @@ class bl3p extends bl3p$1 {
             'order_id': id,
         };
         return await this.privatePostMarketMoneyOrderCancel(this.extend(request, params));
+    }
+    async createDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name bl3p#createDepositAddress
+         * @description create a currency deposit address
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostGENMKTMoneyNewDepositAddress(this.extend(request, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data');
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //    }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        this.checkAddress(address);
+        return {
+            'info': depositAddress,
+            'currency': this.safeString(currency, 'code'),
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams(path, params);

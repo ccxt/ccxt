@@ -75,11 +75,11 @@
                 "method": "createOrder",
                 "url": "https://www.okcoin.com/api/v5/trade/batch-orders",
                 "input": [
-                  "USDT/USD",
-                  "market",
-                  "sell",
-                  11,
-                  null
+                    "USDT/USD",
+                    "market",
+                    "sell",
+                    11,
+                    null
                 ],
                 "output": "[{\"instId\":\"USDT-USD\",\"side\":\"sell\",\"ordType\":\"market\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"sz\":\"11\"}]"
             },
@@ -88,15 +88,15 @@
                 "method": "createOrder",
                 "url": "https://www.okcoin.com/api/v5/trade/batch-orders",
                 "input": [
-                  "BTC/USD",
-                  "market",
-                  "buy",
-                  5,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false,
-                    "tgtCcy": "quote_ccy"
-                  }
+                    "BTC/USD",
+                    "market",
+                    "buy",
+                    5,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false,
+                        "tgtCcy": "quote_ccy"
+                    }
                 ],
                 "output": "[{\"instId\":\"BTC-USD\",\"side\":\"buy\",\"ordType\":\"market\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"sz\":\"5\"}]"
             },
@@ -105,15 +105,15 @@
                 "method": "createOrder",
                 "url": "https://www.okcoin.com/api/v5/trade/batch-orders",
                 "input": [
-                  "BTC/USD",
-                  "market",
-                  "buy",
-                  null,
-                  null,
-                  {
-                    "cost": 5,
-                    "tgtCcy": "quote_ccy"
-                  }
+                    "BTC/USD",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 5,
+                        "tgtCcy": "quote_ccy"
+                    }
                 ],
                 "output": "[{\"instId\":\"BTC-USD\",\"side\":\"buy\",\"ordType\":\"market\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"sz\":\"5\"}]"
             }
@@ -124,8 +124,8 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://www.okcoin.com/api/v5/trade/batch-orders",
                 "input": [
-                  "USDT/USD",
-                  3
+                    "USDT/USD",
+                    3
                 ],
                 "output": "[{\"instId\":\"USDT-USD\",\"side\":\"buy\",\"ordType\":\"market\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"sz\":\"3\"}]"
             }
@@ -137,6 +137,24 @@
                 "url": "https://www.okcoin.com/api/v5/account/bills?ccy=USDT",
                 "input": [
                     "USDT"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://www.okcoin.com/api/v5/public/time",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "without args",
+                "method": "fetchOHLCV",
+                "url": "https://www.okcoin.com/api/v5/market/candles?instId=BTC-USD&bar=1m",
+                "input": [
+                  "BTC/USD"
                 ]
             }
         ]

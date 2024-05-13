@@ -137,6 +137,7 @@ class cex extends \ccxt\async\cex {
             $url = $this->urls['api']['ws'];
             $messageHash = 'trades';
             $subscriptionHash = 'old:' . $symbol;
+            $this->options['currentWatchTradeSymbol'] = $symbol; // exchange supports only 1 $symbol for this watchTrades channel
             $client = $this->safe_value($this->clients, $url);
             if ($client !== null) {
                 $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
@@ -170,21 +171,30 @@ class cex extends \ccxt\async\cex {
         //     {
         //         "e" => "history",
         //         "data" => array(
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         )
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         $stored = new ArrayCache ($limit);
-        for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $data[$i];
-            $parsed = $this->parse_ws_old_trade($rawTrade);
+        $symbol = $this->safe_string($this->options, 'currentWatchTradeSymbol');
+        if ($symbol === null) {
+            return;
+        }
+        $market = $this->market($symbol);
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $index = $dataLength - 1 - $i;
+            $rawTrade = $data[$index];
+            $parsed = $this->parse_ws_old_trade($rawTrade, $market);
             $stored->append ($parsed);
         }
         $messageHash = 'trades';
-        $this->trades = $stored;
+        $this->trades = $stored; // trades don't have $symbol
         $client->resolve ($this->trades, $messageHash);
     }
 
@@ -199,7 +209,7 @@ class cex extends \ccxt\async\cex {
             $trade = explode(':', $trade);
         }
         $side = $this->safe_string($trade, 0);
-        $timestamp = $this->safe_number($trade, 1);
+        $timestamp = $this->safe_integer($trade, 1);
         $amount = $this->safe_string($trade, 2);
         $price = $this->safe_string($trade, 3);
         $id = $this->safe_string($trade, 4);
@@ -208,7 +218,7 @@ class cex extends \ccxt\async\cex {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => null,
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'side' => $side,
             'order' => null,
@@ -230,9 +240,11 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
-        $stored = $this->trades;
-        for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $data[$i];
+        $stored = $this->trades; // to do fix this, $this->trades is not meant to be used like this
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $index = $dataLength - 1 - $i;
+            $rawTrade = $data[$index];
             $parsed = $this->parse_ws_old_trade($rawTrade);
             $stored->append ($parsed);
         }
@@ -314,7 +326,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function fetch_ticker_ws(string $symbol, $params = array ()) {
+    public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.cex.io/#ws-api-ticker-deprecated
@@ -327,7 +339,7 @@ class cex extends \ccxt\async\cex {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'e' => 'ticker',
                 'oid' => $messageHash,
                 'data' => [ $market['base'], $market['quote'] ],
@@ -352,12 +364,17 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_value($message, 'data', array());
         $ticker = $this->parse_ws_ticker($data);
         $symbol = $ticker['symbol'];
+        if ($symbol === null) {
+            return;
+        }
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
         $client->resolve ($ticker, 'tickers');
         $messageHash = $this->safe_string($message, 'oid');
-        $client->resolve ($ticker, $messageHash);
+        if ($messageHash !== null) {
+            $client->resolve ($ticker, $messageHash);
+        }
     }
 
     public function parse_ws_ticker($ticker, $market = null) {
@@ -436,7 +453,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'e' => 'get-balance',
                 'oid' => $messageHash,
             ), $params);
@@ -744,7 +761,7 @@ class cex extends \ccxt\async\cex {
             $order = $this->parse_ws_order_update($data, $market);
         }
         $order['remaining'] = $remains;
-        $canceled = $this->safe_value($data, 'cancel', false);
+        $canceled = $this->safe_bool($data, 'cancel', false);
         if ($canceled) {
             $order['status'] = 'canceled';
         }
@@ -834,7 +851,7 @@ class cex extends \ccxt\async\cex {
         if ($isTransaction) {
             $timestamp = $this->parse8601($time);
         }
-        $canceled = $this->safe_value($order, 'cancel', false);
+        $canceled = $this->safe_bool($order, 'cancel', false);
         $status = 'open';
         if ($canceled) {
             $status = 'canceled';
@@ -992,15 +1009,15 @@ class cex extends \ccxt\async\cex {
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer_2($data, 'timestamp_ms', 'timestamp');
         $incrementalId = $this->safe_number($data, 'id');
-        $storedOrderBook = $this->order_book(array());
+        $orderbook = $this->order_book(array());
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $incrementalId;
-        $storedOrderBook->reset ($snapshot);
+        $orderbook->reset ($snapshot);
         $this->options['orderbook'][$symbol] = array(
             'incrementalId' => $incrementalId,
         );
-        $this->orderbooks[$symbol] = $storedOrderBook;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $this->orderbooks[$symbol] = $orderbook;
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function pair_to_symbol($pair) {
@@ -1084,7 +1101,7 @@ class cex extends \ccxt\async\cex {
                     'pair-' . $market['baseId'] . '-' . $market['quoteId'],
                 ],
             );
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -1126,7 +1143,10 @@ class cex extends \ccxt\async\cex {
         for ($i = 0; $i < count($sorted); $i++) {
             $stored->append ($this->parse_ohlcv($sorted[$i], $market));
         }
-        $this->ohlcvs[$symbol] = $stored;
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            $this->ohlcvs[$symbol] = array();
+        }
+        $this->ohlcvs[$symbol]['unknown'] = $stored;
         $client->resolve ($stored, $messageHash);
     }
 
@@ -1188,7 +1208,8 @@ class cex extends \ccxt\async\cex {
         $pair = $this->safe_string($message, 'pair');
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'ohlcv:' . $symbol;
-        $stored = $this->safe_value($this->ohlcvs, $symbol);
+        // $stored = $this->safe_value($this->ohlcvs, $symbol);
+        $stored = $this->ohlcvs[$symbol]['unknown'];
         for ($i = 0; $i < count($data); $i++) {
             $ohlcv = [
                 $this->safe_timestamp($data[$i], 0),
@@ -1221,7 +1242,7 @@ class cex extends \ccxt\async\cex {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'order_id' => (string) $id,
             ), $params);
             $url = $this->urls['api']['ws'];
@@ -1255,7 +1276,7 @@ class cex extends \ccxt\async\cex {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
             ), $params);
             $request = array(
@@ -1290,7 +1311,7 @@ class cex extends \ccxt\async\cex {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
                 'amount' => $amount,
                 'price' => $price,
@@ -1306,7 +1327,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function edit_order_ws(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1329,7 +1350,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
                 'type' => $side,
                 'amount' => $amount,
@@ -1364,7 +1385,7 @@ class cex extends \ccxt\async\cex {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'order_id' => $id,
             ), $params);
             $messageHash = $this->request_id();
@@ -1379,7 +1400,7 @@ class cex extends \ccxt\async\cex {
         }) ();
     }
 
-    public function cancel_orders_ws($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1395,7 +1416,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'cancel-orders' => $ids,
             ), $params);
             $url = $this->urls['api']['ws'];
@@ -1483,7 +1504,8 @@ class cex extends \ccxt\async\cex {
     public function handle_message(Client $client, $message) {
         $ok = $this->safe_string($message, 'ok');
         if ($ok === 'error') {
-            return $this->handle_error_message($client, $message);
+            $this->handle_error_message($client, $message);
+            return;
         }
         $event = $this->safe_string($message, 'e');
         $handlers = array(
@@ -1511,9 +1533,8 @@ class cex extends \ccxt\async\cex {
         );
         $handler = $this->safe_value($handlers, $event);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
         }
-        return $message;
     }
 
     public function handle_authentication_message(Client $client, $message) {
@@ -1553,7 +1574,7 @@ class cex extends \ccxt\async\cex {
                         'timestamp' => $nonce,
                     ),
                 );
-                Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+                Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             }
             return Async\await($future);
         }) ();

@@ -5,7 +5,7 @@ import { BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,8 +63,13 @@ export default class ace extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -170,7 +175,7 @@ export default class ace extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name ace#fetchMarkets
@@ -255,7 +260,7 @@ export default class ace extends Exchange {
         };
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -407,7 +412,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const orderBook = this.safeValue (response, 'attachment');
+        const orderBook = this.safeDict (response, 'attachment');
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
@@ -596,7 +601,7 @@ export default class ace extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name ace#createOrder
@@ -633,7 +638,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue (response, 'attachment');
+        const data = this.safeDict (response, 'attachment');
         return this.parseOrder (data, market);
     }
 
@@ -701,7 +706,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue (response, 'attachment');
+        const data = this.safeDict (response, 'attachment');
         return this.parseOrder (data, undefined);
     }
 
@@ -897,7 +902,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'attachment');
-        const trades = this.safeValue (data, 'trades', []);
+        const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -957,7 +962,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const trades = this.safeValue (response, 'attachment', []);
+        const trades = this.safeList (response, 'attachment', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1070,8 +1075,9 @@ export default class ace extends Exchange {
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber (response, 'status', 200);
         if (status > 200) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], status, feedback);
+            const statusStr = status.toString ();
+            this.throwExactlyMatchedException (this.exceptions['exact'], statusStr, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], statusStr, feedback);
         }
         return undefined;
     }

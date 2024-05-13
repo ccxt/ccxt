@@ -138,7 +138,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
          * retrieves data on all $markets for zaif
@@ -281,11 +281,11 @@ class zaif extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetDepthPair (array_merge($request, $params));
+        $response = $this->publicGetDepthPair ($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "last" => 9e-08,
@@ -339,7 +339,7 @@ class zaif extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $ticker = $this->publicGetTickerPair (array_merge($request, $params));
+        $ticker = $this->publicGetTickerPair ($this->extend($request, $params));
         //
         // {
         //     "last" => 9e-08,
@@ -407,7 +407,7 @@ class zaif extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradesPair (array_merge($request, $params));
+        $response = $this->publicGetTradesPair ($this->extend($request, $params));
         //
         //      array(
         //          array(
@@ -430,7 +430,7 @@ class zaif extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
          * create a trade order
@@ -453,7 +453,7 @@ class zaif extends Exchange {
             'amount' => $amount,
             'price' => $price,
         );
-        $response = $this->privatePostTrade (array_merge($request, $params));
+        $response = $this->privatePostTrade ($this->extend($request, $params));
         return $this->safe_order(array(
             'info' => $response,
             'id' => (string) $response['return']['order_id'],
@@ -472,7 +472,7 @@ class zaif extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        return $this->privatePostCancelOrder (array_merge($request, $params));
+        return $this->privatePostCancelOrder ($this->extend($request, $params));
     }
 
     public function parse_order($order, ?array $market = null): array {
@@ -540,7 +540,7 @@ class zaif extends Exchange {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
-        $response = $this->privatePostActiveOrders (array_merge($request, $params));
+        $response = $this->privatePostActiveOrders ($this->extend($request, $params));
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
@@ -570,11 +570,11 @@ class zaif extends Exchange {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
-        $response = $this->privatePostTradeHistory (array_merge($request, $params));
+        $response = $this->privatePostTradeHistory ($this->extend($request, $params));
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
          * make a withdrawal
@@ -602,7 +602,7 @@ class zaif extends Exchange {
         if ($tag !== null) {
             $request['message'] = $tag;
         }
-        $result = $this->privatePostWithdraw (array_merge($request, $params));
+        $result = $this->privatePostWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "success" => 1,
@@ -619,7 +619,7 @@ class zaif extends Exchange {
         //         }
         //     }
         //
-        $returnData = $this->safe_value($result, 'return');
+        $returnData = $this->safe_dict($result, 'return');
         return $this->parse_transaction($returnData, $currency);
     }
 
@@ -671,7 +671,7 @@ class zaif extends Exchange {
     }
 
     public function custom_nonce() {
-        $num = ($this->milliseconds() / (string) 1000);
+        $num = $this->number_to_string($this->milliseconds() / 1000);
         $nonce = floatval($num);
         return sprintf('%.8f', $nonce);
     }
@@ -692,7 +692,7 @@ class zaif extends Exchange {
                 $url .= 'tapi';
             }
             $nonce = $this->custom_nonce();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'nonce' => $nonce,
             ), $params));
@@ -719,7 +719,7 @@ class zaif extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             throw new ExchangeError($feedback);
         }
