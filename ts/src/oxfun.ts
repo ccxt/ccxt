@@ -452,7 +452,7 @@ export default class oxfun extends Exchange {
                 },
             },
             'created': undefined,
-            'index': undefined, // todo what is it?
+            'index': undefined,
             'info': market,
         });
     }
@@ -1755,7 +1755,7 @@ export default class oxfun extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -2117,12 +2117,7 @@ export default class oxfun extends Exchange {
         if (networkCode !== undefined) {
             request['network'] = this.networkCodeToId (networkCode);
         }
-        let externalFee = false;
-        if ('externalFee' in params) {
-            externalFee = this.safeBool (params, 'externalFee');
-            params = this.omit (params, 'externalFee');
-        }
-        request['externalFee'] = externalFee;
+        request['externalFee'] = false;
         const response = await this.privatePostV3Withdrawal (this.extend (request, params));
         //
         //     {
