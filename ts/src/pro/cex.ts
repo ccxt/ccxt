@@ -1207,14 +1207,14 @@ export default class cex extends cexRest {
         // const stored = this.safeValue (this.ohlcvs, symbol);
         const stored = this.ohlcvs[symbol]['unknown'];
         for (let i = 0; i < data.length; i++) {
-            const ohlcv: OHLCV = [
+            const ohlcv = [
                 this.safeTimestamp (data[i], 0),
                 this.safeNumber (data[i], 1),
                 this.safeNumber (data[i], 2),
                 this.safeNumber (data[i], 3),
                 this.safeNumber (data[i], 4),
                 this.safeNumber (data[i], 5),
-            ];
+            ] as OHLCV;
             stored.append (ohlcv);
         }
         const dataLength = data.length;

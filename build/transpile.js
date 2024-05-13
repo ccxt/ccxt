@@ -1026,6 +1026,7 @@ class Transpiler {
             'MarketInterface': /-> MarketInterface:/,
             'MarketType': /: MarketType/,
             'Num': /: (?:List\[)?Num =/,
+            'OHLCV':  /-> (?:List\[)?OHLCV/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:List\[)?Order\]?:/,
