@@ -584,7 +584,7 @@ export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
 export interface TransferEntries extends Dictionary<TransferEntry> {
 }
 
-export interface LeverageTiersDict extends Dictionary<LeverageTier[]> {
+export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */
