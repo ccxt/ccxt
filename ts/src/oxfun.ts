@@ -238,6 +238,7 @@ export default class oxfun extends Exchange {
                     'Base': 'ERC20', // todo check
                     'BNBSmartChain': 'BNB', // todo check
                 },
+                'defaultResponseType': 'FULL', // FULL or ACK
             },
             'exceptions': {
                 'exact': {
@@ -2243,9 +2244,16 @@ export default class oxfun extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} params.timestamp in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
+         * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
+         * @param {string} [params.responseType] FULL or ACK
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
+         * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+         * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2255,14 +2263,128 @@ export default class oxfun extends Exchange {
         const listOfOrders = [];
         const orderRequest = this.createOrderRequest (market, type, side, amount, price, params);
         listOfOrders.push (orderRequest);
+        let timestamp = this.safeInteger (params, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.milliseconds (); // todo handle with this
+        }
+        let responseType = this.safeString (this.options, 'defaultResponseType');
+        [ responseType, params ] = this.handleOptionAndParams (params, 'createOrder', 'responseType', responseType);
         const request = {
             'orders': listOfOrders,
+            'timestamp': timestamp,
+            'responseType': responseType,
         };
         return await this.privatePostV3OrdersPlace (request);
+        //
+        // accepted order responseType FULL
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "notice": "OrderMatched",
+        //                 "accountId": "106490",
+        //                 "orderId": "1000109901865",
+        //                 "submitted": true,
+        //                 "clientOrderId": "0",
+        //                 "marketCode": "OX-USDT",
+        //                 "status": "FILLED",
+        //                 "side": "SELL",
+        //                 "isTriggered": false,
+        //                 "quantity": "150.0",
+        //                 "amount": "0.0",
+        //                 "remainQuantity": "0.0",
+        //                 "matchId": "100017047880451399",
+        //                 "matchPrice": "0.01465",
+        //                 "matchQuantity": "150.0",
+        //                 "feeInstrumentId": "USDT",
+        //                 "fees": "0.0015382500",
+        //                 "orderType": "MARKET",
+        //                 "createdAt": "1715592472236",
+        //                 "lastMatchedAt": "1715592472200",
+        //                 "displayQuantity": "150.0"
+        //             }
+        //         ]
+        //     }
+        //
+        // accepted order responseType ACK
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "accountId": "106490",
+        //                 "orderId": "1000109892193",
+        //                 "submitted": true,
+        //                 "marketCode": "OX-USDT",
+        //                 "side": "BUY",
+        //                 "price": "0.01961",
+        //                 "isTriggered": false,
+        //                 "quantity": "100",
+        //                 "orderType": "MARKET",
+        //                 "timeInForce": "IOC",
+        //                 "createdAt": "1715591529057",
+        //                 "selfTradePreventionMode": "NONE"
+        //             }
+        //         ]
+        //     }
+        //
+        //  rejected order (balance insufficient)
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "code": "710001",
+        //                 "message": "System failure, exception thrown -> null",
+        //                 "submitted": false,
+        //                 "marketCode": "OX-USDT",
+        //                 "side": "BUY",
+        //                 "price": "0.01961",
+        //                 "amount": "100",
+        //                 "orderType": "MARKET",
+        //                 "timeInForce": "IOC",
+        //                 "createdAt": "1715591678835",
+        //                 "source": 11,
+        //                 "selfTradePreventionMode": "NONE"
+        //             }
+        //         ]
+        //     }
+        //
+        // rejected order (bad request)
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "code": "20044",
+        //                 "message": "Amount is not supported for this order type",
+        //                 "submitted": false,
+        //                 "marketCode": "OX-USDT",
+        //                 "side": "SELL",
+        //                 "amount": "200",
+        //                 "orderType": "MARKET",
+        //                 "createdAt": "1715592079986",
+        //                 "source": 11
+        //             }
+        //         ]
+        //     }
+        //
         // return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
     }
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
+         * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+         * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
+         */
         // const symbol = market['symbol'];
         const request = {
             'marketCode': market['id'],
@@ -2275,12 +2397,10 @@ export default class oxfun extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const baseUrl = this.urls['api'][api];
-        const endpoint = this.implodeParams (path, params);
-        let url = baseUrl + '/' + endpoint;
-        const query = this.omit (params, this.extractParams (path));
+        let url = baseUrl + '/' + path;
         let queryString = '';
         if (method === 'GET' || method === 'DELETE') {
-            queryString = this.urlencode (query);
+            queryString = this.urlencode (params);
             if (queryString.length !== 0) {
                 url += '?' + queryString;
             }
@@ -2294,10 +2414,10 @@ export default class oxfun extends Exchange {
             const nonce = this.nonce ();
             const urlParts = baseUrl.split ('//');
             if (method === 'POST') {
-                body = this.json (query);
+                body = this.json (params);
                 queryString = body;
             }
-            const msgString = datetime + '\n' + nonce + '\n' + method + '\n' + urlParts[1] + '\n/' + endpoint + '\n' + queryString;
+            const msgString = datetime + '\n' + nonce + '\n' + method + '\n' + urlParts[1] + '\n/' + path + '\n' + queryString;
             const signature = this.hmac (this.encode (msgString), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'Content-Type': 'application/json',
