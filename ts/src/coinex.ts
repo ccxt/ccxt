@@ -5944,7 +5944,7 @@ export default class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
+        if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && !data)) {
             const feedback = this.id + ' ' + message;
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
