@@ -4,9 +4,9 @@ import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
-    const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
-    const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
-    await Promise.all ([ withSymbol, withoutSymbol ]);
+    // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
+    // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
+    await Promise.all ([ testFetchTickersHelper (exchange, skippedProperties, undefined), testFetchTickersHelper (exchange, skippedProperties, [ symbol ]) ]);
 }
 
 async function testFetchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {

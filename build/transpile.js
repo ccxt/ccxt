@@ -2488,10 +2488,13 @@ class Transpiler {
                 replace (/precision_mode/g, 'precisionMode');
         };
 
-        const pyFixes = (str) => {
+        const pyFixes = (str, sync = false) => {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
             str = str.replace (/ == True/g, ' is True');
             str = str.replace (/ == False/g, ' is False');
+            if (sync) {
+                str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+            }
             return exchangeCamelCaseProps(str);
         }
 
@@ -2516,7 +2519,7 @@ class Transpiler {
             const isWs = test.tsFile.includes('ts/src/pro/');
             let phpAsync = phpFixes(result[0].content);
             let phpSync = phpFixes(result[1].content);
-            let pythonSync = pyFixes (result[2].content);
+            let pythonSync = pyFixes (result[2].content, true);
             let pythonAsync = pyFixes (result[3].content);
             if (tests.base) {
                 phpAsync = '';
