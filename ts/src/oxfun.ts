@@ -123,7 +123,7 @@ export default class oxfun extends Exchange {
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
                 'ws': true,
             },
             'timeframes': {
@@ -2067,7 +2067,7 @@ export default class oxfun extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) { // todo does it work?
         /**
          * @method
          * @name bitflex#withdraw
