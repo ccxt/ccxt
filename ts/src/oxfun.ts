@@ -1995,6 +1995,19 @@ export default class oxfun extends Exchange {
         //         completedAt: '1715530527000'
         //     }
         //
+        // withdraw
+        //     {
+        //         "id": "968364664449302529",
+        //         "asset": "OX",
+        //         "network": "Arbitrum",
+        //         "address": "0x90fc1fB49a4ED8f485dd02A2a1Cf576897f6Bfc9",
+        //         "quantity": "10",
+        //         "externalFee": false,
+        //         "fee": "1.6728",
+        //         "status": "PENDING",
+        //         "requestedAt": "1715591843616"
+        //     }
+        //
         // todo: this is in progress
         const id = this.safeString (transaction, 'id');
         const type = this.safeString (transaction, 'type');
@@ -2014,7 +2027,7 @@ export default class oxfun extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const network = this.safeString (transaction, 'network');
         const networkCode = this.networkIdToCode (network);
-        const timestamp = this.safeInteger2 (transaction, 'creditedAt', 'completedAt');
+        const timestamp = this.safeInteger2 (transaction, 'creditedAt', 'requestedAt');
         const amount = this.safeNumber (transaction, 'quantity');
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
@@ -2088,7 +2101,6 @@ export default class oxfun extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const stringAmount = this.currencyToPrecision (code, amount);
@@ -2100,14 +2112,35 @@ export default class oxfun extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        request['network'] = this.safeString (params, 'network');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode);
+        }
         let externalFee = false;
-        externalFee = this.safeBool (params, 'externalFee');
+        if ('externalFee' in params) {
+            externalFee = this.safeBool (params, 'externalFee');
+            params = this.omit (params, 'externalFee');
+        }
         request['externalFee'] = externalFee;
         const response = await this.privatePostV3Withdrawal (this.extend (request, params));
         //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "id": "968364664449302529",
+        //             "asset": "OX",
+        //             "network": "Arbitrum",
+        //             "address": "0x90fc1fB49a4ED8f485dd02A2a1Cf576897f6Bfc9",
+        //             "quantity": "10",
+        //             "externalFee": false,
+        //             "fee": "1.6728",
+        //             "status": "PENDING",
+        //             "requestedAt": "1715591843616"
+        //         }
+        //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data', {});
         for (let i = 0; i < data.length; i++) {
             data[i]['type'] = 'withdrawal';
         }
