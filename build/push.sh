@@ -57,7 +57,6 @@ git config --global user.name "Travis CI"
 git add . -A
 git status
 git commit -m "${COMMIT_MESSAGE}" -m '[ci skip]' || exit 0
-SHOULD_TAG="true"
 if [ "$SHOULD_TAG" = "true" ]; then
     git tag -a "${COMMIT_MESSAGE}" -m "${LAST_COMMIT_MESSAGE}" -m "" -m "[ci skip]";
 fi
@@ -67,7 +66,6 @@ node build/cleanup-old-tags --limit
 git push origin --tags HEAD:master
 if [ "$SHOULD_TAG" = "true" ]; then
     echo "Creating release..."
-    gh auth login
     gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag
 fi
 echo "Done executing build/push.sh"
