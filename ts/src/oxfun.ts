@@ -2141,9 +2141,7 @@ export default class oxfun extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        for (let i = 0; i < data.length; i++) {
-            data[i]['type'] = 'withdrawal';
-        }
+        data['type'] = 'withdrawal';
         return this.parseTransaction (data, currency);
     }
 
