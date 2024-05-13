@@ -259,6 +259,10 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"20001","message":"startTime and endTime must be within 7 days of each other"}
                     // {"success":false,"code":"30001","message":"Required parameter 'timestamp' is missing","data":null}
                     // {"success":false,"code":"20001","message":"subAcc is invalid"}
+                    // {"success":false,"code":"30001","message":"Required parameter 'externalFee' is missing"}
+                    // {"success":false,"code":"35034","message":"Wallet API is not functioning properly, please try again or contact support."}
+                    // {"success":false,"code":"35046","message":"Error. Please refresh the page."}
+                    // {"success":false,"code":"30001","message":"Required parameter 'quantity' is missing"}
                 },
                 'broad': {
                     // todo: add more error codes
@@ -1817,16 +1821,19 @@ export default class oxfun extends Exchange {
         //
         //     {"success":true,"data":{"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}}
         //
-        return this.parseDepositAddress (response, currency);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
-        //     {"success":true,"data":{"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}}
+        //     {"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}
         //
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
         return {
             'currency': currency['code'],
-            'address': this.safeString (depositAddress, 'address'),
+            'address': address,
             'tag': undefined,
             'network': undefined,
             'info': depositAddress,
@@ -2058,6 +2065,52 @@ export default class oxfun extends Exchange {
             'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflex#withdraw
+         * @description make a withdrawal
+         * @see https://docs.bitflex.com/spot#withdraw
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {string} params.network network for withdraw
+         * @param {bool} params.externalFee if false, then the fee is taken from the quantity, also with the burn fee for asset SOLO
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.tfaType] GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA
+         * @param {string} [params.code] 2FA code
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const stringAmount = this.currencyToPrecision (code, amount);
+        const request = {
+            'asset': currency['id'],
+            'address': address,
+            'quantity': stringAmount,
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        request['network'] = this.safeString (params, 'network');
+        let externalFee = false;
+        externalFee = this.safeBool (params, 'externalFee');
+        request['externalFee'] = externalFee;
+        const response = await this.privatePostV3Withdrawal (this.extend (request, params));
+        //
+        //
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            data[i]['type'] = 'withdrawal';
+        }
+        return this.parseTransaction (data, currency);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
