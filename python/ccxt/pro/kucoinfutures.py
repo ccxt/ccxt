@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
@@ -22,6 +22,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'watchTickers': True,
                 'watchBidsAsks': True,
                 'watchTrades': True,
+                'watchOHLCV': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchBalance': True,
@@ -32,6 +33,21 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'watchOrderBookForSymbols': True,
             },
             'options': {
+                'timeframes': {
+                    '1m': '1min',
+                    '3m': '1min',
+                    '5m': '5min',
+                    '15m': '15min',
+                    '30m': '30min',
+                    '1h': '1hour',
+                    '2h': '2hour',
+                    '4h': '4hour',
+                    '8h': '8hour',
+                    '12h': '12hour',
+                    '1d': '1day',
+                    '1w': '1week',
+                    '1M': '1month',
+                },
                 'accountsByType': {
                     'swap': 'future',
                     'cross': 'margin',
@@ -540,6 +556,77 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.resolve(trades, messageHash)
         return message
 
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        :see: https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
+        url = await self.negotiate(False)
+        marketId = self.market_id(symbol)
+        timeframes = self.safe_dict(self.options, 'timeframes')
+        timeframeId = self.safe_string(timeframes, timeframe, timeframe)
+        topic = '/contractMarket/limitCandle:' + marketId + '_' + timeframeId
+        messageHash = 'ohlcv::' + symbol + '_' + timeframe
+        ohlcv = await self.subscribe(url, messageHash, topic, None, params)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    def handle_ohlcv(self, client: Client, message):
+        #
+        #    {
+        #        "topic":"/contractMarket/limitCandle:LTCUSDTM_1min",
+        #        "type":"message",
+        #        "data":{
+        #            "symbol":"LTCUSDTM",
+        #            "candles":[
+        #                "1715470980",
+        #                "81.38",
+        #                "81.38",
+        #                "81.38",
+        #                "81.38",
+        #                "61.0",
+        #                "61"
+        #            ],
+        #            "time":1715470994801
+        #        },
+        #        "subject":"candle.stick"
+        #    }
+        #
+        topic = self.safe_string(message, 'topic')
+        parts = topic.split('_')
+        timeframeId = self.safe_string(parts, 1)
+        data = self.safe_dict(message, 'data')
+        timeframes = self.safe_dict(self.options, 'timeframes')
+        timeframe = self.find_timeframe(timeframeId, timeframes)
+        marketId = self.safe_string(data, 'symbol')
+        symbol = self.safe_symbol(marketId)
+        messageHash = 'ohlcv::' + symbol + '_' + timeframe
+        ohlcv = self.safe_list(data, 'candles')
+        parsed = [
+            self.safe_integer(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 6),  # Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        ]
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        if not (timeframe in self.ohlcvs[symbol]):
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
+        stored = self.ohlcvs[symbol][timeframe]
+        stored.append(parsed)
+        client.resolve(stored, messageHash)
+
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -923,6 +1010,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         methods = {
             'level2': self.handle_order_book,
             'ticker': self.handle_ticker,
+            'candle.stick': self.handle_ohlcv,
             'tickerV2': self.handle_bid_ask,
             'availableBalance.change': self.handle_balance,
             'match': self.handle_trade,
