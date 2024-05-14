@@ -983,11 +983,11 @@
         ],
         "fetchFundingRate": [
             {
-                "description": "fundingRate",
+                "description": "Fetch a swap markets funding rate",
                 "method": "fetchFundingRate",
-                "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
+                "url": "https://api.coinex.com/v2/futures/funding-rate?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
