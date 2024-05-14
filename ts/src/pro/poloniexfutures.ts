@@ -872,25 +872,26 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //      sequence: 123677914,
         //      lastSequence: 123677913,
         //      change: '80.36,buy,4924',
-        //      changes: [ '80.36,buy,4924' ],
+        //      changes: [ '80.19,buy,0',"80.15,buy,10794" ],
         //      timestamp: 1715643483528
         //    },
         //
         const sequence = this.safeInteger (delta, 'sequence');
         const lastSequence = this.safeInteger (delta, 'lastSequence');
         const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce > sequence) {
+            return;
+        }
         if (nonce !== lastSequence) {
-            const checksum = this.safeBool (this.options, 'checksum', true);
-            if (checksum) {
-                throw new InvalidNonce (this.id + ' watchOrderBook received an out-of-order nonce');
-            }
+            throw new InvalidNonce (this.id + ' watchOrderBook received an out-of-order nonce');
         }
         const changes = this.safeList (delta, 'changes');
         for (let i = 0; i < changes.length; i++) {
             const change = changes[i];
-            const price = this.safeNumber (change, 0);
-            const side = this.safeString (change, 1);
-            const size = this.safeNumber (change, 2);
+            const splitChange = change.split (',');
+            const price = this.safeNumber (splitChange, 0);
+            const side = this.safeString (splitChange, 1);
+            const size = this.safeNumber (splitChange, 2);
             const orderBookSide = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
             orderBookSide.store (price, size);
         }
