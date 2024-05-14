@@ -1215,6 +1215,18 @@
                 ],
                 "output": "{\"amount\":\"-7.4\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Swap fetch the private funding fee history",
+                "method": "fetchFundingHistory",
+                "url": "https://api.coinex.com/v2/futures/position-funding-history?limit=5&market=BTCUSDT&market_type=FUTURES",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  5
+                ]
+            }
         ]
     },
     "disabledTests": {}
