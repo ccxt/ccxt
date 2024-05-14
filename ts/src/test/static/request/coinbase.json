@@ -508,7 +508,16 @@
         ],
         "fetchTickers": [
             {
-                "description": "spot tickers",
+                "description": "default",
+                "method": "fetchTickers",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products",
+                "input": [
+                  null,
+                  null
+                ]
+            },
+            {
+                "description": "spot markets",
                 "method": "fetchTickers",
                 "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
                 "input": [
@@ -519,14 +528,25 @@
                 ]
             },
             {
-                "description": "spot tickers",
+                "description": "spot marketType",
                 "method": "fetchTickers",
-                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_type=SPOT",
                 "input": [
-                    [
-                        "BTC/USDT",
-                        "ETH/USDT"
-                    ]
+                  null,
+                  {
+                    "defaultType": "spot"
+                  }
+                ]
+            },
+            {
+                "description": "swap marketType",
+                "method": "fetchTickers",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_type=FUTURE",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "swap"
+                  }
                 ]
             }
         ],
