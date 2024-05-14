@@ -129,7 +129,7 @@
     "validate-types": "tsx build/validate-types.ts",
     "response-js": "npm run tests-init-js -- --responseTests",
     "request-js": "npm run tests-init-js -- --requestTests",
-    "request-py": " --requestTests",
+    "request-py": "npm run tests-init-py -- --requestTests",
     "response-py": "npm run tests-init-py -- --responseTests",
     "request-cs": "dotnet run --project cs/tests/tests.csproj --requestTests",
     "response-cs": "dotnet run --project cs/tests/tests.csproj --responseTests",
