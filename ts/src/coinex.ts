@@ -4493,7 +4493,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4506,44 +4506,28 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.v1PerpetualPublicGetMarketTicker (this.extend (request, params));
+        const response = await this.v2PublicGetFuturesFundingRate (this.extend (request, params));
         //
         //     {
-        //          "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "vol": "6090.9430",
-        //                 "low": "39180.30",
-        //                 "open": "40474.97",
-        //                 "high": "40798.01",
-        //                 "last": "39659.30",
-        //                 "buy": "39663.79",
-        //                 "period": 86400,
-        //                 "funding_time": 372,
-        //                 "position_amount": "270.1956",
-        //                 "funding_rate_last": "0.00022913",
-        //                 "funding_rate_next": "0.00013158",
-        //                 "funding_rate_predict": "0.00016552",
-        //                 "insurance": "16045554.83969682659674035672",
-        //                 "sign_price": "39652.48",
-        //                 "index_price": "39648.44250000",
-        //                 "sell_total": "22.3913",
-        //                 "buy_total": "19.4498",
-        //                 "buy_amount": "12.8942",
-        //                 "sell": "39663.80",
-        //                 "sell_amount": "0.9388"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const ticker = this.safeValue (data, 'ticker', {});
-        const timestamp = this.safeInteger (data, 'date');
-        ticker['timestamp'] = timestamp; // avoid changing parseFundingRate signature
-        return this.parseFundingRate (ticker, market);
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseFundingRate (first, market);
     }
 
     parseFundingRate (contract, market: Market = undefined) {
@@ -4551,51 +4535,37 @@ export default class coinex extends Exchange {
         // fetchFundingRate
         //
         //     {
-        //         "vol": "6090.9430",
-        //         "low": "39180.30",
-        //         "open": "40474.97",
-        //         "high": "40798.01",
-        //         "last": "39659.30",
-        //         "buy": "39663.79",
-        //         "period": 86400,
-        //         "funding_time": 372,
-        //         "position_amount": "270.1956",
-        //         "funding_rate_last": "0.00022913",
-        //         "funding_rate_next": "0.00013158",
-        //         "funding_rate_predict": "0.00016552",
-        //         "insurance": "16045554.83969682659674035672",
-        //         "sign_price": "39652.48",
-        //         "index_price": "39648.44250000",
-        //         "sell_total": "22.3913",
-        //         "buy_total": "19.4498",
-        //         "buy_amount": "12.8942",
-        //         "sell": "39663.80",
-        //         "sell_amount": "0.9388"
+        //         "latest_funding_rate": "0",
+        //         "latest_funding_time": 1715731200000,
+        //         "mark_price": "61602.22",
+        //         "market": "BTCUSDT",
+        //         "max_funding_rate": "0.00375",
+        //         "min_funding_rate": "-0.00375",
+        //         "next_funding_rate": "0.00021074",
+        //         "next_funding_time": 1715760000000
         //     }
         //
-        const timestamp = this.safeInteger (contract, 'timestamp');
-        contract = this.omit (contract, 'timestamp');
-        const fundingDelta = this.safeInteger (contract, 'funding_time') * 60 * 1000;
-        const fundingHour = (timestamp + fundingDelta) / 3600000;
-        const fundingTimestamp = Math.round (fundingHour) * 3600000;
+        const previousFundingTimestamp = this.safeInteger (contract, 'latest_funding_time');
+        const currentFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const marketId = this.safeString (contract, 'market');
         return {
             'info': contract,
-            'symbol': this.safeSymbol (undefined, market),
-            'markPrice': this.safeNumber (contract, 'sign_price'),
-            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'markPrice': this.safeNumber (contract, 'mark_price'),
+            'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fundingRate': this.safeNumber (contract, 'funding_rate_next'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': this.safeNumber (contract, 'funding_rate_predict'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'next_funding_rate'),
+            'fundingTimestamp': currentFundingTimestamp,
+            'fundingDatetime': this.iso8601 (currentFundingTimestamp),
+            'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber (contract, 'funding_rate_last'),
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber (contract, 'latest_funding_rate'),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
         };
     }
 
