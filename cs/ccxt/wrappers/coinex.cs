@@ -907,10 +907,10 @@ public partial class coinex
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch the history of funding payments paid and received on this account
+    /// fetch the history of funding fee payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

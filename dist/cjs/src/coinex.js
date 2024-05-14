@@ -468,10 +468,53 @@ class coinex extends coinex$1 {
                     '36': errors.RequestTimeout,
                     '213': errors.RateLimitExceeded,
                     '107': errors.InsufficientFunds,
+                    '158': errors.PermissionDenied,
                     '600': errors.OrderNotFound,
                     '601': errors.InvalidOrder,
                     '602': errors.InvalidOrder,
                     '606': errors.InvalidOrder,
+                    '3008': errors.RequestTimeout,
+                    '3109': errors.InsufficientFunds,
+                    '3127': errors.InvalidOrder,
+                    '3606': errors.InvalidOrder,
+                    '3610': errors.ExchangeError,
+                    '3612': errors.InvalidOrder,
+                    '3613': errors.InvalidOrder,
+                    '3614': errors.InvalidOrder,
+                    '3615': errors.InvalidOrder,
+                    '3616': errors.InvalidOrder,
+                    '3617': errors.InvalidOrder,
+                    '3618': errors.InvalidOrder,
+                    '3619': errors.InvalidOrder,
+                    '3620': errors.InvalidOrder,
+                    '3621': errors.InvalidOrder,
+                    '3622': errors.InvalidOrder,
+                    '3627': errors.InvalidOrder,
+                    '3628': errors.InvalidOrder,
+                    '3629': errors.InvalidOrder,
+                    '3632': errors.InvalidOrder,
+                    '3633': errors.InvalidOrder,
+                    '3634': errors.InvalidOrder,
+                    '3635': errors.InvalidOrder,
+                    '4001': errors.ExchangeNotAvailable,
+                    '4002': errors.RequestTimeout,
+                    '4003': errors.ExchangeError,
+                    '4004': errors.BadRequest,
+                    '4005': errors.AuthenticationError,
+                    '4006': errors.AuthenticationError,
+                    '4007': errors.PermissionDenied,
+                    '4008': errors.AuthenticationError,
+                    '4009': errors.ExchangeError,
+                    '4010': errors.ExchangeError,
+                    '4011': errors.PermissionDenied,
+                    '4017': errors.ExchangeError,
+                    '4115': errors.AccountSuspended,
+                    '4117': errors.BadSymbol,
+                    '4123': errors.RateLimitExceeded,
+                    '4130': errors.ExchangeError,
+                    '4158': errors.ExchangeError,
+                    '4213': errors.RateLimitExceeded,
+                    '4512': errors.PermissionDenied, // Insufficient sub-account permissions, please check.
                 },
                 'broad': {
                     'ip not allow visit': errors.PermissionDenied,
@@ -4394,8 +4437,8 @@ class coinex extends coinex$1 {
         /**
          * @method
          * @name coinex#fetchFundingHistory
-         * @description fetch the history of funding payments paid and received on this account
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position
+         * @description fetch the history of funding fee payments paid and received on this account
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4405,54 +4448,47 @@ class coinex extends coinex$1 {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
-        limit = (limit === undefined) ? 100 : limit;
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'market': market['id'],
-            'limit': limit,
-            // 'offset': 0,
-            // 'end_time': 1638990636000,
-            // 'windowtime': 1638990636000,
+            'market_type': 'FUTURES',
         };
+        [request, params] = this.handleUntilOption('end_time', request, params);
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.v1PerpetualPrivateGetPositionFunding(this.extend(request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v2PrivateGetFuturesPositionFundingHistory(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "limit": 100,
-        //             "offset": 0,
-        //             "records": [
-        //                 {
-        //                     "amount": "0.0012",
-        //                     "asset": "USDT",
-        //                     "funding": "-0.0095688273996",
-        //                     "funding_rate": "0.00020034",
-        //                     "market": "BTCUSDT",
-        //                     "position_id": 62052321,
-        //                     "price": "39802.45",
-        //                     "real_funding_rate": "0.00020034",
-        //                     "side": 2,
-        //                     "time": 1650729623.933885,
-        //                     "type": 1,
-        //                     "user_id": 3620173,
-        //                     "value": "47.76294"
-        //                 },
-        //             ]
-        //         },
-        //         "message": "OK"
+        //         "data": [
+        //             {
+        //                 "ccy": "USDT",
+        //                 "created_at": 1715673620183,
+        //                 "funding_rate": "0",
+        //                 "funding_value": "0",
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "position_id": 306458800,
+        //                 "side": "long"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const resultList = this.safeValue(data, 'records', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
-        for (let i = 0; i < resultList.length; i++) {
-            const entry = resultList[i];
-            const timestamp = this.safeTimestamp(entry, 'time');
-            const currencyId = this.safeString(entry, 'asset');
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger(entry, 'created_at');
+            const currencyId = this.safeString(entry, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
             result.push({
                 'info': entry,
@@ -4461,7 +4497,7 @@ class coinex extends coinex$1 {
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'id': this.safeNumber(entry, 'position_id'),
-                'amount': this.safeNumber(entry, 'funding'),
+                'amount': this.safeNumber(entry, 'funding_value'),
             });
         }
         return result;

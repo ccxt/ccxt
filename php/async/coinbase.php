@@ -1847,6 +1847,11 @@ class coinbase extends Exchange {
             if ($symbols !== null) {
                 $request['product_ids'] = $this->market_ids($symbols);
             }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $this->get_market_from_symbols($symbols), $params, 'default');
+            if ($marketType !== null && $marketType !== 'default') {
+                $request['product_type'] = ($marketType === 'swap') ? 'FUTURE' : 'SPOT';
+            }
             $response = Async\await($this->v3PublicGetBrokerageMarketProducts ($this->extend($request, $params)));
             //
             //     {

@@ -921,32 +921,39 @@ public partial class poloniexfutures : ccxt.poloniexfutures
     {
         //
         //    {
-        //        "sequence": 18,                   // Sequence number which is used to judge the continuity of pushed messages
-        //        "change": "5000.0,sell,83"        // Price, side, quantity
-        //        "timestamp": 1551770400000
-        //    }
+        //      sequence: 123677914,
+        //      lastSequence: 123677913,
+        //      change: '80.36,buy,4924',
+        //      changes: [ '80.19,buy,0',"80.15,buy,10794" ],
+        //      timestamp: 1715643483528
+        //    },
         //
         object sequence = this.safeInteger(delta, "sequence");
+        object lastSequence = this.safeInteger(delta, "lastSequence");
         object nonce = this.safeInteger(orderbook, "nonce");
-        if (isTrue(!isEqual(nonce, subtract(sequence, 1))))
+        if (isTrue(isGreaterThan(nonce, sequence)))
         {
-            object checksum = this.safeBool(this.options, "checksum", true);
-            if (isTrue(checksum))
-            {
-                throw new InvalidNonce ((string)add(this.id, " watchOrderBook received an out-of-order nonce")) ;
-            }
+            return;
         }
-        object change = this.safeString(delta, "change");
-        object splitChange = ((string)change).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-        object price = this.safeNumber(splitChange, 0);
-        object side = this.safeString(splitChange, 1);
-        object size = this.safeNumber(splitChange, 2);
+        if (isTrue(!isEqual(nonce, lastSequence)))
+        {
+            throw new InvalidNonce ((string)add(this.id, " watchOrderBook received an out-of-order nonce")) ;
+        }
+        object changes = this.safeList(delta, "changes");
+        for (object i = 0; isLessThan(i, getArrayLength(changes)); postFixIncrement(ref i))
+        {
+            object change = getValue(changes, i);
+            object splitChange = ((string)change).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object price = this.safeNumber(splitChange, 0);
+            object side = this.safeString(splitChange, 1);
+            object size = this.safeNumber(splitChange, 2);
+            object orderBookSide = ((bool) isTrue((isEqual(side, "buy")))) ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
+            (orderBookSide as IOrderBookSide).store(price, size);
+        }
         object timestamp = this.safeInteger(delta, "timestamp");
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = sequence;
-        object orderBookSide = ((bool) isTrue((isEqual(side, "buy")))) ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
-        (orderBookSide as IOrderBookSide).store(price, size);
     }
 
     public virtual object handleBalance(WebSocketClient client, object message)

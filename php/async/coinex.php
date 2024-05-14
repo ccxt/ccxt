@@ -474,10 +474,53 @@ class coinex extends Exchange {
                     '36' => '\\ccxt\\RequestTimeout', // Service timeout
                     '213' => '\\ccxt\\RateLimitExceeded', // Too many requests
                     '107' => '\\ccxt\\InsufficientFunds',
+                    '158' => '\\ccxt\\PermissionDenied', // array("code":158,"data":array(),"message":"API permission is not allowed")
                     '600' => '\\ccxt\\OrderNotFound',
                     '601' => '\\ccxt\\InvalidOrder',
                     '602' => '\\ccxt\\InvalidOrder',
                     '606' => '\\ccxt\\InvalidOrder',
+                    '3008' => '\\ccxt\\RequestTimeout', // Service busy, please try again later.
+                    '3109' => '\\ccxt\\InsufficientFunds', // array("code":3109,"data":array(),"message":"balance not enough")
+                    '3127' => '\\ccxt\\InvalidOrder', // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3606' => '\\ccxt\\InvalidOrder', // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
+                    '3610' => '\\ccxt\\ExchangeError', // Order cancellation prohibited during the Call Auction period.
+                    '3612' => '\\ccxt\\InvalidOrder', // The est. ask price is lower than the current bottom ask price. Please reduce the amount.
+                    '3613' => '\\ccxt\\InvalidOrder', // The est. bid price is higher than the current top bid price. Please reduce the amount.
+                    '3614' => '\\ccxt\\InvalidOrder', // The deviation between your est. filled price and the index price. Please reduce the amount.
+                    '3615' => '\\ccxt\\InvalidOrder', // The deviation between your order price and the index price is too high. Please adjust your order price and try again.
+                    '3616' => '\\ccxt\\InvalidOrder', // The order price exceeds the current top bid price. Please adjust the order price and try again.
+                    '3617' => '\\ccxt\\InvalidOrder', // The order price exceeds the current bottom ask price. Please adjust the order price and try again.
+                    '3618' => '\\ccxt\\InvalidOrder', // The deviation between your order price and the index price is too high. Please adjust your order price and try again.
+                    '3619' => '\\ccxt\\InvalidOrder', // The deviation between your order price and the trigger price is too high. Please adjust your order price and try again.
+                    '3620' => '\\ccxt\\InvalidOrder', // Market order submission is temporarily unavailable due to insufficient depth in the current market
+                    '3621' => '\\ccxt\\InvalidOrder', // This order can't be completely executed and has been canceled.
+                    '3622' => '\\ccxt\\InvalidOrder', // This order can't be set Only and has been canceled.
+                    '3627' => '\\ccxt\\InvalidOrder', // The current market depth is low, please reduce your order amount and try again.
+                    '3628' => '\\ccxt\\InvalidOrder', // The current market depth is low, please reduce your order amount and try again.
+                    '3629' => '\\ccxt\\InvalidOrder', // The current market depth is low, please reduce your order amount and try again.
+                    '3632' => '\\ccxt\\InvalidOrder', // The order price exceeds the current top bid price. Please adjust the order price and try again.
+                    '3633' => '\\ccxt\\InvalidOrder', // The order price exceeds the current bottom ask price. Please adjust the order price and try again.
+                    '3634' => '\\ccxt\\InvalidOrder', // The deviation between your est. filled price and the index price is too high. Please reduce the amount and try again.
+                    '3635' => '\\ccxt\\InvalidOrder', // The deviation between your est. filled price and the index price is too high. Please reduce the amount and try again.
+                    '4001' => '\\ccxt\\ExchangeNotAvailable', // Service unavailable, please try again later.
+                    '4002' => '\\ccxt\\RequestTimeout', // Service request timed out, please try again later.
+                    '4003' => '\\ccxt\\ExchangeError', // Internal error, please contact customer service for help.
+                    '4004' => '\\ccxt\\BadRequest', // Parameter error, please check whether the request parameters are abnormal.
+                    '4005' => '\\ccxt\\AuthenticationError', // Abnormal access_id, please check whether the value passed by X-COINEX-KEY is normal.
+                    '4006' => '\\ccxt\\AuthenticationError', // Signature verification failed, please check the signature according to the documentation instructions.
+                    '4007' => '\\ccxt\\PermissionDenied', // IP address prohibited, please check whether the whitelist or export IP is normal.
+                    '4008' => '\\ccxt\\AuthenticationError', // Abnormal X-COIN-SIGN value, please check.
+                    '4009' => '\\ccxt\\ExchangeError', // Abnormal request method, please check.
+                    '4010' => '\\ccxt\\ExchangeError', // Expired request, please try again later.
+                    '4011' => '\\ccxt\\PermissionDenied', // User prohibited from accessing, please contact customer service for help.
+                    '4017' => '\\ccxt\\ExchangeError', // Signature expired, please try again later.
+                    '4115' => '\\ccxt\\AccountSuspended', // User prohibited from trading, please contact customer service for help.
+                    '4117' => '\\ccxt\\BadSymbol', // Trading property_exists($this, prohibited) market, please try again later.
+                    '4123' => '\\ccxt\\RateLimitExceeded', // Rate limit triggered. Please adjust your strategy and reduce the request rate.
+                    '4130' => '\\ccxt\\ExchangeError', // Futures trading prohibited, please try again later.
+                    '4158' => '\\ccxt\\ExchangeError', // Trading prohibited, please try again later.
+                    '4213' => '\\ccxt\\RateLimitExceeded', // The request is too frequent, please try again later.
+                    '4512' => '\\ccxt\\PermissionDenied', // Insufficient sub-account permissions, please check.
                 ),
                 'broad' => array(
                     'ip not allow visit' => '\\ccxt\\PermissionDenied',
@@ -4398,8 +4441,8 @@ class coinex extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * fetch the history of funding payments paid and received on this account
-             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position
+             * fetch the history of funding fee payments paid and received on this account
+             * @see https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -4409,54 +4452,47 @@ class coinex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
             }
-            $limit = ($limit === null) ? 100 : $limit;
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
-                'limit' => $limit,
-                // 'offset' => 0,
-                // 'end_time' => 1638990636000,
-                // 'windowtime' => 1638990636000,
+                'market_type' => 'FUTURES',
             );
+            list($request, $params) = $this->handle_until_option('end_time', $request, $params);
             if ($since !== null) {
                 $request['start_time'] = $since;
             }
-            $response = Async\await($this->v1PerpetualPrivateGetPositionFunding ($this->extend($request, $params)));
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->v2PrivateGetFuturesPositionFundingHistory ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
             //         "data" => array(
-            //             "limit" => 100,
-            //             "offset" => 0,
-            //             "records" => array(
-            //                 array(
-            //                     "amount" => "0.0012",
-            //                     "asset" => "USDT",
-            //                     "funding" => "-0.0095688273996",
-            //                     "funding_rate" => "0.00020034",
-            //                     "market" => "BTCUSDT",
-            //                     "position_id" => 62052321,
-            //                     "price" => "39802.45",
-            //                     "real_funding_rate" => "0.00020034",
-            //                     "side" => 2,
-            //                     "time" => 1650729623.933885,
-            //                     "type" => 1,
-            //                     "user_id" => 3620173,
-            //                     "value" => "47.76294"
-            //                 ),
-            //             )
+            //             array(
+            //                 "ccy" => "USDT",
+            //                 "created_at" => 1715673620183,
+            //                 "funding_rate" => "0",
+            //                 "funding_value" => "0",
+            //                 "market" => "BTCUSDT",
+            //                 "market_type" => "FUTURES",
+            //                 "position_id" => 306458800,
+            //                 "side" => "long"
+            //             ),
             //         ),
-            //         "message" => "OK"
+            //         "message" => "OK",
+            //         "pagination" => {
+            //             "has_next" => true
+            //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $resultList = $this->safe_value($data, 'records', array());
+            $data = $this->safe_list($response, 'data', array());
             $result = array();
-            for ($i = 0; $i < count($resultList); $i++) {
-                $entry = $resultList[$i];
-                $timestamp = $this->safe_timestamp($entry, 'time');
-                $currencyId = $this->safe_string($entry, 'asset');
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $timestamp = $this->safe_integer($entry, 'created_at');
+                $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
                 $result[] = array(
                     'info' => $entry,
@@ -4465,7 +4501,7 @@ class coinex extends Exchange {
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
                     'id' => $this->safe_number($entry, 'position_id'),
-                    'amount' => $this->safe_number($entry, 'funding'),
+                    'amount' => $this->safe_number($entry, 'funding_value'),
                 );
             }
             return $result;

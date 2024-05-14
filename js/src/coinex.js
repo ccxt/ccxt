@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/coinex.js';
-import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -471,10 +471,53 @@ export default class coinex extends Exchange {
                     '36': RequestTimeout,
                     '213': RateLimitExceeded,
                     '107': InsufficientFunds,
+                    '158': PermissionDenied,
                     '600': OrderNotFound,
                     '601': InvalidOrder,
                     '602': InvalidOrder,
                     '606': InvalidOrder,
+                    '3008': RequestTimeout,
+                    '3109': InsufficientFunds,
+                    '3127': InvalidOrder,
+                    '3606': InvalidOrder,
+                    '3610': ExchangeError,
+                    '3612': InvalidOrder,
+                    '3613': InvalidOrder,
+                    '3614': InvalidOrder,
+                    '3615': InvalidOrder,
+                    '3616': InvalidOrder,
+                    '3617': InvalidOrder,
+                    '3618': InvalidOrder,
+                    '3619': InvalidOrder,
+                    '3620': InvalidOrder,
+                    '3621': InvalidOrder,
+                    '3622': InvalidOrder,
+                    '3627': InvalidOrder,
+                    '3628': InvalidOrder,
+                    '3629': InvalidOrder,
+                    '3632': InvalidOrder,
+                    '3633': InvalidOrder,
+                    '3634': InvalidOrder,
+                    '3635': InvalidOrder,
+                    '4001': ExchangeNotAvailable,
+                    '4002': RequestTimeout,
+                    '4003': ExchangeError,
+                    '4004': BadRequest,
+                    '4005': AuthenticationError,
+                    '4006': AuthenticationError,
+                    '4007': PermissionDenied,
+                    '4008': AuthenticationError,
+                    '4009': ExchangeError,
+                    '4010': ExchangeError,
+                    '4011': PermissionDenied,
+                    '4017': ExchangeError,
+                    '4115': AccountSuspended,
+                    '4117': BadSymbol,
+                    '4123': RateLimitExceeded,
+                    '4130': ExchangeError,
+                    '4158': ExchangeError,
+                    '4213': RateLimitExceeded,
+                    '4512': PermissionDenied, // Insufficient sub-account permissions, please check.
                 },
                 'broad': {
                     'ip not allow visit': PermissionDenied,
@@ -4397,8 +4440,8 @@ export default class coinex extends Exchange {
         /**
          * @method
          * @name coinex#fetchFundingHistory
-         * @description fetch the history of funding payments paid and received on this account
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position
+         * @description fetch the history of funding fee payments paid and received on this account
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4408,54 +4451,47 @@ export default class coinex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
-        limit = (limit === undefined) ? 100 : limit;
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'market': market['id'],
-            'limit': limit,
-            // 'offset': 0,
-            // 'end_time': 1638990636000,
-            // 'windowtime': 1638990636000,
+            'market_type': 'FUTURES',
         };
+        [request, params] = this.handleUntilOption('end_time', request, params);
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.v1PerpetualPrivateGetPositionFunding(this.extend(request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v2PrivateGetFuturesPositionFundingHistory(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "limit": 100,
-        //             "offset": 0,
-        //             "records": [
-        //                 {
-        //                     "amount": "0.0012",
-        //                     "asset": "USDT",
-        //                     "funding": "-0.0095688273996",
-        //                     "funding_rate": "0.00020034",
-        //                     "market": "BTCUSDT",
-        //                     "position_id": 62052321,
-        //                     "price": "39802.45",
-        //                     "real_funding_rate": "0.00020034",
-        //                     "side": 2,
-        //                     "time": 1650729623.933885,
-        //                     "type": 1,
-        //                     "user_id": 3620173,
-        //                     "value": "47.76294"
-        //                 },
-        //             ]
-        //         },
-        //         "message": "OK"
+        //         "data": [
+        //             {
+        //                 "ccy": "USDT",
+        //                 "created_at": 1715673620183,
+        //                 "funding_rate": "0",
+        //                 "funding_value": "0",
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "position_id": 306458800,
+        //                 "side": "long"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const resultList = this.safeValue(data, 'records', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
-        for (let i = 0; i < resultList.length; i++) {
-            const entry = resultList[i];
-            const timestamp = this.safeTimestamp(entry, 'time');
-            const currencyId = this.safeString(entry, 'asset');
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger(entry, 'created_at');
+            const currencyId = this.safeString(entry, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
             result.push({
                 'info': entry,
@@ -4464,7 +4500,7 @@ export default class coinex extends Exchange {
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'id': this.safeNumber(entry, 'position_id'),
-                'amount': this.safeNumber(entry, 'funding'),
+                'amount': this.safeNumber(entry, 'funding_value'),
             });
         }
         return result;

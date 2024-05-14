@@ -450,10 +450,53 @@ public partial class coinex : Exchange
                     { "36", typeof(RequestTimeout) },
                     { "213", typeof(RateLimitExceeded) },
                     { "107", typeof(InsufficientFunds) },
+                    { "158", typeof(PermissionDenied) },
                     { "600", typeof(OrderNotFound) },
                     { "601", typeof(InvalidOrder) },
                     { "602", typeof(InvalidOrder) },
                     { "606", typeof(InvalidOrder) },
+                    { "3008", typeof(RequestTimeout) },
+                    { "3109", typeof(InsufficientFunds) },
+                    { "3127", typeof(InvalidOrder) },
+                    { "3606", typeof(InvalidOrder) },
+                    { "3610", typeof(ExchangeError) },
+                    { "3612", typeof(InvalidOrder) },
+                    { "3613", typeof(InvalidOrder) },
+                    { "3614", typeof(InvalidOrder) },
+                    { "3615", typeof(InvalidOrder) },
+                    { "3616", typeof(InvalidOrder) },
+                    { "3617", typeof(InvalidOrder) },
+                    { "3618", typeof(InvalidOrder) },
+                    { "3619", typeof(InvalidOrder) },
+                    { "3620", typeof(InvalidOrder) },
+                    { "3621", typeof(InvalidOrder) },
+                    { "3622", typeof(InvalidOrder) },
+                    { "3627", typeof(InvalidOrder) },
+                    { "3628", typeof(InvalidOrder) },
+                    { "3629", typeof(InvalidOrder) },
+                    { "3632", typeof(InvalidOrder) },
+                    { "3633", typeof(InvalidOrder) },
+                    { "3634", typeof(InvalidOrder) },
+                    { "3635", typeof(InvalidOrder) },
+                    { "4001", typeof(ExchangeNotAvailable) },
+                    { "4002", typeof(RequestTimeout) },
+                    { "4003", typeof(ExchangeError) },
+                    { "4004", typeof(BadRequest) },
+                    { "4005", typeof(AuthenticationError) },
+                    { "4006", typeof(AuthenticationError) },
+                    { "4007", typeof(PermissionDenied) },
+                    { "4008", typeof(AuthenticationError) },
+                    { "4009", typeof(ExchangeError) },
+                    { "4010", typeof(ExchangeError) },
+                    { "4011", typeof(PermissionDenied) },
+                    { "4017", typeof(ExchangeError) },
+                    { "4115", typeof(AccountSuspended) },
+                    { "4117", typeof(BadSymbol) },
+                    { "4123", typeof(RateLimitExceeded) },
+                    { "4130", typeof(ExchangeError) },
+                    { "4158", typeof(ExchangeError) },
+                    { "4213", typeof(RateLimitExceeded) },
+                    { "4512", typeof(PermissionDenied) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "ip not allow visit", typeof(PermissionDenied) },
@@ -3498,8 +3541,8 @@ public partial class coinex : Exchange
         /**
         * @method
         * @name coinex#fetchFundingHistory
-        * @description fetch the history of funding payments paid and received on this account
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position
+        * @description fetch the history of funding fee payments paid and received on this account
+        * @see https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch funding history for
         * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -3511,53 +3554,52 @@ public partial class coinex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
         }
-        limit = ((bool) isTrue((isEqual(limit, null)))) ? 100 : limit;
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "limit", limit },
+            { "market_type", "FUTURES" },
         };
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        object response = await this.v1PerpetualPrivateGetPositionFunding(this.extend(request, parameters));
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.v2PrivateGetFuturesPositionFundingHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "limit": 100,
-        //             "offset": 0,
-        //             "records": [
-        //                 {
-        //                     "amount": "0.0012",
-        //                     "asset": "USDT",
-        //                     "funding": "-0.0095688273996",
-        //                     "funding_rate": "0.00020034",
-        //                     "market": "BTCUSDT",
-        //                     "position_id": 62052321,
-        //                     "price": "39802.45",
-        //                     "real_funding_rate": "0.00020034",
-        //                     "side": 2,
-        //                     "time": 1650729623.933885,
-        //                     "type": 1,
-        //                     "user_id": 3620173,
-        //                     "value": "47.76294"
-        //                 },
-        //             ]
-        //         },
-        //         "message": "OK"
+        //         "data": [
+        //             {
+        //                 "ccy": "USDT",
+        //                 "created_at": 1715673620183,
+        //                 "funding_rate": "0",
+        //                 "funding_value": "0",
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "position_id": 306458800,
+        //                 "side": "long"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object resultList = this.safeValue(data, "records", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object entry = getValue(resultList, i);
-            object timestamp = this.safeTimestamp(entry, "time");
-            object currencyId = this.safeString(entry, "asset");
+            object entry = getValue(data, i);
+            object timestamp = this.safeInteger(entry, "created_at");
+            object currencyId = this.safeString(entry, "ccy");
             object code = this.safeCurrencyCode(currencyId);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -3566,7 +3608,7 @@ public partial class coinex : Exchange
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "id", this.safeNumber(entry, "position_id") },
-                { "amount", this.safeNumber(entry, "funding") },
+                { "amount", this.safeNumber(entry, "funding_value") },
             });
         }
         return result;
