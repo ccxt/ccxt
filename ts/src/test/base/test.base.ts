@@ -11,13 +11,13 @@ import './functions/test.number.js'
 import './functions/test.datetime.js'
 import './functions/test.crypto.js'
 
-const { Exchange, index, aggregate, unCamelCase } = functions
+const { Exchange, index, aggregate, unCamelCase, TICK_SIZE, DECIMAL_PLACES } = functions
 
 const equal = strictEqual
 
 global.log =  ololog
 
-function testCalculateFee () {
+function testCalculateFee (precisionMode) {
     const price  = 100.00
     const amount = 10.00
     const taker  = 0.0025
@@ -30,10 +30,6 @@ function testCalculateFee () {
         'quote':  'BAR',
         'taker':   taker,
         'maker':   maker,
-        'precision': {
-            'amount': 8,
-            'price': 8,
-        },
     }
 
     const exchange = new Exchange ({
@@ -41,7 +37,13 @@ function testCalculateFee () {
         'markets': {
             'FOO/BAR': market,
         },
+        'precisionMode': precisionMode,
     })
+
+    market['precision'] = {
+        'amount': exchange.parseNumber (exchange.isTickPrecision() ? '1e-8' : '8'),
+        'price': exchange.parseNumber (exchange.isTickPrecision() ? '1e-8' : '8'),
+    };
 
     Object.keys (fees).forEach ((takerOrMaker) => {
 
@@ -200,7 +202,8 @@ function testUnCamelCase () {
 // ----------------------------------------------------------------------------
 
 function testBase () {
-    testCalculateFee ()
+    testCalculateFee (TICK_SIZE);
+    testCalculateFee (DECIMAL_PLACES);
     // testExchangeConfigExtension () // skipped
     testAggregate ()
     testSafeBalance ()
