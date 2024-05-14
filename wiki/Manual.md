@@ -6273,7 +6273,7 @@ Returns
 
 *margin and contract only*
 
-Method used for setting position mode using:
+Method used for setting position mode:
 
 - `true` - sets to **hedged** mode
 - `false` - sets to **one-way** mode
