@@ -470,7 +470,7 @@ export default class coinex extends Exchange {
                     '36': RequestTimeout, // Service timeout
                     '213': RateLimitExceeded, // Too many requests
                     '107': InsufficientFunds,
-                    '158': PermissionDenied, // {"code":158,"data":{},"message":"API permission is not allowed"} 
+                    '158': PermissionDenied, // {"code":158,"data":{},"message":"API permission is not allowed"}
                     '600': OrderNotFound,
                     '601': InvalidOrder,
                     '602': InvalidOrder,
