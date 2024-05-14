@@ -6269,6 +6269,31 @@ Returns
 - A list of [order structures](#order-structure)
 
 
+## Set Position Mode
+
+*margin and contract only*
+
+Method used for setting position mode:
+
+- `true` - sets to **hedged** mode
+- `false` - sets to **one-way** mode
+
+```javascript
+set_position_mode (false, symbol = undefined, params = {})
+```
+
+Parameters
+
+- **hedged** (String) *required* hedged-mode value:
+    - `true`
+    - `false`
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint
+
+Returns
+
+- response from the exchange
+
 
 #### Liquidation Price
 

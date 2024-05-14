@@ -1544,14 +1544,17 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :param str [params.method]: 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         userAddress = None
         userAddress, params = self.handle_public_address('fetchOpenOrders', params)
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
         self.load_markets()
         market = self.safe_market(symbol)
         request = {
-            'type': 'openOrders',
+            'type': method,
             'user': userAddress,
         }
         response = self.publicPostInfo(self.extend(request, params))
@@ -1725,6 +1728,25 @@ class hyperliquid(Exchange, ImplicitAPI):
         #           "oid":6195281425
         #        }
         #     }
+        # frontendOrder
+        # {
+        #     "children": [],
+        #     "cloid": null,
+        #     "coin": "BLUR",
+        #     "isPositionTpsl": False,
+        #     "isTrigger": True,
+        #     "limitPx": "0.5",
+        #     "oid": 8670487141,
+        #     "orderType": "Stop Limit",
+        #     "origSz": "20.0",
+        #     "reduceOnly": False,
+        #     "side": "B",
+        #     "sz": "20.0",
+        #     "tif": null,
+        #     "timestamp": 1715523663687,
+        #     "triggerCondition": "Price above 0.6",
+        #     "triggerPx": "0.6"
+        # }
         #
         entry = self.safe_dict_n(order, ['order', 'resting', 'filled'])
         if entry is None:
@@ -1755,7 +1777,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'lastUpdateTimestamp': None,
             'symbol': symbol,
-            'type': self.safe_string_lower(entry, 'orderType'),
+            'type': self.parse_order_type(self.safe_string_lower(entry, 'orderType')),
             'timeInForce': self.safe_string_upper(entry, 'tif'),
             'postOnly': None,
             'reduceOnly': self.safe_bool(entry, 'reduceOnly'),

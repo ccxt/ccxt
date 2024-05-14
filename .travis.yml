@@ -54,7 +54,7 @@ script:
       cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
     else
       echo "Not publishing";
-      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
+      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} GH_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
     fi;
   fi
 after_failure:

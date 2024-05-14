@@ -17,6 +17,7 @@ var misc = require('./functions/misc.js');
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
+exports.isDeno = platform.isDeno;
 exports.isElectron = platform.isElectron;
 exports.isNode = platform.isNode;
 exports.isWebWorker = platform.isWebWorker;

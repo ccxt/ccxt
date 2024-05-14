@@ -1049,22 +1049,16 @@
         ],
         "fetchMarginAdjustmentHistory": [
             {
-                "description": "Fetch margin adjustment history",
+                "description": "Swap fetch margin adjustment history",
                 "method": "fetchMarginAdjustmentHistory",
-                "url": "https://api.coinex.com/perpetual/v1/position/margin_history?access_id=3040ECDCE1944E28B9E262446CF3360E&limit=100&market=&offset=0&position_id=0&timestamp=1711145904582",
-                "input": []
-            },
-            {
-                "description": "Fetch margin adjustment history with symbol, limit, since and until defined",
-                "method": "fetchMarginAdjustmentHistory",
-                "url": "https://api.coinex.com/perpetual/v1/position/margin_history?access_id=3040ECDCE1944E28B9E262446CF3360E&end_time=1711146090000&limit=3&market=XRPUSDT&offset=0&position_id=0&start_time=1710460800000&timestamp=1711146411232",
+                "url": "https://api.coinex.com/v2/futures/position-margin-history?limit=3&market=BTCUSDT&market_type=FUTURES&position_id=306458800",
                 "input": [
-                  "XRP/USDT:USDT",
+                  "BTC/USDT:USDT",
                   null,
-                  1710460800000,
+                  null,
                   3,
                   {
-                    "until": "1711146090000"
+                    "positionId": 306458800
                   }
                 ]
             }
@@ -1196,6 +1190,42 @@
                   }
                 ],
                 "output": "{\"leverage\":1,\"margin_mode\":\"isolated\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Swap add margin to a position",
+                "method": "addMargin",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-margin",
+                "input": [
+                  "BTC/USDT:USDT",
+                  2.1
+                ],
+                "output": "{\"amount\":\"2.1\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Swap reduce margin from a position",
+                "method": "reduceMargin",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-margin",
+                "input": [
+                  "BTC/USDT:USDT",
+                  7.4
+                ],
+                "output": "{\"amount\":\"-7.4\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Swap fetch the private funding fee history",
+                "method": "fetchFundingHistory",
+                "url": "https://api.coinex.com/v2/futures/position-funding-history?limit=5&market=BTCUSDT&market_type=FUTURES",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  5
+                ]
             }
         ]
     },
