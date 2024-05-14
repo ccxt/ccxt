@@ -1829,6 +1829,11 @@ export default class coinbase extends Exchange {
         if (symbols !== undefined) {
             request['product_ids'] = this.marketIds (symbols);
         }
+        const market = this.getMarketFromSymbols (symbols);
+        const marketType = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        if (marketType !== undefined) {
+            request['product_type'] = (marketType === 'swap') ? 'FUTURE' : 'SPOT';
+        }
         const response = await this.v3PublicGetBrokerageMarketProducts (this.extend (request, params));
         //
         //     {
