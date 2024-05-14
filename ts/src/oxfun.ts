@@ -162,7 +162,7 @@ export default class oxfun extends Exchange {
                         'v3/markets/operational': 1, // todo check if it is useful
                         'v3/exchange-trades': 1, // unified
                         'v3/funding/rates': 1, // unified
-                        'v3/leverage/tiers': 1, // unified todo complete
+                        'v3/leverage/tiers': 1, // unified
                     },
                 },
                 'private': {
@@ -1208,7 +1208,7 @@ export default class oxfun extends Exchange {
         };
     }
 
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) { // todo make it with YZH
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name oxfun#fetchLeverageTiers
@@ -1219,7 +1219,6 @@ export default class oxfun extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true);
         const response = await this.publicGetV3LeverageTiers (params);
         //
         //     {
@@ -1262,8 +1261,8 @@ export default class oxfun extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data');
-        return this.parseLeverageTiers (data, symbols, 'symbol');
+        const data = this.safeList (response, 'data', []);
+        return this.parseLeverageTiers (data, symbols, 'marketCode');
     }
 
     parseMarketLeverageTiers (info, market: Market = undefined) {
@@ -1279,65 +1278,25 @@ export default class oxfun extends Exchange {
         //                 initialMargin: '0.1',
         //                 maintenanceMargin: '0.05',
         //                 maintenanceAmount: '0'
-        //             },
-        //             {
-        //                 tier: '2',
-        //                 leverage: '5',
-        //                 positionFloor: '200000000',
-        //                 positionCap: '280000000',
-        //                 initialMargin: '0.2',
-        //                 maintenanceMargin: '0.1',
-        //                 maintenanceAmount: '7000000'
-        //             },
-        //             {
-        //                 tier: '3',
-        //                 leverage: '4',
-        //                 positionFloor: '280000000',
-        //                 positionCap: '460000000',
-        //                 initialMargin: '0.25',
-        //                 maintenanceMargin: '0.125',
-        //                 maintenanceAmount: '14000000'
-        //             },
         //             ...
         //         ]
         //     },
         //
-        let maintenanceMarginRate = this.safeString (info, 'maintenanceMarginRate');
-        let initialMarginRate = this.safeString (info, 'initialMarginRate');
-        const maxVol = this.safeString (info, 'maxVol');
-        const riskIncrVol = this.safeString (info, 'riskIncrVol');
-        const riskIncrMmr = this.safeString (info, 'riskIncrMmr');
-        const riskIncrImr = this.safeString (info, 'riskIncrImr');
-        let floor = '0';
+        const marketId = this.safeString (info, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const listOfTiers = this.safeList (info, 'tiers', []);
         const tiers = [];
-        const quoteId = this.safeString (info, 'quoteCoin');
-        if (riskIncrVol === '0') {
-            return [
-                {
-                    'tier': 0,
-                    'currency': this.safeCurrencyCode (quoteId),
-                    'notionalFloor': undefined,
-                    'notionalCap': undefined,
-                    'maintenanceMarginRate': undefined,
-                    'maxLeverage': this.safeNumber (info, 'maxLeverage'),
-                    'info': info,
-                },
-            ];
-        }
-        while (Precise.stringLt (floor, maxVol)) {
-            const cap = Precise.stringAdd (floor, riskIncrVol);
+        for (let j = 0; j < listOfTiers.length; j++) {
+            const tier = listOfTiers[j];
             tiers.push ({
-                'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
-                'currency': this.safeCurrencyCode (quoteId),
-                'notionalFloor': this.parseNumber (floor),
-                'notionalCap': this.parseNumber (cap),
-                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
-                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
-                'info': info,
+                'tier': this.safeNumber (tier, 'tier'),
+                'currency': market['settle'],
+                'minNotional': this.safeNumber (tier, 'positionFloor'),
+                'maxNotional': this.safeNumber (tier, 'positionCap'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
+                'maxLeverage': this.safeNumber (tier, 'leverage'),
+                'info': tier,
             });
-            initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
-            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
-            floor = cap;
         }
         return tiers;
     }
