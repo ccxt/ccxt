@@ -72,26 +72,6 @@ class Transpiler {
         word = word.replace ('(', '').replace (' ', '');
         // unCamelCase needs to have an input of plain word, so, remove and re-add the parentheses
         const uncameled = unCamelCase (word) + '(';
-        const reserved = {
-            'safe_value2': 'safe_value_2',
-            'safe_integer2': 'safe_integer_2',
-            'safe_string2': 'safe_string_2',
-            'safe_float2': 'safe_float_2',
-            'safe_dict2': 'safe_dict_2',
-            'safe_list2': 'safe_list_2',
-            'safe_integer_product2': 'safe_integer_product_2',
-            'fetch_ohlc_vs': 'fetch_ohlcvs',
-            'parse_ohlc_vs': 'parse_ohlcvs',
-            'fetchOHLCVWs': 'fetch_ohlcv_ws',
-            'buildOHLCVC': 'build_ohlcv',
-            '2_4hr': '_24hr',
-            'int_to_base1_6': 'int_to_base_16',
-        };
-        for (const [key, value] of Object.entries (reserved)) {
-            if (uncameled.includes (key)) {
-                return uncameled.replace (key, value);
-            }
-        }
         return uncameled;
     }
 
@@ -100,6 +80,22 @@ class Transpiler {
         return [
             [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
+            [ /safeValue2/g, 'safe_value_2'],
+            [ /safeInteger2/g, 'safe_integer_2'],
+            [ /safeString2/g, 'safe_string_2'],
+            [ /safeFloat2/g, 'safe_float_2'],
+            [ /safeDict2/g, 'safe_dict_2'],
+            [ /safeList2/g, 'safe_list_2'],
+            [ /safeIntegerProduct2/g, 'safe_integer_product_2'],
+            [ /fetchOHLCVS/g, 'fetch_ohlcvs'],
+            [ /fetchOHLCVWs/g, 'fetch_ohlcvws'],
+            [ /parseOHLCVS/g, 'parse_ohlcvs'],
+            [ /buildOHLCVC/g, 'build_ohlcv'],
+            [ /intToBase16/g, 'int_to_base_16'],
+            [ /binaryToBase16/g, 'binary_to_base_16'],
+            [ /binaryToBase64/g, 'binary_to_base_64'],
+            [ /stringToBase64/g, 'string_to_base_64'],
+            [ /urlencodeBase64/g, 'urlencode_base_64'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
