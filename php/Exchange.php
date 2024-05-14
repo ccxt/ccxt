@@ -2184,11 +2184,11 @@ class Exchange {
         return str_split($value);
     }
 
-    function valueIsDefined($value){
+    function value_is_defined($value){
         return isset($value) && !is_null($value);
     }
 
-    function arraySlice($array, $first, $second = null){
+    function array_slice($array, $first, $second = null){
         if ($second === null) {
             return array_slice($array, $first);
         } else {
