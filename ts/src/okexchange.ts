@@ -150,17 +150,16 @@ export default class okexchange extends Exchange {
     }
 
     parseMarket (market):Market {
-        market['symbol'] = market['symbol'].replace ('-', '/');
-        const id = this.safeStringLower (market, 'symbol');
+        const id = this.safeString (market, 'symbol');
         const symbol = this.safeString (market, 'symbol');
-        let [ baseId, quoteId ] = symbol.split ('/');
+        let [ baseId, quoteId ] = symbol.split ('-');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         baseId = baseId.toLowerCase ();
         quoteId = quoteId.toLowerCase ();
         return {
             'id': id,
-            'symbol': symbol.replace ('-', '/'),
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
             'settle': undefined,
@@ -263,8 +262,9 @@ export default class okexchange extends Exchange {
         //      ts: 1715074621
         //     }
         //
-        ticker['symbol'] = ticker['symbol'].replace ('-', '/');
-        const symbol = this.safeString (ticker, 'symbol');
+        const marketType = 'spot';
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         let high = this.safeString (ticker, 'high_24h');
         const low = this.safeString (ticker, 'low_24h');
         const bid = this.safeString (ticker, 'best_bid');
