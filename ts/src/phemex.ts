@@ -3871,14 +3871,8 @@ export default class phemex extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const timestamp = this.safeInteger (entry, 'createTime');
-            let execFee = this.safeString2 (entry, 'execFeeEv', 'execFeeRv');
+            const execFee = this.safeString2 (entry, 'execFeeEv', 'execFeeRv');
             const currencyCode = this.safeCurrencyCode (this.safeString (entry, 'currency'));
-            if (!isUsdt) {
-                const currency = this.safeCurrency (currencyCode);
-                const scale = this.safeString (currency['info'], 'valueScale');
-                const tickPrecision = this.parsePrecision (scale);
-                execFee = Precise.stringMul (execFee, tickPrecision);
-            }
             result.push ({
                 'info': entry,
                 'symbol': this.safeString (entry, 'symbol'),
@@ -3886,10 +3880,25 @@ export default class phemex extends Exchange {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': undefined,
-                'amount': this.fromEv (execFee, market),
+                'amount': this.parseFundingFeeToPrecision (execFee, market, currencyCode),
             });
         }
         return result as FundingHistory[];
+    }
+
+    parseFundingFeeToPrecision (value, market: Market = undefined, currencyCode: Str = undefined) {
+        if (value === undefined || currencyCode === undefined) {
+            return value;
+        }
+        // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
+        const isUsdt = market['settle'] === 'USDT';
+        if (!isUsdt) {
+            const currency = this.safeCurrency (currencyCode);
+            const scale = this.safeString (currency['info'], 'valueScale');
+            const tickPrecision = this.parsePrecision (scale);
+            value = Precise.stringMul (value, tickPrecision);
+        }
+        return value;
     }
 
     async fetchFundingRate (symbol: string, params = {}) {
