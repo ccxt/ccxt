@@ -6,12 +6,17 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
+use ccxt\async\abstract\zonda as Exchange;
+use ccxt\ExchangeError;
+use ccxt\BadRequest;
+use ccxt\Precise;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class zonda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zonda',
             'name' => 'Zonda',
             'countries' => array( 'EE' ), // Estonia
@@ -24,40 +29,63 @@ class zonda extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
+                'fetchDeposit' => false,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => true,
+                'fetchDeposits' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderBooks' => false,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFee' => false,
+                'fetchTransactionFees' => false,
+                'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => null,
                 'reduceMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => true,
@@ -78,7 +106,7 @@ class zonda extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
             ),
-            'hostname' => 'zonda.exchange',
+            'hostname' => 'zondacrypto.exchange',
             'urls' => array(
                 'referral' => 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
@@ -90,7 +118,7 @@ class zonda extends Exchange {
                     'v1_01Private' => 'https://api.{hostname}/rest',
                 ),
                 'doc' => array(
-                    'https://docs.zonda.exchange/',
+                    'https://docs.zondacrypto.exchange/',
                     'https://github.com/BitBayNet/API',
                 ),
                 'support' => 'https://zondaglobal.com/en/helpdesk/zonda-exchange',
@@ -132,9 +160,11 @@ class zonda extends Exchange {
                 ),
                 'v1_01Private' => array(
                     'get' => array(
+                        'api_payments/deposits/crypto/addresses',
                         'payments/withdrawal/{detailId}',
                         'payments/deposit/{detailId}',
                         'trading/offer',
+                        'trading/stop/offer',
                         'trading/config/{symbol}',
                         'trading/history/transactions',
                         'balances/BITBAY/history',
@@ -144,13 +174,17 @@ class zonda extends Exchange {
                     ),
                     'post' => array(
                         'trading/offer/{symbol}',
+                        'trading/stop/offer/{symbol}',
                         'trading/config/{symbol}',
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
                         'fiat_cantor/exchange',
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
                     ),
                     'delete' => array(
                         'trading/offer/{symbol}/{id}/{side}/{price}',
+                        'trading/stop/offer/{symbol}/{id}/{side}/{price}',
                     ),
                     'put' => array(
                         'balances/BITBAY/balance/{id}',
@@ -165,52 +199,52 @@ class zonda extends Exchange {
                     'tierBased' => false,
                 ),
                 'fiat' => array(
-                    'maker' => 0.30 / 100,
-                    'taker' => 0.43 / 100,
+                    'maker' => $this->parse_number('0.0030'),
+                    'taker' => $this->parse_number('0.0043'),
                     'percentage' => true,
                     'tierBased' => true,
                     'tiers' => array(
                         'taker' => array(
-                            array( 0.0043, 0 ),
-                            array( 0.0042, 1250 ),
-                            array( 0.0041, 3750 ),
-                            array( 0.0040, 7500 ),
-                            array( 0.0039, 10000 ),
-                            array( 0.0038, 15000 ),
-                            array( 0.0037, 20000 ),
-                            array( 0.0036, 25000 ),
-                            array( 0.0035, 37500 ),
-                            array( 0.0034, 50000 ),
-                            array( 0.0033, 75000 ),
-                            array( 0.0032, 100000 ),
-                            array( 0.0031, 150000 ),
-                            array( 0.0030, 200000 ),
-                            array( 0.0029, 250000 ),
-                            array( 0.0028, 375000 ),
-                            array( 0.0027, 500000 ),
-                            array( 0.0026, 625000 ),
-                            array( 0.0025, 875000 ),
+                            array( $this->parse_number('0.0043'), $this->parse_number('0') ),
+                            array( $this->parse_number('0.0042'), $this->parse_number('1250') ),
+                            array( $this->parse_number('0.0041'), $this->parse_number('3750') ),
+                            array( $this->parse_number('0.0040'), $this->parse_number('7500') ),
+                            array( $this->parse_number('0.0039'), $this->parse_number('10000') ),
+                            array( $this->parse_number('0.0038'), $this->parse_number('15000') ),
+                            array( $this->parse_number('0.0037'), $this->parse_number('20000') ),
+                            array( $this->parse_number('0.0036'), $this->parse_number('25000') ),
+                            array( $this->parse_number('0.0035'), $this->parse_number('37500') ),
+                            array( $this->parse_number('0.0034'), $this->parse_number('50000') ),
+                            array( $this->parse_number('0.0033'), $this->parse_number('75000') ),
+                            array( $this->parse_number('0.0032'), $this->parse_number('100000') ),
+                            array( $this->parse_number('0.0031'), $this->parse_number('150000') ),
+                            array( $this->parse_number('0.0030'), $this->parse_number('200000') ),
+                            array( $this->parse_number('0.0029'), $this->parse_number('250000') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('375000') ),
+                            array( $this->parse_number('0.0027'), $this->parse_number('500000') ),
+                            array( $this->parse_number('0.0026'), $this->parse_number('625000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('875000') ),
                         ),
                         'maker' => array(
-                            array( 0.0030, 0 ),
-                            array( 0.0029, 1250 ),
-                            array( 0.0028, 3750 ),
-                            array( 0.0028, 7500 ),
-                            array( 0.0027, 10000 ),
-                            array( 0.0026, 15000 ),
-                            array( 0.0025, 20000 ),
-                            array( 0.0025, 25000 ),
-                            array( 0.0024, 37500 ),
-                            array( 0.0023, 50000 ),
-                            array( 0.0023, 75000 ),
-                            array( 0.0022, 100000 ),
-                            array( 0.0021, 150000 ),
-                            array( 0.0021, 200000 ),
-                            array( 0.0020, 250000 ),
-                            array( 0.0019, 375000 ),
-                            array( 0.0018, 500000 ),
-                            array( 0.0018, 625000 ),
-                            array( 0.0017, 875000 ),
+                            array( $this->parse_number('0.0030'), $this->parse_number('0') ),
+                            array( $this->parse_number('0.0029'), $this->parse_number('1250') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('3750') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('7500') ),
+                            array( $this->parse_number('0.0027'), $this->parse_number('10000') ),
+                            array( $this->parse_number('0.0026'), $this->parse_number('15000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('20000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('25000') ),
+                            array( $this->parse_number('0.0024'), $this->parse_number('37500') ),
+                            array( $this->parse_number('0.0023'), $this->parse_number('50000') ),
+                            array( $this->parse_number('0.0023'), $this->parse_number('75000') ),
+                            array( $this->parse_number('0.0022'), $this->parse_number('100000') ),
+                            array( $this->parse_number('0.0021'), $this->parse_number('150000') ),
+                            array( $this->parse_number('0.0021'), $this->parse_number('200000') ),
+                            array( $this->parse_number('0.0020'), $this->parse_number('250000') ),
+                            array( $this->parse_number('0.0019'), $this->parse_number('375000') ),
+                            array( $this->parse_number('0.0018'), $this->parse_number('500000') ),
+                            array( $this->parse_number('0.0018'), $this->parse_number('625000') ),
+                            array( $this->parse_number('0.0017'), $this->parse_number('875000') ),
                         ),
                     ),
                 ),
@@ -219,6 +253,8 @@ class zonda extends Exchange {
                 ),
             ),
             'options' => array(
+                'fetchTickerMethod' => 'v1_01PublicGetTradingTickerSymbol',  // or v1_01PublicGetTradingStatsSymbol
+                'fetchTickersMethod' => 'v1_01PublicGetTradingTicker',       // or v1_01PublicGetTradingStats
                 'fiatCurrencies' => array( 'EUR', 'USD', 'GBP', 'PLN' ),
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
@@ -252,6 +288,11 @@ class zonda extends Exchange {
                 'UNDER_MAINTENANCE' => '\\ccxt\\OnMaintenance',
                 'REQUEST_TIMESTAMP_TOO_OLD' => '\\ccxt\\InvalidNonce',
                 'PERMISSIONS_NOT_SUFFICIENT' => '\\ccxt\\PermissionDenied',
+                'INVALID_STOP_RATE' => '\\ccxt\\InvalidOrder',
+                'TIMEOUT' => '\\ccxt\\ExchangeError',
+                'RESPONSE_TIMEOUT' => '\\ccxt\\ExchangeError',
+                'ACTION_BLOCKED' => '\\ccxt\\PermissionDenied',
+                'INVALID_HASH_SIGNATURE' => '\\ccxt\\AuthenticationError',
             ),
             'commonCurrencies' => array(
                 'GGC' => 'Global Game Coin',
@@ -259,139 +300,144 @@ class zonda extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all markets for zonda
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing $market data
-         */
-        $response = yield $this->v1_01PublicGetTradingTicker ($params);
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/ticker-1
+             * retrieves data on all $markets for zonda
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing market data
+             */
+            $response = Async\await($this->v1_01PublicGetTradingTicker ($params));
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "items" => array(
+            //             "BSV-USD" => array(
+            //                 "market" => array(
+            //                     "code" => "BSV-USD",
+            //                     "first" => array( currency => "BSV", minOffer => "0.00035", scale => 8 ),
+            //                     "second" => array( currency => "USD", minOffer => "5", scale => 2 )
+            //                 ),
+            //                 "time" => "1557569762154",
+            //                 "highestBid" => "52.31",
+            //                 "lowestAsk" => "62.99",
+            //                 "rate" => "63",
+            //                 "previousRate" => "51.21",
+            //             ),
+            //         ),
+            //     }
+            //
+            $items = $this->safe_value($response, 'items', array());
+            $markets = is_array($items) ? array_values($items) : array();
+            return $this->parse_markets($markets);
+        }) ();
+    }
+
+    public function parse_market($item): array {
+        $market = $this->safe_value($item, 'market', array());
+        $id = $this->safe_string($market, 'code');
+        $first = $this->safe_value($market, 'first', array());
+        $second = $this->safe_value($market, 'second', array());
+        $baseId = $this->safe_string($first, 'currency');
+        $quoteId = $this->safe_string($second, 'currency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $fees = $this->safe_value($this->fees, 'trading', array());
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
-        //
-        //     {
-        //         status => 'Ok',
-        //         $items => array(
-        //             'BSV-USD' => array(
-        //                 $market => array(
-        //                     code => 'BSV-USD',
-        //                     $first => array( currency => 'BSV', minOffer => '0.00035', scale => 8 ),
-        //                     $second => array( currency => 'USD', minOffer => '5', scale => 2 )
-        //                 ),
-        //                 time => '1557569762154',
-        //                 highestBid => '52.31',
-        //                 lowestAsk => '62.99',
-        //                 rate => '63',
-        //                 previousRate => '51.21',
-        //             ),
-        //         ),
-        //     }
-        //
-        $result = array();
-        $items = $this->safe_value($response, 'items', array());
-        $keys = is_array($items) ? array_keys($items) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $id = $keys[$i];
-            $item = $items[$id];
-            $market = $this->safe_value($item, 'market', array());
-            $first = $this->safe_value($market, 'first', array());
-            $second = $this->safe_value($market, 'second', array());
-            $baseId = $this->safe_string($first, 'currency');
-            $quoteId = $this->safe_string($second, 'currency');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $fees = $this->safe_value($this->fees, 'trading', array());
-            if ($this->in_array($base, $fiatCurrencies) || $this->in_array($quote, $fiatCurrencies)) {
-                $fees = $this->safe_value($this->fees, 'fiat', array());
-            }
-            // todo => check that the limits have ben interpreted correctly
-            // todo => parse the $fees page
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => null,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $this->safe_number($fees, 'taker'),
-                'maker' => $this->safe_number($fees, 'maker'),
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'optionType' => null,
-                'strike' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($first, 'scale'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($second, 'scale'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($first, 'minOffer'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($second, 'minOffer'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $item,
-            );
+        if ($this->in_array($base, $fiatCurrencies) || $this->in_array($quote, $fiatCurrencies)) {
+            $fees = $this->safe_value($this->fees, 'fiat', array());
         }
-        return $result;
+        // todo => check that the limits have ben interpreted correctly
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => null,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'taker' => $this->safe_number($fees, 'taker'),
+            'maker' => $this->safe_number($fees, 'maker'),
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'optionType' => null,
+            'strike' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($first, 'scale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($second, 'scale'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($first, 'minOffer'),
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $item,
+        );
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {str|null} $symbol not used by zonda fetchOpenOrders
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $response = yield $this->v1_01PrivateGetTradingOffer (array_merge($request, $params));
-        $items = $this->safe_value($response, 'items', array());
-        return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/active-orders
+             * fetch all unfilled currently open orders
+             * @param {string} $symbol not used by zonda fetchOpenOrders
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $response = Async\await($this->v1_01PrivateGetTradingOffer ($this->extend($request, $params)));
+            $items = $this->safe_list($response, 'items', array());
+            return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
+        }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
-        //         $market => 'ETH-EUR',
-        //         offerType => 'Sell',
-        //         id => '93d3657b-d616-11e9-9248-0242ac110005',
-        //         currentAmount => '0.04',
-        //         lockedAmount => '0.04',
-        //         rate => '280',
-        //         startAmount => '0.04',
-        //         time => '1568372806924',
-        //         $postOnly => false,
-        //         hidden => false,
-        //         mode => 'limit',
-        //         receivedAmount => '0.0',
-        //         firstBalanceId => '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
-        //         secondBalanceId => 'ab43023b-4079-414c-b340-056e3430a3af'
+        //         "market" => "ETH-EUR",
+        //         "offerType" => "Sell",
+        //         "id" => "93d3657b-d616-11e9-9248-0242ac110005",
+        //         "currentAmount" => "0.04",
+        //         "lockedAmount" => "0.04",
+        //         "rate" => "280",
+        //         "startAmount" => "0.04",
+        //         "time" => "1568372806924",
+        //         "postOnly" => false,
+        //         "hidden" => false,
+        //         "mode" => "limit",
+        //         "receivedAmount" => "0.0",
+        //         "firstBalanceId" => "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
+        //         "secondBalanceId" => "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
         //
         $marketId = $this->safe_string($order, 'market');
@@ -415,6 +461,7 @@ class zonda extends Exchange {
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_string($order, 'rate'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'filled' => null,
@@ -425,52 +472,56 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {str|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        if ($symbol) {
-            $markets = array( $this->market_id($symbol) );
-            $request['markets'] = $markets;
-        }
-        $query = array( 'query' => $this->json(array_merge($request, $params)) );
-        $response = yield $this->v1_01PrivateGetTradingHistoryTransactions ($query);
-        //
-        //     {
-        //         status => 'Ok',
-        //         totalRows => '67',
-        //         $items => array(
-        //             array(
-        //                 id => 'b54659a0-51b5-42a0-80eb-2ac5357ccee2',
-        //                 market => 'BTC-EUR',
-        //                 time => '1541697096247',
-        //                 amount => '0.00003',
-        //                 rate => '4341.44',
-        //                 initializedBy => 'Sell',
-        //                 wasTaker => false,
-        //                 userAction => 'Buy',
-        //                 offerId => 'bd19804a-6f89-4a69-adb8-eb078900d006',
-        //                 commissionValue => null
-        //             ),
-        //         )
-        //     }
-        //
-        $items = $this->safe_value($response, 'items');
-        $result = $this->parse_trades($items, null, $since, $limit);
-        if ($symbol === null) {
-            return $result;
-        }
-        return $this->filter_by_symbol($result, $symbol);
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/transactions-history
+             * fetch all trades made by the user
+             * @param {string} $symbol unified market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($symbol) {
+                $markets = array( $this->market_id($symbol) );
+                $symbol = $this->symbol($symbol);
+                $request['markets'] = $markets;
+            }
+            $query = array( 'query' => $this->json($this->extend($request, $params)) );
+            $response = Async\await($this->v1_01PrivateGetTradingHistoryTransactions ($query));
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "totalRows" => "67",
+            //         "items" => array(
+            //             array(
+            //                 "id" => "b54659a0-51b5-42a0-80eb-2ac5357ccee2",
+            //                 "market" => "BTC-EUR",
+            //                 "time" => "1541697096247",
+            //                 "amount" => "0.00003",
+            //                 "rate" => "4341.44",
+            //                 "initializedBy" => "Sell",
+            //                 "wasTaker" => false,
+            //                 "userAction" => "Buy",
+            //                 "offerId" => "bd19804a-6f89-4a69-adb8-eb078900d006",
+            //                 "commissionValue" => null
+            //             ),
+            //         )
+            //     }
+            //
+            $items = $this->safe_value($response, 'items');
+            $result = $this->parse_trades($items, null, $since, $limit);
+            if ($symbol === null) {
+                return $result;
+            }
+            return $this->filter_by_symbol($result, $symbol);
+        }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances');
         if ($balances === null) {
             throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json($response));
@@ -488,160 +539,312 @@ class zonda extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
-        return $this->parse_balance($response);
+    public function fetch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/list-of-wallets
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->v1_01PrivateGetBalancesBITBAYBalance ($params));
+            return $this->parse_balance($response);
+        }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $request = array(
-            'symbol' => $this->market_id($symbol),
-        );
-        $response = yield $this->v1_01PublicGetTradingOrderbookSymbol (array_merge($request, $params));
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/orderbook-2
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->v1_01PublicGetTradingOrderbookSymbol ($this->extend($request, $params)));
+            //
+            //     {
+            //         "status":"Ok",
+            //         "sell":array(
+            //             array("ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1),
+            //             array("ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1),
+            //             array("ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1),
+            //         ),
+            //         "buy":array(
+            //             array("ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2),
+            //             array("ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1),
+            //             array("ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1),
+            //         ),
+            //         "timestamp":"1642299886122",
+            //         "seqNo":"27641254"
+            //     }
+            //
+            $rawBids = $this->safe_value($response, 'buy', array());
+            $rawAsks = $this->safe_value($response, 'sell', array());
+            $timestamp = $this->safe_integer($response, 'timestamp');
+            return array(
+                'symbol' => $market['symbol'],
+                'bids' => $this->parse_bids_asks($rawBids, 'ra', 'ca'),
+                'asks' => $this->parse_bids_asks($rawAsks, 'ra', 'ca'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'nonce' => $this->safe_integer($response, 'seqNo'),
+            );
+        }) ();
+    }
+
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        //     {
-        //         "status":"Ok",
-        //         "sell":array(
-        //             array("ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1),
-        //             array("ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1),
-        //             array("ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1),
-        //         ),
-        //         "buy":array(
-        //             array("ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2),
-        //             array("ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1),
-        //             array("ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1),
-        //         ),
-        //         "timestamp":"1642299886122",
-        //         "seqNo":"27641254"
-        //     }
+        // version 1
         //
-        $rawBids = $this->safe_value($response, 'buy', array());
-        $rawAsks = $this->safe_value($response, 'sell', array());
-        $timestamp = $this->safe_integer($response, 'timestamp');
-        return array(
-            'symbol' => $symbol,
-            'bids' => $this->parse_bids_asks($rawBids, 'ra', 'ca'),
-            'asks' => $this->parse_bids_asks($rawAsks, 'ra', 'ca'),
+        //    {
+        //        "m" => "ETH-PLN",
+        //        "h" => "13485.13",
+        //        "l" => "13100.01",
+        //        "v" => "126.10710939",
+        //        "r24h" => "13332.72"
+        //    }
+        //
+        // version 2
+        //
+        //    {
+        //        "market" => array(
+        //            "code" => "ADA-USDT",
+        //            "first" => array(
+        //                "currency" => "ADA",
+        //                "minOffer" => "0.2",
+        //                "scale" => "6"
+        //            ),
+        //            "second" => array(
+        //                "currency" => "USDT",
+        //                "minOffer" => "0.099",
+        //                "scale" => "6"
+        //            ),
+        //            "amountPrecision" => "6",
+        //            "pricePrecision" => "6",
+        //            "ratePrecision" => "6"
+        //        ),
+        //        "time" => "1655812661202",
+        //        "highestBid" => "0.492",
+        //        "lowestAsk" => "0.499389",
+        //        "rate" => "0.50588",
+        //        "previousRate" => "0.504981"
+        //    }
+        //
+        $tickerMarket = $this->safe_value($ticker, 'market');
+        $marketId = $this->safe_string_2($tickerMarket, 'code', 'm');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 'time');
+        $rate = $this->safe_value($ticker, 'rate');
+        return $this->safe_ticker(array(
+            'symbol' => $this->safe_symbol($marketId, $market),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'nonce' => $this->safe_integer($response, 'seqNo'),
-        );
-    }
-
-    public function parse_ticker($ticker, $market = null) {
-        //
-        //     {
-        //         m => 'ETH-PLN',
-        //         h => '13485.13',
-        //         l => '13100.01',
-        //         v => '126.10710939',
-        //         r24h => '13332.72'
-        //       }
-        //
-        $open = $this->safe_string($ticker, 'r24h');
-        $high = $this->safe_string($ticker, 'h');
-        $low = $this->safe_string($ticker, 'l');
-        $volume = $this->safe_string($ticker, 'v');
-        $marketId = $this->safe_string($ticker, 'm');
-        $market = $this->safe_market($marketId, $market, '-');
-        $symbol = $market['symbol'];
-        return $this->safe_ticker(array(
-            'symbol' => $symbol,
-            'timestamp' => null,
-            'datetime' => null,
-            'high' => $high,
-            'low' => $low,
-            'bid' => null,
+            'high' => $this->safe_string($ticker, 'h'),
+            'low' => $this->safe_string($ticker, 'l'),
+            'bid' => $this->safe_number($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $this->safe_number($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
-            'close' => null,
-            'last' => null,
-            'previousClose' => null,
+            'open' => $this->safe_string($ticker, 'r24h'),
+            'close' => $rate,
+            'last' => $rate,
+            'previousClose' => $this->safe_value($ticker, 'previousRate'),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $volume,
+            'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->v1_01PublicGetTradingStatsSymbol (array_merge($request, $params));
-        //
-        //     {
-        //       status => 'Ok',
-        //       $stats => {
-        //         m => 'ETH-PLN',
-        //         h => '13485.13',
-        //         l => '13100.01',
-        //         v => '126.10710939',
-        //         r24h => '13332.72'
-        //       }
-        //     }
-        //
-        $stats = $this->safe_value($response, 'stats');
-        return $this->parse_ticker($stats, $market);
+    public function fetch_ticker(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
+             * @see https://docs.zondacrypto.exchange/reference/market-statistics
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] v1_01PublicGetTradingTickerSymbol (default) or v1_01PublicGetTradingStatsSymbol
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $method = 'v1_01PublicGetTradingTickerSymbol';
+            $defaultMethod = $this->safe_string($this->options, 'fetchTickerMethod', $method);
+            $fetchTickerMethod = $this->safe_string_2($params, 'method', 'fetchTickerMethod', $defaultMethod);
+            $response = null;
+            if ($fetchTickerMethod === $method) {
+                $response = Async\await($this->v1_01PublicGetTradingTickerSymbol ($this->extend($request, $params)));
+                //
+                //    {
+                //        "status" => "Ok",
+                //        "ticker" => {
+                //            "market" => array(
+                //                "code" => "ADA-USDT",
+                //                "first" => array(
+                //                    "currency" => "ADA",
+                //                    "minOffer" => "0.21",
+                //                    "scale" => 6
+                //                ),
+                //                "second" => array(
+                //                    "currency" => "USDT",
+                //                    "minOffer" => "0.099",
+                //                    "scale" => 6
+                //                ),
+                //                "amountPrecision" => 6,
+                //                "pricePrecision" => 6,
+                //                "ratePrecision" => 6
+                //            ),
+                //            "time" => "1655810976780",
+                //            "highestBid" => "0.498543",
+                //            "lowestAsk" => "0.50684",
+                //            "rate" => "0.50588",
+                //            "previousRate" => "0.504981"
+                //        }
+                //    }
+                //
+            } elseif ($fetchTickerMethod === 'v1_01PublicGetTradingStatsSymbol') {
+                $response = Async\await($this->v1_01PublicGetTradingStatsSymbol ($this->extend($request, $params)));
+                //
+                //    {
+                //        "status" => "Ok",
+                //        "stats" => {
+                //            "m" => "BTC-USDT",
+                //            "h" => "28800",
+                //            "l" => "26703.950101",
+                //            "v" => "6.72932396",
+                //            "r24h" => "27122.2"
+                //        }
+                //    }
+                //
+            } else {
+                throw new BadRequest($this->id . ' fetchTicker $params["method"] must be "v1_01PublicGetTradingTickerSymbol" or "v1_01PublicGetTradingStatsSymbol"');
+            }
+            $stats = $this->safe_value_2($response, 'ticker', 'stats');
+            return $this->parse_ticker($stats, $market);
+        }) ();
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {str|null} $code unified $currency $code, default is null
-         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
-         */
-        $balanceCurrencies = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $balanceCurrencies[] = $currency['id'];
-        }
-        $request = array(
-            'balanceCurrencies' => $balanceCurrencies,
-        );
-        if ($since !== null) {
-            $request['fromTime'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $request = array_merge($request, $params);
-        $response = yield $this->v1_01PrivateGetBalancesBITBAYHistory (array( 'query' => $this->json($request) ));
-        $items = $response['items'];
-        return $this->parse_ledger($items, null, $since, $limit);
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @ignore
+             * v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
+             * @see https://docs.zondacrypto.exchange/reference/market-statistics
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] v1_01PublicGetTradingTicker (default) or v1_01PublicGetTradingStats
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $method = 'v1_01PublicGetTradingTicker';
+            $defaultMethod = $this->safe_string($this->options, 'fetchTickersMethod', $method);
+            $fetchTickersMethod = $this->safe_string_2($params, 'method', 'fetchTickersMethod', $defaultMethod);
+            $response = null;
+            if ($fetchTickersMethod === $method) {
+                $response = Async\await($this->v1_01PublicGetTradingTicker ($params));
+                //
+                //    {
+                //        "status" => "Ok",
+                //        "items" => {
+                //            "DAI-PLN" => array(
+                //                "market" => array(
+                //                    "code" => "DAI-PLN",
+                //                    "first" => array(
+                //                        "currency" => "DAI",
+                //                        "minOffer" => "0.99",
+                //                        "scale" => 8
+                //                    ),
+                //                    "second" => array(
+                //                        "currency" => "PLN",
+                //                        "minOffer" => "5",
+                //                        "scale" => 2
+                //                    ),
+                //                    "amountPrecision" => 8,
+                //                    "pricePrecision" => 2,
+                //                    "ratePrecision" => 2
+                //                ),
+                //                "time" => "1655810825137",
+                //                "highestBid" => "4.42",
+                //                "lowestAsk" => "4.44",
+                //                "rate" => "4.44",
+                //                "previousRate" => "4.43"
+                //            ),
+                //            ...
+                //        }
+                //    }
+                //
+            } elseif ($fetchTickersMethod === 'v1_01PublicGetTradingStats') {
+                $response = Async\await($this->v1_01PublicGetTradingStats ($params));
+                //
+                //     {
+                //         "status" => "Ok",
+                //         "items" => {
+                //             "DAI-PLN" => array(
+                //                 "m" => "DAI-PLN",
+                //                 "h" => "4.41",
+                //                 "l" => "4.37",
+                //                 "v" => "8.71068087",
+                //                 "r24h" => "4.36"
+                //             ),
+                //             ...
+                //         }
+                //     }
+                //
+            } else {
+                throw new BadRequest($this->id . ' fetchTickers $params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
+            }
+            $items = $this->safe_dict($response, 'items');
+            return $this->parse_tickers($items, $symbols);
+        }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/operations-history
+             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * @param {string} $code unified $currency $code, default is null
+             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             */
+            $balanceCurrencies = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $balanceCurrencies[] = $currency['id'];
+            }
+            $request = array(
+                'balanceCurrencies' => $balanceCurrencies,
+            );
+            if ($since !== null) {
+                $request['fromTime'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $request = $this->extend($request, $params);
+            $response = Async\await($this->v1_01PrivateGetBalancesBITBAYHistory (array( 'query' => $this->json($request) )));
+            $items = $response['items'];
+            return $this->parse_ledger($items, null, $since, $limit);
+        }) ();
+    }
+
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //    FUNDS_MIGRATION
         //    {
@@ -912,35 +1115,29 @@ class zonda extends Exchange {
         $timestamp = $this->safe_integer($item, 'time');
         $balance = $this->safe_value($item, 'balance', array());
         $currencyId = $this->safe_string($balance, 'currency');
-        $code = $this->safe_currency_code($currencyId);
         $change = $this->safe_value($item, 'change', array());
-        $amount = $this->safe_number($change, 'total');
+        $amount = $this->safe_string($change, 'total');
         $direction = 'in';
-        if ($amount < 0) {
+        if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
-            $amount = -$amount;
+            $amount = Precise::string_neg($amount);
         }
-        $id = $this->safe_string($item, 'historyId');
         // there are 2 undocumented api calls => (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
-        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
-        $referenceId = $this->safe_string($item, 'detailId');
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
+        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId parameter)
         $fundsBefore = $this->safe_value($item, 'fundsBefore', array());
-        $before = $this->safe_number($fundsBefore, 'total');
         $fundsAfter = $this->safe_value($item, 'fundsAfter', array());
-        $after = $this->safe_number($fundsAfter, 'total');
         return array(
             'info' => $item,
-            'id' => $id,
+            'id' => $this->safe_string($item, 'historyId'),
             'direction' => $direction,
             'account' => null,
-            'referenceId' => $referenceId,
+            'referenceId' => $this->safe_string($item, 'detailId'),
             'referenceAccount' => null,
-            'type' => $type,
-            'currency' => $code,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'currency' => $this->safe_currency_code($currencyId),
+            'amount' => $this->parse_number($amount),
+            'before' => $this->safe_number($fundsBefore, 'total'),
+            'after' => $this->safe_number($fundsAfter, 'total'),
             'status' => 'ok',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -968,17 +1165,17 @@ class zonda extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
-        //         '1582399800000',
+        //         "1582399800000",
         //         {
-        //             o => '0.0001428',
-        //             c => '0.0001428',
-        //             h => '0.0001428',
-        //             l => '0.0001428',
-        //             v => '4',
-        //             co => '1'
+        //             "o" => "0.0001428",
+        //             "c" => "0.0001428",
+        //             "h" => "0.0001428",
+        //             "l" => "0.0001428",
+        //             "v" => "4",
+        //             "co" => "1"
         //         }
         //     )
         //
@@ -993,53 +1190,58 @@ class zonda extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
-        $request = array(
-            'symbol' => $tradingSymbol,
-            'resolution' => $this->timeframes[$timeframe],
-            // 'from' => 1574709092000, // unix timestamp in milliseconds, required
-            // 'to' => 1574709092000, // unix timestamp in milliseconds, required
-        );
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $duration = $this->parse_timeframe($timeframe);
-        $timerange = $limit * $duration * 1000;
-        if ($since === null) {
-            $request['to'] = $this->milliseconds();
-            $request['from'] = $request['to'] - $timerange;
-        } else {
-            $request['from'] = intval($since);
-            $request['to'] = $this->sum($request['from'], $timerange);
-        }
-        $response = yield $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
-        //
-        //     {
-        //         "status":"Ok",
-        //         "items":[
-        //             ["1591503060000",array("o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17")],
-        //             ["1591503120000",array("o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13")],
-        //             ["1591503180000",array("o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7")],
-        //         ]
-        //     }
-        //
-        $items = $this->safe_value($response, 'items', array());
-        return $this->parse_ohlcvs($items, $market, $timeframe, $since, $limit);
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/candles-chart
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
+            $request = array(
+                'symbol' => $tradingSymbol,
+                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+                // 'from' => 1574709092000, // unix timestamp in milliseconds, required
+                // 'to' => 1574709092000, // unix timestamp in milliseconds, required
+            );
+            if ($limit === null) {
+                $limit = 100;
+            } else {
+                $limit = min ($limit, 11000); // supports up to 11k candles diapason
+            }
+            $duration = $this->parse_timeframe($timeframe);
+            $timerange = $limit * $duration * 1000;
+            if ($since === null) {
+                $request['to'] = $this->milliseconds();
+                $request['from'] = $request['to'] - $timerange;
+            } else {
+                $request['from'] = $since;
+                $request['to'] = $this->sum($request['from'], $timerange);
+            }
+            $response = Async\await($this->v1_01PublicGetTradingCandleHistorySymbolResolution ($this->extend($request, $params)));
+            //
+            //     {
+            //         "status":"Ok",
+            //         "items":[
+            //             ["1591503060000",array("o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17")],
+            //             ["1591503120000",array("o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13")],
+            //             ["1591503180000",array("o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7")],
+            //         ]
+            //     }
+            //
+            $items = $this->safe_list($response, 'items', array());
+            return $this->parse_ohlcvs($items, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // createOrder trades
         //
@@ -1051,26 +1253,26 @@ class zonda extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         amount => "0.29285199",
-        //         commissionValue => "0.00125927",
-        //         id => "11c8203a-a267-11e9-b698-0242ac110007",
-        //         initializedBy => "Buy",
-        //         $market => "ETH-EUR",
-        //         offerId => "11c82038-a267-11e9-b698-0242ac110007",
-        //         rate => "277",
-        //         time => "1562689917517",
-        //         userAction => "Buy",
-        //         $wasTaker => true,
+        //         "amount" => "0.29285199",
+        //         "commissionValue" => "0.00125927",
+        //         "id" => "11c8203a-a267-11e9-b698-0242ac110007",
+        //         "initializedBy" => "Buy",
+        //         "market" => "ETH-EUR",
+        //         "offerId" => "11c82038-a267-11e9-b698-0242ac110007",
+        //         "rate" => "277",
+        //         "time" => "1562689917517",
+        //         "userAction" => "Buy",
+        //         "wasTaker" => true,
         //     }
         //
         // fetchTrades (public)
         //
         //     {
-        //          id => 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
-        //          t => '1570108958831',
-        //          a => '0.04776653',
-        //          r => '0.02145854',
-        //          ty => 'Sell'
+        //          "id" => "df00b0da-e5e0-11e9-8c19-0242ac11000a",
+        //          "t" => "1570108958831",
+        //          "a" => "0.04776653",
+        //          "r" => "0.02145854",
+        //          "ty" => "Sell"
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'time', 't');
@@ -1117,186 +1319,194 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
-        $request = array(
-            'symbol' => $tradingSymbol,
-        );
-        if ($since !== null) {
-            $request['fromTime'] = $since - 1; // result does not include exactly `$since` time therefore decrease by 1
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default - 10, max - 300
-        }
-        $response = yield $this->v1_01PublicGetTradingTransactionsSymbol (array_merge($request, $params));
-        $items = $this->safe_value($response, 'items');
-        return $this->parse_trades($items, $market, $since, $limit);
-    }
-
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {str} $symbol unified $symbol of the $market to create an order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
-        $amount = floatval($this->amount_to_precision($symbol, $amount));
-        $request = array(
-            'symbol' => $tradingSymbol,
-            'offerType' => $side,
-            'amount' => $amount,
-            'mode' => $type,
-        );
-        if ($type === 'limit') {
-            $request['rate'] = $price;
-            $price = floatval($this->price_to_precision($symbol, $price));
-        }
-        $response = yield $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
-        //
-        // unfilled (open order)
-        //
-        //     {
-        //         $status => 'Ok',
-        //         $completed => false, // can deduce $status from here
-        //         offerId => 'ce9cc72e-d61c-11e9-9248-0242ac110005',
-        //         $transactions => array(), // can deduce order info from here
-        //     }
-        //
-        // $filled (closed order)
-        //
-        //     {
-        //         "status" => "Ok",
-        //         "offerId" => "942a4a3e-e922-11e9-8c19-0242ac11000a",
-        //         "completed" => true,
-        //         "transactions" => array(
-        //           array(
-        //             "rate" => "0.02195928",
-        //             "amount" => "0.00167952"
-        //           ),
-        //           array(
-        //             "rate" => "0.02195928",
-        //             "amount" => "0.00167952"
-        //           ),
-        //           {
-        //             "rate" => "0.02196207",
-        //             "amount" => "0.27704177"
-        //           }
-        //         )
-        //     }
-        //
-        // partially-$filled (open order)
-        //
-        //     {
-        //         "status" => "Ok",
-        //         "offerId" => "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
-        //         "completed" => false,
-        //         "transactions" => array(
-        //           array(
-        //             "rate" => "0.02106404",
-        //             "amount" => "0.0019625"
-        //           ),
-        //           array(
-        //             "rate" => "0.02106404",
-        //             "amount" => "0.0019625"
-        //           ),
-        //           {
-        //             "rate" => "0.02105901",
-        //             "amount" => "0.00975256"
-        //           }
-        //         )
-        //     }
-        //
-        $timestamp = $this->milliseconds(); // the real $timestamp is missing in the $response
-        $id = $this->safe_string($response, 'offerId');
-        $completed = $this->safe_value($response, 'completed', false);
-        $status = $completed ? 'closed' : 'open';
-        $filled = 0;
-        $cost = null;
-        $transactions = $this->safe_value($response, 'transactions');
-        $trades = null;
-        if ($transactions !== null) {
-            $trades = $this->parse_trades($transactions, $market, null, null, array(
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'symbol' => $symbol,
-                'side' => $side,
-                'type' => $type,
-                'orderId' => $id,
-            ));
-            $cost = 0;
-            for ($i = 0; $i < count($trades); $i++) {
-                $filled = $this->sum($filled, $trades[$i]['amount']);
-                $cost = $this->sum($cost, $trades[$i]['cost']);
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/last-transactions
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
+            $request = array(
+                'symbol' => $tradingSymbol,
+            );
+            if ($since !== null) {
+                $request['fromTime'] = $since - 1; // result does not include exactly `$since` time therefore decrease by 1
             }
-        }
-        $remaining = $amount - $filled;
-        return array(
-            'id' => $id,
-            'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => $status,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
-            'filled' => $filled,
-            'remaining' => $remaining,
-            'average' => null,
-            'fee' => null,
-            'trades' => $trades,
-            'clientOrderId' => null,
-        );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default - 10, max - 300
+            }
+            $response = Async\await($this->v1_01PublicGetTradingTransactionsSymbol ($this->extend($request, $params)));
+            $items = $this->safe_list($response, 'items');
+            return $this->parse_trades($items, $market, $since, $limit);
+        }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {str} $id order $id
-         * @param {str} $symbol unified $symbol of the $market the order was made in
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $side = $this->safe_string($params, 'side');
-        if ($side === null) {
-            throw new ExchangeError($this->id . ' cancelOrder() requires a `$side` parameter ("buy" or "sell")');
-        }
-        $price = $this->safe_value($params, 'price');
-        if ($price === null) {
-            throw new ExchangeError($this->id . ' cancelOrder() requires a `$price` parameter (float or string)');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
-        $request = array(
-            'symbol' => $tradingSymbol,
-            'id' => $id,
-            'side' => $side,
-            'price' => $price,
-        );
-        // array( status => 'Fail', errors => array( 'NOT_RECOGNIZED_OFFER_TYPE' ) )  -- if required $params are missing
-        // array( status => 'Ok', errors => array() )
-        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge($request, $params));
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
+            $amount = floatval($this->amount_to_precision($symbol, $amount));
+            $request = array(
+                'symbol' => $tradingSymbol,
+                'offerType' => strtoupper($side),
+                'amount' => $amount,
+            );
+            $stopLossPrice = $this->safe_value_2($params, 'stopPrice', 'stopLossPrice');
+            $isStopLossPrice = $stopLossPrice !== null;
+            $isLimitOrder = $type === 'limit';
+            $isMarketOrder = $type === 'market';
+            $isStopLimit = ($type === 'stop-limit') || ($isLimitOrder && $isStopLossPrice);
+            $isStopMarket = $type === 'stop-market' || ($isMarketOrder && $isStopLossPrice);
+            $isStopOrder = $isStopLimit || $isStopMarket;
+            if ($isLimitOrder || $isStopLimit) {
+                $request['rate'] = $this->price_to_precision($symbol, $price);
+                $request['mode'] = $isStopLimit ? 'stop-limit' : 'limit';
+            } elseif ($isMarketOrder || $isStopMarket) {
+                $request['mode'] = $isStopMarket ? 'stop-market' : 'market';
+            } else {
+                throw new ExchangeError($this->id . ' createOrder() invalid type');
+            }
+            $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice' ));
+            $response = null;
+            if ($isStopOrder) {
+                if (!$isStopLossPrice) {
+                    throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-$market orders');
+                }
+                $request['stopRate'] = $this->price_to_precision($symbol, $stopLossPrice);
+                $response = Async\await($this->v1_01PrivatePostTradingStopOfferSymbol ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->v1_01PrivatePostTradingOfferSymbol ($this->extend($request, $params)));
+            }
+            //
+            // unfilled (open order)
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "completed" => false, // can deduce $status from here
+            //         "offerId" => "ce9cc72e-d61c-11e9-9248-0242ac110005",
+            //         "transactions" => array(), // can deduce order info from here
+            //     }
+            //
+            // filled (closed order)
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "offerId" => "942a4a3e-e922-11e9-8c19-0242ac11000a",
+            //         "completed" => true,
+            //         "transactions" => array(
+            //           array(
+            //             "rate" => "0.02195928",
+            //             "amount" => "0.00167952"
+            //           ),
+            //           array(
+            //             "rate" => "0.02195928",
+            //             "amount" => "0.00167952"
+            //           ),
+            //           {
+            //             "rate" => "0.02196207",
+            //             "amount" => "0.27704177"
+            //           }
+            //         )
+            //     }
+            //
+            // partially-filled (open order)
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "offerId" => "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
+            //         "completed" => false,
+            //         "transactions" => array(
+            //           array(
+            //             "rate" => "0.02106404",
+            //             "amount" => "0.0019625"
+            //           ),
+            //           array(
+            //             "rate" => "0.02106404",
+            //             "amount" => "0.0019625"
+            //           ),
+            //           {
+            //             "rate" => "0.02105901",
+            //             "amount" => "0.00975256"
+            //           }
+            //         )
+            //     }
+            //
+            $id = $this->safe_string_2($response, 'offerId', 'stopOfferId');
+            $completed = $this->safe_bool($response, 'completed', false);
+            $status = $completed ? 'closed' : 'open';
+            $transactions = $this->safe_value($response, 'transactions');
+            return $this->safe_order(array(
+                'id' => $id,
+                'info' => $response,
+                'timestamp' => null,
+                'datetime' => null,
+                'lastTradeTimestamp' => null,
+                'status' => $status,
+                'symbol' => $symbol,
+                'type' => $type,
+                'side' => $side,
+                'price' => $price,
+                'amount' => $amount,
+                'cost' => null,
+                'filled' => null,
+                'remaining' => null,
+                'average' => null,
+                'fee' => null,
+                'trades' => $transactions,
+                'clientOrderId' => null,
+            ));
+        }) ();
+    }
+
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/cancel-order
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            $side = $this->safe_string($params, 'side');
+            if ($side === null) {
+                throw new ExchangeError($this->id . ' cancelOrder() requires a `$side` parameter ("buy" or "sell")');
+            }
+            $price = $this->safe_value($params, 'price');
+            if ($price === null) {
+                throw new ExchangeError($this->id . ' cancelOrder() requires a `$price` parameter (float or string)');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
+            $request = array(
+                'symbol' => $tradingSymbol,
+                'id' => $id,
+                'side' => $side,
+                'price' => $price,
+            );
+            // array( status => "Fail", errors => array( "NOT_RECOGNIZED_OFFER_TYPE" ) )  -- if required $params are missing
+            // array( status => "Ok", errors => array() )
+            return Async\await($this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params)));
+        }) ();
     }
 
     public function is_fiat($currency) {
@@ -1305,66 +1515,155 @@ class zonda extends Exchange {
             'EUR' => true,
             'PLN' => true,
         );
-        return $this->safe_value($fiatCurrencies, $currency, false);
+        return $this->safe_bool($fiatCurrencies, $currency, false);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
-        /**
-         * $transfer $currency internally between wallets on the same account
-         * @param {str} $code unified $currency $code
-         * @param {float} $amount amount to $transfer
-         * @param {str} $fromAccount account to $transfer from
-         * @param {str} $toAccount account to $transfer to
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'source' => $fromAccount,
-            'destination' => $toAccount,
-            'currency' => $code,
-            'funds' => $this->currency_to_precision($code, $amount),
-        );
-        $response = yield $this->v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (array_merge($request, $params));
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
-        //         "status" => "Ok",
-        //         "from" => array(
-        //             "id" => "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
-        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
-        //             "availableFunds" => 0.01803472,
-        //             "totalFunds" => 0.01804161,
-        //             "lockedFunds" => 0.00000689,
-        //             "currency" => "BTC",
-        //             "type" => "CRYPTO",
-        //             "name" => "BTC",
-        //             "balanceEngine" => "BITBAY"
-        //         ),
-        //         "to" => array(
-        //             "id" => "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
-        //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
-        //             "availableFunds" => 0.0001,
-        //             "totalFunds" => 0.0001,
-        //             "lockedFunds" => 0,
-        //             "currency" => "BTC",
-        //             "type" => "CRYPTO",
-        //             "name" => "Prowizja",
-        //             "balanceEngine" => "BITBAY"
-        //         ),
-        //         "errors" => null
+        //         "address" => "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //         "currency" => "BTC",
+        //         "balanceId" => "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //         "balanceEngine" => "BITBAY",
+        //         "tag" => null
         //     }
         //
-        $transfer = $this->parse_transfer($response, $currency);
-        $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
-            $transfer['amount'] = $amount;
-        }
-        return $transfer;
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'address' => $address,
+            'tag' => $this->safe_string($depositAddress, 'tag'),
+            'network' => null,
+            'info' => $depositAddress,
+        );
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
+             * fetch the deposit address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->walletId] Wallet id to filter deposit adresses.
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+            );
+            $response = Async\await($this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses ($this->extend($request, $params)));
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "data" => [{
+            //                 "address" => "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+            //                 "currency" => "BTC",
+            //                 "balanceId" => "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+            //                 "balanceEngine" => "BITBAY",
+            //                 "tag" => null
+            //             }
+            //         ]
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            $first = $this->safe_dict($data, 0);
+            return $this->parse_deposit_address($first, $currency);
+        }) ();
+    }
+
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
+             * fetch deposit addresses for multiple currencies and chain types
+             * @param {string[]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses ($params));
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "data" => [{
+            //                 "address" => "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+            //                 "currency" => "BTC",
+            //                 "balanceId" => "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+            //                 "balanceEngine" => "BITBAY",
+            //                 "tag" => null
+            //             }
+            //         ]
+            //     }
+            //
+            $data = $this->safe_list($response, 'data');
+            return $this->parse_deposit_addresses($data, $codes);
+        }) ();
+    }
+
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/internal-$transfer
+             * $transfer $currency internally between wallets on the same account
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to $transfer
+             * @param {string} $fromAccount account to $transfer from
+             * @param {string} $toAccount account to $transfer to
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'source' => $fromAccount,
+                'destination' => $toAccount,
+                'currency' => $code,
+                'funds' => $this->currency_to_precision($code, $amount),
+            );
+            $response = Async\await($this->v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination ($this->extend($request, $params)));
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "from" => array(
+            //             "id" => "ad9397c5-3bd9-4372-82ba-22da6a90cb56",
+            //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+            //             "availableFunds" => 0.01803472,
+            //             "totalFunds" => 0.01804161,
+            //             "lockedFunds" => 0.00000689,
+            //             "currency" => "BTC",
+            //             "type" => "CRYPTO",
+            //             "name" => "BTC",
+            //             "balanceEngine" => "BITBAY"
+            //         ),
+            //         "to" => array(
+            //             "id" => "01931d52-536b-4ca5-a9f4-be28c86d0cc3",
+            //             "userId" => "4bc43956-423f-47fd-9faa-acd37c58ed9f",
+            //             "availableFunds" => 0.0001,
+            //             "totalFunds" => 0.0001,
+            //             "lockedFunds" => 0,
+            //             "currency" => "BTC",
+            //             "type" => "CRYPTO",
+            //             "name" => "Prowizja",
+            //             "balanceEngine" => "BITBAY"
+            //         ),
+            //         "errors" => null
+            //     }
+            //
+            $transfer = $this->parse_transfer($response, $currency);
+            $transferOptions = $this->safe_value($this->options, 'transfer', array());
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
+            if ($fillResponseFromRequest) {
+                $transfer['amount'] = $amount;
+            }
+            return $transfer;
+        }) ();
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "status" => "Ok",
@@ -1412,7 +1711,7 @@ class zonda extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'Ok' => 'ok',
             'Fail' => 'failed',
@@ -1420,51 +1719,52 @@ class zonda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {str} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {str} $address the $address to withdraw to
-         * @param {str|null} $tag
-         * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
-        yield $this->load_markets();
-        $method = null;
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            'quantity' => $amount,
-        );
-        if ($this->is_fiat($code)) {
-            $method = 'privatePostWithdraw';
-            // $request['account'] = $params['account']; // they demand an account number
-            // $request['express'] = $params['express']; // whatever it means, they don't explain
-            // $request['bic'] = '';
-        } else {
-            $method = 'privatePostTransfer';
-            if ($tag !== null) {
-                $address .= '?dt=' . (string) $tag;
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $response = null;
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                'amount' => $amount,
+                'address' => $address,
+                // $request['balanceId'] = $params['balanceId']; // Wallet id used for withdrawal. If not provided, any BITBAY wallet with sufficient funds is used. If BITBAYPAY wallet should be used parameter must be explicitly specified.
+            );
+            if ($this->is_fiat($code)) {
+                // $request['swift'] = $params['swift']; // Bank identifier, if required.
+                $response = Async\await($this->v1_01PrivatePostApiPaymentsWithdrawalsFiat ($this->extend($request, $params)));
+            } else {
+                if ($tag !== null) {
+                    $request['tag'] = $tag;
+                }
+                $response = Async\await($this->v1_01PrivatePostApiPaymentsWithdrawalsCrypto ($this->extend($request, $params)));
             }
-            $request['address'] = $address;
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //     {
-        //         "status" => "Ok",
-        //         "data" => {
-        //           "id" => "65e01087-afb0-4ab2-afdb-cc925e360296"
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_transaction($data, $currency);
+            //
+            //     {
+            //         "status" => "Ok",
+            //         "data" => {
+            //           "id" => "65e01087-afb0-4ab2-afdb-cc925e360296"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data');
+            return $this->parse_transaction($data, $currency);
+        }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1491,6 +1791,7 @@ class zonda extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => null,
             'info' => $transaction,
         );
@@ -1534,7 +1835,7 @@ class zonda extends Exchange {
             );
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'moment' => $this->nonce(),
             ), $params));
@@ -1549,16 +1850,16 @@ class zonda extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         if (is_array($response) && array_key_exists('code', $response)) {
             //
-            // bitbay returns the integer 'success' => 1 key from their private API
-            // or an integer 'code' value from 0 to 510 and an $error message
+            // bitbay returns the integer "success" => 1 key from their private API
+            // or an integer "code" value from 0 to 510 and an $error message
             //
-            //      array( 'success' => 1, ... )
-            //      array( 'code' => 502, 'message' => 'Invalid sign' )
-            //      array( 'code' => 0, 'message' => 'offer funds not exceeding minimums' )
+            //      array( "success" => 1, ... )
+            //      array( 'code' => 502, "message" => "Invalid sign" )
+            //      array( 'code' => 0, "message" => "offer funds not exceeding minimums" )
             //
             //      400 At least one parameter wasn't set
             //      401 Invalid order type
@@ -1596,5 +1897,6 @@ class zonda extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

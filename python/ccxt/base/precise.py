@@ -186,6 +186,9 @@ class Precise:
     def __repr__(self):
         return "Precise(" + str(self) + ")"
 
+    def __float__(self):
+        return float(str(self))
+
     @staticmethod
     def string_mul(string1, string2):
         if string1 is None or string2 is None:

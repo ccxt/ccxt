@@ -92,6 +92,7 @@ class BN implements JsonSerializable
         return $this->bi->toNumber();
     }
 
+    #[\ReturnTypeWillChange]
     public function jsonSerialize() {
         return $this->toString(16);
     }
@@ -348,7 +349,7 @@ class BN implements JsonSerializable
     }
 
     public function ishln($bits) {
-        if (assert_options(ASSERT_ACTIVE)) assert(!$this->negative());
+        // if (assert_options(ASSERT_ACTIVE)) assert(!$this->negative());
         return $this->iushln($bits);
     }
 
@@ -454,7 +455,7 @@ class BN implements JsonSerializable
 
     // Find `this` / `num`
     public function div(BN $num) {
-        if (assert_options(ASSERT_ACTIVE)) assert(!$num->isZero());
+        // if (assert_options(ASSERT_ACTIVE)) assert(!$num->isZero());
         $res = clone($this);
         $res->bi = $res->bi->div($num->bi);
         return $res;
@@ -462,14 +463,14 @@ class BN implements JsonSerializable
 
     // Find `this` % `num`
     public function mod(BN $num) {
-        if (assert_options(ASSERT_ACTIVE)) assert(!$num->isZero());
+        // if (assert_options(ASSERT_ACTIVE)) assert(!$num->isZero());
         $res = clone($this);
         $res->bi = $res->bi->divR($num->bi);
         return $res;
     }
 
     public function umod(BN $num) {
-        if (assert_options(ASSERT_ACTIVE)) assert(!$num->isZero());
+        // if (assert_options(ASSERT_ACTIVE)) assert(!$num->isZero());
         $tmp = $num->bi->sign() < 0 ? $num->bi->abs() : $num->bi;        
         $res = clone($this);
         $res->bi = $this->bi->mod($tmp);

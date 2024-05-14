@@ -1,0 +1,32 @@
+import geminiRest from '../gemini.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class gemini extends geminiRest {
+    describe(): any;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseWsTrade(trade: any, market?: any): Trade;
+    handleTrade(client: Client, message: any): void;
+    handleTrades(client: Client, message: any): void;
+    handleTradesForMultidata(client: Client, trades: any, timestamp: Int): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): any;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidsAsksForMultidata(client: Client, rawBidAskChanges: any, timestamp: Int, nonce: Int): void;
+    helperForWatchMultipleConstruct(itemHashName: string, symbols: string[], params?: {}): Promise<any>;
+    handleOrderBookForMultidata(client: Client, rawOrderBookChanges: any, timestamp: Int, nonce: Int): void;
+    handleL2Updates(client: Client, message: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleHeartbeat(client: Client, message: any): any;
+    handleSubscription(client: Client, message: any): any;
+    handleOrder(client: Client, message: any): void;
+    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrderStatus(status: any): string;
+    parseWsOrderType(type: any): string;
+    handleError(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): void;
+    authenticate(params?: {}): Promise<void>;
+}

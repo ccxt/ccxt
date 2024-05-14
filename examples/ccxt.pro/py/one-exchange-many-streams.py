@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import run
-import ccxtpro
+import ccxt.pro
 
 async def loop(exchange, symbol):
     await exchange.throttle(10)
@@ -16,7 +16,7 @@ async def loop(exchange, symbol):
             # break  # you can also break just this one loop if it fails
 
 async def main():
-    exchange = ccxtpro.ftx()
+    exchange = ccxt.pro.ftx()
     symbols = ['BTC/USDT', 'ETH/USDT', 'ETH/BTC']
     await asyncio.gather(*[loop(exchange, symbol) for symbol in symbols])
     await exchange.close()

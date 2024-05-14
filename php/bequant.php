@@ -6,11 +6,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bequant as hitbtc;
 
 class bequant extends hitbtc {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bequant',
             'name' => 'Bequant',
             'countries' => array( 'MT' ), // Malta
@@ -18,8 +19,8 @@ class bequant extends hitbtc {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
                 'api' => array(
-                    'public' => 'https://api.bequant.io',
-                    'private' => 'https://api.bequant.io',
+                    'public' => 'https://api.bequant.io/api/3',
+                    'private' => 'https://api.bequant.io/api/3',
                 ),
                 'www' => 'https://bequant.io',
                 'doc' => array(
@@ -28,7 +29,7 @@ class bequant extends hitbtc {
                 'fees' => array(
                     'https://bequant.io/fees-and-limits',
                 ),
-                'referral' => 'https://bequant.io',
+                'referral' => 'https://bequant.io/referral/dd104e3bee7634ec',
             ),
         ));
     }

@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro');
+const ccxt = require ('../../../ccxt');
 
-console.log ('CCXT Pro Version:', ccxtpro.version)
+console.log ('CCXT Version:', ccxt.version)
 
 let ohlcvs = {}
 
@@ -72,7 +72,7 @@ async function watch (exchange, symbol, timeframe) {
 
 async function main() {
     const symbol = 'BTC/USDT'
-    const exchange = new ccxtpro.binance ({ 'newUpdates': true })
+     const exchange = new ccxt.pro.binance ({ 'newUpdates': true })
     await exchange.loadMarkets ()
     const timeframe = '1m'
     await Promise.all ([ watch (exchange, symbol, timeframe), log (exchange, symbol, timeframe) ])

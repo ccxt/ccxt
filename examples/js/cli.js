@@ -1,5 +1,16 @@
-"use strict";
+#! /usr/bin/env node
+import fs from 'fs'
+import path from 'path'
+import ansi from 'ansicolor'
+import asTable from 'as-table'
+import ololog from 'ololog'
+import ccxt from '../../js/ccxt.js'
+import { Agent } from 'https'
 
+const fsPromises = fs.promises;
+ansi.nice
+const log = ololog.configure ({ locate: false }).unlimited
+const { ExchangeError , NetworkError} = ccxt
 //-----------------------------------------------------------------------------
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
@@ -22,38 +33,18 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSpot = process.argv.includes ('--spot')
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
+    , isOption = process.argv.includes ('--option')
+    , shouldCreateRequestReport = process.argv.includes ('--report')
+    , shouldCreateResponseReport = process.argv.includes ('--response')
+    , shouldCreateBoth = process.argv.includes ('--static')
+    , raw = process.argv.includes ('--raw')
 
 //-----------------------------------------------------------------------------
-
-const ccxt         = require ('../../ccxt.js')
-    , fs           = require ('fs')
-    , path         = require ('path')
-    , ansi         = require ('ansicolor').nice
-    , asTable      = require ('as-table').configure ({
-
-        delimiter: ' | '.lightGray.dim,
-        right: true,
-        title: x => String (x).lightGray,
-        dash: '-'.lightGray.dim,
-        print: x => {
-            if (typeof x === 'object') {
-                const j = JSON.stringify (x).trim ()
-                if (j.length < 100) return j
-            }
-            return String (x)
-        }
-    })
-    , util         = require ('util')
-    , { execSync } = require ('child_process')
-    , log          = require ('ololog').configure ({ locate: false }).unlimited
-    , fsPromises   = require ('fs/promises')
-    , { ExchangeError, NetworkError } = ccxt
-
-//-----------------------------------------------------------------------------
-
-console.log (new Date ())
-console.log ('Node.js:', process.version)
-console.log ('CCXT v' + ccxt.version)
+if (!raw) {
+    log ((new Date ()).toISOString())
+    log ('Node.js:', process.version)
+    log ('CCXT v' + ccxt.version)
+}
 
 //-----------------------------------------------------------------------------
 
@@ -66,25 +57,45 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
-let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
+const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+const settingsFile  = fs.readFileSync(keysFile);
+// eslint-disable-next-line import/no-dynamic-require, no-path-concat
+let settings = JSON.parse(settingsFile)
+settings = settings[exchangeId] || {}
+
 
 //-----------------------------------------------------------------------------
 
 const timeout = 30000
 let exchange = undefined
 
-const { Agent } = require ('https')
+
 
 const httpsAgent = new Agent ({
     ecdhCurve: 'auto',
     keepAlive: true,
 })
 
-try {
 
-    exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+// check here if we have a arg like this: binance.fetchOrders()
+const callRegex = /\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)/
+if (callRegex.test (exchangeId)) {
+    const res = callRegex.exec (exchangeId);
+    exchangeId = res[1];
+    methodName = res[2];
+    params = res[3].split(",").map(x => x.trim());
+}
+
+try {
+    if (ccxt.pro.exchanges.includes(exchangeId)) {
+        exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    } else {
+        exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    }
+
+    if (exchange === undefined) {
+        process.exit ()
+    }
 
     if (isSpot) {
         exchange.options['defaultType'] = 'spot';
@@ -92,6 +103,8 @@ try {
         exchange.options['defaultType'] = 'swap';
     } else if (isFuture) {
         exchange.options['defaultType'] = 'future';
+    } else if (isOption) {
+        exchange.options['defaultType'] = 'option';
     }
 
     // check auth keys in env var
@@ -99,8 +112,11 @@ try {
     for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
         if (isRequired && exchange[credential] === undefined) {
             const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
-            const credentialValue = process.env[credentialEnvName]
+            let credentialValue = process.env[credentialEnvName]
             if (credentialValue) {
+                if (credentialValue.indexOf('---BEGIN') > -1) {
+                    credentialValue = credentialValue.replaceAll('\\n', '\n');
+                }
                 exchange[credential] = credentialValue
             }
         }
@@ -115,6 +131,38 @@ try {
     log.red (e)
     printUsage ()
     process.exit ()
+}
+
+//-----------------------------------------------------------------------------
+
+function createRequestTemplate(exchange, methodName, args, result) {
+    const final = {
+        'description': 'Fill this with a description of the method call',
+        'method': methodName,
+        'url': exchange.last_request_url ?? '',
+        'input': args,
+        'output': exchange.last_request_body ?? undefined
+    }
+    log('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, null, 2))
+    log.green('-------------------------------------------')
+}
+
+//-----------------------------------------------------------------------------
+
+function createResponseTemplate(exchange, methodName, args, result) {
+    const final = {
+        'description': 'Fill this with a description of the method call',
+        'method': methodName,
+        'input': args,
+        'httpResponse': exchange.last_json_response ?? exchange.last_http_response,
+        'parsedResponse': result
+    }
+    log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, function(k, v) { return v === undefined ? null : v; }, 2))
+    log.green('-------------------------------------------')
 }
 
 //-----------------------------------------------------------------------------
@@ -154,6 +202,9 @@ function printUsage () {
 //-----------------------------------------------------------------------------
 
 const printHumanReadable = (exchange, result) => {
+    if (raw) {
+        return log (JSON.stringify(result))
+    }
     if (!no_table && Array.isArray (result) || table) {
         result = Object.values (result)
         let arrayOfObjects = (typeof result[0] === 'object')
@@ -166,7 +217,20 @@ const printHumanReadable = (exchange, result) => {
             })
 
         if (arrayOfObjects || table && Array.isArray (result)) {
-            log (result.length > 0 ? asTable (result.map (element => {
+            const configuredAsTable = asTable.configure ({
+                delimiter: ' | '.lightGray.dim,
+                right: true,
+                title: x => String (x).lightGray,
+                dash: '-'.lightGray.dim,
+                print: x => {
+                    if (typeof x === 'object') {
+                        const j = JSON.stringify (x).trim ()
+                        if (j.length < 100) return j
+                    }
+                    return String (x)
+                }
+            })
+            log (result.length > 0 ? configuredAsTable (result.map (element => {
                 let keys = Object.keys (element)
                 delete element['info']
                 keys.forEach (key => {
@@ -198,6 +262,8 @@ const printHumanReadable = (exchange, result) => {
 
 async function run () {
 
+
+
     if (!exchangeId) {
 
         printUsage ()
@@ -205,8 +271,11 @@ async function run () {
     } else {
 
         let args = params
-            .map (s => s.match (/^[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
-            .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
+            .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => (() => { 
+                if (s.match ( /^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s
+                try {return eval ('(() => (' + s + ')) ()') } catch (e) { return s }
+            }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
@@ -253,7 +322,6 @@ async function run () {
                     headers,
                     body,
                 })
-                process.exit ()
             }
         }
 
@@ -261,20 +329,36 @@ async function run () {
 
             if (typeof exchange[methodName] === 'function') {
 
-                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+                if (!raw) log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
 
                 let i = 0;
 
+                let isWsMethod = false
+                if (methodName.startsWith("watch")) { // handle WS methods
+                    isWsMethod = true;
+                }
+
                 while (true) {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                        if (!isWsMethod && !raw) {
+                            log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                        }
+                        printHumanReadable (exchange, JSON.parse(JSON.stringify(result)))
+                        if (!isWsMethod && !raw) {
+                            log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        }
+                        if (shouldCreateRequestReport || shouldCreateBoth) {
+                            createRequestTemplate(exchange, methodName, args, result)
+                        }
+                        if (shouldCreateResponseReport || shouldCreateBoth) {
+                            createResponseTemplate(exchange, methodName, args, result)
+                        }
                         start = end
-                        printHumanReadable (exchange, result)
                     } catch (e) {
                         if (e instanceof ExchangeError) {
                             log.red (e.constructor.name, e.message)
@@ -292,10 +376,11 @@ async function run () {
                     if (debug) {
                         const keys = Object.keys (httpsAgent.freeSockets)
                         const firstKey = keys[0]
-                        console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
+                        let httpAgent = httpsAgent.freeSockets[firstKey];
+                        log (firstKey, httpAgent.length)
                     }
 
-                    if (!poll){
+                    if (!poll && !isWsMethod){
                         break
                     }
                 }
@@ -306,7 +391,7 @@ async function run () {
                 printHumanReadable (exchange, exchange[methodName])
             }
         } else {
-            console.log (exchange)
+            log (exchange)
         }
     }
 
@@ -315,3 +400,6 @@ async function run () {
 //-----------------------------------------------------------------------------
 
 run ()
+
+export  {
+}

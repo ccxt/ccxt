@@ -1,8 +1,7 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
 
-;(async function main () {
+import ccxt from '../../js/ccxt.js';
+(async function main () {
     const walletAddress = process.env['WALLET_ADDRESS']
     const privateKey = process.env['PRIVATE_KEY']
     const apiKey = process.env['API_KEY']

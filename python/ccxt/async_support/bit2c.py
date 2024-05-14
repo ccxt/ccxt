@@ -4,18 +4,22 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bit2c(Exchange):
+class bit2c(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bit2c, self).describe(), {
@@ -23,6 +27,7 @@ class bit2c(Exchange):
             'name': 'Bit2C',
             'countries': ['IL'],  # Israel
             'rateLimit': 3000,
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -31,29 +36,36 @@ class bit2c(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'cancelAllOrders': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -68,10 +80,13 @@ class bit2c(Exchange):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
+                'ws': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api': 'https://bit2c.co.il',
+                'api': {
+                    'rest': 'https://bit2c.co.il',
+                },
                 'www': 'https://www.bit2c.co.il',
                 'referral': 'https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf',
                 'doc': [
@@ -94,6 +109,7 @@ class bit2c(Exchange):
                         'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
+                        'Order/GetById',
                         'Order/AddOrderMarketPriceBuy',
                         'Order/AddOrderMarketPriceSell',
                         'Order/CancelOrder',
@@ -114,19 +130,47 @@ class bit2c(Exchange):
                 },
             },
             'markets': {
-                'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS', 'baseId': 'Btc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS', 'baseId': 'Eth', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'BCH/NIS': {'id': 'BchabcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS', 'baseId': 'Bchabc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS', 'baseId': 'Ltc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS', 'baseId': 'Etc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS', 'baseId': 'Btg', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'BSV/NIS': {'id': 'BchsvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS', 'baseId': 'Bchsv', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'GRIN/NIS': {'id': 'GrinNis', 'symbol': 'GRIN/NIS', 'base': 'GRIN', 'quote': 'NIS', 'baseId': 'Grin', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'BTC/NIS': self.safe_market_structure({'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS', 'baseId': 'Btc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True}),
+                'ETH/NIS': self.safe_market_structure({'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS', 'baseId': 'Eth', 'quoteId': 'Nis', 'type': 'spot', 'spot': True}),
+                'LTC/NIS': self.safe_market_structure({'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS', 'baseId': 'Ltc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True}),
+                'USDC/NIS': self.safe_market_structure({'id': 'UsdcNis', 'symbol': 'USDC/NIS', 'base': 'USDC', 'quote': 'NIS', 'baseId': 'Usdc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True}),
             },
             'fees': {
                 'trading': {
-                    'maker': self.parse_number('0.005'),
-                    'taker': self.parse_number('0.005'),
+                    'tierBased': True,
+                    'percentage': True,
+                    'maker': self.parse_number('0.025'),
+                    'taker': self.parse_number('0.03'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.03')],
+                            [self.parse_number('20000'), self.parse_number('0.0275')],
+                            [self.parse_number('50000'), self.parse_number('0.025')],
+                            [self.parse_number('75000'), self.parse_number('0.0225')],
+                            [self.parse_number('100000'), self.parse_number('0.02')],
+                            [self.parse_number('250000'), self.parse_number('0.015')],
+                            [self.parse_number('500000'), self.parse_number('0.0125')],
+                            [self.parse_number('750000'), self.parse_number('0.01')],
+                            [self.parse_number('1000000'), self.parse_number('0.008')],
+                            [self.parse_number('2000000'), self.parse_number('0.006')],
+                            [self.parse_number('3000000'), self.parse_number('0.004')],
+                            [self.parse_number('4000000'), self.parse_number('0.002')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.025')],
+                            [self.parse_number('20000'), self.parse_number('0.0225')],
+                            [self.parse_number('50000'), self.parse_number('0.02')],
+                            [self.parse_number('75000'), self.parse_number('0.0175')],
+                            [self.parse_number('100000'), self.parse_number('0.015')],
+                            [self.parse_number('250000'), self.parse_number('0.01')],
+                            [self.parse_number('500000'), self.parse_number('0.0075')],
+                            [self.parse_number('750000'), self.parse_number('0.005')],
+                            [self.parse_number('1000000'), self.parse_number('0.004')],
+                            [self.parse_number('2000000'), self.parse_number('0.003')],
+                            [self.parse_number('3000000'), self.parse_number('0.002')],
+                            [self.parse_number('4000000'), self.parse_number('0.001')],
+                        ],
+                    },
                 },
             },
             'options': {
@@ -136,6 +180,7 @@ class bit2c(Exchange):
             'exceptions': {
                 'exact': {
                     'Please provide valid APIkey': AuthenticationError,  # {"error" : "Please provide valid APIkey"}
+                    'No order found.': OrderNotFound,  # {"Error" : "No order found."}
                 },
                 'broad': {
                     # {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
@@ -146,7 +191,7 @@ class bit2c(Exchange):
             },
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -164,11 +209,12 @@ class bit2c(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :see: https://bit2c.co.il/home/api#balance
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetAccountBalanceV2(params)
@@ -216,31 +262,32 @@ class bit2c(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://bit2c.co.il/home/api#orderb
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
-        timestamp = self.milliseconds()
         averagePrice = self.safe_string(ticker, 'av')
         baseVolume = self.safe_string(ticker, 'a')
         last = self.safe_string(ticker, 'll')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': self.safe_string(ticker, 'h'),
@@ -260,12 +307,13 @@ class bit2c(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://bit2c.co.il/home/api#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -275,14 +323,16 @@ class bit2c(Exchange):
         response = await self.publicGetExchangesPairTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://bit2c.co.il/home/api#transactions
+        :see: https://bit2c.co.il/home/api#trades
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -291,10 +341,14 @@ class bit2c(Exchange):
             'pair': market['id'],
         }
         if since is not None:
-            request['date'] = int(since)
+            request['date'] = self.parse_to_int(since)
         if limit is not None:
             request['limit'] = limit  # max 100000
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'public_get_exchanges_pair_trades':
+            response = await self.publicGetExchangesPairTrades(self.extend(request, params))
+        else:
+            response = await self.publicGetExchangesPairLasttrades(self.extend(request, params))
         #
         #     [
         #         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
@@ -306,11 +360,12 @@ class bit2c(Exchange):
             raise ExchangeError(response)
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :see: https://bit2c.co.il/home/api#balance
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privateGetAccountBalance(params)
@@ -347,60 +402,63 @@ class bit2c(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'percentage': True,
-                'tierBased': False,
+                'tierBased': True,
             }
         return result
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+        :see: https://bit2c.co.il/home/api#addo
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         method = 'privatePostOrderAddOrder'
+        market = self.market(symbol)
         request = {
             'Amount': amount,
-            'Pair': self.market_id(symbol),
+            'Pair': market['id'],
         }
         if type == 'market':
             method += 'MarketPrice' + self.capitalize(side)
         else:
             request['Price'] = price
-            request['Total'] = amount * price
+            amountString = self.number_to_string(amount)
+            priceString = self.number_to_string(price)
+            request['Total'] = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
             request['IsBid'] = (side == 'buy')
         response = await getattr(self, method)(self.extend(request, params))
-        return {
-            'info': response,
-            'id': response['NewOrder']['id'],
-        }
+        return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://bit2c.co.il/home/api#cancelo
         :param str id: order id
-        :param str|None symbol: Not used by bit2c cancelOrder()
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: Not used by bit2c cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'id': id,
         }
         return await self.privatePostOrderCancelOrder(self.extend(request, params))
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://bit2c.co.il/home/api#geto
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -412,21 +470,121 @@ class bit2c(Exchange):
         response = await self.privateGetOrderMyOrders(self.extend(request, params))
         orders = self.safe_value(response, market['id'], {})
         asks = self.safe_value(orders, 'ask', [])
-        bids = self.safe_value(orders, 'bid', [])
+        bids = self.safe_list(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
-    def parse_order(self, order, market=None):
-        timestamp = self.safe_integer(order, 'created')
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'amount')
-        market = self.safe_market(None, market)
-        side = self.safe_value(order, 'type')
-        if side == 0:
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+        """
+        fetches information on an order made by the user
+        :see: https://bit2c.co.il/home/api#getoid
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': id,
+        }
+        response = await self.privateGetOrderGetById(self.extend(request, params))
+        #
+        #         {
+        #             "pair": "BtcNis",
+        #             "status": "Completed",
+        #             "created": 1666689837,
+        #             "type": 0,
+        #             "order_type": 0,
+        #             "amount": 0.00000000,
+        #             "price": 50000.00000000,
+        #             "stop": 0,
+        #             "id": 10951473,
+        #             "initialAmount": 2.00000000
+        #         }
+        #
+        return self.parse_order(response, market)
+
+    def parse_order(self, order, market: Market = None) -> Order:
+        #
+        #      createOrder
+        #      {
+        #          "OrderResponse": {"pair": "BtcNis", "HasError": False, "Error": "", "Message": ""},
+        #          "NewOrder": {
+        #              "created": 1505531577,
+        #              "type": 0,
+        #              "order_type": 0,
+        #              "status_type": 0,
+        #              "amount": 0.01,
+        #              "price": 10000,
+        #              "stop": 0,
+        #              "id": 9244416,
+        #              "initialAmount": None,
+        #          },
+        #      }
+        #      fetchOrder, fetchOpenOrders
+        #      {
+        #          "pair": "BtcNis",
+        #          "status": "Completed",
+        #          "created": 1535555837,
+        #          "type": 0,
+        #          "order_type": 0,
+        #          "amount": 0.00000000,
+        #          "price": 120000.00000000,
+        #          "stop": 0,
+        #          "id": 10555173,
+        #          "initialAmount": 2.00000000
+        #      }
+        #
+        orderUnified = None
+        isNewOrder = False
+        if 'NewOrder' in order:
+            orderUnified = order['NewOrder']
+            isNewOrder = True
+        else:
+            orderUnified = order
+        id = self.safe_string(orderUnified, 'id')
+        symbol = self.safe_symbol(None, market)
+        timestamp = self.safe_integer_product(orderUnified, 'created', 1000)
+        # status field vary between responses
+        # bit2c status type:
+        # 0 = New
+        # 1 = Open
+        # 5 = Completed
+        status = None
+        if isNewOrder:
+            tempStatus = self.safe_integer(orderUnified, 'status_type')
+            if tempStatus == 0 or tempStatus == 1:
+                status = 'open'
+            elif tempStatus == 5:
+                status = 'closed'
+        else:
+            tempStatus = self.safe_string(orderUnified, 'status')
+            if tempStatus == 'New' or tempStatus == 'Open':
+                status = 'open'
+            elif tempStatus == 'Completed':
+                status = 'closed'
+        # bit2c order type:
+        # 0 = LMT,  1 = MKT
+        type = self.safe_string(orderUnified, 'order_type')
+        if type == '0':
+            type = 'limit'
+        elif type == '1':
+            type = 'market'
+        # bit2c side:
+        # 0 = buy, 1 = sell
+        side = self.safe_string(orderUnified, 'type')
+        if side == '0':
             side = 'buy'
-        elif side == 1:
+        elif side == '1':
             side = 'sell'
-        id = self.safe_string(order, 'id')
-        status = self.safe_string(order, 'status')
+        price = self.safe_string(orderUnified, 'price')
+        amount = None
+        remaining = None
+        if isNewOrder:
+            amount = self.safe_string(orderUnified, 'amount')  # NOTE:'initialAmount' is currently not set on new order
+            remaining = self.safe_string(orderUnified, 'amount')
+        else:
+            amount = self.safe_string(orderUnified, 'initialAmount')
+            remaining = self.safe_string(orderUnified, 'amount')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -434,16 +592,17 @@ class bit2c(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': market['symbol'],
-            'type': None,
+            'symbol': symbol,
+            'type': type,
             'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'filled': None,
-            'remaining': None,
+            'remaining': remaining,
             'cost': None,
             'trades': None,
             'fee': None,
@@ -451,14 +610,15 @@ class bit2c(Exchange):
             'average': None,
         }, market)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :see: https://bit2c.co.il/home/api#orderh
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = None
@@ -513,7 +673,14 @@ class bit2c(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def remove_comma_from_value(self, str):
+        newString = ''
+        strParts = str.split(',')
+        for i in range(0, len(strParts)):
+            newString += strParts[i]
+        return newString
+
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -531,7 +698,7 @@ class bit2c(Exchange):
         #         "ticks":1574767951,
         #         "created":"26/11/19 13:32",
         #         "action":1,
-        #         "price":"1000",
+        #         "price":"1,000",
         #         "pair":"EthNis",
         #         "reference":"EthNis|10867390|10867377",
         #         "fee":"0.5",
@@ -543,6 +710,7 @@ class bit2c(Exchange):
         #         "secondAmountBalance":"130,233.28",
         #         "firstCoin":"ETH",
         #         "secondCoin":"₪"
+        #         "isMaker": True,
         #     }
         #
         timestamp = None
@@ -552,17 +720,21 @@ class bit2c(Exchange):
         orderId = None
         fee = None
         side = None
+        makerOrTaker = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
+            id = reference
             timestamp = self.safe_timestamp(trade, 'ticks')
             price = self.safe_string(trade, 'price')
+            price = self.remove_comma_from_value(price)
             amount = self.safe_string(trade, 'firstAmount')
-            reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
+            reference_parts = reference.split('|')  # reference contains 'pair|orderId_by_taker|orderId_by_maker'
             marketId = self.safe_string(trade, 'pair')
             market = self.safe_market(marketId, market)
             market = self.safe_market(reference_parts[0], market)
-            orderId = reference_parts[1]
-            id = reference_parts[2]
+            isMaker = self.safe_value(trade, 'isMaker')
+            makerOrTaker = 'maker' if isMaker else 'taker'
+            orderId = reference_parts[2] if isMaker else reference_parts[1]
             side = self.safe_integer(trade, 'action')
             if side == 0:
                 side = 'buy'
@@ -595,7 +767,7 @@ class bit2c(Exchange):
             'order': orderId,
             'type': None,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': makerOrTaker,
             'price': price,
             'amount': amount,
             'cost': None,
@@ -605,12 +777,13 @@ class bit2c(Exchange):
     def is_fiat(self, code):
         return code == 'NIS'
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://bit2c.co.il/home/api#addc
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the bit2c api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -622,17 +795,17 @@ class bit2c(Exchange):
         response = await self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))
         #
         #     {
-        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        #         'hasTx': False
+        #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        #         "hasTx": False
         #     }
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
-        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        #         'hasTx': False
+        #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        #         "hasTx": False
         #     }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -650,7 +823,7 @@ class bit2c(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'
         else:
@@ -675,14 +848,18 @@ class bit2c(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"error" : "please approve new terms of use on site."}
         #     {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
+        #     {"Error" : "No order found."}
         #
         error = self.safe_string(response, 'error')
+        if error is None:
+            error = self.safe_string(response, 'Error')
         if error is not None:
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

@@ -1,14 +1,16 @@
-'use strict';
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
+import asTable from 'as-table';
 
-const ccxt = require ('../../ccxt')
-    , log = require ('ololog').noLocate
-    , asTable = require ('as-table')
-    , exchange = new ccxt.bittrex ({
+
+const { noLocate } = ololog;
+const log = noLocate;
+
+const exchange = new ccxt.bittrex ({
+        'enableRateLimit': true,
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',
-    })
-
-;(async () => {
+    });(async () => {
 
     await exchange.loadMarkets ()
 

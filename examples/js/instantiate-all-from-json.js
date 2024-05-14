@@ -1,7 +1,7 @@
-"use strict";
 
-const ccxt     = require ('../../ccxt')
-    , settings = require ('./credentials.json')
+
+import ccxt from '../../js/ccxt.js';
+import settings from './credentials.json';
 
 async function test () {
 

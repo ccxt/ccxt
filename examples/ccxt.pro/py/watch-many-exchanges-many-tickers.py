@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import run, gather
-import ccxtpro
+import ccxt.pro
 
 
-print('CCXT Pro Version:', ccxtpro.__version__)
+print('CCXT Version:', ccxt.__version__)
 
 
-async def loop(exchange_id, symbol):
-    exchange = getattr(ccxtpro, exchange_id)()
+async def exchange_loop(exchange_id, symbols):
+    exchange = getattr(ccxt.pro, exchange_id)()
     markets = await exchange.load_markets()
+    await gather(*[watch_ticker_loop(exchange, symbol) for symbol in symbols])
+    await exchange.close()
+
+
+async def watch_ticker_loop(exchange, symbol):
     # exchange.verbose = True  # uncomment for debugging purposes if necessary
     while True:
         try:
@@ -20,15 +25,15 @@ async def loop(exchange_id, symbol):
             print(str(e))
             # raise e  # uncomment to break all loops in case of an error in any one of them
             break  # you can break just this one loop if it fails
-    await exchange.close()
 
 
 async def main():
-    symbols = {
-        'binance': 'ADA/USDT',
-        'ftx': 'ADA/USD:USD',  # same as ADA-PERP
+    exchanges = {
+        'binance': [ 'BTC/USDT', 'ETH/USDT' ],
+        'ftx': [ 'BTC/USD', 'ETH/USD' ],
     }
-    await gather(*[loop(exchange_id, symbol) for exchange_id, symbol in symbols.items()])
+    loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
+    await gather(*loops)
 
 
 run(main())

@@ -6,24 +6,19 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\NotSupported;
+use ccxt\abstract\idex as Exchange;
 
 class idex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'idex',
             'name' => 'IDEX',
             'countries' => array( 'US' ),
-            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
-            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
-            'rateLimit' => 200,
+            'rateLimit' => 1000,
             'version' => 'v3',
             'pro' => true,
-            'certified' => true,
+            'certified' => false,
             'requiresWeb3' => true,
             'has' => array(
                 'CORS' => null,
@@ -33,28 +28,39 @@ class idex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -63,19 +69,27 @@ class idex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -101,7 +115,7 @@ class idex extends Exchange {
                 ),
                 'www' => 'https://idex.io',
                 'doc' => array(
-                    'https://docs.idex.io/',
+                    'https://api-docs-v3.idex.io/',
                 ),
             ),
             'api' => array(
@@ -123,20 +137,20 @@ class idex extends Exchange {
                         'user' => 1,
                         'wallets' => 1,
                         'balances' => 1,
-                        'orders' => 1,
-                        'fills' => 1,
+                        'orders' => 0.1,
+                        'fills' => 0.1,
                         'deposits' => 1,
                         'withdrawals' => 1,
                         'wsToken' => 1,
                     ),
                     'post' => array(
                         'wallets' => 1,
-                        'orders' => 1,
-                        'orders/test' => 1,
+                        'orders' => 0.1,
+                        'orders/test' => 0.1,
                         'withdrawals' => 1,
                     ),
                     'delete' => array(
-                        'orders' => 1,
+                        'orders' => 0.1,
                     ),
                 ),
             ),
@@ -146,13 +160,15 @@ class idex extends Exchange {
                 'network' => 'MATIC',
             ),
             'exceptions' => array(
-                'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
-                'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
-                'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
-                'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
-                'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
-                'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
-                'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                'exact' => array(
+                    'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
+                    'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
+                    'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
+                    'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
+                    'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
+                    'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                ),
             ),
             'requiredCredentials' => array(
                 'walletAddress' => true,
@@ -170,7 +186,7 @@ class idex extends Exchange {
         //
         // we override priceToPrecision to fix the following issue
         // https://github.com/ccxt/ccxt/issues/13367
-        // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes")
+        // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided, and always require 4 decimals ending with 4 zeroes")
         //
         $market = $this->market($symbol);
         $info = $this->safe_value($market, 'info', array());
@@ -179,11 +195,12 @@ class idex extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, $quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for idex
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing market data
+         * @see https://api-docs-v3.idex.io/#get-markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetMarkets ($params);
         //
@@ -248,7 +265,6 @@ class idex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $basePrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'baseAssetPrecision')));
             $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'quoteAssetPrecision')));
-            $pricePrecision = $this->safe_number($entry, 'tickSize');
             $status = $this->safe_string($entry, 'status');
             $minCost = null;
             if ($quote === 'ETH') {
@@ -282,7 +298,7 @@ class idex extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $basePrecision,
-                    'price' => $pricePrecision,
+                    'price' => $this->safe_number($entry, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -302,18 +318,20 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $entry,
             );
         }
         return $result;
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         * @see https://api-docs-v3.idex.io/#get-tickers
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -322,73 +340,74 @@ class idex extends Exchange {
         );
         // array(
         //   {
-        //     $market => 'DIL-ETH',
-        //     time => 1598367493008,
-        //     open => '0.09695361',
-        //     high => '0.10245881',
-        //     low => '0.09572507',
-        //     close => '0.09917079',
-        //     closeQuantity => '0.71320950',
-        //     baseVolume => '309.17380612',
-        //     quoteVolume => '30.57633981',
-        //     percentChange => '2.28',
-        //     numTrades => 205,
-        //     ask => '0.09910476',
-        //     bid => '0.09688340',
-        //     sequence => 3902
+        //     "market" => "DIL-ETH",
+        //     "time" => 1598367493008,
+        //     "open" => "0.09695361",
+        //     "high" => "0.10245881",
+        //     "low" => "0.09572507",
+        //     "close" => "0.09917079",
+        //     "closeQuantity" => "0.71320950",
+        //     "baseVolume" => "309.17380612",
+        //     "quoteVolume" => "30.57633981",
+        //     "percentChange" => "2.28",
+        //     "numTrades" => 205,
+        //     "ask" => "0.09910476",
+        //     "bid" => "0.09688340",
+        //     "sequence" => 3902
         //   }
         // )
-        $response = $this->publicGetTickers (array_merge($request, $params));
-        $ticker = $this->safe_value($response, 0);
+        $response = $this->publicGetTickers ($this->extend($request, $params));
+        $ticker = $this->safe_dict($response, 0);
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://api-docs-v3.idex.io/#get-tickers
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         // array(
         //   array(
-        //     market => 'DIL-ETH',
-        //     time => 1598367493008,
-        //     open => '0.09695361',
-        //     high => '0.10245881',
-        //     low => '0.09572507',
-        //     close => '0.09917079',
-        //     closeQuantity => '0.71320950',
-        //     baseVolume => '309.17380612',
-        //     quoteVolume => '30.57633981',
-        //     percentChange => '2.28',
-        //     numTrades => 205,
-        //     ask => '0.09910476',
-        //     bid => '0.09688340',
-        //     sequence => 3902
+        //     "market" => "DIL-ETH",
+        //     "time" => 1598367493008,
+        //     "open" => "0.09695361",
+        //     "high" => "0.10245881",
+        //     "low" => "0.09572507",
+        //     "close" => "0.09917079",
+        //     "closeQuantity" => "0.71320950",
+        //     "baseVolume" => "309.17380612",
+        //     "quoteVolume" => "30.57633981",
+        //     "percentChange" => "2.28",
+        //     "numTrades" => 205,
+        //     "ask" => "0.09910476",
+        //     "bid" => "0.09688340",
+        //     "sequence" => 3902
         //   ), ...
         // )
         $response = $this->publicGetTickers ($params);
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // {
-        //   $market => 'DIL-ETH',
-        //   time => 1598367493008,
-        //   open => '0.09695361',
-        //   high => '0.10245881',
-        //   low => '0.09572507',
-        //   $close => '0.09917079',
-        //   closeQuantity => '0.71320950',
-        //   baseVolume => '309.17380612',
-        //   quoteVolume => '30.57633981',
-        //   percentChange => '2.28',
-        //   numTrades => 205,
-        //   ask => '0.09910476',
-        //   bid => '0.09688340',
-        //   sequence => 3902
+        //   "market" => "DIL-ETH",
+        //   "time" => 1598367493008,
+        //   "open" => "0.09695361",
+        //   "high" => "0.10245881",
+        //   "low" => "0.09572507",
+        //   "close" => "0.09917079",
+        //   "closeQuantity" => "0.71320950",
+        //   "baseVolume" => "309.17380612",
+        //   "quoteVolume" => "30.57633981",
+        //   "percentChange" => "2.28",
+        //   "numTrades" => 205,
+        //   "ask" => "0.09910476",
+        //   "bid" => "0.09688340",
+        //   "sequence" => 3902
         // }
         $marketId = $this->safe_string($ticker, 'market');
         $market = $this->safe_market($marketId, $market, '-');
@@ -419,15 +438,16 @@ class idex extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @see https://api-docs-v3.idex.io/#get-candles
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -439,19 +459,19 @@ class idex extends Exchange {
             $request['start'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 1000);
         }
-        $response = $this->publicGetCandles (array_merge($request, $params));
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        $response = $this->publicGetCandles ($this->extend($request, $params));
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             // array(
             //   array(
-            //     start => 1598345580000,
-            //     open => '0.09771286',
-            //     high => '0.09771286',
-            //     low => '0.09771286',
-            //     close => '0.09771286',
-            //     volume => '1.45340410',
-            //     sequence => 3853
+            //     "start" => 1598345580000,
+            //     "open" => "0.09771286",
+            //     "high" => "0.09771286",
+            //     "low" => "0.09771286",
+            //     "close" => "0.09771286",
+            //     "volume" => "1.45340410",
+            //     "sequence" => 3853
             //   ), ...
             // )
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -461,15 +481,15 @@ class idex extends Exchange {
         }
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // {
-        //   start => 1598345580000,
-        //   $open => '0.09771286',
-        //   $high => '0.09771286',
-        //   $low => '0.09771286',
-        //   $close => '0.09771286',
-        //   $volume => '1.45340410',
-        //   sequence => 3853
+        //   "start" => 1598345580000,
+        //   "open" => "0.09771286",
+        //   "high" => "0.09771286",
+        //   "low" => "0.09771286",
+        //   "close" => "0.09771286",
+        //   "volume" => "1.45340410",
+        //   "sequence" => 3853
         // }
         $timestamp = $this->safe_integer($ohlcv, 'start');
         $open = $this->safe_number($ohlcv, 'open');
@@ -480,14 +500,15 @@ class idex extends Exchange {
         return array( $timestamp, $open, $high, $low, $close, $volume );
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @see https://api-docs-v3.idex.io/#get-trades
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -498,24 +519,24 @@ class idex extends Exchange {
             $request['start'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 1000);
         }
         // array(
         //   array(
-        //     fillId => 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        //     price => '0.09771286',
-        //     quantity => '1.45340410',
-        //     quoteQuantity => '0.14201627',
-        //     time => 1598345638994,
-        //     makerSide => 'buy',
-        //     sequence => 3853
+        //     "fillId" => "b5467d00-b13e-3fa9-8216-dd66735550fc",
+        //     "price" => "0.09771286",
+        //     "quantity" => "1.45340410",
+        //     "quoteQuantity" => "0.14201627",
+        //     "time" => 1598345638994,
+        //     "makerSide" => "buy",
+        //     "sequence" => 3853
         //   ), ...
         // )
-        $response = $this->publicGetTrades (array_merge($request, $params));
+        $response = $this->publicGetTrades ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public trades
         //  {
@@ -593,11 +614,12 @@ class idex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         * @see https://api-docs-v3.idex.io/#get-api-account
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
         $this->check_required_credentials();
         $this->load_markets();
@@ -606,18 +628,18 @@ class idex extends Exchange {
             'nonce' => $nonce,
         );
         $response = null;
-        $response = $this->privateGetUser (array_merge($request, $params));
+        $response = $this->privateGetUser ($this->extend($request, $params));
         //
         //     {
-        //         depositEnabled => true,
-        //         orderEnabled => true,
-        //         cancelEnabled => true,
-        //         withdrawEnabled => true,
-        //         totalPortfolioValueUsd => '0.00',
-        //         makerFeeRate => '0.0000',
-        //         takerFeeRate => '0.0025',
-        //         takerIdexFeeRate => '0.0005',
-        //         takerLiquidityProviderFeeRate => '0.0020'
+        //         "depositEnabled" => true,
+        //         "orderEnabled" => true,
+        //         "cancelEnabled" => true,
+        //         "withdrawEnabled" => true,
+        //         "totalPortfolioValueUsd" => "0.00",
+        //         "makerFeeRate" => "0.0000",
+        //         "takerFeeRate" => "0.0025",
+        //         "takerIdexFeeRate" => "0.0005",
+        //         "takerLiquidityProviderFeeRate" => "0.0020"
         //     }
         //
         $maker = $this->safe_number($response, 'makerFeeRate');
@@ -637,13 +659,14 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @see https://api-docs-v3.idex.io/#get-order-books
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -655,26 +678,26 @@ class idex extends Exchange {
             $request['limit'] = $limit;
         }
         // {
-        //   sequence => 36416753,
-        //   bids => array(
-        //     array( '0.09672815', '8.22284267', 1 ),
-        //     array( '0.09672814', '1.83685554', 1 ),
-        //     array( '0.09672143', '4.10962617', 1 ),
-        //     array( '0.09658884', '4.03863759', 1 ),
-        //     array( '0.09653781', '3.35730684', 1 ),
-        //     array( '0.09624660', '2.54163586', 1 ),
-        //     array( '0.09617490', '1.93065030', 1 )
+        //   "sequence" => 36416753,
+        //   "bids" => array(
+        //     array( '0.09672815', "8.22284267", 1 ),
+        //     array( '0.09672814', "1.83685554", 1 ),
+        //     array( '0.09672143', "4.10962617", 1 ),
+        //     array( '0.09658884', "4.03863759", 1 ),
+        //     array( '0.09653781', "3.35730684", 1 ),
+        //     array( '0.09624660', "2.54163586", 1 ),
+        //     array( '0.09617490', "1.93065030", 1 )
         //   ),
-        //   asks => array(
-        //     array( '0.09910476', '3.22840154', 1 ),
-        //     array( '0.09940587', '3.39796593', 1 ),
-        //     array( '0.09948189', '4.25088898', 1 ),
-        //     array( '0.09958362', '2.42195784', 1 ),
-        //     array( '0.09974393', '4.25234367', 1 ),
-        //     array( '0.09995250', '3.40192141', 1 )
+        //   "asks" => array(
+        //     array( '0.09910476', "3.22840154", 1 ),
+        //     array( '0.09940587', "3.39796593", 1 ),
+        //     array( '0.09948189', "4.25088898", 1 ),
+        //     array( '0.09958362', "2.42195784", 1 ),
+        //     array( '0.09974393', "4.25234367", 1 ),
+        //     array( '0.09995250', "3.40192141", 1 )
         //   )
         // }
-        $response = $this->publicGetOrderbook (array_merge($request, $params));
+        $response = $this->publicGetOrderbook ($this->extend($request, $params));
         $nonce = $this->safe_integer($response, 'sequence');
         return array(
             'symbol' => $symbol,
@@ -700,11 +723,12 @@ class idex extends Exchange {
         return $this->sort_by($result, 0, $descending);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} an associative dictionary of currencies
+         * @see https://api-docs-v3.idex.io/#get-assets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
          */
         $response = $this->publicGetAssets ($params);
         //
@@ -746,7 +770,7 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -765,11 +789,12 @@ class idex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @see https://api-docs-v3.idex.io/#get-balances
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->check_required_credentials();
         $this->load_markets();
@@ -780,14 +805,14 @@ class idex extends Exchange {
         );
         // array(
         //   array(
-        //     asset => 'DIL',
-        //     quantity => '0.00000000',
-        //     availableForTrade => '0.00000000',
-        //     locked => '0.00000000',
-        //     usdValue => null
+        //     "asset" => "DIL",
+        //     "quantity" => "0.00000000",
+        //     "availableForTrade" => "0.00000000",
+        //     "locked" => "0.00000000",
+        //     "usdValue" => null
         //   ), ...
         // )
-        $extendedRequest = array_merge($request, $params);
+        $extendedRequest = $this->extend($request, $params);
         if ($extendedRequest['wallet'] === null) {
             throw new BadRequest($this->id . ' fetchBalance() wallet is null, set $this->walletAddress or "address" in params');
         }
@@ -806,14 +831,15 @@ class idex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
-         * @param {str|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @see https://api-docs-v3.idex.io/#get-fills
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->check_required_credentials();
         $this->load_markets();
@@ -834,25 +860,25 @@ class idex extends Exchange {
         }
         // array(
         //   {
-        //     fillId => '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //     price => '0.09905990',
-        //     quantity => '0.40000000',
-        //     quoteQuantity => '0.03962396',
-        //     time => 1598873478762,
-        //     makerSide => 'sell',
-        //     sequence => 5053,
-        //     $market => 'DIL-ETH',
-        //     orderId => '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //     side => 'buy',
-        //     fee => '0.00080000',
-        //     feeAsset => 'DIL',
-        //     gas => '0.00857497',
-        //     liquidity => 'taker',
-        //     txId => '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //     txStatus => 'mined'
+        //     "fillId" => "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //     "price" => "0.09905990",
+        //     "quantity" => "0.40000000",
+        //     "quoteQuantity" => "0.03962396",
+        //     "time" => 1598873478762,
+        //     "makerSide" => "sell",
+        //     "sequence" => 5053,
+        //     "market" => "DIL-ETH",
+        //     "orderId" => "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //     "side" => "buy",
+        //     "fee" => "0.00080000",
+        //     "feeAsset" => "DIL",
+        //     "gas" => "0.00857497",
+        //     "liquidity" => "taker",
+        //     "txId" => "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //     "txStatus" => "mined"
         //   }
         // )
-        $extendedRequest = array_merge($request, $params);
+        $extendedRequest = $this->extend($request, $params);
         if ($extendedRequest['wallet'] === null) {
             throw new BadRequest($this->id . ' fetchMyTrades() $walletAddress is null, set $this->walletAddress or "address" in params');
         }
@@ -871,50 +897,53 @@ class idex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @param {str|null} $symbol unified $symbol of the market the order was made in
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @see https://api-docs-v3.idex.io/#get-orders
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $request = array(
             'orderId' => $id,
         );
-        return $this->fetch_orders_helper($symbol, null, null, array_merge($request, $params));
+        return $this->fetch_orders_helper($symbol, null, null, $this->extend($request, $params));
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
-         * @param {str|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @see https://api-docs-v3.idex.io/#get-orders
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $request = array(
             'closed' => false,
         );
-        return $this->fetch_orders_helper($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders_helper($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
-         * @param {str|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @see https://api-docs-v3.idex.io/#get-orders
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $request = array(
             'closed' => true,
         );
-        return $this->fetch_orders_helper($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders_helper($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_orders_helper($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_helper(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'nonce' => $this->uuidv1(),
@@ -931,7 +960,7 @@ class idex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrders (array_merge($request, $params));
+        $response = $this->privateGetOrders ($this->extend($request, $params));
         // fetchClosedOrders / fetchOpenOrders
         // array(
         //   {
@@ -967,33 +996,33 @@ class idex extends Exchange {
         //   }
         // )
         // fetchOrder
-        // { $market => 'DIL-ETH',
-        //   orderId => '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   wallet => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   time => 1598873478650,
-        //   status => 'filled',
-        //   type => 'limit',
-        //   side => 'buy',
-        //   originalQuantity => '0.40000000',
-        //   executedQuantity => '0.40000000',
-        //   cumulativeQuoteQuantity => '0.03962396',
-        //   avgExecutionPrice => '0.09905990',
-        //   price => '1.00000000',
-        //   fills:
-        //    array( { fillId => '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //        price => '0.09905990',
-        //        quantity => '0.40000000',
-        //        quoteQuantity => '0.03962396',
-        //        time => 1598873478650,
-        //        makerSide => 'sell',
-        //        sequence => 5053,
-        //        fee => '0.00080000',
-        //        feeAsset => 'DIL',
-        //        gas => '0.00857497',
-        //        liquidity => 'taker',
-        //        txId => '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //        txStatus => 'mined' } ) }
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        // { $market => "DIL-ETH",
+        //   "orderId" => "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time" => 1598873478650,
+        //   "status" => "filled",
+        //   "type" => "limit",
+        //   "side" => "buy",
+        //   "originalQuantity" => "0.40000000",
+        //   "executedQuantity" => "0.40000000",
+        //   "cumulativeQuoteQuantity" => "0.03962396",
+        //   "avgExecutionPrice" => "0.09905990",
+        //   "price" => "1.00000000",
+        //   "fills":
+        //    array( { fillId => "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //        "price" => "0.09905990",
+        //        "quantity" => "0.40000000",
+        //        "quoteQuantity" => "0.03962396",
+        //        "time" => 1598873478650,
+        //        "makerSide" => "sell",
+        //        "sequence" => 5053,
+        //        "fee" => "0.00080000",
+        //        "feeAsset" => "DIL",
+        //        "gas" => "0.00857497",
+        //        "liquidity" => "taker",
+        //        "txId" => "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //        "txStatus" => "mined" } ) }
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
             return $this->parse_order($response, $market);
@@ -1011,7 +1040,7 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "market" => "DIL-ETH",
@@ -1074,6 +1103,7 @@ class idex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1096,9 +1126,9 @@ class idex extends Exchange {
         $hash = $this->hash($binary, 'keccak', 'hex');
         $signature = $this->sign_message_string($hash, $this->privateKey);
         // {
-        //   address => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   totalPortfolioValueUsd => '0.00',
-        //   time => 1598468353626
+        //   "address" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "totalPortfolioValueUsd" => "0.00",
+        //   "time" => 1598468353626
         // }
         $request = array(
             'parameters' => array(
@@ -1111,19 +1141,23 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order, https://docs.idex.io/#create-order
-         * @param {str} $symbol unified $symbol of the $market to create an order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
+         * @see https://api-docs-v3.idex.io/#create-order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->check_required_credentials();
         $this->load_markets();
+        $testOrder = $this->safe_bool($params, 'test', false);
+        $params = $this->omit($params, 'test');
         $market = $this->market($symbol);
         $nonce = $this->uuidv1();
         $typeEnum = null;
@@ -1212,7 +1246,7 @@ class idex extends Exchange {
             $this->number_to_be($orderVersion, 1),
             $this->base16_to_binary($nonce),
             $this->base16_to_binary($walletBytes),
-            $this->encode($market['id']),  // TODO => refactor to remove either encode or stringToBinary
+            $this->encode($market['id']),
             $this->number_to_be($typeEnum, 1),
             $this->number_to_be($sideEnum, 1),
             $this->encode($amountString),
@@ -1268,49 +1302,55 @@ class idex extends Exchange {
             $request['parameters']['clientOrderId'] = $clientOrderId;
         }
         // {
-        //   $market => 'DIL-ETH',
-        //   orderId => '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   wallet => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   time => 1598873478650,
-        //   status => 'filled',
-        //   $type => 'limit',
-        //   $side => 'buy',
-        //   originalQuantity => '0.40000000',
-        //   executedQuantity => '0.40000000',
-        //   cumulativeQuoteQuantity => '0.03962396',
-        //   $price => '1.00000000',
-        //   fills => array(
+        //   "market" => "DIL-ETH",
+        //   "orderId" => "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time" => 1598873478650,
+        //   "status" => "filled",
+        //   "type" => "limit",
+        //   "side" => "buy",
+        //   "originalQuantity" => "0.40000000",
+        //   "executedQuantity" => "0.40000000",
+        //   "cumulativeQuoteQuantity" => "0.03962396",
+        //   "price" => "1.00000000",
+        //   "fills" => array(
         //     {
-        //       fillId => '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //       $price => '0.09905990',
-        //       quantity => '0.40000000',
-        //       quoteQuantity => '0.03962396',
-        //       time => 1598873478650,
-        //       makerSide => 'sell',
-        //       sequence => 5053,
-        //       fee => '0.00080000',
-        //       feeAsset => 'DIL',
-        //       gas => '0.00857497',
-        //       liquidity => 'taker',
-        //       txStatus => 'pending'
+        //       "fillId" => "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //       "price" => "0.09905990",
+        //       "quantity" => "0.40000000",
+        //       "quoteQuantity" => "0.03962396",
+        //       "time" => 1598873478650,
+        //       "makerSide" => "sell",
+        //       "sequence" => 5053,
+        //       "fee" => "0.00080000",
+        //       "feeAsset" => "DIL",
+        //       "gas" => "0.00857497",
+        //       "liquidity" => "taker",
+        //       "txStatus" => "pending"
         //     }
         //   ),
-        //   avgExecutionPrice => '0.09905990'
+        //   "avgExecutionPrice" => "0.09905990"
         // }
         // we don't use extend here because it is a signed endpoint
-        $response = $this->privatePostOrders ($request);
+        $response = null;
+        if ($testOrder) {
+            $response = $this->privatePostOrdersTest ($request);
+        } else {
+            $response = $this->privatePostOrders ($request);
+        }
         return $this->parse_order($response, $market);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @param {str} $code unified $currency $code
+         * @see https://api-docs-v3.idex.io/#withdraw-funds
+         * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {str} $address the $address to withdraw to
-         * @param {str|null} $tag
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_required_credentials();
@@ -1341,26 +1381,66 @@ class idex extends Exchange {
         $response = $this->privatePostWithdrawals ($request);
         //
         //     {
-        //         withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //         asset => 'ETH',
-        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //         quantity => '0.20000000',
-        //         time => 1598962883190,
-        //         fee => '0.00024000',
-        //         txStatus => 'pending',
-        //         txId => null
+        //         "withdrawalId" => "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        //         "asset" => "ETH",
+        //         "assetContractAddress" => "0x0000000000000000000000000000000000000000",
+        //         "quantity" => "0.20000000",
+        //         "time" => 1598962883190,
+        //         "fee" => "0.00024000",
+        //         "txStatus" => "pending",
+        //         "txId" => null
         //     }
         //
         return $this->parse_transaction($response, $currency);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @see https://api-docs-v3.idex.io/#cancel-order
+         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->check_required_credentials();
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $nonce = $this->uuidv1();
+        $request = array(
+            'parameters' => array(
+                'nonce' => $nonce,
+                'wallet' => $this->walletAddress,
+            ),
+        );
+        $walletBytes = $this->remove0x_prefix($this->walletAddress);
+        $byteArray = array(
+            $this->base16_to_binary($nonce),
+            $this->base16_to_binary($walletBytes),
+        );
+        if ($market !== null) {
+            $byteArray[] = $this->encode($market['id']);
+            $request['parameters']['market'] = $market['id'];
+        }
+        $binary = $this->binary_concat_array($byteArray);
+        $hash = $this->hash($binary, 'keccak', 'hex');
+        $signature = $this->sign_message_string($hash, $this->privateKey);
+        $request['signature'] = $signature;
+        // array( array( orderId => "688336f0-ec50-11ea-9842-b332f8a34d0e" ) )
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
+        return $this->parse_orders($response, $market);
+    }
+
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @param {str} $id order $id
-         * @param {str|null} $symbol unified $symbol of the $market the order was made in
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @see https://api-docs-v3.idex.io/#cancel-order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->check_required_credentials();
         $this->load_markets();
@@ -1386,55 +1466,126 @@ class idex extends Exchange {
             ),
             'signature' => $signature,
         );
-        // array( array( orderId => '688336f0-ec50-11ea-9842-b332f8a34d0e' ) )
-        $response = $this->privateDeleteOrders (array_merge($request, $params));
-        $canceledOrder = $this->safe_value($response, 0);
+        // array( array( orderId => "688336f0-ec50-11ea-9842-b332f8a34d0e" ) )
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
+        $canceledOrder = $this->safe_dict($response, 0);
         return $this->parse_order($canceledOrder, $market);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
-        if (is_array($this->exceptions) && array_key_exists($errorCode, $this->exceptions)) {
-            $Exception = $this->exceptions[$errorCode];
-            throw new $Exception($this->id . ' ' . $message);
-        }
         if ($errorCode !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
+        return null;
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
+        /**
+         * fetch information on a deposit
+         * @see https://api-docs-v3.idex.io/#get-deposits
+         * @param {string} $id deposit $id
+         * @param {string} $code not used by idex fetchDeposit ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         */
+        $this->load_markets();
+        $nonce = $this->uuidv1();
+        $request = array(
+            'nonce' => $nonce,
+            'wallet' => $this->walletAddress,
+            'depositId' => $id,
+        );
+        $response = $this->privateGetDeposits ($this->extend($request, $params));
+        return $this->parse_transaction($response);
+    }
+
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
-         * @param {str|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @see https://api-docs-v3.idex.io/#get-deposits
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        $params = array_merge(array(
+        $params = $this->extend(array(
             'method' => 'privateGetDeposits',
         ), $params);
         return $this->fetch_transactions_helper($code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @see https://api-docs-v3.idex.io/#get-ping
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+         */
+        $response = $this->publicGetPing ($params);
+        return array(
+            'status' => 'ok', // if there's no Errors, status = 'ok'
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
+    }
+
+    public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://api-docs-v3.idex.io/#get-time
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = $this->publicGetTime ($params);
+        //
+        //    array( serverTime => "1655258263236" )
+        //
+        return $this->safe_integer($response, 'serverTime');
+    }
+
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
+        /**
+         * fetch data on a currency withdrawal via the withdrawal $id
+         * @see https://api-docs-v3.idex.io/#get-withdrawals
+         * @param {string} $id withdrawal $id
+         * @param {string} $code not used by idex.fetchWithdrawal
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         */
+        $this->load_markets();
+        $nonce = $this->uuidv1();
+        $request = array(
+            'nonce' => $nonce,
+            'wallet' => $this->walletAddress,
+            'withdrawalId' => $id,
+        );
+        $response = $this->privateGetWithdrawals ($this->extend($request, $params));
+        return $this->parse_transaction($response);
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
-         * @param {str|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} $params extra parameters specific to the idex api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @see https://api-docs-v3.idex.io/#get-withdrawals
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        $params = array_merge(array(
+        $params = $this->extend(array(
             'method' => 'privateGetWithdrawals',
         ), $params);
         return $this->fetch_transactions_helper($code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_helper($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $nonce = $this->uuidv1();
         $request = array(
@@ -1454,17 +1605,24 @@ class idex extends Exchange {
         }
         // array(
         //   {
-        //     depositId => 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e',
-        //     asset => 'ETH',
-        //     quantity => '1.00000000',
-        //     txId => '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //     txTime => 1598865853000,
-        //     confirmationTime => 1598865930231
+        //     "depositId" => "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e",
+        //     "asset" => "ETH",
+        //     "quantity" => "1.00000000",
+        //     "txId" => "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        //     "txTime" => 1598865853000,
+        //     "confirmationTime" => 1598865930231
         //   }
         // )
         $method = $params['method'];
         $params = $this->omit($params, 'method');
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'privateGetDeposits') {
+            $response = $this->privateGetDeposits ($this->extend($request, $params));
+        } elseif ($method === 'privateGetWithdrawals') {
+            $response = $this->privateGetWithdrawals ($this->extend($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchTransactionsHelper() not support this method');
+        }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -1475,43 +1633,43 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
         //     {
-        //         depositId => 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
-        //         asset => 'ETH',
-        //         quantity => '1.00000000',
-        //         txId => '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //         txTime => 1598865853000,
-        //         confirmationTime => 1598865930231
+        //         "depositId" => "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f",
+        //         "asset" => "ETH",
+        //         "quantity" => "1.00000000",
+        //         "txId" => "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        //         "txTime" => 1598865853000,
+        //         "confirmationTime" => 1598865930231
         //     }
         //
         // fetchWithdrwalas
         //
         //     {
-        //         withdrawalId => 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
-        //         asset => 'ETH',
-        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //         quantity => '0.20000000',
-        //         time => 1598962883288,
-        //         $fee => '0.00024000',
-        //         txId => '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
-        //         txStatus => 'mined'
+        //         "withdrawalId" => "a62d8760-ec4d-11ea-9fa6-47904c19499b",
+        //         "asset" => "ETH",
+        //         "assetContractAddress" => "0x0000000000000000000000000000000000000000",
+        //         "quantity" => "0.20000000",
+        //         "time" => 1598962883288,
+        //         "fee" => "0.00024000",
+        //         "txId" => "0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce",
+        //         "txStatus" => "mined"
         //     }
         //
         // withdraw
         //
         //     {
-        //         withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //         asset => 'ETH',
-        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //         quantity => '0.20000000',
-        //         time => 1598962883190,
-        //         $fee => '0.00024000',
-        //         txStatus => 'pending',
-        //         txId => null
+        //         "withdrawalId" => "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        //         "asset" => "ETH",
+        //         "assetContractAddress" => "0x0000000000000000000000000000000000000000",
+        //         "quantity" => "0.20000000",
+        //         "time" => 1598962883190,
+        //         "fee" => "0.00024000",
+        //         "txStatus" => "pending",
+        //         "txId" => null
         //     }
         //
         $type = null;
@@ -1525,7 +1683,7 @@ class idex extends Exchange {
         $code = $this->safe_currency_code($this->safe_string($transaction, 'asset'), $currency);
         $amount = $this->safe_number($transaction, 'quantity');
         $txid = $this->safe_string($transaction, 'txId');
-        $timestamp = $this->safe_integer($transaction, 'txTime');
+        $timestamp = $this->safe_integer_2($transaction, 'txTime', 'time');
         $fee = null;
         if (is_array($transaction) && array_key_exists('fee', $transaction)) {
             $fee = array(
@@ -1554,11 +1712,13 @@ class idex extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
+            'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $hasApiKey = ($this->apiKey !== null);
         $hasSecret = ($this->secret !== null);
         $hasWalletAddress = ($this->walletAddress !== null);
@@ -1568,12 +1728,68 @@ class idex extends Exchange {
         return $authenticated ? ($defaultCost / 2) : $defaultCost;
     }
 
+    public function fetch_deposit_address(?string $code = null, $params = array ()) {
+        /**
+         * fetch the Polygon address of the wallet
+         * @see https://api-docs-v3.idex.io/#get-wallets
+         * @param {string} $code not used by idex
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
+        $request = array();
+        $request['nonce'] = $this->uuidv1();
+        $response = $this->privateGetWallets ($this->extend($request, $params));
+        //
+        //    array(
+        //        array(
+        //            address => "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        //            totalPortfolioValueUsd => "0.00",
+        //            time => "1678342148086"
+        //        ),
+        //        {
+        //            address => "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        //            totalPortfolioValueUsd => "15.90",
+        //            time => "1691697811659"
+        //        }
+        //    )
+        //
+        return $this->parse_deposit_address($response);
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    array(
+        //        array(
+        //            $address => "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
+        //            totalPortfolioValueUsd => "0.00",
+        //            time => "1678342148086"
+        //        ),
+        //        {
+        //            $address => "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
+        //            totalPortfolioValueUsd => "15.90",
+        //            time => "1691697811659"
+        //        }
+        //    )
+        //
+        $length = count($depositAddress);
+        $entry = $this->safe_dict($depositAddress, $length - 1);
+        $address = $this->safe_string($entry, 'address');
+        $this->check_address($address);
+        return array(
+            'info' => $depositAddress,
+            'currency' => null,
+            'address' => $address,
+            'tag' => null,
+            'network' => 'MATIC',
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $network = $this->safe_string($this->options, 'network', 'ETH');
         $version = $this->safe_string($this->options, 'version', 'v1');
         $url = $this->urls['api'][$network] . '/' . $version . '/' . $path;
         $keys = is_array($params) ? array_keys($params) : array();
-        $length = is_array($keys) ? count($keys) : 0;
+        $length = count($keys);
         $query = null;
         if ($length > 0) {
             if ($method === 'GET') {
@@ -1599,5 +1815,40 @@ class idex extends Exchange {
             $headers['IDEX-HMAC-Signature'] = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function remove0x_prefix($hexData) {
+        if (mb_substr($hexData, 0, 2 - 0) === '0x') {
+            return mb_substr($hexData, 2);
+        } else {
+            return $hexData;
+        }
+    }
+
+    public function hash_message($message) {
+        // takes a hex encoded $message
+        $binaryMessage = $this->base16_to_binary($this->remove0x_prefix($message));
+        $prefix = $this->encode('\x19Ethereum Signed Message:\n' . $binaryMessage->byteLength);
+        return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
+    }
+
+    public function sign_hash($hash, $privateKey) {
+        $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
+        return array(
+            'r' => '0x' . $signature['r'],
+            's' => '0x' . $signature['s'],
+            'v' => 27 . $signature['v'],
+        );
+    }
+
+    public function sign_message($message, $privateKey) {
+        return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
+    }
+
+    public function sign_message_string($message, $privateKey) {
+        // still takes the input hex string
+        // same but returns a string instead of an object
+        $signature = $this->sign_message($message, $privateKey);
+        return $signature['r'] . $this->remove0x_prefix($signature['s']) . bin2hex($this->number_to_be($signature['v'], 1));
     }
 }

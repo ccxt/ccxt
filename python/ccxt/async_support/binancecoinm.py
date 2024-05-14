@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.binance import binance
+from ccxt.abstract.binancecoinm import ImplicitAPI
 
 
-class binancecoinm(binance):
+class binancecoinm(binance, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(binancecoinm, self).describe(), {
@@ -21,23 +22,24 @@ class binancecoinm(binance):
             },
             'has': {
                 'CORS': None,
-                'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': True,
                 'option': None,
                 'createStopMarketOrder': True,
             },
             'options': {
-                'defaultType': 'delivery',
+                'fetchMarkets': ['inverse'],
+                'defaultSubType': 'inverse',
                 'leverageBrackets': None,
             },
         })
 
-    async def transfer_in(self, code, amount, params={}):
+    async def transfer_in(self, code: str, amount, params={}):
         # transfer from spot wallet to coinm futures wallet
         return await self.futuresTransfer(code, amount, 3, params)
 
-    async def transfer_out(self, code, amount, params={}):
+    async def transfer_out(self, code: str, amount, params={}):
         # transfer from coinm futures wallet to spot wallet
         return await self.futuresTransfer(code, amount, 4, params)

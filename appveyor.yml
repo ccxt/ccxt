@@ -1,6 +1,9 @@
+image:
+  - Visual Studio 2022
+
 environment:
   matrix:
-    - nodejs_version: '14'
+    - nodejs_version: '20'
 install:
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
@@ -8,22 +11,15 @@ install:
   - set CI=true
   # - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;C:\Python38;C:\Python38\Scripts;%PATH%
-  # Remove python2.7 from path
-  - set PATH=%PATH:C:\Python27;=%
-  - set PATH=%PATH:C:\Python27\Scripts;=%
-  - echo %PATH%
   - npm install
-  - python --version
-  - pip --version
   - python -m pip install --upgrade pip setuptools
-  - pip install tox
-  - pip install requests
-  - pip install cryptography
+  - pip install tox cryptography requests ruff # common packages
   - set PATH=C:\Program Files\curl;%PATH%
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
-  - cinst -y php --allow-empty-checksums
-  # - php -i
+  - cinst -y php --version 8.1.12 --allow-empty-checksums
+  - cinst composer -i -y
+  # - php -i | findstr "php.ini"
   - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
@@ -31,7 +27,10 @@ install:
   - echo extension=php_curl.dll >> php.ini
   - echo extension=php_mbstring.dll >> php.ini
   - echo extension=php_gmp.dll >> php.ini
+  - echo extension=php_openssl.dll >> php.ini
   - cd %APPVEYOR_BUILD_FOLDER%
+  - refreshenv
+  - composer install
 matrix:
   fast_finish: true
 build: off
@@ -41,11 +40,13 @@ test_script:
   - node --version
   - npm --version
   - python --version
-  - npm run force-build
-  # - npm run test-base
+  - pip --version
+  - php --version
+  - bash build.sh
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
+  - '%LOCALAPPDATA%\Composer\files -> composer.lock'
   # - C:\ProgramData\chocolatey\bin
   # - C:\ProgramData\chocolatey\lib
   # - C:\tools\php81

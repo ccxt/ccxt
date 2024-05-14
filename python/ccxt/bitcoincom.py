@@ -4,11 +4,14 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.fmfwio import fmfwio
+from ccxt.abstract.bitcoincom import ImplicitAPI
 
 
-class bitcoincom(fmfwio):
+class bitcoincom(fmfwio, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitcoincom, self).describe(), {
             'id': 'bitcoincom',
+            'name': 'Bitcoin.com',
+            'alias': True,
         })

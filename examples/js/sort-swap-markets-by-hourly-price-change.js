@@ -9,11 +9,11 @@ const type = 'swap';
 async function fetchOHLCV (symbol) {
     /**
      * @description Wrapper around exchange.fetchOHLCV method
-     * @param {str} symbol CCXT unified symbol
+     * @param {string} symbol CCXT unified symbol
      * @returns {[float|str]} 1d array with a single ohlcv record with the market symbol appended
      */
     try {
-        const ohlcv = await exchange.fetchOHLCV (symbol, timeframe, undefined, 2);
+        const ohlcv = await exchange.fetchOHLCV (symbol, timeframe, undefined, 1);
         ohlcv[0].push (symbol);
         return ohlcv[0];
     } catch (err) {

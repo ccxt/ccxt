@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import run
-import ccxtpro
+import ccxt.pro as ccxt
 
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.binance):
     def handle_order_book_message(self, client, message, orderbook):
         asks = self.safe_value(message, 'a', [])
         bids = self.safe_value(message, 'b', [])

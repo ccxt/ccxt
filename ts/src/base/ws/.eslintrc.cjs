@@ -1,0 +1,43 @@
+'use strict';
+
+module.exports = {
+  "env": {
+    "node": true,
+    "es6": true,
+    "browser": true,
+  },
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "script",
+  },
+  "rules": {
+      "semi": "off",
+      "no-unused-vars": ["off"],
+      "quotes": ["off", "single"],
+      "quote-props": "off",
+      "func-call-spacing": ["error", "always"],
+      "one-var": "off",
+      "indent": ["warn", 4, { "ignoredNodes": ["ObjectPattern"] }],
+      "comma-style": "off",
+      "no-multi-spaces": "off",
+      "comma-dangle": "off",
+      "spaced-comment": "off",
+      "camelcase": "off",
+      "padded-blocks": "off",
+      "multiline-comment-style": "off",
+      "curly": "off",
+      "rest-spread-spacing": "off",
+      "no-multiple-empty-lines": "off",
+      "no-undef-init": "off",
+      "no-useless-return": "off",
+      "no-console": "off",
+      "operator-linebreak": "off",
+      "key-spacing": "off",
+      "brace-style": "off",
+      "padding-line-between-statements": ["off",
+        {"blankLine": "never", "prev":"*", "next": "*" },
+        {"blankLine": "always", "prev":"directive", "next": "*" },
+        {"blankLine": "always", "prev":"*", "next": "cjs-export" },
+      ],
+  },
+}

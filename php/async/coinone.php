@@ -6,20 +6,24 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
+use ccxt\async\abstract\coinone as Exchange;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\Precise;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinone extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
             'countries' => array( 'KR' ), // Korea
             // 'enableRateLimit' => false,
             'rateLimit' => 667,
             'version' => 'v2',
+            'pro' => false,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -29,24 +33,32 @@ class coinone extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'closeAllPositions' => false,
+                'closePosition' => false,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
-                'fetchClosedOrders' => null, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders' => false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddresses' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -55,7 +67,11 @@ class coinone extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -65,10 +81,16 @@ class coinone extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'ws' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
-                'api' => 'https://api.coinone.co.kr',
+                'api' => array(
+                    'rest' => 'https://api.coinone.co.kr',
+                    'v2Public' => 'https://api.coinone.co.kr/public/v2',
+                    'v2Private' => 'https://api.coinone.co.kr/v2',
+                    'v2_1Private' => 'https://api.coinone.co.kr/v2.1',
+                ),
                 'www' => 'https://coinone.co.kr',
                 'doc' => 'https://doc.coinone.co.kr',
             ),
@@ -79,31 +101,85 @@ class coinone extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'orderbook/',
-                        'trades/',
-                        'ticker/',
+                        'orderbook',
+                        'ticker',
+                        'ticker_utc',
+                        'trades',
+                    ),
+                ),
+                'v2Public' => array(
+                    'get' => array(
+                        'range_units',
+                        'markets/{quote_currency}',
+                        'markets/{quote_currency}/{target_currency}',
+                        'orderbook/{quote_currency}/{target_currency}',
+                        'trades/{quote_currency}/{target_currency}',
+                        'ticker_new/{quote_currency}',
+                        'ticker_new/{quote_currency}/{target_currency}',
+                        'ticker_utc_new/{quote_currency}',
+                        'ticker_utc_new/{quote_currency}/{target_currency}',
+                        'currencies',
+                        'currencies/{currency}',
+                        'chart/{quote_currency}/{target_currency}',
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'account/deposit_address/',
-                        'account/btc_deposit_address/',
-                        'account/balance/',
-                        'account/daily_balance/',
-                        'account/user_info/',
-                        'account/virtual_account/',
-                        'order/cancel_all/',
-                        'order/cancel/',
-                        'order/limit_buy/',
-                        'order/limit_sell/',
-                        'order/complete_orders/',
-                        'order/limit_orders/',
-                        'order/order_info/',
-                        'transaction/auth_number/',
-                        'transaction/history/',
-                        'transaction/krw/history/',
-                        'transaction/btc/',
-                        'transaction/coin/',
+                        'account/deposit_address',
+                        'account/btc_deposit_address',
+                        'account/balance',
+                        'account/daily_balance',
+                        'account/user_info',
+                        'account/virtual_account',
+                        'order/cancel_all',
+                        'order/cancel',
+                        'order/limit_buy',
+                        'order/limit_sell',
+                        'order/complete_orders',
+                        'order/limit_orders',
+                        'order/order_info',
+                        'transaction/auth_number',
+                        'transaction/history',
+                        'transaction/krw/history',
+                        'transaction/btc',
+                        'transaction/coin',
+                    ),
+                ),
+                'v2Private' => array(
+                    'post' => array(
+                        'account/balance',
+                        'account/deposit_address',
+                        'account/user_info',
+                        'account/virtual_account',
+                        'order/cancel',
+                        'order/limit_buy',
+                        'order/limit_sell',
+                        'order/limit_orders',
+                        'order/complete_orders',
+                        'order/query_order',
+                        'transaction/auth_number',
+                        'transaction/btc',
+                        'transaction/history',
+                        'transaction/krw/history',
+                    ),
+                ),
+                'v2_1Private' => array(
+                    'post' => array(
+                        'account/balance/all',
+                        'account/balance',
+                        'account/trade_fee',
+                        'account/trade_fee/{quote_currency}/{target_currency}',
+                        'order/limit',
+                        'order/cancel',
+                        'order/cancel/all',
+                        'order/open_orders',
+                        'order/open_orders/all',
+                        'order/complete_orders',
+                        'order/complete_orders/all',
+                        'order/info',
+                        'transaction/krw/history',
+                        'transaction/coin/history',
+                        'transaction/coin/withdrawal/limit',
                     ),
                 ),
             ),
@@ -114,11 +190,6 @@ class coinone extends Exchange {
                     'taker' => 0.002,
                     'maker' => 0.002,
                 ),
-            ),
-            'precision' => array(
-                'price' => $this->parse_number('0.0001'),
-                'amount' => $this->parse_number('0.0001'),
-                'cost' => $this->parse_number('0.00000001'),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -133,102 +204,183 @@ class coinone extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all markets for coinone
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing market data
-         */
-        $request = array(
-            'currency' => 'all',
-        );
-        $response = yield $this->publicGetTicker ($request);
-        //
-        //    {
-        //        "result" => "success",
-        //        "errorCode" => "0",
-        //        "timestamp" => "1643676668",
-        //        "xec" => array(
-        //          "currency" => "xec",
-        //          "first" => "0.0914",
-        //          "low" => "0.0894",
-        //          "high" => "0.096",
-        //          "last" => "0.0937",
-        //          "volume" => "1673283662.9797",
-        //          "yesterday_first" => "0.0929",
-        //          "yesterday_low" => "0.0913",
-        //          "yesterday_high" => "0.0978",
-        //          "yesterday_last" => "0.0913",
-        //          "yesterday_volume" => "1167285865.4571"
-        //        ),
-        //        ...
-        //    }
-        //
-        $result = array();
-        $quoteId = 'krw';
-        $quote = $this->safe_currency_code($quoteId);
-        $baseIds = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($baseIds); $i++) {
-            $baseId = $baseIds[$i];
-            $ticker = $this->safe_value($response, $baseId, array());
-            $currency = $this->safe_value($ticker, 'currency');
-            if ($currency === null) {
-                continue;
+    public function fetch_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available $currencies on an exchange
+             * @see https://docs.coinone.co.kr/reference/currencies
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of $currencies
+             */
+            $response = Async\await($this->v2PublicGetCurrencies ($params));
+            //
+            //     {
+            //         "result" => "success",
+            //         "error_code" => "0",
+            //         "server_time" => 1701054555578,
+            //         "currencies" => array(
+            //           {
+            //             "name" => "Polygon",
+            //             "symbol" => "MATIC",
+            //             "deposit_status" => "normal",
+            //             "withdraw_status" => "normal",
+            //             "deposit_confirm_count" => 150,
+            //             "max_precision" => 8,
+            //             "deposit_fee" => "0.0",
+            //             "withdrawal_min_amount" => "1.0",
+            //             "withdrawal_fee" => "3.0"
+            //           }
+            //         )
+            //     }
+            //
+            $result = array();
+            $currencies = $this->safe_value($response, 'currencies', array());
+            for ($i = 0; $i < count($currencies); $i++) {
+                $entry = $currencies[$i];
+                $id = $this->safe_string($entry, 'symbol');
+                $name = $this->safe_string($entry, 'name');
+                $code = $this->safe_currency_code($id);
+                $withdrawStatus = $this->safe_string($entry, 'withdraw_status', '');
+                $depositStatus = $this->safe_string($entry, 'deposit_status', '');
+                $isWithdrawEnabled = $withdrawStatus === 'normal';
+                $isDepositEnabled = $depositStatus === 'normal';
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'info' => $entry,
+                    'name' => $name,
+                    'active' => $isWithdrawEnabled && $isDepositEnabled,
+                    'deposit' => $isDepositEnabled,
+                    'withdraw' => $isWithdrawEnabled,
+                    'fee' => $this->safe_number($entry, 'withdrawal_fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'max_precision'))),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($entry, 'withdrawal_min_amount'),
+                            'max' => null,
+                        ),
+                    ),
+                    'networks' => array(),
+                );
             }
-            $base = $this->safe_currency_code($baseId);
-            $result[] = array(
-                'id' => $baseId,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => null,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => null,
-                    'price' => null,
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $ticker,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
-    public function parse_balance($response) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all markets for coinone
+             * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing market data
+             */
+            $request = array(
+                'quote_currency' => 'KRW',
+            );
+            $response = Async\await($this->v2PublicGetTickerNewQuoteCurrency ($request));
+            //
+            //     {
+            //         "result" => "success",
+            //         "error_code" => "0",
+            //         "server_time" => 1701067923060,
+            //         "tickers" => array(
+            //             {
+            //                 "quote_currency" => "krw",
+            //                 "target_currency" => "stg",
+            //                 "timestamp" => 1701067920001,
+            //                 "high" => "667.5",
+            //                 "low" => "667.5",
+            //                 "first" => "667.5",
+            //                 "last" => "667.5",
+            //                 "quote_volume" => "0.0",
+            //                 "target_volume" => "0.0",
+            //                 "best_asks" => array(
+            //                     {
+            //                         "price" => "777.0",
+            //                         "qty" => "73.9098"
+            //                     }
+            //                 ),
+            //                 "best_bids" => array(
+            //                     {
+            //                         "price" => "690.8",
+            //                         "qty" => "40.7768"
+            //                     }
+            //                 ),
+            //                 "id" => "1701067920001001"
+            //             }
+            //         )
+            //     }
+            //
+            $tickers = $this->safe_value($response, 'tickers', array());
+            $result = array();
+            for ($i = 0; $i < count($tickers); $i++) {
+                $entry = $this->safe_value($tickers, $i);
+                $id = $this->safe_string($entry, 'id');
+                $baseId = $this->safe_string_upper($entry, 'target_currency');
+                $quoteId = $this->safe_string_upper($entry, 'quote_currency');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => null,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number('1e-4'),
+                        'price' => $this->parse_number('1e-4'),
+                        'cost' => $this->parse_number('1e-8'),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'created' => null,
+                    'info' => $entry,
+                );
+            }
+            return $result;
+        }) ();
+    }
+
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->omit($response, array(
             'errorCode',
@@ -248,138 +400,256 @@ class coinone extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privatePostAccountBalance ($params);
-        return $this->parse_balance($response);
+    public function fetch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://docs.coinone.co.kr/v1.0/reference/v21
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->v2PrivatePostAccountBalance ($params));
+            return $this->parse_balance($response);
+        }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['id'],
-            'format' => 'json',
-        );
-        $response = yield $this->publicGetOrderbook (array_merge($request, $params));
-        $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask', 'price', 'qty');
-    }
-
-    public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'currency' => 'all',
-            'format' => 'json',
-        );
-        $response = yield $this->publicGetTicker (array_merge($request, $params));
-        $result = array();
-        $ids = is_array($response) ? array_keys($response) : array();
-        $timestamp = $this->safe_timestamp($response, 'timestamp');
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $symbol = $id;
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $ticker = $response[$id];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-                $result[$symbol]['timestamp'] = $timestamp;
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'quote_currency' => $market['quote'],
+                'target_currency' => $market['base'],
+            );
+            if ($limit !== null) {
+                $request['size'] = $limit; // only support 5, 10, 15, 16
             }
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+            $response = Async\await($this->v2PublicGetOrderbookQuoteCurrencyTargetCurrency ($this->extend($request, $params)));
+            //
+            //     {
+            //         "result" => "success",
+            //         "error_code" => "0",
+            //         "timestamp" => 1701071108673,
+            //         "id" => "1701071108673001",
+            //         "quote_currency" => "KRW",
+            //         "target_currency" => "BTC",
+            //         "order_book_unit" => "0.0",
+            //         "bids" => array(
+            //             {
+            //                 "price" => "50048000",
+            //                 "qty" => "0.01080229"
+            //             }
+            //         ),
+            //         "asks" => array(
+            //             {
+            //                 "price" => "50058000",
+            //                 "qty" => "0.00272592"
+            //             }
+            //         )
+            //     }
+            //
+            $timestamp = $this->safe_integer($response, 'timestamp');
+            return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'qty');
+        }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['id'],
-            'format' => 'json',
-        );
-        $response = yield $this->publicGetTicker (array_merge($request, $params));
-        return $this->parse_ticker($response, $market);
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+             * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $request = array(
+                'quote_currency' => 'KRW',
+            );
+            $market = null;
+            $response = null;
+            if ($symbols !== null) {
+                $first = $this->safe_string($symbols, 0);
+                $market = $this->market($first);
+                $request['quote_currency'] = $market['quote'];
+                $request['target_currency'] = $market['base'];
+                $response = Async\await($this->v2PublicGetTickerNewQuoteCurrencyTargetCurrency ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->v2PublicGetTickerNewQuoteCurrency ($this->extend($request, $params)));
+            }
+            //
+            //     {
+            //         "result" => "success",
+            //         "error_code" => "0",
+            //         "server_time" => 1701073358487,
+            //         "tickers" => array(
+            //             {
+            //                 "quote_currency" => "krw",
+            //                 "target_currency" => "btc",
+            //                 "timestamp" => 1701073357818,
+            //                 "high" => "50543000.0",
+            //                 "low" => "49945000.0",
+            //                 "first" => "50487000.0",
+            //                 "last" => "50062000.0",
+            //                 "quote_volume" => "11349804285.3859",
+            //                 "target_volume" => "226.07268994",
+            //                 "best_asks" => array(
+            //                     {
+            //                         "price" => "50081000.0",
+            //                         "qty" => "0.18471358"
+            //                     }
+            //                 ),
+            //                 "best_bids" => array(
+            //                     {
+            //                         "price" => "50062000.0",
+            //                         "qty" => "0.04213455"
+            //                     }
+            //                 ),
+            //                 "id" => "1701073357818001"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'tickers', array());
+            return $this->parse_tickers($data, $symbols);
+        }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'quote_currency' => $market['quote'],
+                'target_currency' => $market['base'],
+            );
+            $response = Async\await($this->v2PublicGetTickerNewQuoteCurrencyTargetCurrency ($this->extend($request, $params)));
+            //
+            //     {
+            //         "result" => "success",
+            //         "error_code" => "0",
+            //         "server_time" => 1701073358487,
+            //         "tickers" => array(
+            //             {
+            //                 "quote_currency" => "krw",
+            //                 "target_currency" => "btc",
+            //                 "timestamp" => 1701073357818,
+            //                 "high" => "50543000.0",
+            //                 "low" => "49945000.0",
+            //                 "first" => "50487000.0",
+            //                 "last" => "50062000.0",
+            //                 "quote_volume" => "11349804285.3859",
+            //                 "target_volume" => "226.07268994",
+            //                 "best_asks" => array(
+            //                     {
+            //                         "price" => "50081000.0",
+            //                         "qty" => "0.18471358"
+            //                     }
+            //                 ),
+            //                 "best_bids" => array(
+            //                     {
+            //                         "price" => "50062000.0",
+            //                         "qty" => "0.04213455"
+            //                     }
+            //                 ),
+            //                 "id" => "1701073357818001"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'tickers', array());
+            $ticker = $this->safe_dict($data, 0, array());
+            return $this->parse_ticker($ticker, $market);
+        }) ();
+    }
+
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "currency":"xec",
-        //         "first":"0.1069",
-        //         "low":"0.09",
-        //         "high":"0.1069",
-        //         "last":"0.0911",
-        //         "volume":"4591217267.4974",
-        //         "yesterday_first":"0.1128",
-        //         "yesterday_low":"0.1035",
-        //         "yesterday_high":"0.1167",
-        //         "yesterday_last":"0.1069",
-        //         "yesterday_volume":"4014832231.5102"
+        //         "quote_currency" => "krw",
+        //         "target_currency" => "btc",
+        //         "timestamp" => 1701073357818,
+        //         "high" => "50543000.0",
+        //         "low" => "49945000.0",
+        //         "first" => "50487000.0",
+        //         "last" => "50062000.0",
+        //         "quote_volume" => "11349804285.3859",
+        //         "target_volume" => "226.07268994",
+        //         "best_asks" => array(
+        //             {
+        //                 "price" => "50081000.0",
+        //                 "qty" => "0.18471358"
+        //             }
+        //         ),
+        //         "best_bids" => array(
+        //             {
+        //                 "price" => "50062000.0",
+        //                 "qty" => "0.04213455"
+        //             }
+        //         ),
+        //         "id" => "1701073357818001"
         //     }
         //
-        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $open = $this->safe_string($ticker, 'first');
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
-        $previousClose = $this->safe_string($ticker, 'yesterday_last');
-        $symbol = $this->safe_symbol(null, $market);
+        $asks = $this->safe_value($ticker, 'best_asks');
+        $bids = $this->safe_value($ticker, 'best_bids');
+        $baseId = $this->safe_string($ticker, 'target_currency');
+        $quoteId = $this->safe_string($ticker, 'quote_currency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $base . '/' . $quote,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'bid' => $this->safe_string($bids, 'price'),
+            'bidVolume' => $this->safe_string($bids, 'qty'),
+            'ask' => $this->safe_string($asks, 'price'),
+            'askVolume' => $this->safe_string($asks, 'qty'),
             'vwap' => null,
-            'open' => $open,
+            'open' => $this->safe_string($ticker, 'first'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $previousClose,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'baseVolume' => $this->safe_string($ticker, 'target_volume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quote_volume'),
             'info' => $ticker,
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
         //     {
-        //         "timestamp" => "1416893212",
-        //         "price" => "420000.0",
-        //         "qty" => "0.1",
-        //         "is_ask" => "1"
+        //         "id" => "1701075265708001",
+        //         "timestamp" => 1701075265708,
+        //         "price" => "50020000",
+        //         "qty" => "0.00155177",
+        //         "is_seller_maker" => false
         //     }
         //
         // fetchMyTrades (private)
@@ -394,22 +664,12 @@ class coinone extends Exchange {
         //         "orderId" => "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
         //     }
         //
-        $timestamp = $this->safe_timestamp($trade, 'timestamp');
+        $timestamp = $this->safe_integer($trade, 'timestamp');
         $market = $this->safe_market(null, $market);
-        $is_ask = $this->safe_string($trade, 'is_ask');
-        $side = $this->safe_string($trade, 'type');
-        if ($is_ask !== null) {
-            if ($is_ask === '1') {
-                $side = 'sell';
-            } elseif ($is_ask === '0') {
-                $side = 'buy';
-            }
-        } else {
-            if ($side === 'ask') {
-                $side = 'sell';
-            } elseif ($side === 'bid') {
-                $side = 'buy';
-            }
+        $isSellerMaker = $this->safe_value($trade, 'is_seller_maker');
+        $side = null;
+        if ($isSellerMaker !== null) {
+            $side = $isSellerMaker ? 'sell' : 'buy';
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
@@ -444,124 +704,142 @@ class coinone extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['id'],
-            'format' => 'json',
-        );
-        $response = yield $this->publicGetTrades (array_merge($request, $params));
-        //
-        //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "timestamp" => "1416895635",
-        //         "currency" => "btc",
-        //         "completeOrders" => array(
-        //             {
-        //                 "timestamp" => "1416893212",
-        //                 "price" => "420000.0",
-        //                 "qty" => "0.1",
-        //                 "is_ask" => "1"
-        //             }
-        //         )
-        //     }
-        //
-        $completeOrders = $this->safe_value($response, 'completeOrders', array());
-        return $this->parse_trades($completeOrders, $market, $since, $limit);
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'quote_currency' => $market['quote'],
+                'target_currency' => $market['base'],
+            );
+            if ($limit !== null) {
+                $request['size'] = min ($limit, 200);
+            }
+            $response = Async\await($this->v2PublicGetTradesQuoteCurrencyTargetCurrency ($this->extend($request, $params)));
+            //
+            //     {
+            //         "result" => "success",
+            //         "error_code" => "0",
+            //         "server_time" => 1701075315771,
+            //         "quote_currency" => "KRW",
+            //         "target_currency" => "BTC",
+            //         "transactions" => array(
+            //             {
+            //                 "id" => "1701075265708001",
+            //                 "timestamp" => 1701075265708,
+            //                 "price" => "50020000",
+            //                 "qty" => "0.00155177",
+            //                 "is_seller_maker" => false
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'transactions', array());
+            return $this->parse_trades($data, $market, $since, $limit);
+        }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {str} $symbol unified $symbol of the market to create an order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
-        }
-        yield $this->load_markets();
-        $request = array(
-            'price' => $price,
-            'currency' => $this->market_id($symbol),
-            'qty' => $amount,
-        );
-        $method = 'privatePostOrder' . $this->capitalize($type) . $this->capitalize($side);
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "orderId" => "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
-        //     }
-        //
-        return $this->parse_order($response);
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+             * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type must be 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($type !== 'limit') {
+                throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'price' => $price,
+                'currency' => $market['id'],
+                'qty' => $amount,
+            );
+            $method = 'privatePostOrder' . $this->capitalize($type) . $this->capitalize($side);
+            $response = Async\await($this->$method ($this->extend($request, $params)));
+            //
+            //     {
+            //         "result" => "success",
+            //         "errorCode" => "0",
+            //         "orderId" => "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+            //     }
+            //
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {str} $symbol unified $symbol of the $market the order was made in
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'order_id' => $id,
-            'currency' => $market['id'],
-        );
-        $response = yield $this->privatePostOrderOrderInfo (array_merge($request, $params));
-        //
-        //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "status" => "live",
-        //         "info" => {
-        //             "orderId" => "32FF744B-D501-423A-8BA1-05BB6BE7814A",
-        //             "currency" => "BTC",
-        //             "type" => "bid",
-        //             "price" => "2922000.0",
-        //             "qty" => "115.4950",
-        //             "remainQty" => "45.4950",
-        //             "feeRate" => "0.0003",
-        //             "fee" => "0",
-        //             "timestamp" => "1499340941"
-        //         }
-        //     }
-        //
-        $info = $this->safe_value($response, 'info', array());
-        $info['status'] = $this->safe_string($info, 'status');
-        return $this->parse_order($info, $market);
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'order_id' => $id,
+                'currency' => $market['id'],
+            );
+            $response = Async\await($this->v2PrivatePostOrderQueryOrder ($this->extend($request, $params)));
+            //
+            //     {
+            //         "result" => "success",
+            //         "errorCode" => "0",
+            //         "orderId" => "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+            //         "baseCurrency" => "KRW",
+            //         "targetCurrency" => "BTC",
+            //         "price" => "10011000.0",
+            //         "originalQty" => "3.0",
+            //         "executedQty" => "0.62",
+            //         "canceledQty" => "1.125",
+            //         "remainQty" => "1.255",
+            //         "status" => "partially_filled",
+            //         "side" => "bid",
+            //         "orderedAt" => 1499340941,
+            //         "updatedAt" => 1499341142,
+            //         "feeRate" => "0.002",
+            //         "fee" => "0.00124",
+            //         "averageExecutedPrice" => "10011000.0"
+            //     }
+            //
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function parse_order_status($status) {
         $statuses = array(
             'live' => 'open',
             'partially_filled' => 'open',
+            'partially_canceled' => 'open',
             'filled' => 'closed',
+            'canceled' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -574,16 +852,23 @@ class coinone extends Exchange {
         // fetchOrder
         //
         //     {
-        //         "status" => "live", // injected in fetchOrder
-        //         "orderId" => "32FF744B-D501-423A-8BA1-05BB6BE7814A",
-        //         "currency" => "BTC",
-        //         "type" => "bid",
-        //         "price" => "2922000.0",
-        //         "qty" => "115.4950",
-        //         "remainQty" => "45.4950",
-        //         "feeRate" => "0.0003",
-        //         "fee" => "0",
-        //         "timestamp" => "1499340941"
+        //         "result" => "success",
+        //         "errorCode" => "0",
+        //         "orderId" => "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        //         "baseCurrency" => "KRW",
+        //         "targetCurrency" => "BTC",
+        //         "price" => "10011000.0",
+        //         "originalQty" => "3.0",
+        //         "executedQty" => "0.62",
+        //         "canceledQty" => "1.125",
+        //         "remainQty" => "1.255",
+        //         "status" => "partially_filled",
+        //         "side" => "bid",
+        //         "orderedAt" => 1499340941,
+        //         "updatedAt" => 1499341142,
+        //         "feeRate" => "0.002",
+        //         "fee" => "0.00124",
+        //         "averageExecutedPrice" => "10011000.0"
         //     }
         //
         // fetchOpenOrders
@@ -599,16 +884,30 @@ class coinone extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
-        $priceString = $this->safe_string($order, 'price');
-        $timestamp = $this->safe_timestamp($order, 'timestamp');
-        $side = $this->safe_string($order, 'type');
+        $baseId = $this->safe_string($order, 'baseCurrency');
+        $quoteId = $this->safe_string($order, 'targetCurrency');
+        $base = null;
+        $quote = null;
+        if ($baseId !== null) {
+            $base = $this->safe_currency_code($baseId);
+        }
+        if ($quoteId !== null) {
+            $quote = $this->safe_currency_code($quoteId);
+        }
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+            $market = $this->safe_market($symbol, $market, '/');
+        }
+        $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'updatedAt');
+        $side = $this->safe_string_2($order, 'type', 'side');
         if ($side === 'ask') {
             $side = 'sell';
         } elseif ($side === 'bid') {
             $side = 'buy';
         }
         $remainingString = $this->safe_string($order, 'remainQty');
-        $amountString = $this->safe_string($order, 'qty');
+        $amountString = $this->safe_string_2($order, 'originalQty', 'qty');
         $status = $this->safe_string($order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if ($status === 'live') {
@@ -620,24 +919,6 @@ class coinone extends Exchange {
             }
         }
         $status = $this->parse_order_status($status);
-        $symbol = null;
-        $base = null;
-        $quote = null;
-        $marketId = $this->safe_string_lower($order, 'currency');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $base = $this->safe_currency_code($marketId);
-                $quote = 'KRW';
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
-        }
         $fee = null;
         $feeCostString = $this->safe_string($order, 'fee');
         if ($feeCostString !== null) {
@@ -660,12 +941,13 @@ class coinone extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $priceString,
+            'price' => $this->safe_string($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
-            'average' => null,
+            'average' => $this->safe_string($order, 'averageExecutedPrice'),
             'amount' => $amountString,
-            'filled' => null,
+            'filled' => $this->safe_string($order, 'executedQty'),
             'remaining' => $remainingString,
             'status' => $status,
             'fee' => $fee,
@@ -673,188 +955,204 @@ class coinone extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {str} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
-        // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
-        if ($symbol === null) {
-            throw new ExchangeError($this->id . ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['id'],
-        );
-        $response = yield $this->privatePostOrderLimitOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "limitOrders" => array(
-        //             {
-        //                 "index" => "0",
-        //                 "orderId" => "68665943-1eb5-4e4b-9d76-845fc54f5489",
-        //                 "timestamp" => "1449037367",
-        //                 "price" => "444000.0",
-        //                 "qty" => "0.3456",
-        //                 "type" => "ask",
-        //                 "feeRate" => "-0.0015"
-        //             }
-        //         )
-        //     }
-        //
-        $limitOrders = $this->safe_value($response, 'limitOrders', array());
-        return $this->parse_orders($limitOrders, $market, $since, $limit);
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            // The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+            // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
+            if ($symbol === null) {
+                throw new ExchangeError($this->id . ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'currency' => $market['id'],
+            );
+            $response = Async\await($this->privatePostOrderLimitOrders ($this->extend($request, $params)));
+            //
+            //     {
+            //         "result" => "success",
+            //         "errorCode" => "0",
+            //         "limitOrders" => array(
+            //             {
+            //                 "index" => "0",
+            //                 "orderId" => "68665943-1eb5-4e4b-9d76-845fc54f5489",
+            //                 "timestamp" => "1449037367",
+            //                 "price" => "444000.0",
+            //                 "qty" => "0.3456",
+            //                 "type" => "ask",
+            //                 "feeRate" => "-0.0015"
+            //             }
+            //         )
+            //     }
+            //
+            $limitOrders = $this->safe_list($response, 'limitOrders', array());
+            return $this->parse_orders($limitOrders, $market, $since, $limit);
+        }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {str} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['id'],
-        );
-        $response = yield $this->privatePostOrderCompleteOrders (array_merge($request, $params));
-        //
-        // despite the name of the endpoint it returns trades which may have a duplicate orderId
-        // https://github.com/ccxt/ccxt/pull/7067
-        //
-        //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "completeOrders" => array(
-        //             {
-        //                 "timestamp" => "1416561032",
-        //                 "price" => "419000.0",
-        //                 "type" => "bid",
-        //                 "qty" => "0.001",
-        //                 "feeRate" => "-0.0015",
-        //                 "fee" => "-0.0000015",
-        //                 "orderId" => "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
-        //             }
-        //         )
-        //     }
-        //
-        $completeOrders = $this->safe_value($response, 'completeOrders', array());
-        return $this->parse_trades($completeOrders, $market, $since, $limit);
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'currency' => $market['id'],
+            );
+            $response = Async\await($this->v2PrivatePostOrderCompleteOrders ($this->extend($request, $params)));
+            //
+            // despite the name of the endpoint it returns trades which may have a duplicate orderId
+            // https://github.com/ccxt/ccxt/pull/7067
+            //
+            //     {
+            //         "result" => "success",
+            //         "errorCode" => "0",
+            //         "completeOrders" => array(
+            //             {
+            //                 "timestamp" => "1416561032",
+            //                 "price" => "419000.0",
+            //                 "type" => "bid",
+            //                 "qty" => "0.001",
+            //                 "feeRate" => "-0.0015",
+            //                 "fee" => "-0.0000015",
+            //                 "orderId" => "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+            //             }
+            //         )
+            //     }
+            //
+            $completeOrders = $this->safe_list($response, 'completeOrders', array());
+            return $this->parse_trades($completeOrders, $market, $since, $limit);
+        }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {str} $id order $id
-         * @param {str} $symbol unified $symbol of the market the order was made in
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            // eslint-disable-next-line quotes
-            throw new ArgumentsRequired($this->id . " cancelOrder() requires a $symbol argument. To cancel the order, pass a $symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
-        }
-        $price = $this->safe_number($params, 'price');
-        $qty = $this->safe_number($params, 'qty');
-        $isAsk = $this->safe_integer($params, 'is_ask');
-        if (($price === null) || ($qty === null) || ($isAsk === null)) {
-            // eslint-disable-next-line quotes
-            throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument.");
-        }
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => $id,
-            'price' => $price,
-            'qty' => $qty,
-            'is_ask' => $isAsk,
-            'currency' => $this->market_id($symbol),
-        );
-        $response = yield $this->privatePostOrderCancel (array_merge($request, $params));
-        //
-        //     {
-        //         "result" => "success",
-        //         "errorCode" => "0"
-        //     }
-        //
-        return $response;
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            if ($symbol === null) {
+                // eslint-disable-next-line quotes
+                throw new ArgumentsRequired($this->id . " cancelOrder() requires a $symbol argument. To cancel the order, pass a $symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            }
+            $price = $this->safe_number($params, 'price');
+            $qty = $this->safe_number($params, 'qty');
+            $isAsk = $this->safe_integer($params, 'is_ask');
+            if (($price === null) || ($qty === null) || ($isAsk === null)) {
+                // eslint-disable-next-line quotes
+                throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument.");
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => $id,
+                'price' => $price,
+                'qty' => $qty,
+                'is_ask' => $isAsk,
+                'currency' => $this->market_id($symbol),
+            );
+            $response = Async\await($this->v2PrivatePostOrderCancel ($this->extend($request, $params)));
+            //
+            //     {
+            //         "result" => "success",
+            //         "errorCode" => "0"
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
-        /**
-         * fetch deposit addresses for multiple currencies and chain types
-         * @param {[str]|null} $codes list of unified currency $codes, default is null
-         * @param {dict} $params extra parameters specific to the coinone api endpoint
-         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->privatePostAccountDepositAddress ($params);
-        //
-        //     {
-        //         $result => 'success',
-        //         errorCode => '0',
-        //         $walletAddress => {
-        //             matic => null,
-        //             btc => "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        //             xrp => null,
-        //             xrp_tag => '-1',
-        //             kava => null,
-        //             kava_memo => null,
-        //         }
-        //     }
-        //
-        $walletAddress = $this->safe_value($response, 'walletAddress', array());
-        $keys = is_array($walletAddress) ? array_keys($walletAddress) : array();
-        $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $value = $walletAddress[$key];
-            if ((!$value) || ($value === '-1')) {
-                continue;
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit addresses for multiple currencies and chain types
+             * @param {string[]|null} $codes list of unified currency $codes, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->v2PrivatePostAccountDepositAddress ($params));
+            //
+            //     {
+            //         "result" => "success",
+            //         "errorCode" => "0",
+            //         "walletAddress" => {
+            //             "matic" => null,
+            //             "btc" => "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+            //             "xrp" => null,
+            //             "xrp_tag" => "-1",
+            //             "kava" => null,
+            //             "kava_memo" => null,
+            //         }
+            //     }
+            //
+            $walletAddress = $this->safe_value($response, 'walletAddress', array());
+            $keys = is_array($walletAddress) ? array_keys($walletAddress) : array();
+            $result = array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $key = $keys[$i];
+                $value = $walletAddress[$key];
+                if ((!$value) || ($value === '-1')) {
+                    continue;
+                }
+                $parts = explode('_', $key);
+                $currencyId = $this->safe_value($parts, 0);
+                $secondPart = $this->safe_value($parts, 1);
+                $code = $this->safe_currency_code($currencyId);
+                $depositAddress = $this->safe_value($result, $code);
+                if ($depositAddress === null) {
+                    $depositAddress = array(
+                        'currency' => $code,
+                        'address' => null,
+                        'tag' => null,
+                        'info' => $value,
+                    );
+                }
+                $address = $this->safe_string($depositAddress, 'address', $value);
+                $this->check_address($address);
+                $depositAddress['address'] = $address;
+                $depositAddress['info'] = $address;
+                if (($secondPart === 'tag' || $secondPart === 'memo')) {
+                    $depositAddress['tag'] = $value;
+                    $depositAddress['info'] = array( $address, $value );
+                }
+                $result[$code] = $depositAddress;
             }
-            $parts = explode('_', $key);
-            $currencyId = $this->safe_value($parts, 0);
-            $secondPart = $this->safe_value($parts, 1);
-            $code = $this->safe_currency_code($currencyId);
-            $depositAddress = $this->safe_value($result, $code);
-            if ($depositAddress === null) {
-                $depositAddress = array(
-                    'currency' => $code,
-                    'address' => null,
-                    'tag' => null,
-                    'info' => $value,
-                );
-            }
-            $address = $this->safe_string($depositAddress, 'address', $value);
-            $this->check_address($address);
-            $depositAddress['address'] = $address;
-            $depositAddress['info'] = $address;
-            if (($secondPart === 'tag' || $secondPart === 'memo')) {
-                $depositAddress['tag'] = $value;
-                $depositAddress['info'] = array( $address, $value );
-            }
-            $result[$code] = $depositAddress;
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'] . '/';
+        $url = $this->urls['api']['rest'] . '/';
+        if ($api === 'v2Public') {
+            $url = $this->urls['api']['v2Public'] . '/';
+            $api = 'public';
+        } elseif ($api === 'v2Private') {
+            $url = $this->urls['api']['v2Private'] . '/';
+        } elseif ($api === 'v2_1Private') {
+            $url = $this->urls['api']['v2_1Private'] . '/';
+        }
         if ($api === 'public') {
             $url .= $request;
             if ($query) {
@@ -862,16 +1160,16 @@ class coinone extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $url .= $this->version . '/' . $request;
+            $url .= $request;
             $nonce = (string) $this->nonce();
-            $json = $this->json(array_merge(array(
+            $json = $this->json($this->extend(array(
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params));
             $payload = base64_encode($json);
-            $body = $this->decode($payload);
+            $body = $payload;
             $secret = strtoupper($this->secret);
-            $signature = $this->hmac($payload, $this->encode($secret), 'sha512');
+            $signature = $this->hmac($this->encode($payload), $this->encode($secret), 'sha512');
             $headers = array(
                 'Content-Type' => 'application/json',
                 'X-COINONE-PAYLOAD' => $payload,
@@ -883,7 +1181,7 @@ class coinone extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if (is_array($response) && array_key_exists('result', $response)) {
             $result = $response['result'];
@@ -899,5 +1197,6 @@ class coinone extends Exchange {
         } else {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 }

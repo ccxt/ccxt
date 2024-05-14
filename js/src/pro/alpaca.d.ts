@@ -1,0 +1,31 @@
+import alpacaRest from '../alpaca.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class alpaca extends alpacaRest {
+    describe(): any;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    handleTicker(client: Client, message: any): void;
+    parseTicker(ticker: any, market?: any): Ticker;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
+    handleDelta(bookside: any, delta: any): void;
+    handleDeltas(bookside: any, deltas: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleTradeUpdate(client: Client, message: any): void;
+    handleOrder(client: Client, message: any): void;
+    handleMyTrade(client: Client, message: any): void;
+    parseMyTrade(trade: any, market?: any): Trade;
+    authenticate(url: any, params?: {}): Promise<any>;
+    handleErrorMessage(client: Client, message: any): void;
+    handleConnected(client: Client, message: any): any;
+    handleCryptoMessage(client: Client, message: any): void;
+    handleTradingMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): void;
+    handleAuthenticate(client: Client, message: any): void;
+    handleSubscription(client: Client, message: any): any;
+}

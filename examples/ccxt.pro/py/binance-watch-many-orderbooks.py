@@ -1,4 +1,4 @@
-import ccxtpro
+import ccxt.pro as ccxt
 import asyncio
 
 orderbooks = {}
@@ -42,7 +42,7 @@ async def watch_some_orderbooks(exchange_spot, symbol_list):
 
 
 async def main():
-    exchange_spot = ccxtpro.binance()
+    exchange_spot = ccxt.binance()
     await exchange_spot.load_markets()
     await watch_some_orderbooks(exchange_spot, ['ZEN/USDT', 'RUNE/USDT', 'AAVE/USDT', 'SNX/USDT'])
     await exchange_spot.close()

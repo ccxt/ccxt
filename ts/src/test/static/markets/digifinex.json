@@ -1,0 +1,679 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00005
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            },
+            "leverage": {}
+        },
+        "info": {
+            "order_types": [
+                "LIMIT",
+                "MARKET"
+            ],
+            "quote_asset": "USDT",
+            "minimum_value": "2",
+            "amount_precision": "5",
+            "status": "TRADING",
+            "minimum_amount": "5e-05",
+            "symbol": "BTC_USDT",
+            "is_allow": "1",
+            "zone": "MAIN",
+            "base_asset": "BTC",
+            "price_precision": "2"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTCUSDTPERP",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "contractSize": 0.001,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.1
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "instrument_id": "BTCUSDTPERP",
+            "type": "REAL",
+            "contract_type": "PERPETUAL",
+            "base_currency": "BTC",
+            "quote_currency": "USDT",
+            "clear_currency": "USDT",
+            "contract_value": "0.001",
+            "contract_value_currency": "BTC",
+            "is_inverse": false,
+            "is_trading": true,
+            "status": "ONLINE",
+            "price_precision": "1",
+            "tick_size": "0.1",
+            "min_order_amount": "1",
+            "open_max_limits": [
+                {
+                    "leverage": "50",
+                    "max_limit": "1000000"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "LTC/USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            },
+            "leverage": {}
+        },
+        "info": {
+            "order_types": [
+                "LIMIT",
+                "MARKET"
+            ],
+            "quote_asset": "USDT",
+            "minimum_value": "2",
+            "amount_precision": "3",
+            "status": "TRADING",
+            "minimum_amount": "0.01",
+            "symbol": "LTC_USDT",
+            "is_allow": "1",
+            "zone": "MAIN",
+            "base_asset": "LTC",
+            "price_precision": "2"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "ADA/USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            },
+            "leverage": {}
+        },
+        "info": {
+            "order_types": [
+                "LIMIT",
+                "MARKET"
+            ],
+            "quote_asset": "USDT",
+            "minimum_value": "2",
+            "amount_precision": "1",
+            "status": "TRADING",
+            "minimum_amount": "1",
+            "symbol": "ADA_USDT",
+            "is_allow": "1",
+            "zone": "MAIN",
+            "base_asset": "ADA",
+            "price_precision": "5"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "XRP/USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 2
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            },
+            "leverage": {}
+        },
+        "info": {
+            "order_types": [
+                "LIMIT",
+                "MARKET"
+            ],
+            "quote_asset": "USDT",
+            "minimum_value": "2",
+            "amount_precision": "0",
+            "status": "TRADING",
+            "minimum_amount": "2",
+            "symbol": "XRP_USDT",
+            "is_allow": "1",
+            "zone": "MAIN",
+            "base_asset": "XRP",
+            "price_precision": "5"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "LTC/USDT:USDT": {
+        "id": "LTCUSDTPERP",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "contractSize": 0.1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.001
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "instrument_id": "LTCUSDTPERP",
+            "type": "REAL",
+            "contract_type": "PERPETUAL",
+            "base_currency": "LTC",
+            "quote_currency": "USDT",
+            "clear_currency": "USDT",
+            "contract_value": "0.1",
+            "contract_value_currency": "LTC",
+            "is_inverse": false,
+            "is_trading": true,
+            "status": "ONLINE",
+            "price_precision": "3",
+            "tick_size": "0.001",
+            "min_order_amount": "1",
+            "open_max_limits": [
+                {
+                    "leverage": "3",
+                    "max_limit": "1000000"
+                },
+                {
+                    "leverage": "10",
+                    "max_limit": "500000"
+                },
+                {
+                    "leverage": "50",
+                    "max_limit": "200000"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADAUSDTPERP",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "contractSize": 100,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "instrument_id": "ADAUSDTPERP",
+            "type": "REAL",
+            "contract_type": "PERPETUAL",
+            "base_currency": "ADA",
+            "quote_currency": "USDT",
+            "clear_currency": "USDT",
+            "contract_value": "100",
+            "contract_value_currency": "ADA",
+            "is_inverse": false,
+            "is_trading": true,
+            "status": "ONLINE",
+            "price_precision": "4",
+            "tick_size": "0.0001",
+            "min_order_amount": "1",
+            "open_max_limits": [
+                {
+                    "leverage": "3",
+                    "max_limit": "200000"
+                },
+                {
+                    "leverage": "10",
+                    "max_limit": "100000"
+                },
+                {
+                    "leverage": "50",
+                    "max_limit": "30000"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRPUSDTPERP",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "contractSize": 100,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.0001
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "instrument_id": "XRPUSDTPERP",
+            "type": "REAL",
+            "contract_type": "PERPETUAL",
+            "base_currency": "XRP",
+            "quote_currency": "USDT",
+            "clear_currency": "USDT",
+            "contract_value": "100",
+            "contract_value_currency": "XRP",
+            "is_inverse": false,
+            "is_trading": true,
+            "status": "ONLINE",
+            "price_precision": "4",
+            "tick_size": "0.0001",
+            "min_order_amount": "1",
+            "open_max_limits": [
+                {
+                    "leverage": "20",
+                    "max_limit": "2000000"
+                },
+                {
+                    "leverage": "50",
+                    "max_limit": "2000000"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "TRX/USDT": {
+        "id": "TRX_USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 22
+            },
+            "price": {},
+            "cost": {
+                "min": 0
+            },
+            "leverage": {}
+        },
+        "info": {
+            "order_types": [
+                "LIMIT",
+                "MARKET"
+            ],
+            "quote_asset": "USDT",
+            "minimum_value": "0",
+            "amount_precision": "1",
+            "status": "TRADING",
+            "minimum_amount": "22",
+            "symbol": "TRX_USDT",
+            "is_allow": "1",
+            "zone": "MAIN",
+            "base_asset": "TRX",
+            "price_precision": "6"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "TRX/USDT:USDT": {
+        "id": "TRXUSDTPERP",
+        "symbol": "TRX/USDT:USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "contractSize": 100,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "instrument_id": "TRXUSDTPERP",
+            "type": "REAL",
+            "contract_type": "PERPETUAL",
+            "base_currency": "TRX",
+            "quote_currency": "USDT",
+            "clear_currency": "USDT",
+            "contract_value": "100",
+            "contract_value_currency": "TRX",
+            "is_inverse": false,
+            "is_trading": true,
+            "status": "ONLINE",
+            "price_precision": "5",
+            "tick_size": "0.00001",
+            "min_order_amount": "1",
+            "open_max_limits": [
+                {
+                    "leverage": "3",
+                    "max_limit": "500000"
+                },
+                {
+                    "leverage": "10",
+                    "max_limit": "200000"
+                },
+                {
+                    "leverage": "50",
+                    "max_limit": "100000"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.002,
+        "maker": 0.002,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0006
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "order_types": [
+                "LIMIT",
+                "MARKET"
+            ],
+            "quote_asset": "USDT",
+            "minimum_value": "2",
+            "amount_precision": "4",
+            "status": "TRADING",
+            "minimum_amount": "0.0006",
+            "symbol": "ETH_USDT",
+            "is_allow": "1",
+            "zone": "MAIN",
+            "base_asset": "ETH",
+            "price_precision": "2"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDTPERP",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": 0.01,
+        "precision": {
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {}
+        },
+        "info": {
+            "instrument_id": "ETHUSDTPERP",
+            "type": "REAL",
+            "contract_type": "PERPETUAL",
+            "base_currency": "ETH",
+            "quote_currency": "USDT",
+            "clear_currency": "USDT",
+            "contract_value": "0.01",
+            "contract_value_currency": "ETH",
+            "is_inverse": false,
+            "is_trading": true,
+            "status": "ONLINE",
+            "price_precision": "2",
+            "tick_size": "0.01",
+            "min_order_amount": "1",
+            "open_max_limits": [
+                {
+                    "leverage": "50",
+                    "max_limit": "1000000"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true
+    }
+}
