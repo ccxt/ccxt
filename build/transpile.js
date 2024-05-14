@@ -47,15 +47,16 @@ class Transpiler {
     baseMethodsList = null;
 
     defineImplicitMethodsList () {
-        if (!this.baseMethodsList) {
-            const exchange = new Exchange();
-            let all = Object.getOwnPropertyNames(Object.getPrototypeOf(exchange));
-            all = all.concat (Object.getOwnPropertyNames(exchange));
-            this.baseMethodsList = [ ... all.filter(m => 'function' === typeof exchange[m])];
-        }
+        const exchange = new Exchange();
+        let all = Object.getOwnPropertyNames(Object.getPrototypeOf(exchange));
+        all = all.concat (Object.getOwnPropertyNames(exchange));
+        this.baseMethodsList = [ ... all.filter(m => 'function' === typeof exchange[m])];
     }
 
     trimmedUnCamelCase(word) {
+        if (!this.baseMethodsList) {
+            this.defineImplicitMethodsList ();
+        }
         // we only need base methods
         let found = false;
         for (const methodName of this.baseMethodsList) {
@@ -2622,7 +2623,6 @@ class Transpiler {
 
 
     async transpileEverything (force = false, child = false) {
-        this.defineImplicitMethodsList ();
 
         // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
