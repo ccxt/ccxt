@@ -18,20 +18,6 @@ const equal = strictEqual
 global.log =  ololog
 
 function testCalculateFee (precisionMode) {
-    const price  = 100.00
-    const amount = 10.00
-    const taker  = 0.0025
-    const maker  = 0.0010
-    const fees   = { taker, maker }
-    const market = {
-        'id':     'foobar',
-        'symbol': 'FOO/BAR',
-        'base':   'FOO',
-        'quote':  'BAR',
-        'taker':   taker,
-        'maker':   maker,
-    }
-
     const exchange = new Exchange ({
         'id': 'mock',
         'markets': {
@@ -40,9 +26,22 @@ function testCalculateFee (precisionMode) {
         'precisionMode': precisionMode,
     })
 
-    market['precision'] = {
-        'amount': exchange.parseNumber (exchange.isTickPrecision() ? '1e-8' : '8'),
-        'price': exchange.parseNumber (exchange.isTickPrecision() ? '1e-8' : '8'),
+    const price  = 100.00
+    const amount = 10.00
+    const taker  = exchange.parseNumber ('0.0025')
+    const maker  = exchange.parseNumber ('0.0010')
+    const fees   = { taker, maker }
+    const market = {
+        'id':     'foobar',
+        'symbol': 'FOO/BAR',
+        'base':   'FOO',
+        'quote':  'BAR',
+        'taker':   taker,
+        'maker':   maker,
+        'precision':{
+            'amount': exchange.parseNumber (exchange.isTickPrecision() ? '1e-8' : '8'),
+            'price': exchange.parseNumber (exchange.isTickPrecision() ? '1e-8' : '8'),
+        }
     };
 
     Object.keys (fees).forEach ((takerOrMaker) => {
