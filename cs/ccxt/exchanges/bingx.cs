@@ -75,6 +75,7 @@ public partial class bingx : Exchange
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", true },
                 { "setMarginMode", true },
@@ -378,6 +379,7 @@ public partial class bingx : Exchange
                     { "100202", typeof(InsufficientFunds) },
                     { "100204", typeof(BadRequest) },
                     { "100400", typeof(BadRequest) },
+                    { "100410", typeof(OperationFailed) },
                     { "100421", typeof(BadSymbol) },
                     { "100440", typeof(ExchangeError) },
                     { "100500", typeof(OperationFailed) },
@@ -3403,7 +3405,7 @@ public partial class bingx : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

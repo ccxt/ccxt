@@ -108,6 +108,7 @@ export default class hyperliquid extends Exchange {
                 'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -452,6 +453,10 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
             const marketName = this.safeString (market, 'name');
+            if (marketName.indexOf ('/') < 0) {
+                // there are some weird spot markets in testnet, eg @2
+                continue;
+            }
             const marketParts = marketName.split ('/');
             const baseName = this.safeString (marketParts, 0);
             const quoteId = this.safeString (marketParts, 1);
@@ -1651,14 +1656,17 @@ export default class hyperliquid extends Exchange {
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+         * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
-            'type': 'openOrders',
+            'type': method,
             'user': userAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));
@@ -1839,6 +1847,25 @@ export default class hyperliquid extends Exchange {
         //           "oid":6195281425
         //        }
         //     }
+        // frontendOrder
+        // {
+        //     "children": [],
+        //     "cloid": null,
+        //     "coin": "BLUR",
+        //     "isPositionTpsl": false,
+        //     "isTrigger": true,
+        //     "limitPx": "0.5",
+        //     "oid": 8670487141,
+        //     "orderType": "Stop Limit",
+        //     "origSz": "20.0",
+        //     "reduceOnly": false,
+        //     "side": "B",
+        //     "sz": "20.0",
+        //     "tif": null,
+        //     "timestamp": 1715523663687,
+        //     "triggerCondition": "Price above 0.6",
+        //     "triggerPx": "0.6"
+        // }
         //
         let entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ]);
         if (entry === undefined) {
@@ -1874,7 +1901,7 @@ export default class hyperliquid extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'symbol': symbol,
-            'type': this.safeStringLower (entry, 'orderType'),
+            'type': this.parseOrderType (this.safeStringLower (entry, 'orderType')),
             'timeInForce': this.safeStringUpper (entry, 'tif'),
             'postOnly': undefined,
             'reduceOnly': this.safeBool (entry, 'reduceOnly'),
@@ -2350,7 +2377,7 @@ export default class hyperliquid extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //    {
         //        'type': 'default'

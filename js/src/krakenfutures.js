@@ -74,6 +74,7 @@ export default class krakenfutures extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,

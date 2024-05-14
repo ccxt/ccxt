@@ -25,7 +25,7 @@ export default class alpaca extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseTrade(trade: any, market?: Market): Trade;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+        url: string;
         method: string;
         body: any;
         headers: any;

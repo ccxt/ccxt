@@ -579,7 +579,7 @@ class onetrading extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -645,7 +645,7 @@ class onetrading extends Exchange {
             $request = array(
                 'instrument_code' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketTickerInstrumentCode (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketTickerInstrumentCode ($this->extend($request, $params)));
             //
             //     {
             //         "instrument_code":"BTC_EUR",
@@ -732,7 +732,7 @@ class onetrading extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderBookInstrumentCode (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderBookInstrumentCode ($this->extend($request, $params)));
             //
             // level 1
             //
@@ -871,7 +871,7 @@ class onetrading extends Exchange {
                 $request['from'] = $this->iso8601($since);
                 $request['to'] = $this->iso8601($this->sum($since, $limit * $duration));
             }
-            $response = Async\await($this->publicGetCandlesticksInstrumentCode (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandlesticksInstrumentCode ($this->extend($request, $params)));
             //
             //     array(
             //         array("instrument_code":"BTC_EUR","granularity":array("unit":"HOURS","period":1),"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123),
@@ -988,7 +988,7 @@ class onetrading extends Exchange {
                 $request['from'] = $this->iso8601($since);
                 $request['to'] = $this->iso8601($this->sum($since, 14400000));
             }
-            $response = Async\await($this->publicGetPriceTicksInstrumentCode (array_merge($request, $params)));
+            $response = Async\await($this->publicGetPriceTicksInstrumentCode ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1081,7 +1081,7 @@ class onetrading extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostAccountDepositCrypto (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountDepositCrypto ($this->extend($request, $params)));
             //
             //     {
             //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
@@ -1107,7 +1107,7 @@ class onetrading extends Exchange {
             $request = array(
                 'currency_code' => $currency['id'],
             );
-            $response = Async\await($this->privateGetAccountDepositCryptoCurrencyCode (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountDepositCryptoCurrencyCode ($this->extend($request, $params)));
             //
             //     {
             //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
@@ -1150,7 +1150,7 @@ class onetrading extends Exchange {
                 }
                 $request['from'] = $this->iso8601($since);
             }
-            $response = Async\await($this->privateGetAccountDeposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountDeposits ($this->extend($request, $params)));
             //
             //     {
             //         "deposit_history" => array(
@@ -1215,7 +1215,7 @@ class onetrading extends Exchange {
                 }
                 $request['from'] = $this->iso8601($since);
             }
-            $response = Async\await($this->privateGetAccountWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountWithdrawals ($this->extend($request, $params)));
             //
             //     {
             //         "withdrawal_history" => array(
@@ -1291,7 +1291,7 @@ class onetrading extends Exchange {
                 }
                 $request['recipient'] = $recipient;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             //
             // crypto
             //
@@ -1579,7 +1579,7 @@ class onetrading extends Exchange {
                 $request['client_id'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             }
-            $response = Async\await($this->privatePostAccountOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountOrders ($this->extend($request, $params)));
             //
             //     {
             //         "order_id" => "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1619,7 +1619,7 @@ class onetrading extends Exchange {
             } else {
                 $request['order_id'] = $id;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             //
             // responds with an empty body
             //
@@ -1641,7 +1641,7 @@ class onetrading extends Exchange {
                 $market = $this->market($symbol);
                 $request['instrument_code'] = $market['id'];
             }
-            $response = Async\await($this->privateDeleteAccountOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteAccountOrders ($this->extend($request, $params)));
             //
             //     array(
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1664,7 +1664,7 @@ class onetrading extends Exchange {
             $request = array(
                 'ids' => implode(',', $ids),
             );
-            $response = Async\await($this->privateDeleteAccountOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteAccountOrders ($this->extend($request, $params)));
             //
             //     array(
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1686,7 +1686,7 @@ class onetrading extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetAccountOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountOrdersOrderId ($this->extend($request, $params)));
             //
             //     {
             //         "order" => array(
@@ -1768,7 +1768,7 @@ class onetrading extends Exchange {
             if ($limit !== null) {
                 $request['max_page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetAccountOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountOrders ($this->extend($request, $params)));
             //
             //     {
             //         "order_history" => array(
@@ -1866,7 +1866,7 @@ class onetrading extends Exchange {
             $request = array(
                 'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             );
-            return Async\await($this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1890,7 +1890,7 @@ class onetrading extends Exchange {
             if ($limit !== null) {
                 $request['max_page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetAccountOrdersOrderIdTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountOrdersOrderIdTrades ($this->extend($request, $params)));
             //
             //     {
             //         "trade_history" => array(
@@ -1963,7 +1963,7 @@ class onetrading extends Exchange {
             if ($limit !== null) {
                 $request['max_page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetAccountTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountTrades ($this->extend($request, $params)));
             //
             //     {
             //         "trade_history" => array(

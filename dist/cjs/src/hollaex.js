@@ -88,6 +88,7 @@ class hollaex extends hollaex$1 {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -533,12 +534,12 @@ class hollaex extends hollaex$1 {
         //
         return this.parseTickers(response, symbols);
     }
-    parseTickers(response, symbols = undefined, params = {}) {
+    parseTickers(tickers, symbols = undefined, params = {}) {
         const result = {};
-        const keys = Object.keys(response);
+        const keys = Object.keys(tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const ticker = response[key];
+            const ticker = tickers[key];
             const marketId = this.safeString(ticker, 'symbol', key);
             const market = this.safeMarket(marketId, undefined, '-');
             const symbol = market['symbol'];

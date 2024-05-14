@@ -122,6 +122,7 @@ export default class bybit extends Exchange {
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
                 'repayCrossMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -348,6 +349,7 @@ export default class bybit extends Exchange {
                         'v5/asset/coin/query-info': 28,
                         'v5/asset/withdraw/query-record': 10,
                         'v5/asset/withdraw/withdrawable-amount': 5,
+                        'v5/asset/withdraw/vasp/list': 5,
                         // user
                         'v5/user/query-sub-members': 5,
                         'v5/user/query-api': 5,
@@ -1493,6 +1495,7 @@ export default class bybit extends Exchange {
         //                     "quoteCoin": "USDT",
         //                     "innovation": "0",
         //                     "status": "Trading",
+        //                     "marginTrading": "both",
         //                     "lotSizeFilter": {
         //                         "basePrecision": "0.000001",
         //                         "quotePrecision": "0.00000001",
@@ -1529,7 +1532,9 @@ export default class bybit extends Exchange {
             const lotSizeFilter = this.safeDict(market, 'lotSizeFilter');
             const priceFilter = this.safeDict(market, 'priceFilter');
             const quotePrecision = this.safeNumber(lotSizeFilter, 'quotePrecision');
-            result.push({
+            const marginTrading = this.safeString(market, 'marginTrading', 'none');
+            const allowsMargin = marginTrading !== 'none';
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -1540,7 +1545,7 @@ export default class bybit extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': allowsMargin,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -1579,7 +1584,7 @@ export default class bybit extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1704,7 +1709,7 @@ export default class bybit extends Exchange {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
             const contractSize = inverse ? this.safeNumber2(lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber('1');
-            result.push({
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -1754,7 +1759,7 @@ export default class bybit extends Exchange {
                 },
                 'created': this.safeInteger(market, 'launchTime'),
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1837,7 +1842,7 @@ export default class bybit extends Exchange {
             const optionLetter = this.safeString(splitId, 3);
             const isActive = (status === 'Trading');
             if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
-                result.push({
+                result.push(this.safeMarketStructure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
                     'base': base,
@@ -1887,7 +1892,7 @@ export default class bybit extends Exchange {
                     },
                     'created': this.safeInteger(market, 'launchTime'),
                     'info': market,
-                });
+                }));
             }
         }
         return result;
@@ -6755,20 +6760,20 @@ export default class bybit extends Exchange {
         const isUsdcSettled = market['settle'] === 'USDC';
         // engage in leverage setting
         // we reuse the code here instead of having two methods
-        leverage = this.numberToString(leverage);
+        const leverageString = this.numberToString(leverage);
         const request = {
             'symbol': market['id'],
-            'buyLeverage': leverage,
-            'sellLeverage': leverage,
+            'buyLeverage': leverageString,
+            'sellLeverage': leverageString,
         };
         let response = undefined;
         if (isUsdcSettled && !isUnifiedAccount) {
-            request['leverage'] = leverage;
+            request['leverage'] = leverageString;
             response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(this.extend(request, params));
         }
         else {
-            request['buyLeverage'] = leverage;
-            request['sellLeverage'] = leverage;
+            request['buyLeverage'] = leverageString;
+            request['sellLeverage'] = leverageString;
             if (market['linear']) {
                 request['category'] = 'linear';
             }
@@ -8150,6 +8155,35 @@ export default class bybit extends Exchange {
             'datetime': this.iso8601(timestamp),
         });
     }
+    async getLeverageTiersPaginated(symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'getLeverageTiersPaginated', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('getLeverageTiersPaginated', symbol, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 100);
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('getLeverageTiersPaginated', market, params, 'linear');
+        const request = {
+            'category': subType,
+        };
+        const response = await this.publicGetV5MarketRiskLimit(this.extend(request, params));
+        const result = this.addPaginationCursorToResult(response);
+        const first = this.safeDict(result, 0);
+        const total = result.length;
+        const lastIndex = total - 1;
+        const last = this.safeDict(result, lastIndex);
+        const cursorValue = this.safeString(first, 'nextPageCursor');
+        last['info'] = {
+            'nextPageCursor': cursorValue,
+        };
+        result[lastIndex] = last;
+        return result;
+    }
     async fetchLeverageTiers(symbols = undefined, params = {}) {
         /**
          * @method
@@ -8159,24 +8193,20 @@ export default class bybit extends Exchange {
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         let market = undefined;
+        let symbol = undefined;
         if (symbols !== undefined) {
             market = this.market(symbols[0]);
             if (market['spot']) {
                 throw new NotSupported(this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
+            symbol = market['symbol'];
         }
-        let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params, 'linear');
-        const request = {
-            'category': subType,
-        };
-        const response = await this.publicGetV5MarketRiskLimit(this.extend(request, params));
-        const result = this.safeDict(response, 'result', {});
-        const data = this.safeList(result, 'list', []);
+        const data = await this.getLeverageTiersPaginated(symbol, this.extend({ 'paginate': true, 'paginationCalls': 20 }, params));
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
@@ -8202,9 +8232,13 @@ export default class bybit extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const entry = grouped[marketId];
+            for (let j = 0; j < entry.length; j++) {
+                const id = this.safeInteger(entry[j], 'id');
+                entry[j]['id'] = id;
+            }
             const market = this.safeMarket(marketId, undefined, undefined, 'contract');
             const symbol = market['symbol'];
-            tiers[symbol] = this.parseMarketLeverageTiers(entry, market);
+            tiers[symbol] = this.parseMarketLeverageTiers(this.sortBy(entry, 'id'), market);
         }
         return tiers;
     }

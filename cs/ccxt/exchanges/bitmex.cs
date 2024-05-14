@@ -77,6 +77,7 @@ public partial class bitmex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "reduceMargin", null },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", null },
                 { "setMarginMode", true },
@@ -226,6 +227,7 @@ public partial class bitmex : Exchange
                     { "orderQty is invalid", typeof(InvalidOrder) },
                     { "Invalid price", typeof(InvalidOrder) },
                     { "Invalid stopPx for ordType", typeof(InvalidOrder) },
+                    { "Account is restricted", typeof(PermissionDenied) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Signature not valid", typeof(AuthenticationError) },

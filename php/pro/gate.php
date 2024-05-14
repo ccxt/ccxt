@@ -303,7 +303,7 @@ class gate extends \ccxt\async\gate {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
-            return Async\await($this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchTickers', array_merge(array( 'method' => 'tickers' ), $params)));
+            return Async\await($this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchTickers', $this->extend(array( 'method' => 'tickers' ), $params)));
         }) ();
     }
 
@@ -339,7 +339,7 @@ class gate extends \ccxt\async\gate {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
-            return Async\await($this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchBidsAsks', array_merge(array( 'method' => 'book_ticker' ), $params)));
+            return Async\await($this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchBidsAsks', $this->extend(array( 'method' => 'book_ticker' ), $params)));
         }) ();
     }
 
@@ -1321,7 +1321,7 @@ class gate extends \ccxt\async\gate {
                     $client->subscriptions[$tempSubscriptionHash] = $messageHash;
                 }
             }
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
         }) ();
     }
@@ -1337,7 +1337,7 @@ class gate extends \ccxt\async\gate {
                 'event' => 'subscribe',
                 'payload' => $payload,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
     }
@@ -1383,7 +1383,7 @@ class gate extends \ccxt\async\gate {
                 // in case of authenticationError we will throw
                 $client->subscriptions[$tempSubscriptionHash] = $messageHash;
             }
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }

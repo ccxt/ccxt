@@ -70,7 +70,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 97 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 98 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                                          | id                    | name                                                                                                  | ver                                                                                                                                              | certified                                                                                                                   | pro                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -168,6 +168,7 @@ The CCXT library currently supports the following 97 cryptocurrency exchange mar
 | [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                                        | wazirx                | [WazirX](https://wazirx.com/invite/k7rrnks5)                                                          | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=YWOWC96B)                                                       | woo                   | [WOO X](https://x.woo.org/register?ref=YWOWC96B)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![woofipro](https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69)](https://dex.woo.org/en/trade?ref=CCXT)                                                                       | woofipro              | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-evm/building-on-evm)                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                                        | yobit                 | [YoBit](https://www.yobit.net)                                                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                      |                                                                                                                             |                                                                              |
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                               | zaif                  | [Zaif](https://zaif.jp)                                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                |                                                                                                                             |                                                                              |
 | [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                               | zonda                 | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zondacrypto.exchange/)                                                 |                                                                                                                             |                                                                              |
@@ -6268,6 +6269,31 @@ Returns
 - A list of [order structures](#order-structure)
 
 
+## Set Position Mode
+
+*margin and contract only*
+
+Method used for setting position mode:
+
+- `true` - sets to **hedged** mode
+- `false` - sets to **one-way** mode
+
+```javascript
+set_position_mode (false, symbol = undefined, params = {})
+```
+
+Parameters
+
+- **hedged** (String) *required* hedged-mode value:
+    - `true`
+    - `false`
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint
+
+Returns
+
+- response from the exchange
+
 
 #### Liquidation Price
 
@@ -6680,13 +6706,13 @@ From `BaseError` derives two different families of errors: `OperationFailed` and
 ### OperationFailed
 <a name="NetworkError" id="NetworkError"></a>
 
-An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but an non-deterministic problem occurred. In such cases, you might consider retrying after some time.
+An `OperationFailed` might happen when user sends **correctly constructed & valid request** to exchange, but a non-deterministic problem occurred:
 - maintenance ongoing
 - internet/network connectivitiy issues
 - DDoS protections
 - "Server busy, try again"...
 
-Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
+Such exceptions are temporary and re-trying the request again might be enough. However, if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
 `OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
 
@@ -6733,7 +6759,7 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
 
 ### ExchangeError
 
-In contrast to `NetworkError`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly.
+In contrast to `OperationFailed`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly.
 
 Possible reasons for this exception:
 
@@ -6747,7 +6773,7 @@ Possible reasons for this exception:
 
   - `NotSupported`: when the endpoint/operation is not offered or supported by the exchange API.
   - `BadRequest`: user sends an **incorrectly** constructed request/parameter/action that is invalid/unallowed (i.e.: "invalid number", "forbidden symbol", "size beyond min/max limits", "incorrect precision", etc). Retrying would not help in this case, the request needs to be fixed/adjusted first.
-  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by the exchange), but your current account status does not allow it. (i.e. "please close existing positions before changing the leverage", "too many pending orders"). Please notice how this exception differs from [**OperationFailed**](#operationfailed)
+  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by the exchange in a typical case), but some deterministic factor prevents your request to succeed. For example, your current account status might not allow it (i.e. "please close existing positions before changing the leverage", "too many pending orders", "your account in wrong position/margin mode") or at the give moment symbol is not tradable (i.e. "MarketClosed") or some explained factors, where you need to take a specific action (i.e. change some setting at first, or wait till specific moment). So, once again: [**OperationFailed**](#operationfailed) can be blindly re-tried and should success, while `OperationRejected` is a failure that depends on specific exact factors that need to be considered, before request can be retried.
   - `AuthenticationError`: when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password` if exchange API requires it.
   - `PermissionDenied`: when there's no access for specified action or insufficient permissions on the specified `apiKey`.
   - `InsufficientFunds`: when you don't have enough currency on your account balance to place an order.

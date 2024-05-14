@@ -361,7 +361,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -449,9 +449,9 @@ class lykke extends Exchange {
             $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
             $response = null;
             if ($method === 'publicGetPrices') {
-                $response = Async\await($this->publicGetPrices (array_merge($request, $params)));
+                $response = Async\await($this->publicGetPrices ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTickers ($this->extend($request, $params)));
             }
             $ticker = $this->safe_value($response, 'payload', array());
             //
@@ -542,7 +542,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit; // default 0
             }
-            $response = Async\await($this->publicGetOrderbooks (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbooks ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload', array());
             //
             //     {
@@ -651,7 +651,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['take'] = $limit;
             }
-            $response = Async\await($this->publicGetTradesPublicAssetPairId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradesPublicAssetPairId ($this->extend($request, $params)));
             $result = $this->safe_value($response, 'payload', array());
             //
             //     {
@@ -823,9 +823,9 @@ class lykke extends Exchange {
             }
             $result = null;
             if ($this->capitalize($type) === 'Market') {
-                $result = Async\await($this->privatePostOrdersMarket (array_merge($query, $params)));
+                $result = Async\await($this->privatePostOrdersMarket ($this->extend($query, $params)));
             } else {
-                $result = Async\await($this->privatePostOrdersLimit (array_merge($query, $params)));
+                $result = Async\await($this->privatePostOrdersLimit ($this->extend($query, $params)));
             }
             //
             // $market
@@ -894,7 +894,7 @@ class lykke extends Exchange {
             //         "error":null
             //     }
             //
-            return Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
+            return Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
         }) ();
     }
 
@@ -922,7 +922,7 @@ class lykke extends Exchange {
             //         "error":null
             //     }
             //
-            return Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            return Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
         }) ();
     }
 
@@ -939,7 +939,7 @@ class lykke extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersOrderId ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload');
             //
             //     {
@@ -987,7 +987,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['take'] = $limit;
             }
-            $response = Async\await($this->privateGetOrdersActive (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersActive ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload');
             //
             //     {
@@ -1037,7 +1037,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['take'] = $limit;
             }
-            $response = Async\await($this->privateGetOrdersClosed (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersClosed ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload');
             //
             //     {
@@ -1093,7 +1093,7 @@ class lykke extends Exchange {
             if ($since !== null) {
                 $request['from'] = $since;
             }
-            $response = Async\await($this->privateGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTrades ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload');
             //
             //     {
@@ -1140,7 +1140,7 @@ class lykke extends Exchange {
             $request = array(
                 'assetId' => $this->safe_string($currency, 'id'),
             );
-            $response = Async\await($this->privateGetOperationsDepositsAddressesAssetId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOperationsDepositsAddressesAssetId ($this->extend($request, $params)));
             //
             //     {
             //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
@@ -1244,7 +1244,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['take'] = $limit;
             }
-            $response = Async\await($this->privateGetOperations (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOperations ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload', array());
             //
             //     {
@@ -1293,7 +1293,7 @@ class lykke extends Exchange {
             if ($tag !== null) {
                 $request['destinationAddressExtension'] = $tag;
             }
-            $response = Async\await($this->privatePostOperationsWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOperationsWithdrawals ($this->extend($request, $params)));
             //
             //     "3035b1ad-2005-4587-a986-1f7966be78e0"
             //

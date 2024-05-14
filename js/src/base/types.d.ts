@@ -265,6 +265,8 @@ export interface FundingRate {
     previousFundingDatetime?: string;
     previousFundingRate?: number;
 }
+export interface FundingRates extends Dictionary<FundingRate> {
+}
 export interface Position {
     symbol: string;
     id?: Str;
@@ -519,6 +521,8 @@ export interface OptionChain extends Dictionary<Option> {
 export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
 }
 export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+}
+export interface TransferEntries extends Dictionary<TransferEntry> {
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [Num, Num, Num, Num, Num, Num];

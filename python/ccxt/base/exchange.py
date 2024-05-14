@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.14'
+__version__ = '4.3.22'
 
 # -----------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, Orde
 # rsa jwt signing
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, ed25519
 # from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
@@ -199,6 +199,7 @@ class Exchange(object):
     secret = ''
     password = ''
     uid = ''
+    accountId = None
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
@@ -261,6 +262,7 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    fundingRates = None
     bidsasks = None
     base_currencies = None
     quote_currencies = None
@@ -273,6 +275,7 @@ class Exchange(object):
         'apiKey': True,
         'secret': True,
         'uid': False,
+        'accountId': False,
         'login': False,
         'password': False,
         'twofa': False,  # 2-factor authentication (one-time password key)
@@ -316,7 +319,15 @@ class Exchange(object):
         'fetchCanceledOrders': None,
         'fetchClosedOrder': None,
         'fetchClosedOrders': None,
+        'fetchClosedOrdersWs': None,
+        'fetchConvertCurrencies': None,
+        'fetchConvertQuote': None,
+        'fetchConvertTrade': None,
+        'fetchConvertTradeHistory': None,
+        'fetchCrossBorrowRate': None,
+        'fetchCrossBorrowRates': None,
         'fetchCurrencies': 'emulated',
+        'fetchCurrenciesWs': 'emulated',
         'fetchDeposit': None,
         'fetchDepositAddress': None,
         'fetchDepositAddresses': None,
@@ -430,6 +441,7 @@ class Exchange(object):
         self.headers = dict() if self.headers is None else self.headers
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
+        self.fundingRates = dict() if self.fundingRates is None else self.fundingRates
         self.tickers = dict() if self.tickers is None else self.tickers
         self.bidsasks = dict() if self.bidsasks is None else self.bidsasks
         self.trades = dict() if self.trades is None else self.trades
@@ -1299,7 +1311,7 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def base64urlencode(s):
+    def urlencode_base64(s):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
@@ -1337,8 +1349,8 @@ class Exchange(object):
         if 'nonce' in opts and opts['nonce'] is not None:
             header_opts['nonce'] = opts['nonce']
         header = Exchange.encode(Exchange.json(header_opts))
-        encoded_header = Exchange.base64urlencode(header)
-        encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
+        encoded_header = Exchange.urlencode_base64(header)
+        encoded_data = Exchange.urlencode_base64(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
         algoType = alg[0:2]
         if is_rsa or algoType == 'RS':
@@ -1348,7 +1360,7 @@ class Exchange(object):
             signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
-        return token + '.' + Exchange.base64urlencode(signature)
+        return token + '.' + Exchange.urlencode_base64(signature)
 
     @staticmethod
     def rsa(request, secret, alg='sha256'):
@@ -1430,7 +1442,9 @@ class Exchange(object):
 
     @staticmethod
     def eddsa(request, secret, curve='ed25519'):
-        private_key = load_pem_private_key(Exchange.encode(secret), None)
+        if isinstance(secret, str):
+            Exchange.encode(secret)
+        private_key = ed25519.Ed25519PrivateKey.from_private_bytes(secret) if len(secret) == 32 else load_pem_private_key(secret, None)
         return Exchange.binary_to_base64(private_key.sign(request))
 
     @staticmethod
@@ -2171,7 +2185,7 @@ class Exchange(object):
             result.append(self.parse_market(markets[i]))
         return result
 
-    def parse_ticker(self, ticker: object, market: Market = None):
+    def parse_ticker(self, ticker: dict, market: Market = None):
         raise NotSupported(self.id + ' parseTicker() is not supported yet')
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
@@ -2183,7 +2197,7 @@ class Exchange(object):
     def parse_transaction(self, transaction, currency: Currency = None):
         raise NotSupported(self.id + ' parseTransaction() is not supported yet')
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None):
         raise NotSupported(self.id + ' parseTransfer() is not supported yet')
 
     def parse_account(self, account):
@@ -2329,6 +2343,12 @@ class Exchange(object):
         # i.e. isRoundNumber(1.000) returns True, while isInteger(1.000) returns False
         res = self.parse_to_numeric((value % 1))
         return res == 0
+
+    def safe_integer_omit_zero(self, obj: object, key: IndexType, defaultValue: Int = None):
+        timestamp = self.safe_integer(obj, key, defaultValue)
+        if timestamp is None or timestamp == 0:
+            return None
+        return timestamp
 
     def after_construct(self):
         self.create_networks_by_id_object()
@@ -3092,15 +3112,15 @@ class Exchange(object):
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
         return self.extend(ticker, {
-            'bid': self.parse_number(self.omit_zero(self.safe_number(ticker, 'bid'))),
+            'bid': self.parse_number(self.omit_zero(self.safe_string(ticker, 'bid'))),
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
-            'ask': self.parse_number(self.omit_zero(self.safe_number(ticker, 'ask'))),
+            'ask': self.parse_number(self.omit_zero(self.safe_string(ticker, 'ask'))),
             'askVolume': self.safe_number(ticker, 'askVolume'),
             'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high'))),
-            'low': self.parse_number(self.omit_zero(self.safe_number(ticker, 'low'))),
-            'open': self.parse_number(self.omit_zero(self.parse_number(open))),
-            'close': self.parse_number(self.omit_zero(self.parse_number(close))),
-            'last': self.parse_number(self.omit_zero(self.parse_number(last))),
+            'low': self.parse_number(self.omit_zero(self.safe_string(ticker, 'low'))),
+            'open': self.parse_number(self.omit_zero(open)),
+            'close': self.parse_number(self.omit_zero(close)),
+            'last': self.parse_number(self.omit_zero(last)),
             'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
             'average': self.parse_number(average),
@@ -3362,7 +3382,7 @@ class Exchange(object):
                 networkId = networkCode
         return networkId
 
-    def network_id_to_code(self, networkId: str, currencyCode: Str = None):
+    def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
         """
          * @ignore
         tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have "options['networksById']" defined.
@@ -3781,7 +3801,7 @@ class Exchange(object):
     def fetch_positions_risk(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
 
-    def fetch_bids_asks(self, symbols: List[str] = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4954,9 +4974,10 @@ class Exchange(object):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_tickers(self, tickers, symbols: List[str] = None, params={}):
+    def parse_tickers(self, tickers, symbols: Strings = None, params={}):
         #
         # the value of tickers is either a dict or a list
+        #
         #
         # dict
         #
@@ -5041,11 +5062,15 @@ class Exchange(object):
             result[parsed['symbol']] = parsed
         return result
 
-    def is_trigger_order(self, params):
+    def handle_trigger_and_params(self, params):
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         if isTrigger:
             params = self.omit(params, ['trigger', 'stop'])
         return [isTrigger, params]
+
+    def is_trigger_order(self, params):
+        # for backwards compatibility
+        return self.handleTriggerAndParams(params)
 
     def is_post_only(self, isMarketOrder: bool, exchangeSpecificParam, params={}):
         """
@@ -5468,18 +5493,19 @@ class Exchange(object):
         maxRetries = None
         maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
         errors = 0
-        try:
-            if timeframe and method != 'fetchFundingRateHistory':
-                return getattr(self, method)(symbol, timeframe, since, limit, params)
-            else:
-                return getattr(self, method)(symbol, since, limit, params)
-        except Exception as e:
-            if isinstance(e, RateLimitExceeded):
-                raise e  # if we are rate limited, we should not retry and fail fast
-            errors += 1
-            if errors > maxRetries:
-                raise e
-        return None
+        while(errors <= maxRetries):
+            try:
+                if timeframe and method != 'fetchFundingRateHistory':
+                    return getattr(self, method)(symbol, timeframe, since, limit, params)
+                else:
+                    return getattr(self, method)(symbol, since, limit, params)
+            except Exception as e:
+                if isinstance(e, RateLimitExceeded):
+                    raise e  # if we are rate limited, we should not retry and fail fast
+                errors += 1
+                if errors > maxRetries:
+                    raise e
+        return []
 
     def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest=None):
         maxCalls = None
@@ -5492,6 +5518,8 @@ class Exchange(object):
         currentSince = current - (maxCalls * step) - 1
         if since is not None:
             currentSince = max(currentSince, since)
+        else:
+            currentSince = max(currentSince, 1241440531000)  # avoid timestamps older than 2009
         until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
         if until is not None:
             requiredCalls = int(math.ceil((until - since)) / step)
@@ -5499,6 +5527,8 @@ class Exchange(object):
                 raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCalls) + ' required calls is ' + str(requiredCalls))
         for i in range(0, maxCalls):
             if (until is not None) and (currentSince >= until):
+                break
+            if currentSince >= current:
                 break
             tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
             currentSince = self.sum(currentSince, step) - 1
@@ -5529,6 +5559,8 @@ class Exchange(object):
                 response = None
                 if method == 'fetchAccounts':
                     response = getattr(self, method)(params)
+                elif method == 'getLeverageTiersPaginated':
+                    response = getattr(self, method)(symbol, params)
                 else:
                     response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
@@ -5656,10 +5688,10 @@ class Exchange(object):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption() is not supported yet')
 
     def parse_option_chain(self, response: List[object], currencyKey: Str = None, symbolKey: Str = None):
@@ -5696,7 +5728,7 @@ class Exchange(object):
                 leverageStructures[market['symbol']] = self.parse_leverage(info, market)
         return leverageStructures
 
-    def parse_leverage(self, leverage, market: Market = None):
+    def parse_leverage(self, leverage: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
 
     def parse_conversions(self, conversions: List[Any], code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -5726,7 +5758,7 @@ class Exchange(object):
         both = self.array_concat(fromConversion, toConversion)
         return self.filter_by_since_limit(both, since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None):
         raise NotSupported(self.id + ' parseConversion() is not supported yet')
 
     def convert_expire_date(self, date: str):
@@ -5822,7 +5854,7 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data: dict, market: Market = None):
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
 
     def parse_margin_modifications(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
@@ -5834,3 +5866,24 @@ class Exchange(object):
             if (symbols is None) or self.in_array(market['symbol'], symbols):
                 marginModifications.append(self.parse_margin_modification(info, market))
         return marginModifications
+
+    def fetch_transfer(self, id: str, code: Str = None, params={}):
+        """
+        fetches a transfer
+        :param str id: transfer id
+        :param [str] code: unified currency code
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        raise NotSupported(self.id + ' fetchTransfer() is not supported yet')
+
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches a transfer
+        :param str id: transfer id
+        :param int [since]: timestamp in ms of the earliest transfer to fetch
+        :param int [limit]: the maximum amount of transfers to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        raise NotSupported(self.id + ' fetchTransfers() is not supported yet')

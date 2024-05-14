@@ -106,6 +106,7 @@ class idex(Exchange, ImplicitAPI):
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -401,7 +402,7 @@ class idex(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # {
         #   "market": "DIL-ETH",
         #   "time": 1598367493008,

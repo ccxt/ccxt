@@ -2375,6 +2375,141 @@
                   }
                 ]
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "httpResponse": [
+                  {
+                    "id": "54c1b7543534543fsdfsdf6",
+                    "amount": "9",
+                    "transactionFee": "1",
+                    "coin": "USDT",
+                    "status": "6",
+                    "address": "TKRxCKea88FDKDSJFSDKJ43243K",
+                    "txId": "FDSJHFKDSHFJ4KR5H4KJH3454JHK",
+                    "applyTime": "2024-05-05 15:38:56",
+                    "network": "TRX",
+                    "transferType": "0",
+                    "info": "TJDENs5435LK4J3",
+                    "confirmNo": "20",
+                    "walletType": "0",
+                    "txKey": "",
+                    "completeTime": "2024-05-05 15:40:44",
+                    "type": "withdrawal"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "54c1b7543534543fsdfsdf6",
+                      "amount": "9",
+                      "transactionFee": "1",
+                      "coin": "USDT",
+                      "status": "6",
+                      "address": "TKRxCKea88FDKDSJFSDKJ43243K",
+                      "txId": "FDSJHFKDSHFJ4KR5H4KJH3454JHK",
+                      "applyTime": "2024-05-05 15:38:56",
+                      "network": "TRX",
+                      "transferType": "0",
+                      "info": "TJDENs5435LK4J3",
+                      "confirmNo": "20",
+                      "walletType": "0",
+                      "txKey": "",
+                      "completeTime": "2024-05-05 15:40:44",
+                      "type": "withdrawal"
+                    },
+                    "id": "54c1b7543534543fsdfsdf6",
+                    "txid": "FDSJHFKDSHFJ4KR5H4KJH3454JHK",
+                    "timestamp": 1714923536000,
+                    "datetime": "2024-05-05T15:38:56.000Z",
+                    "network": "TRX",
+                    "address": "TKRxCKea88FDKDSJFSDKJ43243K",
+                    "addressTo": "TKRxCKea88FDKDSJFSDKJ43243K",
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": 9,
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "internal": false,
+                    "comment": null,
+                    "fee": {
+                      "currency": "USDT",
+                      "cost": 1
+                    }
+                  }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": [
+                  {
+                    "id": "4534543435",
+                    "amount": "10",
+                    "coin": "USDT",
+                    "network": "TRX",
+                    "status": "1",
+                    "address": "534j5h435j34hk",
+                    "addressTag": "",
+                    "txId": "435kl435jh4354j3k5",
+                    "insertTime": "1714923704000",
+                    "transferType": "0",
+                    "confirmTimes": "1/1",
+                    "unlockConfirm": "0",
+                    "walletType": "1",
+                    "type": "deposit"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "4534543435",
+                      "amount": "10",
+                      "coin": "USDT",
+                      "network": "TRX",
+                      "status": "1",
+                      "address": "534j5h435j34hk",
+                      "addressTag": "",
+                      "txId": "435kl435jh4354j3k5",
+                      "insertTime": "1714923704000",
+                      "transferType": "0",
+                      "confirmTimes": "1/1",
+                      "unlockConfirm": "0",
+                      "walletType": "1",
+                      "type": "deposit"
+                    },
+                    "id": "4534543435",
+                    "txid": "435kl435jh4354j3k5",
+                    "timestamp": 1714923704000,
+                    "datetime": "2024-05-05T15:41:44.000Z",
+                    "network": "TRX",
+                    "address": "534j5h435j34hk",
+                    "addressTo": "534j5h435j34hk",
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": 10,
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "internal": false,
+                    "comment": null,
+                    "fee": null
+                  }
+                ]
+            }
         ]
     }
 }

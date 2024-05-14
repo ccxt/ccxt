@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, TransferEntries } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -81,6 +81,7 @@ export default class phemex extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
@@ -1308,7 +1309,7 @@ export default class phemex extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, userLimit);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // spot
         //
@@ -1712,6 +1713,26 @@ export default class phemex extends Exchange {
         //         "execId": "8718cae",
         //         "execStatus": 6
         //     }
+        // spot with fees paid using PT token
+        //     "createdAt": "1714990724076",
+        //     "symbol": "BTCUSDT",
+        //     "currency": "USDT",
+        //     "action": "1",
+        //     "tradeType": "1",
+        //     "execQtyRq": "0.003",
+        //     "execPriceRp": "64935",
+        //     "side": "2",
+        //     "orderQtyRq": "0.003",
+        //     "priceRp": "51600",
+        //     "execValueRv": "194.805",
+        //     "feeRateRr": "0.000495",
+        //     "execFeeRv": "0",
+        //     "ordType": "3",
+        //     "execId": "XXXXXX",
+        //     "execStatus": "7",
+        //     "posSide": "1",
+        //     "ptFeeRv": "0.110012249248",
+        //     "ptPriceRp": "0.876524893"
         //
         let priceString: Str;
         let amountString: Str;
@@ -1765,10 +1786,18 @@ export default class phemex extends Exchange {
                 priceString = this.safeString (trade, 'execPriceRp');
                 amountString = this.safeString (trade, 'execQtyRq');
                 costString = this.safeString (trade, 'execValueRv');
-                feeCostString = this.safeString (trade, 'execFeeRv');
+                feeCostString = this.omitZero (this.safeString (trade, 'execFeeRv'));
                 feeRateString = this.safeString (trade, 'feeRateRr');
-                const currencyId = this.safeString (trade, 'currency');
-                feeCurrencyCode = this.safeCurrencyCode (currencyId);
+                if (feeCostString !== undefined) {
+                    const currencyId = this.safeString (trade, 'currency');
+                    feeCurrencyCode = this.safeCurrencyCode (currencyId);
+                } else {
+                    const ptFeeRv = this.omitZero (this.safeString (trade, 'ptFeeRv'));
+                    if (ptFeeRv !== undefined) {
+                        feeCostString = ptFeeRv;
+                        feeCurrencyCode = 'PT';
+                    }
+                }
             } else {
                 side = this.safeStringLower (trade, 'side');
                 type = this.parseOrderType (this.safeString (trade, 'ordType'));
@@ -1780,7 +1809,7 @@ export default class phemex extends Exchange {
                 amountString = this.fromEv (this.safeString (trade, 'execBaseQtyEv'), market);
                 amountString = this.safeString (trade, 'execQty', amountString);
                 costString = this.fromEr (this.safeString2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
-                feeCostString = this.fromEr (this.safeString (trade, 'execFeeEv'), market);
+                feeCostString = this.fromEr (this.omitZero (this.safeString (trade, 'execFeeEv')), market);
                 if (feeCostString !== undefined) {
                     feeRateString = this.fromEr (this.safeString (trade, 'feeRateEr'), market);
                     if (market['spot']) {
@@ -1791,6 +1820,11 @@ export default class phemex extends Exchange {
                             const settlementCurrencyId = this.safeString (info, 'settlementCurrency');
                             feeCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
                         }
+                    }
+                } else {
+                    feeCostString = this.safeString (trade, 'ptFeeRv');
+                    if (feeCostString !== undefined) {
+                        feeCurrencyCode = 'PT';
                     }
                 }
             }
@@ -2389,7 +2423,7 @@ export default class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.omitZero (this.safeNumber2 (order, 'stopPx', 'stopPxRp'));
+        const stopPrice = this.omitZero (this.safeString2 (order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue (order, 'reduceOnly');
         const execInst = this.safeString (order, 'execInst');
@@ -2442,12 +2476,14 @@ export default class phemex extends Exchange {
          * @name phemex#createOrder
          * @description create a trade order
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
+         * @see https://phemex-docs.github.io/#place-order-http-put-prefered-3
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.trigger] trigger price for conditional orders
          * @param {object} [params.takeProfit] *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
@@ -2458,7 +2494,7 @@ export default class phemex extends Exchange {
         const market = this.market (symbol);
         const requestSide = this.capitalize (side);
         type = this.capitalize (type);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const reduceOnly = this.safeBool (params, 'reduceOnly');
         const request = {
             // common
             'symbol': market['id'],
@@ -2501,12 +2537,12 @@ export default class phemex extends Exchange {
             request['clOrdID'] = clientOrderId;
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        const stopPrice = this.safeStringN (params, [ 'stopPx', 'stopPrice', 'triggerPrice' ]);
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeStringN (params, [ 'stopPx', 'stopPrice', 'triggerPrice' ]);
+        if (triggerPrice !== undefined) {
             if (market['settle'] === 'USDT') {
-                request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
+                request['stopPxRp'] = this.priceToPrecision (symbol, triggerPrice);
             } else {
-                request['stopPxEp'] = this.toEp (stopPrice, market);
+                request['stopPxEp'] = this.toEp (triggerPrice, market);
             }
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice' ]);
@@ -2516,6 +2552,14 @@ export default class phemex extends Exchange {
                 if (price !== undefined) {
                     qtyType = 'ByQuote';
                 }
+            }
+            if (triggerPrice !== undefined) {
+                if (type === 'Limit') {
+                    request['ordType'] = 'StopLimit';
+                } else if (type === 'Market') {
+                    request['ordType'] = 'Stop';
+                }
+                request['trigger'] = 'ByLastPrice';
             }
             request['qtyType'] = qtyType;
             if (qtyType === 'ByQuote') {
@@ -2553,7 +2597,7 @@ export default class phemex extends Exchange {
             } else {
                 request['orderQty'] = this.parseToInt (amount);
             }
-            if (stopPrice !== undefined) {
+            if (triggerPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
                 request['triggerType'] = triggerType;
             }
@@ -4031,7 +4075,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //     {
         //         "code": 0,
@@ -4433,7 +4477,7 @@ export default class phemex extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         /**
          * @method
          * @name phemex#fetchTransfers
@@ -4484,7 +4528,7 @@ export default class phemex extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -4540,7 +4584,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             '3': 'rejected', // 'Rejected',
             '6': 'canceled', // 'Got error and wait for recovery',

@@ -101,6 +101,7 @@ class coinbaseinternational extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMargin' => true,
                 'setMarginMode' => false,
@@ -381,7 +382,7 @@ class coinbaseinternational extends Exchange {
         if ($limit !== null) {
             $request['result_limit'] = $limit;
         }
-        $response = $this->v1PublicGetInstrumentsInstrumentFunding (array_merge($request, $params));
+        $response = $this->v1PublicGetInstrumentsInstrumentFunding ($this->extend($request, $params));
         //
         //    {
         //        "pagination":array(
@@ -464,7 +465,7 @@ class coinbaseinternational extends Exchange {
             list($networkId, $params) = $this->handle_network_id_and_params($code, 'createDepositAddress', $params);
             $request['network_arn_id'] = $networkId;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -519,7 +520,7 @@ class coinbaseinternational extends Exchange {
     public function parse_networks($networks, $params = array ()) {
         $result = array();
         for ($i = 0; $i < count($networks); $i++) {
-            $network = array_merge($this->parse_network($networks[$i]), $params);
+            $network = $this->extend($this->parse_network($networks[$i]), $params);
             $result[$network['network']] = $network;
         }
         return $result;
@@ -585,7 +586,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
             'margin_override' => $amount,
         );
-        return $this->v1PrivatePostPortfoliosMargin (array_merge($request, $params));
+        return $this->v1PrivatePostPortfoliosMargin ($this->extend($request, $params));
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -633,7 +634,7 @@ class coinbaseinternational extends Exchange {
         if ($until !== null) {
             $request['time_to'] = $this->iso8601($until);
         }
-        $response = $this->v1PrivateGetTransfers (array_merge($request, $params));
+        $response = $this->v1PrivateGetTransfers ($this->extend($request, $params));
         //
         //    {
         //        "pagination":array(
@@ -680,7 +681,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
             'instrument' => $this->market_id($symbol),
         );
-        $position = $this->v1PrivateGetPortfoliosPortfolioPositionsInstrument (array_merge($request, $params));
+        $position = $this->v1PrivateGetPortfoliosPortfolioPositionsInstrument ($this->extend($request, $params));
         //
         //    {
         //        "symbol":"BTC-PERP",
@@ -765,7 +766,7 @@ class coinbaseinternational extends Exchange {
         $request = array(
             'portfolio' => $portfolio,
         );
-        $response = $this->v1PrivateGetPortfoliosPortfolioPositions (array_merge($request, $params));
+        $response = $this->v1PrivateGetPortfoliosPortfolioPositions ($this->extend($request, $params));
         //
         //    array(
         //        {
@@ -1199,7 +1200,7 @@ class coinbaseinternational extends Exchange {
         $request = array(
             'instrument' => $this->market_id($symbol),
         );
-        $ticker = $this->v1PublicGetInstrumentsInstrumentQuote (array_merge($request, $params));
+        $ticker = $this->v1PublicGetInstrumentsInstrumentQuote ($this->extend($request, $params));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -1260,7 +1261,7 @@ class coinbaseinternational extends Exchange {
         $request = array(
             'portfolio' => $portfolio,
         );
-        $balances = $this->v1PrivateGetPortfoliosPortfolioBalances (array_merge($request, $params));
+        $balances = $this->v1PrivateGetPortfoliosPortfolioBalances ($this->extend($request, $params));
         //
         //    array(
         //        {
@@ -1331,7 +1332,7 @@ class coinbaseinternational extends Exchange {
             'from' => $fromAccount,
             'to' => $toAccount,
         );
-        $response = $this->v1PrivatePostPortfoliosTransfer (array_merge($request, $params));
+        $response = $this->v1PrivatePostPortfoliosTransfer ($this->extend($request, $params));
         $success = $this->safe_bool($response, 'success');
         return array(
             'info' => $response,
@@ -1414,7 +1415,7 @@ class coinbaseinternational extends Exchange {
         }
         $request['tif'] = $tif;
         $params = $this->omit($params, array( 'client_order_id', 'user', 'postOnly', 'timeInForce' ));
-        $response = $this->v1PrivatePostOrders (array_merge($request, $params));
+        $response = $this->v1PrivatePostOrders ($this->extend($request, $params));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1549,7 +1550,7 @@ class coinbaseinternational extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $orders = $this->v1PrivateDeleteOrdersId (array_merge($request, $params));
+        $orders = $this->v1PrivateDeleteOrdersId ($this->extend($request, $params));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1594,7 +1595,7 @@ class coinbaseinternational extends Exchange {
             $market = $this->market($symbol);
             $request['instrument'] = $market['id'];
         }
-        $orders = $this->v1PrivateDeleteOrders (array_merge($request, $params));
+        $orders = $this->v1PrivateDeleteOrders ($this->extend($request, $params));
         return $this->parse_orders($orders, $market);
     }
 
@@ -1637,7 +1638,7 @@ class coinbaseinternational extends Exchange {
             throw new BadRequest($this->id . ' editOrder() requires a $clientOrderId parameter');
         }
         $request['client_order_id'] = $clientOrderId;
-        $order = $this->v1PrivatePutOrdersId (array_merge($request, $params));
+        $order = $this->v1PrivatePutOrdersId ($this->extend($request, $params));
         return $this->parse_order($order, $market);
     }
 
@@ -1661,7 +1662,7 @@ class coinbaseinternational extends Exchange {
             'id' => $id,
             'portfolio' => $portfolio,
         );
-        $order = $this->v1PrivateGetOrdersId (array_merge($request, $params));
+        $order = $this->v1PrivateGetOrdersId ($this->extend($request, $params));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1733,7 +1734,7 @@ class coinbaseinternational extends Exchange {
         if ($since !== null) {
             $request['ref_datetime'] = $this->iso8601($since);
         }
-        $response = $this->v1PrivateGetOrders (array_merge($request, $params));
+        $response = $this->v1PrivateGetOrders ($this->extend($request, $params));
         //
         //    {
         //        "pagination":array(
@@ -1815,7 +1816,7 @@ class coinbaseinternational extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['ref_datetime'] = $this->iso8601($until);
         }
-        $response = $this->v1PrivateGetPortfoliosFills (array_merge($request, $params));
+        $response = $this->v1PrivateGetPortfoliosFills ($this->extend($request, $params));
         //
         //    {
         //        "pagination":array(
@@ -1895,7 +1896,7 @@ class coinbaseinternational extends Exchange {
             'network_arn_id' => $networkId,
             'nonce' => $this->nonce(),
         );
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"

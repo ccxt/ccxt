@@ -96,6 +96,7 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'postOnly': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -841,7 +842,7 @@ class gemini(Exchange, ImplicitAPI):
             return await self.fetch_ticker_v2(symbol, params)
         return await self.fetch_ticker_v1_and_v2(symbol, params)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #

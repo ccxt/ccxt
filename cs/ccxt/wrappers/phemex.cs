@@ -208,6 +208,7 @@ public partial class phemex
     /// </summary>
     /// <remarks>
     /// See <see href="https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order"/>  <br/>
+    /// See <see href="https://phemex-docs.github.io/#place-order-http-put-prefered-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -219,6 +220,12 @@ public partial class phemex
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// float : trigger price for conditional orders
     /// </description>
     /// </item>
     /// <item>
@@ -823,12 +830,12 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TransferEntries(res);
     }
     /// <summary>
     /// fetches historical funding rate prices

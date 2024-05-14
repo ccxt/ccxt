@@ -130,7 +130,7 @@ class binance extends binance$1 {
                 'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
-                'fetchPremiumIndexOHLCV': false,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -154,6 +154,7 @@ class binance extends binance$1 {
                 'reduceMargin': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
@@ -778,6 +779,7 @@ class binance extends binance$1 {
                         'continuousKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'markPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
+                        'premiumIndexKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'fundingRate': 1,
                         'fundingInfo': 1,
                         'premiumIndex': 1,
@@ -2396,7 +2398,7 @@ class binance extends binance$1 {
                     'Rest API trading is not enabled.': errors.PermissionDenied,
                     'This account may not place or cancel orders.': errors.PermissionDenied,
                     "You don't have permission.": errors.PermissionDenied,
-                    'Market is closed.': errors.OperationRejected,
+                    'Market is closed.': errors.MarketClosed,
                     'Too many requests. Please try again later.': errors.RateLimitExceeded,
                     'This action is disabled on this account.': errors.AccountSuspended,
                     'Limit orders require GTC for this phase.': errors.BadRequest,
@@ -2618,7 +2620,7 @@ class binance extends binance$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const fetchCurrenciesEnabled = this.safeValue(this.options, 'fetchCurrencies');
+        const fetchCurrenciesEnabled = this.safeBool(this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
             return undefined;
         }
@@ -3999,8 +4001,8 @@ class binance extends binance$1 {
          * @name binance#fetchLastPrices
          * @description fetches the last price for multiple markets
          * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
-         * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
+         * @see https://binance-docs.github.io/apidocs/futures/en/#symbol-price-ticker       // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-tickers     // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
@@ -4295,6 +4297,14 @@ class binance extends binance$1 {
                 response = await this.fapiPublicGetIndexPriceKlines(this.extend(request, params));
             }
         }
+        else if (price === 'premiumIndex') {
+            if (market['inverse']) {
+                response = await this.dapiPublicGetPremiumIndexKlines(this.extend(request, params));
+            }
+            else {
+                response = await this.fapiPublicGetPremiumIndexKlines(this.extend(request, params));
+            }
+        }
         else if (market['linear']) {
             response = await this.fapiPublicGetKlines(this.extend(request, params));
         }
@@ -4542,7 +4552,7 @@ class binance extends binance$1 {
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         let side = undefined;
-        const buyerMaker = this.safeValue2(trade, 'm', 'isBuyerMaker');
+        const buyerMaker = this.safeBool2(trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
@@ -4850,7 +4860,7 @@ class binance extends binance$1 {
                 uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
-        const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+        const validOrderTypes = this.safeList(market['info'], 'orderTypes');
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
                 throw new errors.InvalidOrder(this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
@@ -4860,7 +4870,7 @@ class binance extends binance$1 {
             }
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeValue(this.options, 'broker');
+            const broker = this.safeDict(this.options, 'broker');
             if (broker !== undefined) {
                 const brokerId = this.safeString(broker, 'spot');
                 if (brokerId !== undefined) {
@@ -5746,6 +5756,7 @@ class binance extends binance$1 {
          * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
          * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+         * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5871,8 +5882,8 @@ class binance extends binance$1 {
         const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const trailingDelta = this.safeString(params, 'trailingDelta');
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice', this.numberToString(price));
-        const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activationPrice');
+        const trailingPercent = this.safeStringN(params, ['trailingPercent', 'callbackRate', 'trailingDelta']);
         const priceMatch = this.safeString(params, 'priceMatch');
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
@@ -5884,10 +5895,33 @@ class binance extends binance$1 {
         let uppercaseType = type.toUpperCase();
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
-            uppercaseType = 'TRAILING_STOP_MARKET';
-            request['callbackRate'] = trailingPercent;
-            if (trailingTriggerPrice !== undefined) {
-                request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+            if (market['swap']) {
+                uppercaseType = 'TRAILING_STOP_MARKET';
+                request['callbackRate'] = trailingPercent;
+                if (trailingTriggerPrice !== undefined) {
+                    request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+                }
+            }
+            else {
+                if (isMarketOrder) {
+                    throw new errors.InvalidOrder(this.id + ' trailingPercent orders are not supported for ' + symbol + ' ' + type + ' orders');
+                }
+                const stopLossOrTakeProfit = this.safeString(params, 'stopLossOrTakeProfit');
+                params = this.omit(params, 'stopLossOrTakeProfit');
+                if (stopLossOrTakeProfit !== 'stopLoss' && stopLossOrTakeProfit !== 'takeProfit') {
+                    throw new errors.InvalidOrder(this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                }
+                if (stopLossOrTakeProfit === 'stopLoss') {
+                    uppercaseType = 'STOP_LOSS_LIMIT';
+                }
+                else if (stopLossOrTakeProfit === 'takeProfit') {
+                    uppercaseType = 'TAKE_PROFIT_LIMIT';
+                }
+                if (trailingTriggerPrice !== undefined) {
+                    stopPrice = this.priceToPrecision(symbol, trailingTriggerPrice);
+                }
+                const trailingPercentConverted = Precise["default"].stringMul(trailingPercent, '100');
+                request['trailingDelta'] = trailingPercentConverted;
             }
         }
         else if (isStopLoss) {
@@ -6074,8 +6108,8 @@ class binance extends binance$1 {
             }
             else {
                 // check for delta price as well
-                if (trailingDelta === undefined && stopPrice === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order');
+                if (trailingDelta === undefined && stopPrice === undefined && trailingPercent === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a ' + type + ' order');
                 }
             }
             if (stopPrice !== undefined) {
@@ -7659,7 +7693,7 @@ class binance extends binance$1 {
                 request['endTime'] = until;
             }
             const raw = await this.sapiGetFiatOrders(this.extend(request, params));
-            response = this.safeValue(raw, 'data');
+            response = this.safeList(raw, 'data', []);
             //     {
             //       "code": "000000",
             //       "message": "success",
@@ -7774,7 +7808,7 @@ class binance extends binance$1 {
                 request['beginTime'] = since;
             }
             const raw = await this.sapiGetFiatOrders(this.extend(request, params));
-            response = this.safeValue(raw, 'data');
+            response = this.safeList(raw, 'data', []);
             //     {
             //       "code": "000000",
             //       "message": "success",
@@ -7992,7 +8026,7 @@ class binance extends binance$1 {
             if (txType !== undefined) {
                 type = (txType === '0') ? 'deposit' : 'withdrawal';
             }
-            const legalMoneyCurrenciesById = this.safeValue(this.options, 'legalMoneyCurrenciesById');
+            const legalMoneyCurrenciesById = this.safeDict(this.options, 'legalMoneyCurrenciesById');
             code = this.safeString(legalMoneyCurrenciesById, code, code);
         }
         const status = this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type);
@@ -8346,7 +8380,7 @@ class binance extends binance$1 {
                 }
             }
             impliedNetwork = this.safeString(reverseNetworks, topLevel);
-            const impliedNetworks = this.safeValue(this.options, 'impliedNetworks', {
+            const impliedNetworks = this.safeDict(this.options, 'impliedNetworks', {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
             });
@@ -9655,7 +9689,7 @@ class binance extends binance$1 {
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeValue(this.options, 'leverageBrackets');
+        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets', {});
         if ((leverageBrackets === undefined) || (reload)) {
             const defaultType = this.safeString(this.options, 'defaultType', 'future');
             const type = this.safeString(params, 'type', defaultType);

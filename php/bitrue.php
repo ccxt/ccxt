@@ -1110,9 +1110,9 @@ class bitrue extends Exchange {
                 $request['limit'] = $limit; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
             if ($market['linear']) {
-                $response = $this->fapiV1PublicGetDepth (array_merge($request, $params));
+                $response = $this->fapiV1PublicGetDepth ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV1PublicGetDepth (array_merge($request, $params));
+                $response = $this->dapiV1PublicGetDepth ($this->extend($request, $params));
             }
         } elseif ($market['spot']) {
             $request = array(
@@ -1124,7 +1124,7 @@ class bitrue extends Exchange {
                 }
                 $request['limit'] = $limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
-            $response = $this->spotV1PublicGetDepth (array_merge($request, $params));
+            $response = $this->spotV1PublicGetDepth ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchOrderBook only support spot & swap markets');
         }
@@ -1159,7 +1159,7 @@ class bitrue extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchBidsAsks
         //
@@ -1247,16 +1247,16 @@ class bitrue extends Exchange {
                 'contractName' => $market['id'],
             );
             if ($market['linear']) {
-                $response = $this->fapiV1PublicGetTicker (array_merge($request, $params));
+                $response = $this->fapiV1PublicGetTicker ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV1PublicGetTicker (array_merge($request, $params));
+                $response = $this->dapiV1PublicGetTicker ($this->extend($request, $params));
             }
             $data = $response;
         } elseif ($market['spot']) {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = $this->spotV1PublicGetTicker24hr (array_merge($request, $params));
+            $response = $this->spotV1PublicGetTicker24hr ($this->extend($request, $params));
             $data = $this->safe_value($response, 0, array());
         } else {
             throw new NotSupported($this->id . ' fetchTicker only support spot & swap markets');
@@ -1331,9 +1331,9 @@ class bitrue extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($market['linear']) {
-                $response = $this->fapiV1PublicGetKlines (array_merge($request, $params));
+                $response = $this->fapiV1PublicGetKlines ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV1PublicGetKlines (array_merge($request, $params));
+                $response = $this->dapiV1PublicGetKlines ($this->extend($request, $params));
             }
             $data = $response;
         } elseif ($market['spot']) {
@@ -1349,7 +1349,7 @@ class bitrue extends Exchange {
             if ($since !== null) {
                 $request['fromIdx'] = $since;
             }
-            $response = $this->spotV1PublicGetMarketKline (array_merge($request, $params));
+            $response = $this->spotV1PublicGetMarketKline ($this->extend($request, $params));
             $data = $this->safe_value($response, 'data', array());
         } else {
             throw new NotSupported($this->id . ' fetchOHLCV only support spot & swap markets');
@@ -1448,15 +1448,15 @@ class bitrue extends Exchange {
                 'contractName' => $market['id'],
             );
             if ($market['linear']) {
-                $response = $this->fapiV1PublicGetTicker (array_merge($request, $params));
+                $response = $this->fapiV1PublicGetTicker ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV1PublicGetTicker (array_merge($request, $params));
+                $response = $this->dapiV1PublicGetTicker ($this->extend($request, $params));
             }
         } elseif ($market['spot']) {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = $this->spotV1PublicGetTickerBookTicker (array_merge($request, $params));
+            $response = $this->spotV1PublicGetTickerBookTicker ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchBidsAsks only support spot & swap markets');
         }
@@ -1511,7 +1511,7 @@ class bitrue extends Exchange {
             if ($market['swap']) {
                 throw new NotSupported($this->id . ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } elseif ($market['spot']) {
-                $response = $this->spotV1PublicGetTicker24hr (array_merge($request, $params));
+                $response = $this->spotV1PublicGetTicker24hr ($this->extend($request, $params));
                 $data = $response;
             } else {
                 throw new NotSupported($this->id . ' fetchTickers only support spot & swap markets');
@@ -1521,7 +1521,7 @@ class bitrue extends Exchange {
             if ($type !== 'spot') {
                 throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols are not proved');
             }
-            $response = $this->spotV1PublicGetTicker24hr (array_merge($request, $params));
+            $response = $this->spotV1PublicGetTicker24hr ($this->extend($request, $params));
             $data = $response;
         }
         //
@@ -1689,7 +1689,7 @@ class bitrue extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 1000
             }
-            $response = $this->spotV1PublicGetTrades (array_merge($request, $params));
+            $response = $this->spotV1PublicGetTrades ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchTrades only support spot markets');
         }
@@ -1945,9 +1945,9 @@ class bitrue extends Exchange {
             $request['leverage'] = $this->parse_to_numeric($leverage);
             $params = $this->omit($params, array( 'leverage', 'reduceOnly', 'reduce_only', 'timeInForce' ));
             if ($market['linear']) {
-                $response = $this->fapiV2PrivatePostOrder (array_merge($request, $params));
+                $response = $this->fapiV2PrivatePostOrder ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV2PrivatePostOrder (array_merge($request, $params));
+                $response = $this->dapiV2PrivatePostOrder ($this->extend($request, $params));
             }
             $data = $this->safe_value($response, 'data', array());
         } elseif ($market['spot']) {
@@ -1967,7 +1967,7 @@ class bitrue extends Exchange {
                 $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
-            $response = $this->spotV1PrivatePostOrder (array_merge($request, $params));
+            $response = $this->spotV1PrivatePostOrder ($this->extend($request, $params));
             $data = $response;
         } else {
             throw new NotSupported($this->id . ' createOrder only support spot & swap markets');
@@ -2028,15 +2028,15 @@ class bitrue extends Exchange {
         if ($market['swap']) {
             $request['contractName'] = $market['id'];
             if ($market['linear']) {
-                $response = $this->fapiV2PrivateGetOrder (array_merge($request, $params));
+                $response = $this->fapiV2PrivateGetOrder ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV2PrivateGetOrder (array_merge($request, $params));
+                $response = $this->dapiV2PrivateGetOrder ($this->extend($request, $params));
             }
             $data = $this->safe_value($response, 'data', array());
         } elseif ($market['spot']) {
             $request['orderId'] = $id; // spot $market $id is mandatory
             $request['symbol'] = $market['id'];
-            $response = $this->spotV1PrivateGetOrder (array_merge($request, $params));
+            $response = $this->spotV1PrivateGetOrder ($this->extend($request, $params));
             $data = $response;
         } else {
             throw new NotSupported($this->id . ' fetchOrder only support spot & swap markets');
@@ -2118,7 +2118,7 @@ class bitrue extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
-        $response = $this->spotV1PrivateGetAllOrders (array_merge($request, $params));
+        $response = $this->spotV1PrivateGetAllOrders ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2167,14 +2167,14 @@ class bitrue extends Exchange {
         if ($market['swap']) {
             $request['contractName'] = $market['id'];
             if ($market['linear']) {
-                $response = $this->fapiV2PrivateGetOpenOrders (array_merge($request, $params));
+                $response = $this->fapiV2PrivateGetOpenOrders ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV2PrivateGetOpenOrders (array_merge($request, $params));
+                $response = $this->dapiV2PrivateGetOpenOrders ($this->extend($request, $params));
             }
             $data = $this->safe_value($response, 'data', array());
         } elseif ($market['spot']) {
             $request['symbol'] = $market['id'];
-            $response = $this->spotV1PrivateGetOpenOrders (array_merge($request, $params));
+            $response = $this->spotV1PrivateGetOpenOrders ($this->extend($request, $params));
             $data = $response;
         } else {
             throw new NotSupported($this->id . ' fetchOpenOrders only support spot & swap markets');
@@ -2261,14 +2261,14 @@ class bitrue extends Exchange {
         if ($market['swap']) {
             $request['contractName'] = $market['id'];
             if ($market['linear']) {
-                $response = $this->fapiV2PrivatePostCancel (array_merge($request, $params));
+                $response = $this->fapiV2PrivatePostCancel ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV2PrivatePostCancel (array_merge($request, $params));
+                $response = $this->dapiV2PrivatePostCancel ($this->extend($request, $params));
             }
             $data = $this->safe_value($response, 'data', array());
         } elseif ($market['spot']) {
             $request['symbol'] = $market['id'];
-            $response = $this->spotV1PrivateDeleteOrder (array_merge($request, $params));
+            $response = $this->spotV1PrivateDeleteOrder ($this->extend($request, $params));
             $data = $response;
         } else {
             throw new NotSupported($this->id . ' cancelOrder only support spot & swap markets');
@@ -2315,9 +2315,9 @@ class bitrue extends Exchange {
                 'contractName' => $market['id'],
             );
             if ($market['linear']) {
-                $response = $this->fapiV2PrivatePostAllOpenOrders (array_merge($request, $params));
+                $response = $this->fapiV2PrivatePostAllOpenOrders ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV2PrivatePostAllOpenOrders (array_merge($request, $params));
+                $response = $this->dapiV2PrivatePostAllOpenOrders ($this->extend($request, $params));
             }
             $data = $this->safe_value($response, 'data', array());
         } else {
@@ -2367,14 +2367,14 @@ class bitrue extends Exchange {
         if ($market['swap']) {
             $request['contractName'] = $market['id'];
             if ($market['linear']) {
-                $response = $this->fapiV2PrivateGetMyTrades (array_merge($request, $params));
+                $response = $this->fapiV2PrivateGetMyTrades ($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiV2PrivateGetMyTrades (array_merge($request, $params));
+                $response = $this->dapiV2PrivateGetMyTrades ($this->extend($request, $params));
             }
             $data = $this->safe_value($response, 'data', array());
         } elseif ($market['spot']) {
             $request['symbol'] = $market['id'];
-            $response = $this->spotV2PrivateGetMyTrades (array_merge($request, $params));
+            $response = $this->spotV2PrivateGetMyTrades ($this->extend($request, $params));
             $data = $response;
         } else {
             throw new NotSupported($this->id . ' fetchMyTrades only support spot & swap markets');
@@ -2457,7 +2457,7 @@ class bitrue extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->spotV1PrivateGetDepositHistory (array_merge($request, $params));
+        $response = $this->spotV1PrivateGetDepositHistory ($this->extend($request, $params));
         //
         //     {
         //         "code":200,
@@ -2528,7 +2528,7 @@ class bitrue extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->spotV1PrivateGetWithdrawHistory (array_merge($request, $params));
+        $response = $this->spotV1PrivateGetWithdrawHistory ($this->extend($request, $params));
         //
         //    {
         //        "code" => 200,
@@ -2731,7 +2731,7 @@ class bitrue extends Exchange {
         if ($tag !== null) {
             $request['tag'] = $tag;
         }
-        $response = $this->spotV1PrivatePostWithdrawCommit (array_merge($request, $params));
+        $response = $this->spotV1PrivatePostWithdrawCommit ($this->extend($request, $params));
         //
         //     {
         //         "code" => 200,
@@ -2845,7 +2845,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
@@ -2882,7 +2882,7 @@ class bitrue extends Exchange {
             $params = $this->omit($params, 'until');
             $request['endTime'] = $until;
         }
-        $response = $this->fapiV2PrivateGetFuturesTransferHistory (array_merge($request, $params));
+        $response = $this->fapiV2PrivateGetFuturesTransferHistory ($this->extend($request, $params));
         //
         //     {
         //         'code' => '0',
@@ -2922,7 +2922,7 @@ class bitrue extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
             'transferType' => $fromId . '_to_' . $toId,
         );
-        $response = $this->fapiV2PrivatePostFuturesTransfer (array_merge($request, $params));
+        $response = $this->fapiV2PrivatePostFuturesTransfer ($this->extend($request, $params));
         //
         //     {
         //         'code' => '0',
@@ -2961,9 +2961,9 @@ class bitrue extends Exchange {
             throw new NotSupported($this->id . ' setLeverage only support swap markets');
         }
         if ($market['linear']) {
-            $response = $this->fapiV2PrivatePostLevelEdit (array_merge($request, $params));
+            $response = $this->fapiV2PrivatePostLevelEdit ($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->dapiV2PrivatePostLevelEdit (array_merge($request, $params));
+            $response = $this->dapiV2PrivatePostLevelEdit ($this->extend($request, $params));
         }
         return $response;
     }
@@ -3013,9 +3013,9 @@ class bitrue extends Exchange {
             'amount' => $this->parse_to_numeric($amount),
         );
         if ($market['linear']) {
-            $response = $this->fapiV2PrivatePostPositionMargin (array_merge($request, $params));
+            $response = $this->fapiV2PrivatePostPositionMargin ($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->dapiV2PrivatePostPositionMargin (array_merge($request, $params));
+            $response = $this->dapiV2PrivatePostPositionMargin ($this->extend($request, $params));
         }
         //
         //     {
@@ -3043,7 +3043,7 @@ class bitrue extends Exchange {
             $this->check_required_credentials();
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
             if ($type === 'spot') {
-                $query = $this->urlencode(array_merge(array(
+                $query = $this->urlencode($this->extend(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,
                 ), $params));
@@ -3077,7 +3077,7 @@ class bitrue extends Exchange {
                     );
                     $url .= '?' . $this->urlencode($params);
                 } else {
-                    $query = array_merge(array(
+                    $query = $this->extend(array(
                         'recvWindow' => $recvWindow,
                     ), $params);
                     $body = $this->json($query);

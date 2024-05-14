@@ -1118,6 +1118,7 @@ class testMainClass(baseMainTestClass):
             'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid': 'uid',
             'token': 'token',
+            'accountId': 'accountId',
             'accounts': [{
     'id': 'myAccount',
     'code': 'USDT',
@@ -1140,6 +1141,13 @@ class testMainClass(baseMainTestClass):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchange_name)
         global_options = exchange.safe_dict(exchange_data, 'options', {})
+        # read apiKey/secret from the test file
+        api_key = exchange.safe_string(exchange_data, 'apiKey')
+        if api_key:
+            exchange.api_key = str(api_key)
+        secret = exchange.safe_string(exchange_data, 'secret')
+        if secret:
+            exchange.secret = str(secret)
         # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
         exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})
@@ -1170,6 +1178,13 @@ class testMainClass(baseMainTestClass):
 
     async def test_exchange_response_statically(self, exchange_name, exchange_data, test_name=None):
         exchange = self.init_offline_exchange(exchange_name)
+        # read apiKey/secret from the test file
+        api_key = exchange.safe_string(exchange_data, 'apiKey')
+        if api_key:
+            exchange.api_key = str(api_key)
+        secret = exchange.safe_string(exchange_data, 'secret')
+        if secret:
+            exchange.secret = str(secret)
         methods = exchange.safe_value(exchange_data, 'methods', {})
         options = exchange.safe_value(exchange_data, 'options', {})
         # exchange.options = exchange.deepExtend (exchange.options, options); # custom options to be used in the tests
@@ -1259,7 +1274,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1569,6 +1584,21 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         client_order_id = request['client_order_id']
         assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        await close(exchange)
+        return True
+
+    async def test_woofi_pro(self):
+        exchange = self.init_offline_exchange('woofipro')
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
+        id = 'CCXT'
+        await exchange.load_markets()
+        request = None
+        try:
+            await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = request['order_tag']
+        assert broker_id == id, 'woofipro - id: ' + id + ' different from  broker_id: ' + broker_id
         await close(exchange)
         return True
 

@@ -1823,6 +1823,14 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["product_ids"] = this.marketIds(symbols);
         }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", this.getMarketFromSymbols(symbols), parameters, "default");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isTrue(!isEqual(marketType, null)) && isTrue(!isEqual(marketType, "default"))))
+        {
+            ((IDictionary<string,object>)request)["product_type"] = ((bool) isTrue((isEqual(marketType, "swap")))) ? "FUTURE" : "SPOT";
+        }
         object response = await this.v3PublicGetBrokerageMarketProducts(this.extend(request, parameters));
         //
         //     {

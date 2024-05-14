@@ -131,6 +131,7 @@ public partial class okx : Exchange
                 { "fetchWithdrawalWhitelist", false },
                 { "reduceMargin", true },
                 { "repayCrossMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setMarginMode", true },
@@ -232,6 +233,9 @@ public partial class okx : Exchange
                         { "sprd/books", divide(1, 2) },
                         { "sprd/ticker", 1 },
                         { "sprd/public-trades", divide(1, 5) },
+                        { "market/sprd-ticker", 2 },
+                        { "market/sprd-candles", 2 },
+                        { "market/sprd-history-candles", 2 },
                         { "tradingBot/grid/ai-param", 1 },
                         { "tradingBot/grid/min-investment", 1 },
                         { "tradingBot/public/rsi-back-testing", 1 },
@@ -446,6 +450,7 @@ public partial class okx : Exchange
                         { "tradingBot/grid/compute-margin-balance", 1 },
                         { "tradingBot/grid/margin-balance", 1 },
                         { "tradingBot/grid/min-investment", 1 },
+                        { "tradingBot/grid/adjust-investment", 1 },
                         { "tradingBot/signal/create-signal", 1 },
                         { "tradingBot/signal/order-algo", 1 },
                         { "tradingBot/signal/stop-order-algo", 1 },
@@ -841,7 +846,24 @@ public partial class okx : Exchange
                     { "60017", typeof(BadRequest) },
                     { "60018", typeof(BadRequest) },
                     { "60019", typeof(BadRequest) },
+                    { "60020", typeof(ExchangeError) },
+                    { "60021", typeof(AccountNotEnabled) },
+                    { "60022", typeof(AuthenticationError) },
+                    { "60023", typeof(DDoSProtection) },
+                    { "60024", typeof(AuthenticationError) },
+                    { "60025", typeof(ExchangeError) },
+                    { "60026", typeof(AuthenticationError) },
+                    { "60027", typeof(ArgumentsRequired) },
+                    { "60028", typeof(NotSupported) },
+                    { "60029", typeof(AccountNotEnabled) },
+                    { "60030", typeof(AccountNotEnabled) },
+                    { "60031", typeof(AuthenticationError) },
+                    { "60032", typeof(AuthenticationError) },
                     { "63999", typeof(ExchangeError) },
+                    { "64000", typeof(BadRequest) },
+                    { "64001", typeof(BadRequest) },
+                    { "64002", typeof(BadRequest) },
+                    { "64003", typeof(AccountNotEnabled) },
                     { "70010", typeof(BadRequest) },
                     { "70013", typeof(BadRequest) },
                     { "70016", typeof(BadRequest) },
@@ -6108,7 +6130,7 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public async virtual Task<object> fetchTransfer(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -6141,7 +6163,7 @@ public partial class okx : Exchange
         return this.parseTransfer(transfer);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -6302,6 +6324,22 @@ public partial class okx : Exchange
         //        "nextFundingRate": "0.00017",
         //        "nextFundingTime": "1634284800000"
         //    }
+        // ws
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
         //
         // in the response above nextFundingRate is actually two funding rates from now
         //

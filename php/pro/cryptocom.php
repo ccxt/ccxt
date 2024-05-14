@@ -581,7 +581,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
             }
-            $newPositions = Async\await($this->watch($url, $messageHash, array_merge($request, $params)));
+            $newPositions = Async\await($this->watch($url, $messageHash, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 return $newPositions;
             }
@@ -807,7 +807,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $params = array_merge(array(
+            $params = $this->extend(array(
                 'order_id' => $id,
             ), $params);
             $request = array(
@@ -832,7 +832,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $market = null;
             $request = array(
                 'method' => 'private/cancel-all-orders',
-                'params' => array_merge(array(), $params),
+                'params' => $this->extend(array(), $params),
             );
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -866,7 +866,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 ),
                 'nonce' => $id,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -895,7 +895,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'id' => $nonce,
                 'nonce' => $nonce,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, (string) $nonce, $message, true));
         }) ();
     }
@@ -912,7 +912,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 ),
                 'nonce' => $id,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -1050,7 +1050,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                     'api_key' => $this->apiKey,
                     'sig' => $signature,
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);

@@ -110,6 +110,7 @@ class coinmetro extends Exchange {
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -509,7 +510,7 @@ class coinmetro extends Exchange {
         } else {
             $request['to'] = ':to';
         }
-        $response = $this->publicGetExchangeCandlesPairTimeframeFromTo (array_merge($request, $params));
+        $response = $this->publicGetExchangeCandlesPairTimeframeFromTo ($this->extend($request, $params));
         //
         //     {
         //         "candleHistory" => array(
@@ -573,7 +574,7 @@ class coinmetro extends Exchange {
             // this endpoint accepts empty from param
             $request['from'] = '';
         }
-        $response = $this->publicGetExchangeTicksPairFrom (array_merge($request, $params));
+        $response = $this->publicGetExchangeTicksPairFrom ($this->extend($request, $params));
         //
         //     {
         //         "tickHistory" => array(
@@ -628,7 +629,7 @@ class coinmetro extends Exchange {
             // the exchange requires a value for the $since param
             $request['since'] = 0;
         }
-        $response = $this->privateGetExchangeFillsSince (array_merge($request, $params));
+        $response = $this->privateGetExchangeFillsSince ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -729,7 +730,7 @@ class coinmetro extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetExchangeBookPair (array_merge($request, $params));
+        $response = $this->publicGetExchangeBookPair ($this->extend($request, $params));
         //
         //     {
         //         "book" => {
@@ -855,7 +856,7 @@ class coinmetro extends Exchange {
             $marketId = $this->safe_string($twentyFourHInfo, 'pair');
             if ($marketId !== null) {
                 $latestPrice = $this->safe_value($tickersObject, $marketId, array());
-                $tickersObject[$marketId] = array_merge($twentyFourHInfo, $latestPrice);
+                $tickersObject[$marketId] = $this->extend($twentyFourHInfo, $latestPrice);
             }
         }
         $tickers = is_array($tickersObject) ? array_values($tickersObject) : array();
@@ -876,7 +877,7 @@ class coinmetro extends Exchange {
         return $this->parse_tickers($latestPrices, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "pair" => "PERPUSD",
@@ -1004,7 +1005,7 @@ class coinmetro extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->privateGetUsersWalletsHistorySince (array_merge($request, $params));
+        $response = $this->privateGetUsersWalletsHistorySince ($this->extend($request, $params));
         //
         //     {
         //         "list" => array(
@@ -1256,7 +1257,7 @@ class coinmetro extends Exchange {
         if (!$this->is_empty($userData)) {
             $request['userData'] = $userData;
         }
-        $response = $this->privatePostExchangeOrdersCreate (array_merge($request, $params));
+        $response = $this->privatePostExchangeOrdersCreate ($this->extend($request, $params));
         //
         //     {
         //         "userID" => "65671262d93d9525ac009e36",
@@ -1331,9 +1332,9 @@ class coinmetro extends Exchange {
         $params = $this->omit($params, 'margin');
         $response = null;
         if ($isMargin || ($marginMode !== null)) {
-            $response = $this->privatePostExchangeOrdersCloseOrderID (array_merge($request, $params));
+            $response = $this->privatePostExchangeOrdersCloseOrderID ($this->extend($request, $params));
         } else {
-            $response = $this->privatePutExchangeOrdersCancelOrderID (array_merge($request, $params));
+            $response = $this->privatePutExchangeOrdersCancelOrderID ($this->extend($request, $params));
         }
         //
         //     {
@@ -1376,7 +1377,7 @@ class coinmetro extends Exchange {
         $request = array(
             'orderID' => $orderId,
         );
-        $response = $this->privatePostExchangeOrdersCloseOrderID (array_merge($request, $params));
+        $response = $this->privatePostExchangeOrdersCloseOrderID ($this->extend($request, $params));
         //
         //     {
         //         "userID" => "65671262d93d9525ac009e36",
@@ -1452,7 +1453,7 @@ class coinmetro extends Exchange {
         if ($since !== null) {
             $request['since'] = $since;
         }
-        $response = $this->privateGetExchangeOrdersHistorySince (array_merge($request, $params));
+        $response = $this->privateGetExchangeOrdersHistorySince ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1469,7 +1470,7 @@ class coinmetro extends Exchange {
         $request = array(
             'orderID' => $id,
         );
-        $response = $this->privateGetExchangeOrdersStatusOrderID (array_merge($request, $params));
+        $response = $this->privateGetExchangeOrdersStatusOrderID ($this->extend($request, $params));
         //
         //     {
         //         "_id" => "657b4e6d60a954244939ac6f",
@@ -1811,13 +1812,13 @@ class coinmetro extends Exchange {
         $currencyId = $currency['id'];
         $request = array();
         $request[$currencyId] = $this->currency_to_precision($code, $amount);
-        $response = $this->privatePutUsersMarginCollateral (array_merge($request, $params));
+        $response = $this->privatePutUsersMarginCollateral ($this->extend($request, $params));
         //
         //     array( "message" => "OK" )
         //
         $result = $this->safe_value($response, 'result', array());
         $transaction = $this->parse_margin_loan($result, $currency);
-        return array_merge($transaction, array(
+        return $this->extend($transaction, array(
             'amount' => $amount,
         ));
     }

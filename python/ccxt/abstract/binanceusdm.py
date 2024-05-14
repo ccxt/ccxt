@@ -465,6 +465,7 @@ class ImplicitAPI:
     fapipublic_get_continuousklines = fapiPublicGetContinuousKlines = Entry('continuousKlines', 'fapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     fapipublic_get_markpriceklines = fapiPublicGetMarkPriceKlines = Entry('markPriceKlines', 'fapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     fapipublic_get_indexpriceklines = fapiPublicGetIndexPriceKlines = Entry('indexPriceKlines', 'fapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
+    fapipublic_get_premiumindexklines = fapiPublicGetPremiumIndexKlines = Entry('premiumIndexKlines', 'fapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     fapipublic_get_fundingrate = fapiPublicGetFundingRate = Entry('fundingRate', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_fundinginfo = fapiPublicGetFundingInfo = Entry('fundingInfo', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_premiumindex = fapiPublicGetPremiumIndex = Entry('premiumIndex', 'fapiPublic', 'GET', {'cost': 1})

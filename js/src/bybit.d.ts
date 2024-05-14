@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, TransferEntries } from './base/types.js';
 /**
  * @class bybit
  * @augments Exchange
@@ -21,7 +21,7 @@ export default class bybit extends Exchange {
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchFutureMarkets(params: any): Promise<any[]>;
     fetchOptionMarkets(params: any): Promise<any[]>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -133,7 +133,7 @@ export default class bybit extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: any, market?: Market): Position;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
@@ -163,7 +163,7 @@ export default class bybit extends Exchange {
         info: any;
     };
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<any>;
     repayCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
@@ -175,18 +175,8 @@ export default class bybit extends Exchange {
         datetime: any;
         info: any;
     };
-    parseTransferStatus(status: any): string;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    };
+    parseTransferStatus(status: Str): Str;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     fetchDerivativesMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
@@ -218,29 +208,10 @@ export default class bybit extends Exchange {
     fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
     parseVolatilityHistory(volatility: any): any[];
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
-    parseGreeks(greeks: any, market?: Market): {
-        symbol: string;
-        timestamp: any;
-        datetime: any;
-        delta: number;
-        gamma: number;
-        theta: number;
-        vega: number;
-        rho: any;
-        bidSize: number;
-        askSize: number;
-        bidImpliedVolatility: number;
-        askImpliedVolatility: number;
-        markImpliedVolatility: number;
-        bidPrice: number;
-        askPrice: number;
-        markPrice: number;
-        lastPrice: number;
-        underlyingPrice: number;
-        info: any;
-    };
+    parseGreeks(greeks: Dict, market?: Market): Greeks;
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
+    getLeverageTiersPaginated(symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
     parseMarketLeverageTiers(info: any, market?: Market): any[];
@@ -257,25 +228,7 @@ export default class bybit extends Exchange {
     };
     fetchOption(symbol: string, params?: {}): Promise<Option>;
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
-    parseOption(chain: any, currency?: Currency, market?: Market): {
-        info: any;
-        currency: any;
-        symbol: string;
-        timestamp: any;
-        datetime: any;
-        impliedVolatility: number;
-        openInterest: number;
-        bidPrice: number;
-        askPrice: number;
-        midPrice: any;
-        markPrice: number;
-        lastPrice: number;
-        underlyingPrice: number;
-        change: number;
-        percentage: any;
-        baseVolume: number;
-        quoteVolume: any;
-    };
+    parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

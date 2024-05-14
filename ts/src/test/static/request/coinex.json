@@ -10,27 +10,47 @@
     "methods": {
         "fetchMyTrades": [
             {
-                "description": "Spot private trades",
+                "description": "Spot fetch my trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.coinex.com/v1/order/user/deals?access_id=53DD577FFFD741D4B53A5424ECD33196&limit=5&market=LTCUSDT&offset=0&page=1&tonce=1699458294212",
+                "url": "https://api.coinex.com/v2/spot/user-deals?limit=1&market=BTCUSDT&market_type=SPOT",
                 "input": [
-                    "LTC/USDT",
-                    1699457638000,
-                    5
+                  "BTC/USDT",
+                  null,
+                  1
                 ]
             },
             {
-                "description": "spot-margin trades",
+                "description": "Spot margin fetch my trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.coinex.com/v1/order/user/deals?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&account_id=6&limit=100&market=LTCUSDT&offset=0&page=1&tonce=1706032695073",
+                "url": "https://api.coinex.com/v2/spot/user-deals?limit=1&market=BTCUSDT&market_type=MARGIN",
                 "input": [
-                    "LTC/USDT",
-                    null,
-                    null,
-                    {
-                        "marginMode": "isolated",
-                        "account_id": 6
-                    }
+                  "BTC/USDT",
+                  null,
+                  1,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            },
+            {
+              "description": "swap trades",
+              "method": "fetchMyTrades",
+              "url": "https://api.coinex.com/v2/futures/user-deals?market=LTCUSDT&market_type=FUTURES",
+              "input": [
+                "LTC/USDT:USDT"
+              ]
+            },
+            {
+                "description": "Swap fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.coinex.com/v2/futures/user-deals?limit=1&market=BTCUSDT&market_type=FUTURES&side=buy",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  1,
+                  {
+                    "side": "buy"
+                  }
                 ]
             }
         ],
@@ -214,37 +234,40 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api.coinex.com/perpetual/v1/position/pending?access_id=53DD577FFFD741D4B53A5424ECD33196&market=LTCUSDT&timestamp=1699458297454",
+                "url": "https://api.coinex.com/v2/futures/pending-position?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                    [
-                        "LTC/USDT:USDT"
-                    ]
+                  [
+                    "BTC/USDT:USDT"
+                  ]
                 ]
             },
             {
-                "description": "Fetch positions using history endpoiunt",
+                "description": "Fetch positions using the history endpoint",
                 "method": "fetchPositions",
-                "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&market=LTCUSDT&side=0&timestamp=1706265378027",
+                "url": "https://api.coinex.com/v2/futures/finished-position?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                    [
-                        "LTC/USDT:USDT"
-                    ],
-                    {
-                        "method": "v1PerpetualPrivateGetPositionFinished"
-                    }
+                  [
+                    "BTC/USDT:USDT"
+                  ],
+                  {
+                    "method": "v2PrivateGetFuturesFinishedPosition"
+                  }
                 ]
             }
         ],
         "setLeverage": [
             {
-                "description": "Set linear leverage",
+                "description": "Swap set the leverage and marginMode of a linear trading pair",
                 "method": "setLeverage",
-                "url": "https://api.coinex.com/perpetual/v1/market/adjust_leverage",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-leverage",
                 "input": [
-                    5,
-                    "LTC/USDT:USDT"
+                  3,
+                  "BTC/USDT:USDT",
+                  {
+                    "marginMode": "isolated"
+                  }
                 ],
-                "output": "access_id=53DD577FFFD741D4B53A5424ECD33196&leverage=5&market=LTCUSDT&position_type=2&timestamp=1699458297747"
+                "output": "{\"leverage\":3,\"margin_mode\":\"isolated\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
             }
         ],
         "fetchDeposits": [
@@ -1004,34 +1027,38 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Fetch a swap position",
+                "method": "fetchPosition",
+                "url": "https://api.coinex.com/v2/futures/pending-position?market=BTCUSDT&market_type=FUTURES",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchPositionHistory": [
             {
-                "description": "Fetch Position History",
+                "description": "Fetch position history",
                 "method": "fetchPositionHistory",
-                "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=3040ECDCE1944E28B9E262446CF3360E&limit=1000&market=XRPUSDT&side=0&timestamp=1711516582191",
+                "url": "https://api.coinex.com/v2/futures/finished-position?market=BTCUSDT&market_type=FUTURES",
                 "input": [
-                  "XRP/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
         "fetchMarginAdjustmentHistory": [
             {
-                "description": "Fetch margin adjustment history",
+                "description": "Swap fetch margin adjustment history",
                 "method": "fetchMarginAdjustmentHistory",
-                "url": "https://api.coinex.com/perpetual/v1/position/margin_history?access_id=3040ECDCE1944E28B9E262446CF3360E&limit=100&market=&offset=0&position_id=0&timestamp=1711145904582",
-                "input": []
-            },
-            {
-                "description": "Fetch margin adjustment history with symbol, limit, since and until defined",
-                "method": "fetchMarginAdjustmentHistory",
-                "url": "https://api.coinex.com/perpetual/v1/position/margin_history?access_id=3040ECDCE1944E28B9E262446CF3360E&end_time=1711146090000&limit=3&market=XRPUSDT&offset=0&position_id=0&start_time=1710460800000&timestamp=1711146411232",
+                "url": "https://api.coinex.com/v2/futures/position-margin-history?limit=3&market=BTCUSDT&market_type=FUTURES&position_id=306458800",
                 "input": [
-                  "XRP/USDT:USDT",
+                  "BTC/USDT:USDT",
                   null,
-                  1710460800000,
+                  null,
                   3,
                   {
-                    "until": "1711146090000"
+                    "positionId": 306458800
                   }
                 ]
             }
@@ -1098,6 +1125,107 @@
                   }
                 ],
                 "output": "{\"amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"price\":\"61000\",\"stop_id\":137091809783,\"trigger_price\":\"61500\"}"
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "Create a deposit address",
+                "method": "createDepositAddress",
+                "url": "https://api.coinex.com/v2/assets/renewal-deposit-address",
+                "input": [
+                  "ETH",
+                  {
+                    "network": "ERC20"
+                  }
+                ],
+                "output": "{\"ccy\":\"ETH\",\"chain\":\"ERC20\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch a deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.coinex.com/v2/assets/deposit-address?ccy=ETH&chain=ERC20",
+                "input": [
+                  "ETH",
+                  {
+                    "network": "ERC20"
+                  }
+                ]
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "Fetch leverage tiers for multiple swap markets at once",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.coinex.com/v2/futures/position-level?market=BTCUSDT%2CLTCUSDT",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "Fetch the leverage tiers for a specified swap symbol",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.coinex.com/v2/futures/position-level?market=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Swap set the margin mode and leverage of a trading pair",
+                "method": "setMarginMode",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-leverage",
+                "input": [
+                  "isolated",
+                  "BTC/USDT:USDT",
+                  {
+                    "leverage": 1
+                  }
+                ],
+                "output": "{\"leverage\":1,\"margin_mode\":\"isolated\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Swap add margin to a position",
+                "method": "addMargin",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-margin",
+                "input": [
+                  "BTC/USDT:USDT",
+                  2.1
+                ],
+                "output": "{\"amount\":\"2.1\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Swap reduce margin from a position",
+                "method": "reduceMargin",
+                "url": "https://api.coinex.com/v2/futures/adjust-position-margin",
+                "input": [
+                  "BTC/USDT:USDT",
+                  7.4
+                ],
+                "output": "{\"amount\":\"-7.4\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Swap fetch the private funding fee history",
+                "method": "fetchFundingHistory",
+                "url": "https://api.coinex.com/v2/futures/position-funding-history?limit=5&market=BTCUSDT&market_type=FUTURES",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  5
+                ]
             }
         ]
     },

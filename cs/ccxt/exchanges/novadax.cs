@@ -1242,7 +1242,6 @@ public partial class novadax : Exchange
             { "info", transfer },
             { "id", id },
             { "amount", null },
-            { "code", currencyCode },
             { "currency", currencyCode },
             { "fromAccount", null },
             { "toAccount", null },

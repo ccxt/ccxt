@@ -111,6 +111,7 @@ public partial class bybit : Exchange
                 { "fetchVolatilityHistory", true },
                 { "fetchWithdrawals", true },
                 { "repayCrossMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", true },
                 { "setPositionMode", true },
@@ -315,6 +316,7 @@ public partial class bybit : Exchange
                         { "v5/asset/coin/query-info", 28 },
                         { "v5/asset/withdraw/query-record", 10 },
                         { "v5/asset/withdraw/withdrawable-amount", 5 },
+                        { "v5/asset/withdraw/vasp/list", 5 },
                         { "v5/user/query-sub-members", 5 },
                         { "v5/user/query-api", 5 },
                         { "v5/user/sub-apikeys", 5 },
@@ -1493,6 +1495,7 @@ public partial class bybit : Exchange
         //                     "quoteCoin": "USDT",
         //                     "innovation": "0",
         //                     "status": "Trading",
+        //                     "marginTrading": "both",
         //                     "lotSizeFilter": {
         //                         "basePrecision": "0.000001",
         //                         "quotePrecision": "0.00000001",
@@ -1530,7 +1533,9 @@ public partial class bybit : Exchange
             object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
             object priceFilter = this.safeDict(market, "priceFilter");
             object quotePrecision = this.safeNumber(lotSizeFilter, "quotePrecision");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            object marginTrading = this.safeString(market, "marginTrading", "none");
+            object allowsMargin = !isEqual(marginTrading, "none");
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1541,7 +1546,7 @@ public partial class bybit : Exchange
                 { "settleId", null },
                 { "type", "spot" },
                 { "spot", true },
-                { "margin", null },
+                { "margin", allowsMargin },
                 { "swap", false },
                 { "future", false },
                 { "option", false },
@@ -1580,7 +1585,7 @@ public partial class bybit : Exchange
                 } },
                 { "created", null },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -1717,7 +1722,7 @@ public partial class bybit : Exchange
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
             object contractSize = ((bool) isTrue(inverse)) ? this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") : this.parseNumber("1");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1767,7 +1772,7 @@ public partial class bybit : Exchange
                 } },
                 { "created", this.safeInteger(market, "launchTime") },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -1858,7 +1863,7 @@ public partial class bybit : Exchange
             object isActive = (isEqual(status, "Trading"));
             if (isTrue(isTrue(isTrue(isActive) || isTrue((getValue(this.options, "loadAllOptions")))) || isTrue((getValue(this.options, "loadExpiredOptions")))))
             {
-                ((IList<object>)result).Add(new Dictionary<string, object>() {
+                ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter) },
                     { "base", bs },
@@ -1908,7 +1913,7 @@ public partial class bybit : Exchange
                     } },
                     { "created", this.safeInteger(market, "launchTime") },
                     { "info", market },
-                });
+                }));
             }
         }
         return result;
@@ -7221,21 +7226,21 @@ public partial class bybit : Exchange
         object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
         // engage in leverage setting
         // we reuse the code here instead of having two methods
-        leverage = this.numberToString(leverage);
+        object leverageString = this.numberToString(leverage);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "buyLeverage", leverage },
-            { "sellLeverage", leverage },
+            { "buyLeverage", leverageString },
+            { "sellLeverage", leverageString },
         };
         object response = null;
         if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
         {
-            ((IDictionary<string,object>)request)["leverage"] = leverage;
+            ((IDictionary<string,object>)request)["leverage"] = leverageString;
             response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["buyLeverage"] = leverage;
-            ((IDictionary<string,object>)request)["sellLeverage"] = leverage;
+            ((IDictionary<string,object>)request)["buyLeverage"] = leverageString;
+            ((IDictionary<string,object>)request)["sellLeverage"] = leverageString;
             if (isTrue(getValue(market, "linear")))
             {
                 ((IDictionary<string,object>)request)["category"] = "linear";
@@ -7696,7 +7701,7 @@ public partial class bybit : Exchange
         });
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -8769,6 +8774,44 @@ public partial class bybit : Exchange
         });
     }
 
+    public async virtual Task<object> getLeverageTiersPaginated(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "getLeverageTiersPaginated", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, null, null, parameters, "nextPageCursor", "cursor", null, 100);
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("getLeverageTiersPaginated", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "category", subType },
+        };
+        object response = await this.publicGetV5MarketRiskLimit(this.extend(request, parameters));
+        object result = this.addPaginationCursorToResult(response);
+        object first = this.safeDict(result, 0);
+        object total = getArrayLength(result);
+        object lastIndex = subtract(total, 1);
+        object last = this.safeDict(result, lastIndex);
+        object cursorValue = this.safeString(first, "nextPageCursor");
+        ((IDictionary<string,object>)last)["info"] = new Dictionary<string, object>() {
+            { "nextPageCursor", cursorValue },
+        };
+        ((List<object>)result)[Convert.ToInt32(lastIndex)] = last;
+        return result;
+    }
+
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
         /**
@@ -8779,11 +8822,13 @@ public partial class bybit : Exchange
         * @param {string[]} [symbols] a list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
+        object symbol = null;
         if (isTrue(!isEqual(symbols, null)))
         {
             market = this.market(getValue(symbols, 0));
@@ -8791,17 +8836,12 @@ public partial class bybit : Exchange
             {
                 throw new NotSupported ((string)add(this.id, " fetchLeverageTiers() is not supported for spot market")) ;
             }
+            symbol = getValue(market, "symbol");
         }
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "category", subType },
-        };
-        object response = await this.publicGetV5MarketRiskLimit(this.extend(request, parameters));
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeList(result, "list", new List<object>() {});
+        object data = await this.getLeverageTiersPaginated(symbol, this.extend(new Dictionary<string, object>() {
+            { "paginate", true },
+            { "paginationCalls", 20 },
+        }, parameters));
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
@@ -8830,9 +8870,14 @@ public partial class bybit : Exchange
         {
             object marketId = getValue(keys, i);
             object entry = getValue(grouped, marketId);
+            for (object j = 0; isLessThan(j, getArrayLength(entry)); postFixIncrement(ref j))
+            {
+                object id = this.safeInteger(getValue(entry, j), "id");
+                ((IDictionary<string,object>)getValue(entry, j))["id"] = id;
+            }
             object market = this.safeMarket(marketId, null, null, "contract");
             object symbol = getValue(market, "symbol");
-            ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(entry, market);
+            ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market);
         }
         return tiers;
     }

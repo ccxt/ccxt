@@ -122,6 +122,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -855,7 +856,7 @@ class coinmetro(Exchange, ImplicitAPI):
         latestPrices = self.safe_list(response, 'latestPrices', [])
         return self.parse_tickers(latestPrices, symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "pair": "PERPUSD",

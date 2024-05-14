@@ -117,6 +117,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -509,7 +510,8 @@ class cryptocom(Exchange, ImplicitAPI):
             strike = self.safe_string(market, 'strike')
             marginBuyEnabled = self.safe_value(market, 'margin_buy_enabled')
             marginSellEnabled = self.safe_value(market, 'margin_sell_enabled')
-            expiry = self.omit_zero(self.safe_integer(market, 'expiry_timestamp_ms'))
+            expiryString = self.omit_zero(self.safe_string(market, 'expiry_timestamp_ms'))
+            expiry = int(expiryString) if (expiryString is not None) else None
             symbol = base + '/' + quote
             type = None
             contract = None
@@ -1757,7 +1759,7 @@ class cryptocom(Exchange, ImplicitAPI):
         withdrawalList = self.safe_list(data, 'withdrawal_list', [])
         return self.parse_transactions(withdrawalList, currency, since, limit)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #

@@ -440,7 +440,7 @@ class coinmate(Exchange, ImplicitAPI):
             result[market['symbol']] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "last": "0.001337",

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -96,6 +96,7 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
                 'setMarginMode': True,
@@ -1269,7 +1270,7 @@ class phemex(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, userLimit)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot
         #
@@ -1657,6 +1658,26 @@ class phemex(Exchange, ImplicitAPI):
         #         "execId": "8718cae",
         #         "execStatus": 6
         #     }
+        # spot with fees paid using PT token
+        #     "createdAt": "1714990724076",
+        #     "symbol": "BTCUSDT",
+        #     "currency": "USDT",
+        #     "action": "1",
+        #     "tradeType": "1",
+        #     "execQtyRq": "0.003",
+        #     "execPriceRp": "64935",
+        #     "side": "2",
+        #     "orderQtyRq": "0.003",
+        #     "priceRp": "51600",
+        #     "execValueRv": "194.805",
+        #     "feeRateRr": "0.000495",
+        #     "execFeeRv": "0",
+        #     "ordType": "3",
+        #     "execId": "XXXXXX",
+        #     "execStatus": "7",
+        #     "posSide": "1",
+        #     "ptFeeRv": "0.110012249248",
+        #     "ptPriceRp": "0.876524893"
         #
         priceString: Str
         amountString: Str
@@ -1705,10 +1726,16 @@ class phemex(Exchange, ImplicitAPI):
                 priceString = self.safe_string(trade, 'execPriceRp')
                 amountString = self.safe_string(trade, 'execQtyRq')
                 costString = self.safe_string(trade, 'execValueRv')
-                feeCostString = self.safe_string(trade, 'execFeeRv')
+                feeCostString = self.omit_zero(self.safe_string(trade, 'execFeeRv'))
                 feeRateString = self.safe_string(trade, 'feeRateRr')
-                currencyId = self.safe_string(trade, 'currency')
-                feeCurrencyCode = self.safe_currency_code(currencyId)
+                if feeCostString is not None:
+                    currencyId = self.safe_string(trade, 'currency')
+                    feeCurrencyCode = self.safe_currency_code(currencyId)
+                else:
+                    ptFeeRv = self.omit_zero(self.safe_string(trade, 'ptFeeRv'))
+                    if ptFeeRv is not None:
+                        feeCostString = ptFeeRv
+                        feeCurrencyCode = 'PT'
             else:
                 side = self.safe_string_lower(trade, 'side')
                 type = self.parse_order_type(self.safe_string(trade, 'ordType'))
@@ -1719,7 +1746,7 @@ class phemex(Exchange, ImplicitAPI):
                 amountString = self.from_ev(self.safe_string(trade, 'execBaseQtyEv'), market)
                 amountString = self.safe_string(trade, 'execQty', amountString)
                 costString = self.from_er(self.safe_string_2(trade, 'execQuoteQtyEv', 'execValueEv'), market)
-                feeCostString = self.from_er(self.safe_string(trade, 'execFeeEv'), market)
+                feeCostString = self.from_er(self.omit_zero(self.safe_string(trade, 'execFeeEv')), market)
                 if feeCostString is not None:
                     feeRateString = self.from_er(self.safe_string(trade, 'feeRateEr'), market)
                     if market['spot']:
@@ -1729,6 +1756,10 @@ class phemex(Exchange, ImplicitAPI):
                         if info is not None:
                             settlementCurrencyId = self.safe_string(info, 'settlementCurrency')
                             feeCurrencyCode = self.safe_currency_code(settlementCurrencyId)
+                else:
+                    feeCostString = self.safe_string(trade, 'ptFeeRv')
+                    if feeCostString is not None:
+                        feeCurrencyCode = 'PT'
             fee = {
                 'cost': feeCostString,
                 'rate': feeRateString,
@@ -2299,7 +2330,7 @@ class phemex(Exchange, ImplicitAPI):
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        stopPrice = self.omit_zero(self.safe_number_2(order, 'stopPx', 'stopPxRp'))
+        stopPrice = self.omit_zero(self.safe_string_2(order, 'stopPx', 'stopPxRp'))
         postOnly = (timeInForce == 'PO')
         reduceOnly = self.safe_value(order, 'reduceOnly')
         execInst = self.safe_string(order, 'execInst')
@@ -2346,12 +2377,14 @@ class phemex(Exchange, ImplicitAPI):
         """
         create a trade order
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
+        :see: https://phemex-docs.github.io/#place-order-http-put-prefered-3
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.trigger]: trigger price for conditional orders
         :param dict [params.takeProfit]: *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
@@ -2362,7 +2395,7 @@ class phemex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         requestSide = self.capitalize(side)
         type = self.capitalize(type)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
         request = {
             # common
             'symbol': market['id'],
@@ -2403,18 +2436,24 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
-        stopPrice = self.safe_string_n(params, ['stopPx', 'stopPrice', 'triggerPrice'])
-        if stopPrice is not None:
+        triggerPrice = self.safe_string_n(params, ['stopPx', 'stopPrice', 'triggerPrice'])
+        if triggerPrice is not None:
             if market['settle'] == 'USDT':
-                request['stopPxRp'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPxRp'] = self.price_to_precision(symbol, triggerPrice)
             else:
-                request['stopPxEp'] = self.to_ep(stopPrice, market)
+                request['stopPxEp'] = self.to_ep(triggerPrice, market)
         params = self.omit(params, ['stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice'])
         if market['spot']:
             qtyType = self.safe_value(params, 'qtyType', 'ByBase')
             if (type == 'Market') or (type == 'Stop') or (type == 'MarketIfTouched'):
                 if price is not None:
                     qtyType = 'ByQuote'
+            if triggerPrice is not None:
+                if type == 'Limit':
+                    request['ordType'] = 'StopLimit'
+                elif type == 'Market':
+                    request['ordType'] = 'Stop'
+                request['trigger'] = 'ByLastPrice'
             request['qtyType'] = qtyType
             if qtyType == 'ByQuote':
                 cost = self.safe_number(params, 'cost')
@@ -2445,7 +2484,7 @@ class phemex(Exchange, ImplicitAPI):
                 request['orderQtyRq'] = amount
             else:
                 request['orderQty'] = self.parse_to_int(amount)
-            if stopPrice is not None:
+            if triggerPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
                 request['triggerType'] = triggerType
             if stopLossDefined or takeProfitDefined:
@@ -3781,7 +3820,7 @@ class phemex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
         #         "code": 0,
@@ -4138,7 +4177,7 @@ class phemex(Exchange, ImplicitAPI):
                 transfer['currency'] = code
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -4183,7 +4222,7 @@ class phemex(Exchange, ImplicitAPI):
         transfers = self.safe_list(data, 'rows', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -4237,7 +4276,7 @@ class phemex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '3': 'rejected',  # 'Rejected',
             '6': 'canceled',  # 'Got error and wait for recovery',

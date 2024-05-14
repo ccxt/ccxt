@@ -92,5 +92,6 @@ export default class testMainClass extends baseMainTestClass {
     testHyperliquid(): Promise<void>;
     testCoinbaseinternational(): Promise<boolean>;
     testCoinbaseAdvanced(): Promise<boolean>;
+    testWoofiPro(): Promise<boolean>;
 }
 export {};

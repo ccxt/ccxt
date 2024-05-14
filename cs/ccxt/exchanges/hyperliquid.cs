@@ -97,6 +97,7 @@ public partial class hyperliquid : Exchange
                 { "reduceMargin", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", true },
                 { "setPositionMode", false },
@@ -444,6 +445,10 @@ public partial class hyperliquid : Exchange
         {
             object market = this.safeDict(meta, i, new Dictionary<string, object>() {});
             object marketName = this.safeString(market, "name");
+            if (isTrue(isLessThan(getIndexOf(marketName, "/"), 0)))
+            {
+                continue;
+            }
             object marketParts = ((string)marketName).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             object baseName = this.safeString(marketParts, 0);
             object quoteId = this.safeString(marketParts, 1);
@@ -1747,6 +1752,7 @@ public partial class hyperliquid : Exchange
         * @param {int} [limit] the maximum number of open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+        * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1754,10 +1760,14 @@ public partial class hyperliquid : Exchange
         var userAddressparametersVariable = this.handlePublicAddress("fetchOpenOrders", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
         await this.loadMarkets();
         object market = this.safeMarket(symbol);
         object request = new Dictionary<string, object>() {
-            { "type", "openOrders" },
+            { "type", method },
             { "user", userAddress },
         };
         object response = await this.publicPostInfo(this.extend(request, parameters));
@@ -1947,6 +1957,25 @@ public partial class hyperliquid : Exchange
         //           "oid":6195281425
         //        }
         //     }
+        // frontendOrder
+        // {
+        //     "children": [],
+        //     "cloid": null,
+        //     "coin": "BLUR",
+        //     "isPositionTpsl": false,
+        //     "isTrigger": true,
+        //     "limitPx": "0.5",
+        //     "oid": 8670487141,
+        //     "orderType": "Stop Limit",
+        //     "origSz": "20.0",
+        //     "reduceOnly": false,
+        //     "side": "B",
+        //     "sz": "20.0",
+        //     "tif": null,
+        //     "timestamp": 1715523663687,
+        //     "triggerCondition": "Price above 0.6",
+        //     "triggerPx": "0.6"
+        // }
         //
         object entry = this.safeDictN(order, new List<object>() {"order", "resting", "filled"});
         if (isTrue(isEqual(entry, null)))
@@ -1989,7 +2018,7 @@ public partial class hyperliquid : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", null },
             { "symbol", symbol },
-            { "type", this.safeStringLower(entry, "orderType") },
+            { "type", this.parseOrderType(this.safeStringLower(entry, "orderType")) },
             { "timeInForce", this.safeStringUpper(entry, "tif") },
             { "postOnly", null },
             { "reduceOnly", this.safeBool(entry, "reduceOnly") },

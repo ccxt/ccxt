@@ -451,6 +451,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_asset_withdraw_withdrawable_amount($params = array()) {
         return $this->request('v5/asset/withdraw/withdrawable-amount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_asset_withdraw_vasp_list($params = array()) {
+        return $this->request('v5/asset/withdraw/vasp/list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_user_query_sub_members($params = array()) {
         return $this->request('v5/user/query-sub-members', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1329,6 +1332,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5AssetWithdrawWithdrawableAmount($params = array()) {
         return $this->request('v5/asset/withdraw/withdrawable-amount', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5AssetWithdrawVaspList($params = array()) {
+        return $this->request('v5/asset/withdraw/vasp/list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5UserQuerySubMembers($params = array()) {
         return $this->request('v5/user/query-sub-members', 'private', 'GET', $params, null, null, array("cost" => 5));

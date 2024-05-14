@@ -140,9 +140,9 @@ export default class independentreserve extends independentreserveRest {
         if (limit === undefined) {
             limit = 100;
         }
-        limit = this.numberToString (limit);
-        const url = this.urls['api']['ws'] + '/orderbook/' + limit + '?subscribe=' + market['base'] + '-' + market['quote'];
-        const messageHash = 'orderbook:' + symbol + ':' + limit;
+        const limitString = this.numberToString (limit);
+        const url = this.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
+        const messageHash = 'orderbook:' + symbol + ':' + limitString;
         const subscription = {
             'receivedSnapshot': false,
         };
@@ -225,6 +225,8 @@ export default class independentreserve extends independentreserveRest {
             const responseChecksum = this.safeInteger (orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
                 const error = new InvalidNonce (this.id + ' invalid checksum');
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
             }
         }

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import okxRest from '../okx.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -27,6 +27,8 @@ export default class okx extends okxRest {
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
+                'watchFundingRate': true,
+                'watchFundingRates': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -248,6 +250,88 @@ export default class okx extends okxRest {
             client.resolve(stored, messageHash);
         }
     }
+    async watchFundingRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#watchFundingRate
+         * @description watch the current funding rate
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        symbol = this.symbol(symbol);
+        const fr = await this.watchFundingRates([symbol], params);
+        return fr[symbol];
+    }
+    async watchFundingRates(symbols, params = {}) {
+        /**
+         * @method
+         * @name coinbaseinternational#watchFundingRates
+         * @description watch the funding rate for multiple markets
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+         * @param {string[]} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const channel = 'funding-rate';
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push(channel + ':' + symbol);
+            const marketId = this.marketId(symbol);
+            const topic = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push(topic);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const url = this.getUrl(channel, 'public');
+        const fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        if (this.newUpdates) {
+            const symbol = this.safeString(fundingRate, 'symbol');
+            const result = {};
+            result[symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, 'symbol', symbols);
+    }
+    handleFundingRate(client, message) {
+        //
+        // "data":[
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
+        // ]
+        //
+        const data = this.safeList(message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawfr = data[i];
+            const fundingRate = this.parseFundingRate(rawfr);
+            const symbol = fundingRate['symbol'];
+            this.fundingRates[symbol] = fundingRate;
+            client.resolve(fundingRate, 'funding-rate' + ':' + fundingRate['symbol']);
+        }
+    }
     async watchTicker(symbol, params = {}) {
         /**
          * @method
@@ -453,10 +537,12 @@ export default class okx extends okxRest {
         /**
          * @method
          * @name okx#watchOrderBook
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         //
@@ -488,16 +574,18 @@ export default class okx extends okxRest {
         /**
          * @method
          * @name okx#watchOrderBookForSymbols
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
-        let depth = this.safeString(options, 'depth', 'books');
+        let depth = undefined;
+        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'depth', 'books');
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -505,17 +593,17 @@ export default class okx extends okxRest {
             else if (limit > 1 && limit <= 5) {
                 depth = 'books5';
             }
-            else if (limit === 400) {
-                depth = 'books';
-            }
             else if (limit === 50) {
                 depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
             }
-            else if (limit === 4000) {
-                depth = 'books-l2-tbt'; // Make sure you have VIP5 and above
+            else if (limit === 400) {
+                depth = 'books';
             }
         }
         if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
+            if (!this.checkRequiredCredentials(false)) {
+                throw new AuthenticationError(this.id + ' watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5');
+            }
             await this.authenticate({ 'access': 'public' });
         }
         const topics = [];
@@ -579,6 +667,8 @@ export default class okx extends okxRest {
         const storedBids = orderbook['bids'];
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
+        const marketId = this.safeString(message, 'instId');
+        const symbol = this.safeSymbol(marketId);
         const checksum = this.safeBool(this.options, 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
@@ -599,6 +689,8 @@ export default class okx extends okxRest {
             const localChecksum = this.crc32(payload, true);
             if (responseChecksum !== localChecksum) {
                 const error = new InvalidNonce(this.id + ' invalid checksum');
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
             }
         }
@@ -693,10 +785,10 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue(message, 'arg', {});
+        const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
         const action = this.safeString(message, 'action');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -1526,29 +1618,21 @@ export default class okx extends okxRest {
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        const errorCode = this.safeInteger(message, 'code');
+        const errorCode = this.safeString(message, 'code');
         try {
-            if (errorCode) {
+            if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue(message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
+                throw new ExchangeError(feedback);
             }
         }
         catch (e) {
-            if (e instanceof AuthenticationError) {
-                const messageHash = 'authenticated';
-                client.reject(e, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
-                }
-                return false;
-            }
-            else {
-                client.reject(e);
-            }
+            client.reject(e);
+            return false;
         }
         return message;
     }
@@ -1636,6 +1720,7 @@ export default class okx extends okxRest {
                 'block-tickers': this.handleTicker,
                 'trades': this.handleTrades,
                 'account': this.handleBalance,
+                'funding-rate': this.handleFundingRate,
                 // 'margin_account': this.handleBalance,
                 'orders': this.handleOrders,
                 'orders-algo': this.handleOrders,

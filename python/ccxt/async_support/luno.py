@@ -150,6 +150,7 @@ class luno(Exchange, ImplicitAPI):
                         'withdrawals': 1,
                         'send': 1,
                         'oauth2/grant': 1,
+                        'beneficiaries': 1,
                         # POST /api/exchange/1/move
                     },
                     'put': {
@@ -157,6 +158,7 @@ class luno(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'withdrawals/{id}': 1,
+                        'beneficiaries/{id}': 1,
                     },
                 },
             },
@@ -507,7 +509,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # {
         #     "pair":"XBTAUD",
         #     "timestamp":1642201439301,

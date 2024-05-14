@@ -2586,6 +2586,11 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPublicGetIndexPriceKlines",parameters);
     }
 
+    public async Task<object> fapiPublicGetPremiumIndexKlines (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetPremiumIndexKlines",parameters);
+    }
+
     public async Task<object> fapiPublicGetFundingRate (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetFundingRate",parameters);

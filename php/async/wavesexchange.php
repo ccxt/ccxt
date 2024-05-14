@@ -86,6 +86,7 @@ class wavesexchange extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -387,7 +388,7 @@ class wavesexchange extends Exchange {
             $market = $this->market($symbol);
             $amount = $this->custom_amount_to_precision($symbol, $amount);
             $price = $this->custom_price_to_precision($symbol, $price);
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
                 'orderType' => $side,
@@ -617,7 +618,7 @@ class wavesexchange extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
             ), $params);
@@ -791,7 +792,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //       {
         //           "symbol" => "WAVES/BTC",
@@ -879,7 +880,7 @@ class wavesexchange extends Exchange {
             $request = array(
                 'pairs' => $market['id'],
             );
-            $response = Async\await($this->publicGetPairs (array_merge($request, $params)));
+            $response = Async\await($this->publicGetPairs ($this->extend($request, $params)));
             //
             //     {
             //         "__type":"list",
@@ -986,7 +987,7 @@ class wavesexchange extends Exchange {
                 $timeEnd = $this->sum($since, $duration * $limit);
                 $request['timeEnd'] = (string) $timeEnd;
             }
-            $response = Async\await($this->publicGetCandlesBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandlesBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "__type" => "list",
@@ -1146,7 +1147,7 @@ class wavesexchange extends Exchange {
                 $request = array(
                     'currency' => $code,
                 );
-                $response = Async\await($this->privateGetDepositAddressesCurrency (array_merge($request, $params)));
+                $response = Async\await($this->privateGetDepositAddressesCurrency ($this->extend($request, $params)));
             } else {
                 $supportedNetworks = $networksByCurrency[$code];
                 if (!(is_array($supportedNetworks) && array_key_exists($network, $supportedNetworks))) {
@@ -1157,7 +1158,7 @@ class wavesexchange extends Exchange {
                     $request = array(
                         'publicKey' => $this->apiKey,
                     );
-                    $responseInner = Async\await($this->nodeGetAddressesPublicKeyPublicKey (array_merge($request, $request)));
+                    $responseInner = Async\await($this->nodeGetAddressesPublicKeyPublicKey ($this->extend($request, $request)));
                     $addressInner = $this->safe_string($response, 'address');
                     return array(
                         'address' => $addressInner,
@@ -1172,7 +1173,7 @@ class wavesexchange extends Exchange {
                         'currency' => $code,
                         'platform' => $network,
                     );
-                    $response = Async\await($this->privateGetDepositAddressesCurrencyPlatform (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetDepositAddressesCurrencyPlatform ($this->extend($request, $params)));
                 }
             }
             //
@@ -1261,7 +1262,7 @@ class wavesexchange extends Exchange {
         return $this->parse_to_int(floatval($amountPrecision));
     }
 
-    public function currency_to_precision($code, $amount, $networkCode = null) {
+    public function custom_currency_to_precision($code, $amount, $networkCode = null) {
         $amountPrecision = $this->number_to_string($this->to_precision($amount, $this->currencies[$code]['precision']));
         return $this->parse_to_int(floatval($amountPrecision));
     }
@@ -1577,7 +1578,7 @@ class wavesexchange extends Exchange {
                 'publicKey' => $this->apiKey,
                 'orderId' => $id,
             );
-            $response = Async\await($this->matcherGetMatcherOrderbookPublicKeyOrderId (array_merge($request, $params)));
+            $response = Async\await($this->matcherGetMatcherOrderbookPublicKeyOrderId ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -1615,7 +1616,7 @@ class wavesexchange extends Exchange {
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
             );
-            $response = Async\await($this->matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (array_merge($request, $params)));
+            $response = Async\await($this->matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey ($this->extend($request, $params)));
             // array( array( id => "3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa",
             //     "type" => "sell",
             //     "orderType" => "limit",
@@ -2559,7 +2560,7 @@ class wavesexchange extends Exchange {
             $feeAssetId = 'WAVES';
             $type = 4;  // transfer
             $version = 2;
-            $amountInteger = $this->currency_to_precision($code, $amount);
+            $amountInteger = $this->custom_currency_to_precision($code, $amount);
             $currency = $this->currency($code);
             $timestamp = $this->milliseconds();
             $byteArray = [
