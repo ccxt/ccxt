@@ -3103,7 +3103,7 @@ export default class bitrue extends Exchange {
         if ((access === 'private') || (version === 'private')) {
             this.checkRequiredCredentials ();
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
-            if (type === 'spot') {
+            if ((type === 'spot') || (version === 'private')) {
                 let query = this.urlencode (this.extend ({
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,

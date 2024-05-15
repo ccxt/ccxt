@@ -24,9 +24,13 @@ export default class bitrue extends bitrueRest {
             'urls': {
                 'api': {
                     'open': 'https://open.bitrue.com',
+                    'fapiws': 'https://fapiws-auth.bitrue.com',
                     'ws': {
                         'public': 'wss://ws.bitrue.com/market/ws',
-                        'private': 'wss://wsapi.bitrue.com',
+                        'private': {
+                            'swap': 'wss://fapiws.bitrue.com',
+                            'spot': 'wss://wsapi.bitrue.com',
+                        },
                     },
                 },
             },
@@ -42,6 +46,17 @@ export default class bitrue extends bitrueRest {
                         'delete': {
                             'poseidon/api/v1/listenKey/{listenKey}': 1,
                         },
+                    },
+                },
+                'fapiws': {
+                    'post': {
+                        'user_stream/api/v1/listenKey': 1,
+                    },
+                    'put': {
+                        'user_stream/api/v1/listenKey/{listenKey}': 1,
+                    },
+                    'delete': {
+                        'user_stream/api/v1/listenKey/{listenKey}': 1,
                     },
                 },
             },
@@ -63,7 +78,10 @@ export default class bitrue extends bitrueRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        const url = await this.authenticate ();
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const url = await this.authenticate (type);
         const messageHash = 'balance';
         const message = {
             'event': 'sub',
@@ -182,11 +200,14 @@ export default class bitrue extends bitrueRest {
          * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const url = await this.authenticate ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const url = await this.authenticate (type);
         const messageHash = 'orders';
         const message = {
             'event': 'sub',
@@ -423,15 +444,21 @@ export default class bitrue extends bitrueRest {
         }
     }
 
-    async authenticate (params = {}) {
-        const listenKey = this.safeValue (this.options, 'listenKey');
+    async authenticate (type: string, params = {}) {
+        const listenKeyName = type + 'ListenKey';
+        const urlKey = type + 'ListenKeyUrl';
+        const listenKey = this.safeString (this.options, listenKeyName);
         if (listenKey === undefined) {
             let response = undefined;
             try {
-                response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
+                if (type === 'spot') {
+                    response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
+                } else {
+                    response = await this.fapiwsPostUserStreamApiV1ListenKey (params);
+                }
             } catch (error) {
-                this.options['listenKey'] = undefined;
-                this.options['listenKeyUrl'] = undefined;
+                this.options[listenKeyName] = undefined;
+                this.options[urlKey] = undefined;
                 return undefined;
             }
             //
@@ -446,20 +473,26 @@ export default class bitrue extends bitrueRest {
             const data = this.safeDict (response, 'data', {});
             const key = this.safeString (data, 'listenKey');
             this.options['listenKey'] = key;
-            this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+            this.options['listenKeyUrl'] = this.urls['api']['ws']['private'][type] + '/stream?listenKey=' + key;
             const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
             this.delay (refreshTimeout, this.keepAliveListenKey);
         }
         return this.options['listenKeyUrl'];
     }
 
-    async keepAliveListenKey (params = {}) {
-        const listenKey = this.safeString (this.options, 'listenKey');
+    async keepAliveListenKey (type, params = {}) {
+        const listenKeyName = type + 'ListenKey';
+        const urlKey = type + 'ListenKeyUrl';
+        const listenKey = this.safeString (this.options, listenKeyName);
         const request = {
             'listenKey': listenKey,
         };
         try {
-            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            if (type === 'spot') {
+                await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            } else {
+                await this.fapiwsPutUserStreamApiV1ListenKeyListenKey (this.extend (request, params));
+            }
             //
             // ಠ_ಠ
             //     {
@@ -468,8 +501,8 @@ export default class bitrue extends bitrueRest {
             //     }
             //
         } catch (error) {
-            this.options['listenKey'] = undefined;
-            this.options['listenKeyUrl'] = undefined;
+            this.options[listenKeyName] = undefined;
+            this.options[urlKey] = undefined;
             return;
         }
         const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
