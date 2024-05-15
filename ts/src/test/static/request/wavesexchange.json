@@ -2,6 +2,9 @@
     "exchange": "wavesexchange",
     "apiKey": "7vhqbdwotF593MRLMUtQvRkiR7aDdDf4Zp3yBrvzMYqr",
     "secret": "ASar3DL4CNiHhkDzq7qj4KEVaMfqwphaPDbvTegYFwvd",
+    "options": {
+      "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5"
+    },
     "skipKeys": [],
     "outputType": "json",
     "methods": {
