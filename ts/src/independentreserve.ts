@@ -724,7 +724,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name independentreserve#cancelOrder
@@ -738,7 +738,8 @@ export default class independentreserve extends Exchange {
         const request = {
             'orderGuid': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchDepositAddress (code: string, params = {}) {

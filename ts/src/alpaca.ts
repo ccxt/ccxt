@@ -775,7 +775,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name alpaca#cancelOrder
@@ -796,10 +796,10 @@ export default class alpaca extends Exchange {
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue (response, 'message', {});
+        return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name alpaca#cancelAllOrders

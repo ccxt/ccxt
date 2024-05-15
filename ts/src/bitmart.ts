@@ -2573,7 +2573,7 @@ export default class bitmart extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitmart#cancelOrder
@@ -2640,7 +2640,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         if (market['swap']) {
-            return response;
+            return this.parseOrder (response, market);
         }
         const data = this.safeValue (response, 'data');
         if (data === true) {
@@ -2658,11 +2658,10 @@ export default class bitmart extends Exchange {
                 throw new InvalidOrder (this.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled');
             }
         }
-        const order = this.parseOrder (id, market);
-        return this.extend (order, { 'id': id });
+        return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmart#cancelAllOrders

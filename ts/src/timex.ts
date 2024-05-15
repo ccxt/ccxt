@@ -876,7 +876,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name timex#cancelOrder
@@ -931,7 +931,7 @@ export default class timex extends Exchange {
         //         ],
         //         "unchangedOrders": [ "string" ],
         //     }
-        return response;
+        return response;  // TODO
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

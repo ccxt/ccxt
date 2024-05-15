@@ -1276,7 +1276,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#cancelOrder
@@ -1300,7 +1300,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitvavo#cancelAllOrders

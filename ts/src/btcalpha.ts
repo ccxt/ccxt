@@ -788,7 +788,7 @@ export default class btcalpha extends Exchange {
         return order;
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name btcalpha#cancelOrder
@@ -803,7 +803,7 @@ export default class btcalpha extends Exchange {
             'order': id,
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

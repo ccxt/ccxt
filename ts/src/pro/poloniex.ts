@@ -252,7 +252,7 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('createOrder', this.extend (request, params));
     }
 
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name poloniex#cancelOrderWs
@@ -269,10 +269,13 @@ export default class poloniex extends poloniexRest {
             const clientOrderIds = this.safeValue (params, 'clientOrderId', []);
             params['clientOrderIds'] = this.arrayConcat (clientOrderIds, [ clientOrderId ]);
         }
-        return await this.cancelOrdersWs ([ id ], symbol, params);
+        const response = await this.cancelOrdersWs ([ id ], symbol, params);
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
-    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniex#cancelOrdersWs
@@ -292,7 +295,7 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('cancelOrders', this.extend (request, params));
     }
 
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniex#cancelAllOrdersWs

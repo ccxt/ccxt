@@ -1020,7 +1020,7 @@ class Transpiler {
             'Num': /: (?:List\[)?Num =/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
-            'Order': /-> (?:List\[)?Order\]?:/,
+            'Order': /(-> (?:List\[)?Order\]?:)|(: (?:List\[)?Order)/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'CancellationRequest': /: (?:List\[)?CancellationRequest/,

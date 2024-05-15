@@ -199,7 +199,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kraken#cancelOrdersWs
@@ -264,7 +264,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, reqId);
     }
 
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kraken#cancelAllOrdersWs

@@ -4247,7 +4247,7 @@ export default class bybit extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bybit#cancelOrder
@@ -4371,7 +4371,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (row, market);
     }
 
-    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+    async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bybit#cancelOrdersForSymbols
@@ -4502,7 +4502,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bybit#cancelAllOrders

@@ -459,7 +459,7 @@ export default class bit2c extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bit2c#cancelOrder
@@ -473,7 +473,8 @@ export default class bit2c extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostOrderCancelOrder (this.extend (request, params));
+        const response = await this.privatePostOrderCancelOrder (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {

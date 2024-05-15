@@ -6,7 +6,7 @@ import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -426,7 +426,7 @@ export default class paymium extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name paymium#cancelOrder
@@ -441,7 +441,8 @@ export default class paymium extends Exchange {
         const request = {
             'uuid': id,
         };
-        return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
+        const response = await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
