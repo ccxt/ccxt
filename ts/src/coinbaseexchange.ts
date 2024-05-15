@@ -1,7 +1,7 @@
 
 // ----------------------------------------------------------------------------
 
-import Exchange from './abstract/coinbasepro.js';
+import Exchange from './abstract/coinbaseexchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -11,14 +11,14 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Tra
 // ----------------------------------------------------------------------------
 
 /**
- * @class coinbasepro
+ * @class coinbaseexchange
  * @augments Exchange
  */
-export default class coinbasepro extends Exchange {
+export default class coinbaseexchange extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinbasepro',
-            'name': 'Coinbase Pro(Deprecated)',
+            'id': 'coinbaseexchange',
+            'name': 'Coinbase Exchange',
             'countries': [ 'US' ],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome'],
@@ -80,19 +80,19 @@ export default class coinbasepro extends Exchange {
                 '6h': 21600,
                 '1d': 86400,
             },
-            'hostname': 'pro.coinbase.com',
+            'hostname': 'exchange.coinbase.com',
             'urls': {
                 'test': {
-                    'public': 'https://api-public.sandbox.pro.coinbase.com',
-                    'private': 'https://api-public.sandbox.pro.coinbase.com',
+                    'public': 'https://api-public.sandbox.exchange.coinbase.com',
+                    'private': 'https://api-public.sandbox.exchange.coinbase.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://pro.coinbase.com/',
-                'doc': 'https://docs.pro.coinbase.com',
+                'www': 'https://coinbase.com/',
+                'doc': 'https://docs.cloud.coinbase.com/exchange/docs/',
                 'fees': [
                     'https://docs.pro.coinbase.com/#fees',
                     'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
@@ -240,7 +240,7 @@ export default class coinbasepro extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
-         * @name coinbasepro#fetchCurrencies
+         * @name coinbaseexchange#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -312,8 +312,8 @@ export default class coinbasepro extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
-         * @name coinbasepro#fetchMarkets
-         * @description retrieves data on all markets for coinbasepro
+         * @name coinbaseexchange#fetchMarkets
+         * @description retrieves data on all markets for coinbaseexchange
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
@@ -434,7 +434,7 @@ export default class coinbasepro extends Exchange {
     async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
-         * @name coinbasepro#fetchAccounts
+         * @name coinbaseexchange#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -503,7 +503,7 @@ export default class coinbasepro extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name coinbasepro#fetchBalance
+         * @name coinbaseexchange#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -517,7 +517,7 @@ export default class coinbasepro extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name coinbasepro#fetchOrderBook
+         * @name coinbaseexchange#fetchOrderBook
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -638,7 +638,7 @@ export default class coinbasepro extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name coinbasepro#fetchTickers
+         * @name coinbaseexchange#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -686,7 +686,7 @@ export default class coinbasepro extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name coinbasepro#fetchTicker
+         * @name coinbaseexchange#fetchTicker
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -802,7 +802,7 @@ export default class coinbasepro extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#fetchMyTrades
+         * @name coinbaseexchange#fetchMyTrades
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
@@ -844,7 +844,7 @@ export default class coinbasepro extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name coinbasepro#fetchTrades
+         * @name coinbaseexchange#fetchTrades
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
@@ -879,7 +879,7 @@ export default class coinbasepro extends Exchange {
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
-         * @name coinbasepro#fetchTradingFees
+         * @name coinbaseexchange#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -935,7 +935,7 @@ export default class coinbasepro extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
-         * @name coinbasepro#fetchOHLCV
+         * @name coinbaseexchange#fetchOHLCV
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -998,7 +998,7 @@ export default class coinbasepro extends Exchange {
     async fetchTime (params = {}) {
         /**
          * @method
-         * @name coinbasepro#fetchTime
+         * @name coinbaseexchange#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -1104,10 +1104,10 @@ export default class coinbasepro extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#fetchOrder
+         * @name coinbaseexchange#fetchOrder
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
          * @description fetches information on an order made by the user
-         * @param {string} symbol not used by coinbasepro fetchOrder
+         * @param {string} symbol not used by coinbaseexchange fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1130,7 +1130,7 @@ export default class coinbasepro extends Exchange {
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#fetchOrderTrades
+         * @name coinbaseexchange#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
@@ -1154,7 +1154,7 @@ export default class coinbasepro extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name coinbasepro#fetchOrders
+         * @name coinbaseexchange#fetchOrders
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -1173,7 +1173,7 @@ export default class coinbasepro extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name coinbasepro#fetchOpenOrders
+         * @name coinbaseexchange#fetchOpenOrders
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
@@ -1214,7 +1214,7 @@ export default class coinbasepro extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name coinbasepro#fetchClosedOrders
+         * @name coinbaseexchange#fetchClosedOrders
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -1233,7 +1233,7 @@ export default class coinbasepro extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#createOrder
+         * @name coinbaseexchange#createOrder
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
@@ -1327,7 +1327,7 @@ export default class coinbasepro extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#cancelOrder
+         * @name coinbaseexchange#cancelOrder
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
          * @description cancels an open order
          * @param {string} id order id
@@ -1360,7 +1360,7 @@ export default class coinbasepro extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#cancelAllOrders
+         * @name coinbaseexchange#cancelAllOrders
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
@@ -1384,7 +1384,7 @@ export default class coinbasepro extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#withdraw
+         * @name coinbaseexchange#withdraw
          * @description make a withdrawal
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
@@ -1509,7 +1509,7 @@ export default class coinbasepro extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name coinbasepro#fetchLedger
+         * @name coinbaseexchange#fetchLedger
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
@@ -1561,7 +1561,7 @@ export default class coinbasepro extends Exchange {
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name coinbasepro#fetchDepositsWithdrawals
+         * @name coinbaseexchange#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
@@ -1669,7 +1669,7 @@ export default class coinbasepro extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name coinbasepro#fetchDeposits
+         * @name coinbaseexchange#fetchDeposits
          * @description fetch all deposits made to an account
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
@@ -1685,7 +1685,7 @@ export default class coinbasepro extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name coinbasepro#fetchWithdrawals
+         * @name coinbaseexchange#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
@@ -1798,7 +1798,7 @@ export default class coinbasepro extends Exchange {
     async createDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name coinbasepro#createDepositAddress
+         * @name coinbaseexchange#createDepositAddress
          * @description create a currency deposit address
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
          * @param {string} code unified currency code of the currency for the deposit address
