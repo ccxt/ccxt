@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
-import { BadRequest } from './base/errors.js';
+import { BadRequest, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
@@ -37,15 +37,15 @@ export default class oxfun extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
-                'createMarketBuyOrderWithCost': false,
+                'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createPostOnlyOrder': false,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
-                'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': true,
@@ -86,7 +86,7 @@ export default class oxfun extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -959,7 +959,7 @@ export default class oxfun extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'lastUpdatedAt');
         return this.parseOrderBook (data, market['symbol'], timestamp);
     }
@@ -2425,6 +2425,72 @@ export default class oxfun extends Exchange {
         return this.extend (request, params);
     }
 
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+        /**
+         * @method
+         * @name oxfun#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://open.big.one/docs/spot_orders.html#create-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        const request = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', undefined, undefined, this.extend (request, params));
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name oxfun#fetchOrder
+         * @see https://docs.ox.fun/?json#get-v3-orders-status
+         * @description fetches information on an order made by the user
+         * @param {string} id a unique id for the order
+         * @param {string} [symbol] not used by oxfun fetchOrder
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] the client order id of the order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privateGetV3OrdersStatus (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "orderId": "1000111762980",
+        //             "clientOrderId": "0",
+        //             "marketCode": "ETH-USD-SWAP-LIN",
+        //             "status": "OPEN",
+        //             "side": "BUY",
+        //             "price": "2700.0",
+        //             "isTriggered": false,
+        //             "remainQuantity": "0.01",
+        //             "totalQuantity": "0.01",
+        //             "amount": "0",
+        //             "displayQuantity": "0.01",
+        //             "cumulativeMatchedQuantity": "0",
+        //             "orderType": "STOP_LIMIT",
+        //             "timeInForce": "GTC",
+        //             "source": "11",
+        //             "createdAt": "1715794191277"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         //
@@ -2459,7 +2525,7 @@ export default class oxfun extends Exchange {
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeStringN (order, [ 'price', 'matchPrice', 'limitPrice' ]),
             'average': undefined,
-            'amount': this.omitZero (this.safeString (order, 'quantity', 'totalQuantity')),
+            'amount': this.omitZero (this.safeString (order, 'totalQuantity', 'quantity')),
             'filled': this.safeString2 (order, 'cumulativeMatchedQuantity', 'matchQuantity'),
             'remaining': this.safeString (order, 'remainQuantity'),
             'triggerPrice': triggerPrice,
