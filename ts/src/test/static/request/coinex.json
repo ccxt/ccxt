@@ -973,11 +973,11 @@
         ],
         "fetchFundingRateHistory": [
             {
-                "description": "fundingRateHistory",
+                "description": "Fetch the funding rate history",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.coinex.com/perpetual/v1/market/funding_history?market=BTCUSDT&limit=100&offset=0",
+                "url": "https://api.coinex.com/v2/futures/funding-rate-history?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
