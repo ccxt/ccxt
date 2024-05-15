@@ -2227,7 +2227,7 @@ export default class oxfun extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} params.timestamp in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
+         * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
          * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
          * @param {string} [params.responseType] FULL or ACK
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
@@ -2237,23 +2237,19 @@ export default class oxfun extends Exchange {
          * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
          * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
          * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const listOfOrders = [];
         const request = {
             'responseType': this.safeString (params, 'responseType', 'FULL'),
             'timestamp': this.safeInteger (params, 'timestamp', this.milliseconds ()),
         };
         const orderRequest = this.createOrderRequest (market, type, side, amount, price, params);
-        listOfOrders.push (orderRequest);
-        request['orders'] = listOfOrders;
-        return await this.privatePostV3OrdersPlace (request);
+        request['orders'] = [ orderRequest ];
+        const response = await this.privatePostV3OrdersPlace (request);
         //
-        // accepted order responseType FULL
+        // accepted market order responseType FULL
         //     {
         //         "success": true,
         //         "data": [
@@ -2279,6 +2275,31 @@ export default class oxfun extends Exchange {
         //                 "createdAt": "1715592472236",
         //                 "lastMatchedAt": "1715592472200",
         //                 "displayQuantity": "150.0"
+        //             }
+        //         ]
+        //     }
+        //
+        // accepted limit order responseType FULL
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "notice": "OrderOpened",
+        //                 "accountId": "106490",
+        //                 "orderId": "1000111482406",
+        //                 "submitted": true,
+        //                 "clientOrderId": "0",
+        //                 "marketCode": "ETH-USD-SWAP-LIN",
+        //                 "status": "OPEN",
+        //                 "side": "SELL",
+        //                 "price": "4000.0",
+        //                 "isTriggered": false,
+        //                 "quantity": "0.01",
+        //                 "amount": "0.0",
+        //                 "orderType": "LIMIT",
+        //                 "timeInForce": "GTC",
+        //                 "createdAt": "1715763507682",
+        //                 "displayQuantity": "0.01"
         //             }
         //         ]
         //     }
@@ -2343,7 +2364,8 @@ export default class oxfun extends Exchange {
         //         ]
         //     }
         //
-        // return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrder (data[0], market);
     }
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
@@ -2367,9 +2389,6 @@ export default class oxfun extends Exchange {
             'marketCode': market['id'],
             'side': side.toUpperCase (),
         };
-        if (price !== undefined) {
-            request['price'] = price; // todo priceToPrecision
-        }
         const cost = this.safeNumber2 (params, 'cost', 'amount');
         if (cost !== undefined) {
             request['amount'] = cost; // todo costToPrecision
@@ -2386,22 +2405,108 @@ export default class oxfun extends Exchange {
                 orderType = 'STOP_LIMIT';
             }
             request['stopPrice'] = triggerPrice; // todo priceToPrecision
-            params = this.omit ([ 'triggerPrice', 'stopPrice' ]);
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         }
         request['orderType'] = orderType;
         if (orderType === 'STOP_LIMIT') {
             const limitPrice = this.safeNumber (params, 'limitPrice', price);
             request['limitPrice'] = limitPrice; // todo priceToPrecision
             params = this.omit (params, 'limitPrice');
+        } else if (price !== undefined) {
+            request['price'] = price; // todo priceToPrecision
         }
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.safeBool (params, 'postOnly');
-        if ((timeInForce === undefined) && postOnly) {
+        let postOnly = undefined;
+        const isMarketOrder = (orderType === 'MARKET') || (orderType === 'STOP_MARKET');
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, false, params);
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        if (postOnly && (timeInForce !== 'MAKER_ONLY_REPRICE')) {
             request['timeInForce'] = 'MAKER_ONLY';
-        } else if (timeInForce === 'PO') {
-            request['timeInForce'] = 'MAKER_ONLY'; // todo should we throw an exception if postOnly and timeInForce is not MAKER_ONLY?
         }
         return this.extend (request, params);
+    }
+
+    parseOrder (order, market: Market = undefined): Order {
+        //
+        //
+        const marketId = this.safeString (order, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'createdAt');
+        let fee = undefined;
+        const feeCurrency = this.safeString (order, 'feeInstrumentId');
+        if (feeCurrency !== undefined) {
+            fee = {
+                'currency': this.safeCurrencyCode (feeCurrency),
+                'cost': this.safeString (order, 'fees'),
+            };
+        }
+        let status = this.safeString (order, 'status');
+        const code = this.safeInteger (order, 'code'); // rejected orders have code of the error
+        if (code !== undefined) {
+            status = 'rejected';
+        }
+        const triggerPrice = this.safeString (order, 'stopPrice');
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.safeInteger (order, 'lastMatchedAt'),
+            'lastUpdateTimestamp': this.safeInteger (order, 'lastModifiedAt'),
+            'status': this.parseOrderStatus (status),
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (this.safeString (order, 'type')),
+            'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')), // only for limit orders
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.safeStringN (order, [ 'price', 'matchPrice', 'limitPrice' ]),
+            'average': undefined,
+            'amount': this.omitZero (this.safeString (order, 'quantity', 'totalQuantity')),
+            'filled': this.safeString2 (order, 'cumulativeMatchedQuantity', 'matchQuantity'),
+            'remaining': this.safeString (order, 'remainQuantity'),
+            'triggerPrice': triggerPrice,
+            'stopLossPrice': triggerPrice,
+            'cost': this.omitZero (this.safeString (order, 'amount')),
+            'trades': undefined,
+            'fee': fee,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIAL_FILL': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled', // todo check
+            'CANCELED_BY_USER': 'canceled',
+            'CANCELED_BY_MAKER_ONLY': 'rejected',
+            'CANCELED_BY_FOK': 'rejected',
+            'CANCELED_ALL_BY_IOC': 'rejected',
+            'CANCELED_PARTIAL_BY_IOC': 'canceled',
+            'CANCELED_BY_SELF_TRADE_PROTECTION': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        const types = {
+            'LIMIT': 'limit',
+            'STOP_LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_MARKET': 'market',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseOrderTimeInForce (type) {
+        const types = {
+            'GTC': 'GTC',
+            'IOC': 'IOC',
+            'FOK': 'FOK',
+            'MAKER_ONLY': 'PO',
+            'MAKER_ONLY_REPRICE': 'PO',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
