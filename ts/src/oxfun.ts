@@ -281,7 +281,8 @@ export default class oxfun extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const responseFromMarkets = await this.publicGetV3Markets (params);
+        const [ responseFromMarkets, responseFromTickers ] = await Promise.all ([ this.publicGetV3Markets (params), this.publicGetV3Tickers (params) ]);
+        const marketsFromMarkets = this.safeList (responseFromMarkets, 'data', []);
         //
         //         {
         //             success: true,
@@ -338,8 +339,7 @@ export default class oxfun extends Exchange {
         //             ]
         //         }
         //
-        const marketsFromMarkets = this.safeList (responseFromMarkets, 'data', []);
-        const responseFromTickers = await this.publicGetV3Tickers (params); // response from this endpoint has additional markets
+        const marketsFromTickers = this.safeList (responseFromTickers, 'data', []);
         //
         //     {
         //         "success": true,
@@ -361,7 +361,6 @@ export default class oxfun extends Exchange {
         //         ]
         //     }
         //
-        const marketsFromTickers = this.safeList (responseFromTickers, 'data', []);
         const markets = this.arrayConcat (marketsFromMarkets, marketsFromTickers);
         return this.parseMarkets (markets);
     }
