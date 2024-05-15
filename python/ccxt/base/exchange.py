@@ -2075,7 +2075,7 @@ class Exchange(object):
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
         result = parsedArray
-        # single-pass filter for both symbol and since
+        # single-pass filter for both symbol and since.
         if valueIsDefined or sinceIsDefined:
             result = []
             for i in range(0, len(parsedArray)):

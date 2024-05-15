@@ -1,18 +1,21 @@
-'use strict';
-
-var coinbasepro$1 = require('../coinbasepro.js');
-var errors = require('../base/errors.js');
-var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
+
+import coinbaseexchangeRest from '../coinbaseexchange.js';
+import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+
 //  ---------------------------------------------------------------------------
-class coinbasepro extends coinbasepro$1 {
-    describe() {
-        return this.deepExtend(super.describe(), {
+
+export default class coinbaseexchange extends coinbaseexchangeRest {
+    describe () {
+        return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchOHLCV': false,
+                'watchOHLCV': false, // missing on the exchange side
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchTicker': true,
@@ -21,14 +24,14 @@ class coinbasepro extends coinbasepro$1 {
                 'watchTradesForSymbols': true,
                 'watchMyTradesForSymbols': true,
                 'watchBalance': false,
-                'watchStatus': false,
+                'watchStatus': false, // for now
                 'watchOrders': true,
                 'watchOrdersForSymbols': true,
                 'watchMyTrades': true,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-feed.pro.coinbase.com',
+                    'ws': 'wss://ws-feed.exchange.coinbase.com',
                 },
                 'test': {
                     'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
@@ -41,12 +44,13 @@ class coinbasepro extends coinbasepro$1 {
             },
         });
     }
-    authenticate() {
-        this.checkRequiredCredentials();
+
+    authenticate () {
+        this.checkRequiredCredentials ();
         const path = '/users/self/verify';
-        const nonce = this.nonce();
-        const payload = nonce.toString() + 'GET' + path;
-        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+        const nonce = this.nonce ();
+        const payload = nonce.toString () + 'GET' + path;
+        const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), sha256, 'base64');
         return {
             'timestamp': nonce,
             'key': this.apiKey,
@@ -54,15 +58,16 @@ class coinbasepro extends coinbasepro$1 {
             'passphrase': this.password,
         };
     }
-    async subscribe(name, symbol = undefined, messageHashStart = undefined, params = {}) {
-        await this.loadMarkets();
+
+    async subscribe (name, symbol = undefined, messageHashStart = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         let messageHash = messageHashStart;
         const productIds = [];
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.market (symbol);
             messageHash += ':' + market['id'];
-            productIds.push(market['id']);
+            productIds.push (market['id']);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
@@ -76,20 +81,21 @@ class coinbasepro extends coinbasepro$1 {
                 name,
             ],
         };
-        const request = this.extend(subscribe, params);
-        return await this.watch(url, messageHash, request, messageHash);
+        const request = this.extend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash);
     }
-    async subscribeMultiple(name, symbols = [], messageHashStart = undefined, params = {}) {
-        await this.loadMarkets();
+
+    async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols (symbols);
         const messageHashes = [];
         const productIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            market = this.market(symbol);
-            productIds.push(market['id']);
-            messageHashes.push(messageHashStart + ':' + market['symbol']);
+            market = this.market (symbol);
+            productIds.push (market['id']);
+            messageHashes.push (messageHashStart + ':' + market['symbol']);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
@@ -103,50 +109,53 @@ class coinbasepro extends coinbasepro$1 {
                 name,
             ],
         };
-        const request = this.extend(subscribe, params);
-        return await this.watchMultiple(url, messageHashes, request, messageHashes);
+        const request = this.extend (subscribe, params);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
-    async watchTicker(symbol, params = {}) {
+
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name coinbasepro#watchTicker
+         * @name coinbaseexchange#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const name = 'ticker';
-        return await this.subscribe(name, symbol, name, params);
+        return await this.subscribe (name, symbol, name, params);
     }
-    async watchTickers(symbols = undefined, params = {}) {
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name coinbasepro#watchTickers
+         * @name coinbaseexchange#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
-            throw new errors.BadSymbol(this.id + ' watchTickers requires a non-empty symbols array');
+            throw new BadSymbol (this.id + ' watchTickers requires a non-empty symbols array');
         }
         const channel = 'ticker';
         const messageHash = 'ticker';
-        const ticker = await this.subscribeMultiple(channel, symbols, messageHash, params);
+        const ticker = await this.subscribeMultiple (channel, symbols, messageHash, params);
         if (this.newUpdates) {
             const result = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name coinbasepro#watchTrades
+         * @name coinbaseexchange#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -154,16 +163,17 @@ class coinbasepro extends coinbasepro$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'matches';
-        const trades = await this.subscribe(name, symbol, name, params);
+        const trades = await this.subscribe (name, symbol, name, params);
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
-    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbase#watchTradesForSymbols
@@ -176,23 +186,24 @@ class coinbasepro extends coinbasepro$1 {
          */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
-            throw new errors.BadRequest(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+            throw new BadRequest (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const name = 'matches';
-        const trades = await this.subscribeMultiple(name, symbols, name, params);
+        const trades = await this.subscribeMultiple (name, symbols, name, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
-    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name coinbasepro#watchMyTrades
+         * @name coinbaseexchange#watchMyTrades
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -201,23 +212,24 @@ class coinbasepro extends coinbasepro$1 {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'user';
         const messageHash = 'myTrades';
-        const authentication = this.authenticate();
-        const trades = await this.subscribe(name, symbol, messageHash, this.extend(params, authentication));
+        const authentication = this.authenticate ();
+        const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
-    async watchMyTradesForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+
+    async watchMyTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name coinbasepro#watchMyTradesForSymbols
+         * @name coinbaseexchange#watchMyTradesForSymbols
          * @description watches information on multiple trades made by the user
          * @param {string[]} symbols unified symbol of the market to fetch trades for
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -225,23 +237,24 @@ class coinbasepro extends coinbasepro$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
-        symbols = this.marketSymbols(symbols, undefined, false);
-        await this.loadMarkets();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        await this.loadMarkets ();
         const name = 'user';
         const messageHash = 'myTrades';
-        const authentication = this.authenticate();
-        const trades = await this.subscribeMultiple(name, symbols, messageHash, this.extend(params, authentication));
+        const authentication = this.authenticate ();
+        const trades = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
-    async watchOrdersForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+
+    async watchOrdersForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name coinbasepro#watchOrdersForSymbols
+         * @name coinbaseexchange#watchOrdersForSymbols
          * @description watches information on multiple orders made by the user
          * @param {string[]} symbols unified symbol of the market to fetch orders for
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -249,23 +262,24 @@ class coinbasepro extends coinbasepro$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false);
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
         const name = 'user';
         const messageHash = 'orders';
-        const authentication = this.authenticate();
-        const orders = await this.subscribeMultiple(name, symbols, messageHash, this.extend(params, authentication));
+        const authentication = this.authenticate ();
+        const orders = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            const first = this.safeValue(orders, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = orders.getLimit(tradeSymbol, limit);
+            const first = this.safeValue (orders, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = orders.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
-    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name coinbasepro#watchOrders
+         * @name coinbaseexchange#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -274,23 +288,24 @@ class coinbasepro extends coinbasepro$1 {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new errors.BadSymbol(this.id + ' watchMyTrades requires a symbol');
+            throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
         }
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'user';
         const messageHash = 'orders';
-        const authentication = this.authenticate();
-        const orders = await this.subscribe(name, symbol, messageHash, this.extend(params, authentication));
+        const authentication = this.authenticate ();
+        const orders = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
-    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name coinbasepro#watchOrderBookForSymbols
+         * @name coinbaseexchange#watchOrderBookForSymbols
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -299,16 +314,16 @@ class coinbasepro extends coinbasepro$1 {
          */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
-            throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+            throw new BadRequest (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         const name = 'level2';
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        const marketIds = this.marketIds(symbols);
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
         const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
             const marketId = marketIds[i];
-            messageHashes.push(name + ':' + marketId);
+            messageHashes.push (name + ':' + marketId);
         }
         const url = this.urls['api']['ws'];
         const subscribe = {
@@ -318,21 +333,22 @@ class coinbasepro extends coinbasepro$1 {
                 name,
             ],
         };
-        const request = this.extend(subscribe, params);
+        const request = this.extend (subscribe, params);
         const subscription = {
             'messageHash': name,
             'symbols': symbols,
             'marketIds': marketIds,
             'limit': limit,
         };
-        const authentication = this.authenticate();
-        const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription);
-        return orderbook.limit();
+        const authentication = this.authenticate ();
+        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, authentication), messageHashes, subscription);
+        return orderbook.limit ();
     }
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
+
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name coinbasepro#watchOrderBook
+         * @name coinbaseexchange#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -340,8 +356,8 @@ class coinbasepro extends coinbasepro$1 {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const name = 'level2';
-        await this.loadMarkets();
-        const market = this.market(symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -354,18 +370,19 @@ class coinbasepro extends coinbasepro$1 {
                 name,
             ],
         };
-        const request = this.extend(subscribe, params);
+        const request = this.extend (subscribe, params);
         const subscription = {
             'messageHash': messageHash,
             'symbol': symbol,
             'marketId': market['id'],
             'limit': limit,
         };
-        const authentication = this.authenticate();
-        const orderbook = await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription);
-        return orderbook.limit();
+        const authentication = this.authenticate ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
+        return orderbook.limit ();
     }
-    handleTrade(client, message) {
+
+    handleTrade (client: Client, message) {
         //
         //     {
         //         "type": "match",
@@ -380,44 +397,46 @@ class coinbasepro extends coinbasepro$1 {
         //         "time": "2020-01-31T20:03:41.158814Z"
         //     }
         //
-        const marketId = this.safeString(message, 'product_id');
+        const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
-            const trade = this.parseWsTrade(message);
+            const trade = this.parseWsTrade (message);
             const symbol = trade['symbol'];
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
             const type = 'matches';
             const messageHash = type + ':' + marketId;
-            let tradesArray = this.safeValue(this.trades, symbol);
+            let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
-                const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
-                tradesArray = new Cache.ArrayCache(tradesLimit);
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                tradesArray = new ArrayCache (tradesLimit);
                 this.trades[symbol] = tradesArray;
             }
-            tradesArray.append(trade);
-            client.resolve(tradesArray, messageHash);
+            tradesArray.append (trade);
+            client.resolve (tradesArray, messageHash);
         }
         return message;
     }
-    handleMyTrade(client, message) {
-        const marketId = this.safeString(message, 'product_id');
+
+    handleMyTrade (client: Client, message) {
+        const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
-            const trade = this.parseWsTrade(message);
+            const trade = this.parseWsTrade (message);
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
             let tradesArray = this.myTrades;
             if (tradesArray === undefined) {
-                const limit = this.safeInteger(this.options, 'myTradesLimit', 1000);
-                tradesArray = new Cache.ArrayCacheBySymbolById(limit);
+                const limit = this.safeInteger (this.options, 'myTradesLimit', 1000);
+                tradesArray = new ArrayCacheBySymbolById (limit);
                 this.myTrades = tradesArray;
             }
-            tradesArray.append(trade);
-            client.resolve(tradesArray, messageHash);
+            tradesArray.append (trade);
+            client.resolve (tradesArray, messageHash);
         }
         return message;
     }
-    parseWsTrade(trade, market = undefined) {
+
+    parseWsTrade (trade, market = undefined) {
         //
         // private trades
         // {
@@ -468,32 +487,31 @@ class coinbasepro extends coinbasepro$1 {
         //     "side": "buy",
         //     "order_type": "limit"
         // }
-        const parsed = super.parseTrade(trade);
+        const parsed = super.parseTrade (trade);
         let feeRate = undefined;
         let isMaker = false;
         if ('maker_fee_rate' in trade) {
             isMaker = true;
             parsed['takerOrMaker'] = 'maker';
-            feeRate = this.safeNumber(trade, 'maker_fee_rate');
-        }
-        else {
+            feeRate = this.safeNumber (trade, 'maker_fee_rate');
+        } else {
             parsed['takerOrMaker'] = 'taker';
-            feeRate = this.safeNumber(trade, 'taker_fee_rate');
+            feeRate = this.safeNumber (trade, 'taker_fee_rate');
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
             const currentSide = parsed['side'];
-            parsed['side'] = this.safeString({
+            parsed['side'] = this.safeString ({
                 'buy': 'sell',
                 'sell': 'buy',
             }, currentSide, currentSide);
         }
         const idKey = isMaker ? 'maker_order_id' : 'taker_order_id';
-        parsed['order'] = this.safeString(trade, idKey);
-        market = this.market(parsed['symbol']);
+        parsed['order'] = this.safeString (trade, idKey);
+        market = this.market (parsed['symbol']);
         const feeCurrency = market['quote'];
         let feeCost = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
-            const cost = this.safeNumber(parsed, 'cost');
+            const cost = this.safeNumber (parsed, 'cost');
             feeCost = cost * feeRate;
         }
         parsed['fee'] = {
@@ -503,14 +521,16 @@ class coinbasepro extends coinbasepro$1 {
         };
         return parsed;
     }
-    parseWsOrderStatus(status) {
+
+    parseWsOrderStatus (status) {
         const statuses = {
             'filled': 'closed',
             'canceled': 'canceled',
         };
-        return this.safeString(statuses, status, 'open');
+        return this.safeString (statuses, status, 'open');
     }
-    handleOrder(client, message) {
+
+    handleOrder (client: Client, message) {
         //
         // Order is created
         //
@@ -591,48 +611,47 @@ class coinbasepro extends coinbasepro$1 {
         //
         let currentOrders = this.orders;
         if (currentOrders === undefined) {
-            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-            currentOrders = new Cache.ArrayCacheBySymbolById(limit);
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            currentOrders = new ArrayCacheBySymbolById (limit);
             this.orders = currentOrders;
         }
-        const type = this.safeString(message, 'type');
-        const marketId = this.safeString(message, 'product_id');
+        const type = this.safeString (message, 'type');
+        const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
             const messageHash = 'orders:' + marketId;
-            const symbol = this.safeSymbol(marketId);
-            const orderId = this.safeString(message, 'order_id');
-            const makerOrderId = this.safeString(message, 'maker_order_id');
-            const takerOrderId = this.safeString(message, 'taker_order_id');
+            const symbol = this.safeSymbol (marketId);
+            const orderId = this.safeString (message, 'order_id');
+            const makerOrderId = this.safeString (message, 'maker_order_id');
+            const takerOrderId = this.safeString (message, 'taker_order_id');
             const orders = this.orders;
-            const previousOrders = this.safeValue(orders.hashmap, symbol, {});
-            let previousOrder = this.safeValue(previousOrders, orderId);
+            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
+            let previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
-                previousOrder = this.safeValue2(previousOrders, makerOrderId, takerOrderId);
+                previousOrder = this.safeValue2 (previousOrders, makerOrderId, takerOrderId);
             }
             if (previousOrder === undefined) {
-                const parsed = this.parseWsOrder(message);
-                orders.append(parsed);
-                client.resolve(orders, messageHash);
-            }
-            else {
-                const sequence = this.safeInteger(message, 'sequence');
-                const previousInfo = this.safeValue(previousOrder, 'info', {});
-                const previousSequence = this.safeInteger(previousInfo, 'sequence');
+                const parsed = this.parseWsOrder (message);
+                orders.append (parsed);
+                client.resolve (orders, messageHash);
+            } else {
+                const sequence = this.safeInteger (message, 'sequence');
+                const previousInfo = this.safeValue (previousOrder, 'info', {});
+                const previousSequence = this.safeInteger (previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {
-                        const trade = this.parseWsTrade(message);
+                        const trade = this.parseWsTrade (message);
                         if (previousOrder['trades'] === undefined) {
                             previousOrder['trades'] = [];
                         }
-                        previousOrder['trades'].push(trade);
+                        previousOrder['trades'].push (trade);
                         previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                         let totalCost = 0;
                         let totalAmount = 0;
                         const trades = previousOrder['trades'];
                         for (let i = 0; i < trades.length; i++) {
                             const tradeEntry = trades[i];
-                            totalCost = this.sum(totalCost, tradeEntry['cost']);
-                            totalAmount = this.sum(totalAmount, tradeEntry['amount']);
+                            totalCost = this.sum (totalCost, tradeEntry['cost']);
+                            totalAmount = this.sum (totalAmount, tradeEntry['amount']);
                         }
                         if (totalAmount > 0) {
                             previousOrder['average'] = totalCost / totalAmount;
@@ -651,16 +670,15 @@ class coinbasepro extends coinbasepro$1 {
                             };
                         }
                         if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum(previousOrder['fee']['cost'], trade['fee']['cost']);
+                            previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], trade['fee']['cost']);
                         }
                         // update the newUpdates count
-                        orders.append(previousOrder);
-                        client.resolve(orders, messageHash);
-                    }
-                    else if ((type === 'received') || (type === 'done')) {
-                        const info = this.extend(previousOrder['info'], message);
-                        const order = this.parseWsOrder(info);
-                        const keys = Object.keys(order);
+                        orders.append (previousOrder);
+                        client.resolve (orders, messageHash);
+                    } else if ((type === 'received') || (type === 'done')) {
+                        const info = this.extend (previousOrder['info'], message);
+                        const order = this.parseWsOrder (info);
+                        const keys = Object.keys (order);
                         // update the reference
                         for (let i = 0; i < keys.length; i++) {
                             const key = keys[i];
@@ -669,45 +687,45 @@ class coinbasepro extends coinbasepro$1 {
                             }
                         }
                         // update the newUpdates count
-                        orders.append(previousOrder);
-                        client.resolve(orders, messageHash);
+                        orders.append (previousOrder);
+                        client.resolve (orders, messageHash);
                     }
                 }
             }
         }
     }
-    parseWsOrder(order, market = undefined) {
-        const id = this.safeString(order, 'order_id');
-        const clientOrderId = this.safeString(order, 'client_oid');
-        const marketId = this.safeString(order, 'product_id');
-        const symbol = this.safeSymbol(marketId);
-        const side = this.safeString(order, 'side');
-        const price = this.safeNumber(order, 'price');
-        const amount = this.safeNumber2(order, 'size', 'funds');
-        const time = this.safeString(order, 'time');
-        const timestamp = this.parse8601(time);
-        const reason = this.safeString(order, 'reason');
-        const status = this.parseWsOrderStatus(reason);
-        const orderType = this.safeString(order, 'order_type');
-        let remaining = this.safeNumber(order, 'remaining_size');
-        const type = this.safeString(order, 'type');
+
+    parseWsOrder (order, market = undefined) {
+        const id = this.safeString (order, 'order_id');
+        const clientOrderId = this.safeString (order, 'client_oid');
+        const marketId = this.safeString (order, 'product_id');
+        const symbol = this.safeSymbol (marketId);
+        const side = this.safeString (order, 'side');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber2 (order, 'size', 'funds');
+        const time = this.safeString (order, 'time');
+        const timestamp = this.parse8601 (time);
+        const reason = this.safeString (order, 'reason');
+        const status = this.parseWsOrderStatus (reason);
+        const orderType = this.safeString (order, 'order_type');
+        let remaining = this.safeNumber (order, 'remaining_size');
+        const type = this.safeString (order, 'type');
         let filled = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
             filled = amount - remaining;
-        }
-        else if (type === 'received') {
+        } else if (type === 'received') {
             filled = 0;
             if (amount !== undefined) {
                 remaining = amount - filled;
             }
         }
-        return this.safeOrder({
+        return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'type': orderType,
             'timeInForce': undefined,
@@ -726,7 +744,8 @@ class coinbasepro extends coinbasepro$1 {
             'trades': undefined,
         });
     }
-    handleTicker(client, message) {
+
+    handleTicker (client: Client, message) {
         //
         //     {
         //         "type": "ticker",
@@ -746,19 +765,20 @@ class coinbasepro extends coinbasepro$1 {
         //         "last_size": "0.41969131"
         //     }
         //
-        const marketId = this.safeString(message, 'product_id');
+        const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
-            const ticker = this.parseTicker(message);
+            const ticker = this.parseTicker (message);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = 'ticker:' + symbol;
             const idMessageHash = 'ticker:' + marketId;
-            client.resolve(ticker, messageHash);
-            client.resolve(ticker, idMessageHash);
+            client.resolve (ticker, messageHash);
+            client.resolve (ticker, idMessageHash);
         }
         return message;
     }
-    parseTicker(ticker, market = undefined) {
+
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "type": "ticker",
@@ -780,48 +800,51 @@ class coinbasepro extends coinbasepro$1 {
         //         "last_size": "0.00352175"
         //     }
         //
-        const type = this.safeString(ticker, 'type');
+        const type = this.safeString (ticker, 'type');
         if (type === undefined) {
-            return super.parseTicker(ticker, market);
+            return super.parseTicker (ticker, market);
         }
-        const marketId = this.safeString(ticker, 'product_id');
-        const symbol = this.safeSymbol(marketId, market, '-');
-        const timestamp = this.parse8601(this.safeString(ticker, 'time'));
-        const last = this.safeString(ticker, 'price');
-        return this.safeTicker({
+        const marketId = this.safeString (ticker, 'product_id');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
+        const last = this.safeString (ticker, 'price');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'high': this.safeString(ticker, 'high_24h'),
-            'low': this.safeString(ticker, 'low_24h'),
-            'bid': this.safeString(ticker, 'best_bid'),
-            'bidVolume': this.safeString(ticker, 'best_bid_size'),
-            'ask': this.safeString(ticker, 'best_ask'),
-            'askVolume': this.safeString(ticker, 'best_ask_size'),
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high_24h'),
+            'low': this.safeString (ticker, 'low_24h'),
+            'bid': this.safeString (ticker, 'best_bid'),
+            'bidVolume': this.safeString (ticker, 'best_bid_size'),
+            'ask': this.safeString (ticker, 'best_ask'),
+            'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open_24h'),
+            'open': this.safeString (ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'volume_24h'),
+            'baseVolume': this.safeString (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
         });
     }
-    handleDelta(bookside, delta) {
-        const price = this.safeNumber(delta, 0);
-        const amount = this.safeNumber(delta, 1);
-        bookside.store(price, amount);
+
+    handleDelta (bookside, delta) {
+        const price = this.safeNumber (delta, 0);
+        const amount = this.safeNumber (delta, 1);
+        bookside.store (price, amount);
     }
-    handleDeltas(bookside, deltas) {
+
+    handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(bookside, deltas[i]);
+            this.handleDelta (bookside, deltas[i]);
         }
     }
-    handleOrderBook(client, message) {
+
+    handleOrderBook (client: Client, message) {
         //
         // first message (snapshot)
         //
@@ -847,47 +870,47 @@ class coinbasepro extends coinbasepro$1 {
         //         ]
         //     }
         //
-        const type = this.safeString(message, 'type');
-        const marketId = this.safeString(message, 'product_id');
-        const market = this.safeMarket(marketId, undefined, '-');
+        const type = this.safeString (message, 'type');
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const name = 'level2';
         const messageHash = name + ':' + marketId;
-        const subscription = this.safeValue(client.subscriptions, messageHash, {});
-        const limit = this.safeInteger(subscription, 'limit');
+        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
             const orderbook = this.orderbooks[symbol];
-            this.handleDeltas(orderbook['asks'], this.safeValue(message, 'asks', []));
-            this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
+            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
+            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
-            client.resolve(orderbook, messageHash);
-        }
-        else if (type === 'l2update') {
+            client.resolve (orderbook, messageHash);
+        } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
-            const timestamp = this.parse8601(this.safeString(message, 'time'));
-            const changes = this.safeValue(message, 'changes', []);
+            const timestamp = this.parse8601 (this.safeString (message, 'time'));
+            const changes = this.safeValue (message, 'changes', []);
             const sides = {
                 'sell': 'asks',
                 'buy': 'bids',
             };
             for (let i = 0; i < changes.length; i++) {
                 const change = changes[i];
-                const key = this.safeString(change, 0);
-                const side = this.safeString(sides, key);
-                const price = this.safeNumber(change, 1);
-                const amount = this.safeNumber(change, 2);
+                const key = this.safeString (change, 0);
+                const side = this.safeString (sides, key);
+                const price = this.safeNumber (change, 1);
+                const amount = this.safeNumber (change, 2);
                 const bookside = orderbook[side];
-                bookside.store(price, amount);
+                bookside.store (price, amount);
             }
             orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601(timestamp);
-            client.resolve(orderbook, messageHash);
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            client.resolve (orderbook, messageHash);
         }
     }
-    handleSubscriptionStatus(client, message) {
+
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         "type": "subscriptions",
@@ -901,7 +924,8 @@ class coinbasepro extends coinbasepro$1 {
         //
         return message;
     }
-    handleErrorMessage(client, message) {
+
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         "type": "error",
@@ -917,23 +941,22 @@ class coinbasepro extends coinbasepro$1 {
         //         "reason": "{"message":"Invalid API Key"}"
         //     }
         //
-        const errMsg = this.safeString(message, 'message');
-        const reason = this.safeString(message, 'reason');
+        const errMsg = this.safeString (message, 'message');
+        const reason = this.safeString (message, 'reason');
         try {
             if (errMsg === 'Authentication Failed') {
-                throw new errors.AuthenticationError('Authentication failed: ' + reason);
+                throw new AuthenticationError ('Authentication failed: ' + reason);
+            } else {
+                throw new ExchangeError (this.id + ' ' + reason);
             }
-            else {
-                throw new errors.ExchangeError(this.id + ' ' + reason);
-            }
-        }
-        catch (error) {
-            client.reject(error);
+        } catch (error) {
+            client.reject (error);
             return true;
         }
     }
-    handleMessage(client, message) {
-        const type = this.safeString(message, 'type');
+
+    handleMessage (client: Client, message) {
+        const type = this.safeString (message, 'type');
         const methods = {
             'snapshot': this.handleOrderBook,
             'l2update': this.handleOrderBook,
@@ -947,22 +970,19 @@ class coinbasepro extends coinbasepro$1 {
         };
         const length = client.url.length - 0;
         const authenticated = client.url[length - 1] === '?';
-        const method = this.safeValue(methods, type);
+        const method = this.safeValue (methods, type);
         if (method === undefined) {
             if (type === 'match') {
                 if (authenticated) {
-                    this.handleMyTrade(client, message);
-                    this.handleOrder(client, message);
-                }
-                else {
-                    this.handleTrade(client, message);
+                    this.handleMyTrade (client, message);
+                    this.handleOrder (client, message);
+                } else {
+                    this.handleTrade (client, message);
                 }
             }
-        }
-        else {
-            method.call(this, client, message);
+        } else {
+            method.call (this, client, message);
         }
     }
 }
 
-module.exports = coinbasepro;
