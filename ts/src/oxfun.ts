@@ -238,7 +238,6 @@ export default class oxfun extends Exchange {
                     'Base': 'ERC20', // todo check
                     'BNBSmartChain': 'BNB', // todo check
                 },
-                'defaultResponseType': 'FULL', // FULL or ACK
             },
             'exceptions': {
                 'exact': {
@@ -1576,7 +1575,7 @@ export default class oxfun extends Exchange {
         /**
          * @method
          * @name oxfun#fetchAccounts
-         * @description fetch accounts associated with a profile
+         * @description fetch subaccounts associated with a profile
          * @see https://docs.ox.fun/?json#get-v3-account-names
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
@@ -2245,19 +2244,13 @@ export default class oxfun extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const listOfOrders = [];
+        const request = {
+            'responseType': this.safeString (params, 'responseType', 'FULL'),
+            'timestamp': this.safeInteger (params, 'timestamp', this.milliseconds ()),
+        };
         const orderRequest = this.createOrderRequest (market, type, side, amount, price, params);
         listOfOrders.push (orderRequest);
-        let timestamp = this.safeInteger (params, 'timestamp');
-        if (timestamp === undefined) {
-            timestamp = this.milliseconds (); // todo handle with this
-        }
-        let responseType = this.safeString (this.options, 'defaultResponseType');
-        [ responseType, params ] = this.handleOptionAndParams (params, 'createOrder', 'responseType', responseType);
-        const request = {
-            'orders': listOfOrders,
-            'timestamp': timestamp,
-            'responseType': responseType,
-        };
+        request['orders'] = listOfOrders;
         return await this.privatePostV3OrdersPlace (request);
         //
         // accepted order responseType FULL
@@ -2372,11 +2365,44 @@ export default class oxfun extends Exchange {
         // const symbol = market['symbol'];
         const request = {
             'marketCode': market['id'],
-            'orderType': type.toUpperCase (),
             'side': side.toUpperCase (),
-            'quantity': amount, // todo this.amountToPrecision (symbol, amount),
         };
-        return request;
+        if (price !== undefined) {
+            request['price'] = price; // todo this.priceToPrecision
+        }
+        const cost = this.safeNumber2 (params, 'cost', 'amount');
+        if (cost !== undefined) {
+            request['amount'] = cost; // todo this.costToPrecision
+            params = this.omit (params, [ 'cost', 'amount' ]);
+        } else {
+            request['quantity'] = amount; // todo this.amountToPrecision (symbol, amount),
+        }
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        let orderType = type.toUpperCase ();
+        if (triggerPrice !== undefined) {
+            if (orderType === 'MARKET') {
+                orderType = 'STOP_MARKET';
+            } else if (orderType === 'LIMIT') {
+                orderType = 'STOP_LIMIT';
+            }
+            request['stopPrice'] = triggerPrice; // todo this.priceToPrecision
+            params = this.omit ([ 'triggerPrice', 'stopPrice' ]);
+        }
+        request['orderType'] = orderType;
+        if (orderType === 'STOP_LIMIT') {
+            const limitPrice = this.safeNumber (params, 'limitPrice', price);
+            request['limitPrice'] = limitPrice; // todo this.priceToPrecision
+            params = this.omit (params, 'limitPrice');
+        }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.safeBool (params, 'postOnly');
+        if ((timeInForce === undefined) && postOnly) {
+            request['timeInForce'] = 'MAKER_ONLY';
+        } else if (timeInForce === 'PO') {
+            request['timeInForce'] = 'MAKER_ONLY';
+        }
+        // todo: should we throw an exception if postOnly === true and timeInForce !== MAKER_ONLY?
+        return this.extend (request, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
