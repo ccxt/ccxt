@@ -2368,14 +2368,14 @@ export default class oxfun extends Exchange {
             'side': side.toUpperCase (),
         };
         if (price !== undefined) {
-            request['price'] = price; // todo this.priceToPrecision
+            request['price'] = price; // todo priceToPrecision
         }
         const cost = this.safeNumber2 (params, 'cost', 'amount');
         if (cost !== undefined) {
-            request['amount'] = cost; // todo this.costToPrecision
+            request['amount'] = cost; // todo costToPrecision
             params = this.omit (params, [ 'cost', 'amount' ]);
         } else {
-            request['quantity'] = amount; // todo this.amountToPrecision (symbol, amount),
+            request['quantity'] = amount; // todo amountToPrecision
         }
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         let orderType = type.toUpperCase ();
@@ -2385,13 +2385,13 @@ export default class oxfun extends Exchange {
             } else if (orderType === 'LIMIT') {
                 orderType = 'STOP_LIMIT';
             }
-            request['stopPrice'] = triggerPrice; // todo this.priceToPrecision
+            request['stopPrice'] = triggerPrice; // todo priceToPrecision
             params = this.omit ([ 'triggerPrice', 'stopPrice' ]);
         }
         request['orderType'] = orderType;
         if (orderType === 'STOP_LIMIT') {
             const limitPrice = this.safeNumber (params, 'limitPrice', price);
-            request['limitPrice'] = limitPrice; // todo this.priceToPrecision
+            request['limitPrice'] = limitPrice; // todo priceToPrecision
             params = this.omit (params, 'limitPrice');
         }
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -2399,9 +2399,8 @@ export default class oxfun extends Exchange {
         if ((timeInForce === undefined) && postOnly) {
             request['timeInForce'] = 'MAKER_ONLY';
         } else if (timeInForce === 'PO') {
-            request['timeInForce'] = 'MAKER_ONLY';
+            request['timeInForce'] = 'MAKER_ONLY'; // todo should we throw an exception if postOnly and timeInForce is not MAKER_ONLY?
         }
-        // todo: should we throw an exception if postOnly === true and timeInForce !== MAKER_ONLY?
         return this.extend (request, params);
     }
 
