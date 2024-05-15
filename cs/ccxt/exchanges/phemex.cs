@@ -4144,7 +4144,8 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
+        object isUsdt = isEqual(getValue(market, "settle"), "USDT");
+        if (isTrue(isUsdt))
         {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, parameters));
         } else
@@ -4160,13 +4161,13 @@ public partial class phemex : Exchange
         //                 {
         //                     "symbol": "BTCUSD",
         //                     "currency": "BTC",
-        //                     "execQty": 18,
+        //                     "execQty": 18, // "execQty" regular, but "execQtyRq" in hedge
         //                     "side": "Buy",
-        //                     "execPriceEp": 360086455,
-        //                     "execValueEv": 49987,
-        //                     "fundingRateEr": 10000,
-        //                     "feeRateEr": 10000,
-        //                     "execFeeEv": 5,
+        //                     "execPriceEp": 360086455, // "execPriceEp" regular, but "execPriceRp" in hedge
+        //                     "execValueEv": 49987, // "execValueEv" regular, but "execValueRv" in hedge
+        //                     "fundingRateEr": 10000, // "fundingRateEr" regular, but "fundingRateRr" in hedge
+        //                     "feeRateEr": 10000, // "feeRateEr" regular, but "feeRateRr" in hedge
+        //                     "execFeeEv": 5, // "execFeeEv" regular, but "execFeeRv" in hedge
         //                     "createTime": 1651881600000
         //                 }
         //             ]
@@ -4180,17 +4181,37 @@ public partial class phemex : Exchange
         {
             object entry = getValue(rows, i);
             object timestamp = this.safeInteger(entry, "createTime");
+            object execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
+            object currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeString(entry, "symbol") },
-                { "code", this.safeCurrencyCode(this.safeString(entry, "currency")) },
+                { "code", currencyCode },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "id", null },
-                { "amount", this.fromEv(this.safeString(entry, "execFeeEv"), market) },
+                { "amount", this.parseFundingFeeToPrecision(execFee, market, currencyCode) },
             });
         }
         return result;
+    }
+
+    public virtual object parseFundingFeeToPrecision(object value, object market = null, object currencyCode = null)
+    {
+        if (isTrue(isTrue(isEqual(value, null)) || isTrue(isEqual(currencyCode, null))))
+        {
+            return value;
+        }
+        // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
+        object isUsdt = isEqual(getValue(market, "settle"), "USDT");
+        if (!isTrue(isUsdt))
+        {
+            object currency = this.safeCurrency(currencyCode);
+            object scale = this.safeString(getValue(currency, "info"), "valueScale");
+            object tickPrecision = this.parsePrecision(scale);
+            value = Precise.stringMul(value, tickPrecision);
+        }
+        return value;
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)

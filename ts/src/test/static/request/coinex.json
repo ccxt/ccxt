@@ -973,21 +973,34 @@
         ],
         "fetchFundingRateHistory": [
             {
-                "description": "fundingRateHistory",
+                "description": "Fetch the funding rate history",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.coinex.com/perpetual/v1/market/funding_history?market=BTCUSDT&limit=100&offset=0",
+                "url": "https://api.coinex.com/v2/futures/funding-rate-history?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
         "fetchFundingRate": [
             {
-                "description": "fundingRate",
+                "description": "Fetch a swap markets funding rate",
                 "method": "fetchFundingRate",
-                "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
+                "url": "https://api.coinex.com/v2/futures/funding-rate?market=BTCUSDT",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "Fetch the funding rates for multiple symbols",
+                "method": "fetchFundingRates",
+                "url": "https://api.coinex.com/v2/futures/funding-rate?market=BTCUSDT%2CLTCUSDT",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
                 ]
             }
         ],
@@ -1214,6 +1227,18 @@
                   7.4
                 ],
                 "output": "{\"amount\":\"-7.4\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Swap fetch the private funding fee history",
+                "method": "fetchFundingHistory",
+                "url": "https://api.coinex.com/v2/futures/position-funding-history?limit=5&market=BTCUSDT&market_type=FUTURES",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  5
+                ]
             }
         ]
     },

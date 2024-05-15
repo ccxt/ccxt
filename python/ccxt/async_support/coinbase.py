@@ -1754,6 +1754,10 @@ class coinbase(Exchange, ImplicitAPI):
         request = {}
         if symbols is not None:
             request['product_ids'] = self.market_ids(symbols)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTickers', self.get_market_from_symbols(symbols), params, 'default')
+        if marketType is not None and marketType != 'default':
+            request['product_type'] = 'FUTURE' if (marketType == 'swap') else 'SPOT'
         response = await self.v3PublicGetBrokerageMarketProducts(self.extend(request, params))
         #
         #     {
