@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, BadRequest, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -41,6 +41,7 @@ export default class oxfun extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -189,8 +190,8 @@ export default class oxfun extends Exchange {
                         'v3/orders/place': 1, // unified
                     },
                     'delete': {
-                        'v3/orders/cancel': 1,
-                        'v3/orders/cancel-all': 1,
+                        'v3/orders/cancel': 1, // unified
+                        'v3/orders/cancel-all': 1, // unified
                     },
                 },
             },
@@ -2227,6 +2228,7 @@ export default class oxfun extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.clientOrderId] a unique id for the order
          * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
          * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
          * @param {string} [params.responseType] FULL or ACK
@@ -2371,7 +2373,45 @@ export default class oxfun extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseOrder (data[0], market);
+        const order = this.safeDict (data, 0, {});
+        return this.parseOrder (order, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name oxfun#createOrders
+         * @description create a list of trade orders
+         * @see https://docs.ox.fun/?json#post-v3-orders-place
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.timestamp] *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected.
+         * @param {int} [params.recvWindow] *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
+         * @param {string} [params.responseType] *for all orders* FULL or ACK
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const market = this.market (symbol);
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (market, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const request = {
+            'responseType': 'FULL',
+            'timestamp': this.milliseconds (),
+            'orders': ordersRequests,
+        };
+        const response = await this.privatePostV3OrdersPlace (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data);
     }
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
@@ -2382,6 +2422,7 @@ export default class oxfun extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.clientOrderId] a unique id for the order
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
@@ -2462,7 +2503,7 @@ export default class oxfun extends Exchange {
          * @param {string} id a unique id for the order
          * @param {string} [symbol] not used by oxfun fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.clientOrderId] the client order id of the order
+         * @param {int} [params.clientOrderId] the client order id of the order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2507,8 +2548,8 @@ export default class oxfun extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.orderId] a unique id for the order
-         * @param {string} [params.clientOrderId] the client order id of the order
+         * @param {int} [params.orderId] a unique id for the order
+         * @param {int} [params.clientOrderId] the client order id of the order
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2657,7 +2698,7 @@ export default class oxfun extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (order, 'lastModifiedAt'),
             'status': this.parseOrderStatus (status),
             'symbol': market['symbol'],
-            'type': this.parseOrderType (this.safeString (order, 'type')),
+            'type': this.parseOrderType (this.safeString (order, 'orderType')),
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')), // only for limit orders
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeStringN (order, [ 'price', 'matchPrice', 'limitPrice' ]),
