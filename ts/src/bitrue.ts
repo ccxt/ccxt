@@ -3093,7 +3093,7 @@ export default class bitrue extends Exchange {
         let url = undefined;
         if (type === 'api' && version === 'kline') {
             url = this.urls['api'][type];
-        } else {
+        } else if ((version !== 'private') && (version !== 'public')) {
             url = this.urls['api'][type] + '/' + version;
         }
         url = url + '/' + this.implodeParams (path, params);

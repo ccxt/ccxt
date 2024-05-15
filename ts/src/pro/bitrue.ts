@@ -443,7 +443,7 @@ export default class bitrue extends bitrueRest {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             const key = this.safeString (data, 'listenKey');
             this.options['listenKey'] = key;
             this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
