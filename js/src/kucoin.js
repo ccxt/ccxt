@@ -4786,6 +4786,7 @@ export default class kucoin extends Exchange {
                 const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, 'base64');
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
+                headers['KC-API-PARTNER-VERIFY'] = 'true';
             }
             if (isBroker) {
                 const brokerName = this.safeString(partner, 'name');
