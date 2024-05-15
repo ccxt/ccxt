@@ -86,7 +86,7 @@ export default class coinbaseexchange extends Exchange {
                     'public': 'https://api-public.sandbox.exchange.coinbase.com',
                     'private': 'https://api-public.sandbox.exchange.coinbase.com',
                 },
-                'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
