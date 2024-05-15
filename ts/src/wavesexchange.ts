@@ -380,8 +380,8 @@ export default class wavesexchange extends Exchange {
     async getFeesForAsset (symbol: string, side, amount, price, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = this.toRealAmount (symbol, amount);
-        price = this.toRealPrice (symbol, price);
+        amount = this.toRealSymbolAmount (symbol, amount);
+        price = this.toRealSymbolPrice (symbol, price);
         const request = this.extend ({
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
@@ -414,7 +414,7 @@ export default class wavesexchange extends Exchange {
         const matcherFee = this.safeString (mode, 'matcherFee');
         const feeAssetId = this.safeString (mode, 'feeAssetId');
         const feeAsset = this.safeCurrencyCode (feeAssetId);
-        const adjustedMatcherFee = this.amountForCurrency (feeAsset, matcherFee);
+        const adjustedMatcherFee = this.fromRealCurrencyAmount (feeAsset, matcherFee);
         const amountAsString = this.numberToString (amount);
         const priceAsString = this.numberToString (price);
         const feeCost = this.feeToPrecision (symbol, this.parseNumber (adjustedMatcherFee));
@@ -1232,45 +1232,13 @@ export default class wavesexchange extends Exchange {
         return currencyId;
     }
 
-    toRealPrice (symbol, price) {
-        const market = this.market (symbol);
-        const stringValue = Precise.stringDiv (this.numberToString (price), this.safeString (market['precision'], 'price'));
-        return parseInt (stringValue);
-    }
-
-    toRealAmount (symbol, amount) {
-        const market = this.market (symbol);
-        const stringValue = Precise.stringDiv (this.numberToString (amount), this.safeString (market['precision'], 'amount'));
-        return parseInt (stringValue);
-    }
-
-    toRealCurrencyAmount (code, amount, networkCode = undefined) {
+    toRealCurrencyAmount (code: string, amount: number, networkCode = undefined) {
         const currency = this.currency (code);
         const stringValue = Precise.stringDiv (this.numberToString (amount), this.safeString (currency, 'amount'));
         return parseInt (stringValue);
     }
 
-    fromPrecision (amount, scale) {
-        if (amount === undefined) {
-            return undefined;
-        }
-        const precise = new Precise (amount);
-        precise.decimals = this.sum (precise.decimals, scale);
-        precise.reduce ();
-        return precise.toString ();
-    }
-
-    toPrecision (amount, scale) {
-        const amountString = this.numberToString (amount);
-        const precise = new Precise (amountString);
-        // precise.decimals should be integer
-        precise.decimals = this.parseToInt (Precise.stringSub (this.numberToString (precise.decimals), this.numberToString (scale)));
-        precise.reduce ();
-        const stringValue = precise.toString ();
-        return stringValue;
-    }
-
-    amountForCurrency (code: string, amountString: string) {
+    fromRealCurrencyAmount (code: string, amountString: string) {
         if (!(code in this.currencies)) {
             return amountString;
         }
@@ -1279,21 +1247,26 @@ export default class wavesexchange extends Exchange {
         return Precise.stringMul (amountString, precisionAmount);
     }
 
-    priceForSymbol (symbol: string, priceString: string) {
+    toRealSymbolPrice (symbol: string, price: number) {
+        const market = this.market (symbol);
+        const stringValue = Precise.stringDiv (this.numberToString (price), this.safeString (market['precision'], 'price'));
+        return parseInt (stringValue);
+    }
+
+    fromRealSymbolPrice (symbol: string, priceString: string) {
         const market = this.markets[symbol];
         return Precise.stringMul (priceString, this.safeString (market['precision'], 'price'));
     }
 
-    amountForSymbol (symbol: string, amountString: string) {
-        const market = this.markets[symbol];
-        return Precise.stringMul (amountString, market['precision']['amount']);
+    toRealSymbolAmount (symbol: string, amount: number) {
+        const market = this.market (symbol);
+        const stringValue = Precise.stringDiv (this.numberToString (amount), this.safeString (market['precision'], 'amount'));
+        return parseInt (stringValue);
     }
 
-    priceFromPrecision (symbol, price) {
+    fromRealSymbolAmount (symbol: string, amountString: string) {
         const market = this.markets[symbol];
-        const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-        const scale = this.sum (wavesPrecision, market['precision']['price']) - market['precision']['amount'];
-        return this.fromPrecision (price, scale);
+        return Precise.stringMul (amountString, market['precision']['amount']);
     }
 
     safeGetDynamic (settings) {
@@ -1377,15 +1350,15 @@ export default class wavesexchange extends Exchange {
             }
             const matcherFeeAsset = this.safeCurrencyCode (matcherFeeAssetId);
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
-            const floatMatcherFee = parseFloat (this.amountForCurrency (matcherFeeAsset, rawMatcherFee));
+            const floatMatcherFee = parseFloat (this.fromRealCurrencyAmount (matcherFeeAsset, rawMatcherFee));
             if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] as any >= floatMatcherFee)) {
                 matcherFee = parseInt (rawMatcherFee);
             } else {
                 throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
             }
         }
-        const floatBaseMatcherFee = this.amountForCurrency (baseFeeAsset, baseMatcherFee);
-        const floatDiscountMatcherFee = this.amountForCurrency (discountFeeAsset, discountMatcherFee);
+        const floatBaseMatcherFee = this.fromRealCurrencyAmount (baseFeeAsset, baseMatcherFee);
+        const floatDiscountMatcherFee = this.fromRealCurrencyAmount (discountFeeAsset, discountMatcherFee);
         if (matcherFeeAssetId === undefined) {
             // try to the pay the fee using the base first then discount asset
             if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] as any >= parseFloat (floatBaseMatcherFee))) {
@@ -1401,8 +1374,8 @@ export default class wavesexchange extends Exchange {
         if (matcherFeeAssetId === undefined) {
             throw new InsufficientFunds (this.id + ' not enough funds on none of the eligible asset fees: ' + baseFeeAsset + ' ' + floatBaseMatcherFee + ' or ' + discountFeeAsset + ' ' + floatDiscountMatcherFee);
         }
-        amount = this.toRealAmount (symbol, amount);
-        price = this.toRealPrice (symbol, price);
+        amount = this.toRealSymbolAmount (symbol, amount);
+        price = this.toRealSymbolPrice (symbol, price);
         const assetPair = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
@@ -1440,7 +1413,7 @@ export default class wavesexchange extends Exchange {
                 'c': {
                     't': 'sp',
                     'v': {
-                        'p': this.toRealPrice (symbol, stopPrice),
+                        'p': this.toRealSymbolPrice (symbol, stopPrice),
                     },
                 },
             };
@@ -1794,23 +1767,23 @@ export default class wavesexchange extends Exchange {
             symbol = market['symbol'];
         }
         const amountCurrency = this.safeCurrencyCode (this.safeString (assetPair, 'amountAsset', 'WAVES'));
-        const price = this.priceForSymbol (symbol, priceString);
-        const amount = this.amountForCurrency (amountCurrency, amountString);
-        const filled = this.amountForCurrency (amountCurrency, filledString);
-        const average = this.priceForSymbol (symbol, this.safeString (order, 'avgWeighedPrice'));
+        const price = this.fromRealSymbolPrice (symbol, priceString);
+        const amount = this.fromRealCurrencyAmount (amountCurrency, amountString);
+        const filled = this.fromRealCurrencyAmount (amountCurrency, filledString);
+        const average = this.fromRealSymbolPrice (symbol, this.safeString (order, 'avgWeighedPrice'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let fee = undefined;
         if ('type' in order) {
             const code = this.safeCurrencyCode (this.safeString (order, 'feeAsset'));
             fee = {
                 'currency': code,
-                'fee': this.parseNumber (this.amountForCurrency (code, this.safeString (order, 'filledFee'))),
+                'fee': this.parseNumber (this.fromRealCurrencyAmount (code, this.safeString (order, 'filledFee'))),
             };
         } else {
             const code = this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES'));
             fee = {
                 'currency': code,
-                'fee': this.parseNumber (this.amountForCurrency (code, this.safeString (order, 'matcherFee'))),
+                'fee': this.parseNumber (this.fromRealCurrencyAmount (code, this.safeString (order, 'matcherFee'))),
             };
         }
         let triggerPrice = undefined;
@@ -1939,7 +1912,7 @@ export default class wavesexchange extends Exchange {
             if (currencyExists) {
                 const code = this.safeCurrencyCode (currencyId);
                 result[code] = this.account ();
-                result[code]['total'] = this.amountForCurrency (code, balance);
+                result[code]['total'] = this.fromRealCurrencyAmount (code, balance);
             } else if (issueTransaction === undefined) {
                 assetIds.push (currencyId);
                 nonStandardBalances.push (balance);
@@ -1986,7 +1959,7 @@ export default class wavesexchange extends Exchange {
                 result[code] = this.account ();
             }
             const amount = this.safeString (reservedBalance, currencyId);
-            result[code]['used'] = this.amountForCurrency (code, amount);
+            result[code]['used'] = this.fromRealCurrencyAmount (code, amount);
         }
         const wavesRequest = {
             'address': wavesAddress,
@@ -1998,7 +1971,7 @@ export default class wavesexchange extends Exchange {
         //   "balance": 909085978
         // }
         result['WAVES'] = this.safeValue (result, 'WAVES', this.account ());
-        result['WAVES']['total'] = this.amountForCurrency ('WAVES', this.safeString (wavesTotal, 'balance'));
+        result['WAVES']['total'] = this.fromRealCurrencyAmount ('WAVES', this.safeString (wavesTotal, 'balance'));
         result = this.setUndefinedBalancesToZero (result);
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
@@ -2554,7 +2527,7 @@ export default class wavesexchange extends Exchange {
         const feeAssetId = 'WAVES';
         const type = 4;  // transfer
         const version = 2;
-        const amountInteger = parseInt (this.toRealCurrencyAmount (code, amount));
+        const amountInteger = this.toRealCurrencyAmount (code, amount);
         const currency = this.currency (code);
         const timestamp = this.milliseconds ();
         const byteArray = [
