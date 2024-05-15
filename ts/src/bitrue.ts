@@ -3095,6 +3095,8 @@ export default class bitrue extends Exchange {
             url = this.urls['api'][type];
         } else if ((version !== 'private') && (version !== 'public')) {
             url = this.urls['api'][type] + '/' + version;
+        } else {
+            url = this.urls['api'][type];
         }
         url = url + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
