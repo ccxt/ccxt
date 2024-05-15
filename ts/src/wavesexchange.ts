@@ -628,12 +628,11 @@ export default class wavesexchange extends Exchange {
 
     parseOrderBookSide (bookSide, market = undefined, limit: Int = undefined) {
         const precision = market['precision'];
-        const wavesPrecision = this.safeString (this.options, 'wavesPrecision', '8');
-        const amountPrecision = '1e' + this.numberToString (precision['amount']);
-        const amountPrecisionString = this.numberToString (precision['amount']);
-        const pricePrecisionString = this.numberToString (precision['price']);
-        const difference = Precise.stringSub (amountPrecisionString, pricePrecisionString);
-        const pricePrecision = '1e' + Precise.stringSub (wavesPrecision, difference);
+        const wavesPrecision = this.safeString (this.options, 'wavesPrecision', '1e-8');
+        const amountPrecisionString = this.safeString (precision, 'amount');
+        const pricePrecisionString = this.safeString (precision, 'price');
+        const difference = Precise.stringDiv (amountPrecisionString, pricePrecisionString);
+        const pricePrecision = Precise.stringDiv (wavesPrecision, difference);
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const entry = bookSide[i];
@@ -642,10 +641,10 @@ export default class wavesexchange extends Exchange {
             let price = undefined;
             let amount = undefined;
             if ((pricePrecision !== undefined) && (entryPrice !== undefined)) {
-                price = Precise.stringDiv (entryPrice, pricePrecision);
+                price = Precise.stringMul (entryPrice, pricePrecision);
             }
-            if ((amountPrecision !== undefined) && (entryAmount !== undefined)) {
-                amount = Precise.stringDiv (entryAmount, amountPrecision);
+            if ((amountPrecisionString !== undefined) && (entryAmount !== undefined)) {
+                amount = Precise.stringMul (entryAmount, amountPrecisionString);
             }
             if ((limit !== undefined) && (i > limit)) {
                 break;
