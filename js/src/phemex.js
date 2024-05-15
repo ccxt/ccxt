@@ -3910,7 +3910,8 @@ export default class phemex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['settle'] === 'USDT') {
+        const isUsdt = market['settle'] === 'USDT';
+        if (isUsdt) {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, params));
         }
         else {
@@ -3925,13 +3926,13 @@ export default class phemex extends Exchange {
         //                 {
         //                     "symbol": "BTCUSD",
         //                     "currency": "BTC",
-        //                     "execQty": 18,
+        //                     "execQty": 18, // "execQty" regular, but "execQtyRq" in hedge
         //                     "side": "Buy",
-        //                     "execPriceEp": 360086455,
-        //                     "execValueEv": 49987,
-        //                     "fundingRateEr": 10000,
-        //                     "feeRateEr": 10000,
-        //                     "execFeeEv": 5,
+        //                     "execPriceEp": 360086455, // "execPriceEp" regular, but "execPriceRp" in hedge
+        //                     "execValueEv": 49987, // "execValueEv" regular, but "execValueRv" in hedge
+        //                     "fundingRateEr": 10000, // "fundingRateEr" regular, but "fundingRateRr" in hedge
+        //                     "feeRateEr": 10000, // "feeRateEr" regular, but "feeRateRr" in hedge
+        //                     "execFeeEv": 5, // "execFeeEv" regular, but "execFeeRv" in hedge
         //                     "createTime": 1651881600000
         //                 }
         //             ]
@@ -3944,17 +3945,33 @@ export default class phemex extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const timestamp = this.safeInteger(entry, 'createTime');
+            const execFee = this.safeString2(entry, 'execFeeEv', 'execFeeRv');
+            const currencyCode = this.safeCurrencyCode(this.safeString(entry, 'currency'));
             result.push({
                 'info': entry,
                 'symbol': this.safeString(entry, 'symbol'),
-                'code': this.safeCurrencyCode(this.safeString(entry, 'currency')),
+                'code': currencyCode,
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'id': undefined,
-                'amount': this.fromEv(this.safeString(entry, 'execFeeEv'), market),
+                'amount': this.parseFundingFeeToPrecision(execFee, market, currencyCode),
             });
         }
         return result;
+    }
+    parseFundingFeeToPrecision(value, market = undefined, currencyCode = undefined) {
+        if (value === undefined || currencyCode === undefined) {
+            return value;
+        }
+        // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
+        const isUsdt = market['settle'] === 'USDT';
+        if (!isUsdt) {
+            const currency = this.safeCurrency(currencyCode);
+            const scale = this.safeString(currency['info'], 'valueScale');
+            const tickPrecision = this.parsePrecision(scale);
+            value = Precise.stringMul(value, tickPrecision);
+        }
+        return value;
     }
     async fetchFundingRate(symbol, params = {}) {
         /**

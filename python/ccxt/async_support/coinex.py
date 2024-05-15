@@ -3454,7 +3454,10 @@ class coinex(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated' for fetching spot margin orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        return await self.fetch_orders_by_status('pending', symbol, since, limit, params)
+        openOrders = await self.fetch_orders_by_status('pending', symbol, since, limit, params)
+        for i in range(0, len(openOrders)):
+            openOrders[i]['status'] = 'open'
+        return openOrders
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -4247,7 +4250,7 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -4259,93 +4262,63 @@ class coinex(Exchange, ImplicitAPI):
         request = {
             'market': market['id'],
         }
-        response = await self.v1PerpetualPublicGetMarketTicker(self.extend(request, params))
+        response = await self.v2PublicGetFuturesFundingRate(self.extend(request, params))
         #
         #     {
-        #          "code": 0,
-        #         "data":
-        #         {
-        #             "date": 1650678472474,
-        #             "ticker": {
-        #                 "vol": "6090.9430",
-        #                 "low": "39180.30",
-        #                 "open": "40474.97",
-        #                 "high": "40798.01",
-        #                 "last": "39659.30",
-        #                 "buy": "39663.79",
-        #                 "period": 86400,
-        #                 "funding_time": 372,
-        #                 "position_amount": "270.1956",
-        #                 "funding_rate_last": "0.00022913",
-        #                 "funding_rate_next": "0.00013158",
-        #                 "funding_rate_predict": "0.00016552",
-        #                 "insurance": "16045554.83969682659674035672",
-        #                 "sign_price": "39652.48",
-        #                 "index_price": "39648.44250000",
-        #                 "sell_total": "22.3913",
-        #                 "buy_total": "19.4498",
-        #                 "buy_amount": "12.8942",
-        #                 "sell": "39663.80",
-        #                 "sell_amount": "0.9388"
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "latest_funding_rate": "0",
+        #                 "latest_funding_time": 1715731200000,
+        #                 "mark_price": "61602.22",
+        #                 "market": "BTCUSDT",
+        #                 "max_funding_rate": "0.00375",
+        #                 "min_funding_rate": "-0.00375",
+        #                 "next_funding_rate": "0.00021074",
+        #                 "next_funding_time": 1715760000000
         #             }
-        #         },
+        #         ],
         #         "message": "OK"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        ticker = self.safe_value(data, 'ticker', {})
-        timestamp = self.safe_integer(data, 'date')
-        ticker['timestamp'] = timestamp  # avoid changing parseFundingRate signature
-        return self.parse_funding_rate(ticker, market)
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_funding_rate(first, market)
 
     def parse_funding_rate(self, contract, market: Market = None):
         #
-        # fetchFundingRate
+        # fetchFundingRate, fetchFundingRates
         #
         #     {
-        #         "vol": "6090.9430",
-        #         "low": "39180.30",
-        #         "open": "40474.97",
-        #         "high": "40798.01",
-        #         "last": "39659.30",
-        #         "buy": "39663.79",
-        #         "period": 86400,
-        #         "funding_time": 372,
-        #         "position_amount": "270.1956",
-        #         "funding_rate_last": "0.00022913",
-        #         "funding_rate_next": "0.00013158",
-        #         "funding_rate_predict": "0.00016552",
-        #         "insurance": "16045554.83969682659674035672",
-        #         "sign_price": "39652.48",
-        #         "index_price": "39648.44250000",
-        #         "sell_total": "22.3913",
-        #         "buy_total": "19.4498",
-        #         "buy_amount": "12.8942",
-        #         "sell": "39663.80",
-        #         "sell_amount": "0.9388"
+        #         "latest_funding_rate": "0",
+        #         "latest_funding_time": 1715731200000,
+        #         "mark_price": "61602.22",
+        #         "market": "BTCUSDT",
+        #         "max_funding_rate": "0.00375",
+        #         "min_funding_rate": "-0.00375",
+        #         "next_funding_rate": "0.00021074",
+        #         "next_funding_time": 1715760000000
         #     }
         #
-        timestamp = self.safe_integer(contract, 'timestamp')
-        contract = self.omit(contract, 'timestamp')
-        fundingDelta = self.safe_integer(contract, 'funding_time') * 60 * 1000
-        fundingHour = (timestamp + fundingDelta) / 3600000
-        fundingTimestamp = int(round(fundingHour)) * 3600000
+        currentFundingTimestamp = self.safe_integer(contract, 'latest_funding_time')
+        futureFundingTimestamp = self.safe_integer(contract, 'next_funding_time')
+        marketId = self.safe_string(contract, 'market')
         return {
             'info': contract,
-            'symbol': self.safe_symbol(None, market),
-            'markPrice': self.safe_number(contract, 'sign_price'),
-            'indexPrice': self.safe_number(contract, 'index_price'),
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'markPrice': self.safe_number(contract, 'mark_price'),
+            'indexPrice': None,
             'interestRate': None,
             'estimatedSettlePrice': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'fundingRate': self.safe_number(contract, 'funding_rate_next'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': self.iso8601(fundingTimestamp),
-            'nextFundingRate': self.safe_number(contract, 'funding_rate_predict'),
-            'nextFundingTimestamp': None,
-            'nextFundingDatetime': None,
-            'previousFundingRate': self.safe_number(contract, 'funding_rate_last'),
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(contract, 'latest_funding_rate'),
+            'fundingTimestamp': currentFundingTimestamp,
+            'fundingDatetime': self.iso8601(currentFundingTimestamp),
+            'nextFundingRate': self.safe_number(contract, 'next_funding_rate'),
+            'nextFundingTimestamp': futureFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(futureFundingTimestamp),
+            'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
@@ -4353,65 +4326,43 @@ class coinex(Exchange, ImplicitAPI):
     async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetch the current funding rates
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
+        request = {}
         market = None
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
             if not market['swap']:
                 raise BadSymbol(self.id + ' fetchFundingRates() supports swap contracts only')
-        response = await self.v1PerpetualPublicGetMarketTickerAll(params)
+            marketIds = self.market_ids(symbols)
+            request['market'] = ','.join(marketIds)
+        response = await self.v2PublicGetFuturesFundingRate(self.extend(request, params))
         #
         #     {
         #         "code": 0,
-        #         "data":
-        #         {
-        #             "date": 1650678472474,
-        #             "ticker": {
-        #                 "BTCUSDT": {
-        #                     "vol": "6090.9430",
-        #                     "low": "39180.30",
-        #                     "open": "40474.97",
-        #                     "high": "40798.01",
-        #                     "last": "39659.30",
-        #                     "buy": "39663.79",
-        #                     "period": 86400,
-        #                     "funding_time": 372,
-        #                     "position_amount": "270.1956",
-        #                     "funding_rate_last": "0.00022913",
-        #                     "funding_rate_next": "0.00013158",
-        #                     "funding_rate_predict": "0.00016552",
-        #                     "insurance": "16045554.83969682659674035672",
-        #                     "sign_price": "39652.48",
-        #                     "index_price": "39648.44250000",
-        #                     "sell_total": "22.3913",
-        #                     "buy_total": "19.4498",
-        #                     "buy_amount": "12.8942",
-        #                     "sell": "39663.80",
-        #                     "sell_amount": "0.9388"
-        #                 }
+        #         "data": [
+        #             {
+        #                 "latest_funding_rate": "0",
+        #                 "latest_funding_time": 1715731200000,
+        #                 "mark_price": "61602.22",
+        #                 "market": "BTCUSDT",
+        #                 "max_funding_rate": "0.00375",
+        #                 "min_funding_rate": "-0.00375",
+        #                 "next_funding_rate": "0.00021074",
+        #                 "next_funding_time": 1715760000000
         #             }
-        #         },
+        #         ],
         #         "message": "OK"
         #     }
-        data = self.safe_value(response, 'data', {})
-        tickers = self.safe_value(data, 'ticker', {})
-        timestamp = self.safe_integer(data, 'date')
-        result = []
-        marketIds = list(tickers.keys())
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            if marketId.find('_') == -1:  # skip _signprice and _indexprice
-                marketInner = self.safe_market(marketId, None, None, 'swap')
-                ticker = tickers[marketId]
-                ticker['timestamp'] = timestamp
-                result.append(self.parse_funding_rate(ticker, marketInner))
+        #
+        data = self.safe_list(response, 'data', [])
+        result = self.parse_funding_rates(data, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
@@ -4479,13 +4430,13 @@ class coinex(Exchange, ImplicitAPI):
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
         fetches historical funding rate prices
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param int [params.until]: timestamp in ms of the latest funding rate
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
@@ -4496,50 +4447,44 @@ class coinex(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000)
-        if limit is None:
-            limit = 100
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'limit': limit,
-            'offset': 0,
-            # 'end_time': 1638990636,
         }
         if since is not None:
             request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
         request, params = self.handle_until_option('end_time', request, params)
-        response = await self.v1PerpetualPublicGetMarketFundingHistory(self.extend(request, params))
+        response = await self.v2PublicGetFuturesFundingRateHistory(self.extend(request, params))
         #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "offset": 0,
-        #             "limit": 3,
-        #             "records": [
-        #                 {
-        #                     "time": 1650672021.6230309,
-        #                     "market": "BTCUSDT",
-        #                     "asset": "USDT",
-        #                     "funding_rate": "0.00022913",
-        #                     "funding_rate_real": "0.00022913"
-        #                 },
-        #             ]
-        #         },
-        #         "message": "OK"
+        #         "data": [
+        #             {
+        #                 "actual_funding_rate": "0",
+        #                 "funding_time": 1715731221761,
+        #                 "market": "BTCUSDT",
+        #                 "theoretical_funding_rate": "0"
+        #             },
+        #         ],
+        #         "message": "OK",
+        #         "pagination": {
+        #             "has_next": True
+        #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'records', [])
+        data = self.safe_list(response, 'data', [])
         rates = []
-        for i in range(0, len(result)):
-            entry = result[i]
+        for i in range(0, len(data)):
+            entry = data[i]
             marketId = self.safe_string(entry, 'market')
             symbolInner = self.safe_symbol(marketId, market, None, 'swap')
-            timestamp = self.safe_timestamp(entry, 'time')
+            timestamp = self.safe_integer(entry, 'funding_time')
             rates.append({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': self.safe_number(entry, 'funding_rate'),
+                'fundingRate': self.safe_number(entry, 'actual_funding_rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
