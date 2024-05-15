@@ -31,7 +31,7 @@ export default class oxfun extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -2561,6 +2561,35 @@ export default class oxfun extends Exchange {
         return this.parseOrder (order);
     }
 
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#cancelAllOrders
+         * @description cancel all open orders
+         * @see https://docs.ox.fun/?json#delete-v3-orders-cancel-all
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from exchange
+         */
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['marketCode'] = market['id'];
+        }
+        //
+        //     {
+        //         "success": true,
+        //         "data": { "notice": "Orders queued for cancelation" }
+        //     }
+        //
+        //     {
+        //         "success": true,
+        //         "data": { "notice": "No working orders found" }
+        //     }
+        //
+        return await this.privateDeleteV3OrdersCancelAll (this.extend (request, params));
+    }
+
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
@@ -2595,8 +2624,6 @@ export default class oxfun extends Exchange {
         }
         request['orders'] = orders;
         const response = await this.privateDeleteV3OrdersCancel (this.extend (request, params));
-        //
-        //
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market);
     }
