@@ -4421,7 +4421,7 @@ class coinex extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4434,94 +4434,64 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->v1PerpetualPublicGetMarketTicker ($this->extend($request, $params));
+        $response = $this->v2PublicGetFuturesFundingRate ($this->extend($request, $params));
         //
         //     {
-        //          "code" => 0,
-        //         "data":
-        //         {
-        //             "date" => 1650678472474,
-        //             "ticker" => array(
-        //                 "vol" => "6090.9430",
-        //                 "low" => "39180.30",
-        //                 "open" => "40474.97",
-        //                 "high" => "40798.01",
-        //                 "last" => "39659.30",
-        //                 "buy" => "39663.79",
-        //                 "period" => 86400,
-        //                 "funding_time" => 372,
-        //                 "position_amount" => "270.1956",
-        //                 "funding_rate_last" => "0.00022913",
-        //                 "funding_rate_next" => "0.00013158",
-        //                 "funding_rate_predict" => "0.00016552",
-        //                 "insurance" => "16045554.83969682659674035672",
-        //                 "sign_price" => "39652.48",
-        //                 "index_price" => "39648.44250000",
-        //                 "sell_total" => "22.3913",
-        //                 "buy_total" => "19.4498",
-        //                 "buy_amount" => "12.8942",
-        //                 "sell" => "39663.80",
-        //                 "sell_amount" => "0.9388"
+        //         "code" => 0,
+        //         "data" => array(
+        //             {
+        //                 "latest_funding_rate" => "0",
+        //                 "latest_funding_time" => 1715731200000,
+        //                 "mark_price" => "61602.22",
+        //                 "market" => "BTCUSDT",
+        //                 "max_funding_rate" => "0.00375",
+        //                 "min_funding_rate" => "-0.00375",
+        //                 "next_funding_rate" => "0.00021074",
+        //                 "next_funding_time" => 1715760000000
         //             }
         //         ),
         //         "message" => "OK"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $ticker = $this->safe_value($data, 'ticker', array());
-        $timestamp = $this->safe_integer($data, 'date');
-        $ticker['timestamp'] = $timestamp; // avoid changing parseFundingRate signature
-        return $this->parse_funding_rate($ticker, $market);
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
+        return $this->parse_funding_rate($first, $market);
     }
 
     public function parse_funding_rate($contract, ?array $market = null) {
         //
-        // fetchFundingRate
+        // fetchFundingRate, fetchFundingRates
         //
         //     {
-        //         "vol" => "6090.9430",
-        //         "low" => "39180.30",
-        //         "open" => "40474.97",
-        //         "high" => "40798.01",
-        //         "last" => "39659.30",
-        //         "buy" => "39663.79",
-        //         "period" => 86400,
-        //         "funding_time" => 372,
-        //         "position_amount" => "270.1956",
-        //         "funding_rate_last" => "0.00022913",
-        //         "funding_rate_next" => "0.00013158",
-        //         "funding_rate_predict" => "0.00016552",
-        //         "insurance" => "16045554.83969682659674035672",
-        //         "sign_price" => "39652.48",
-        //         "index_price" => "39648.44250000",
-        //         "sell_total" => "22.3913",
-        //         "buy_total" => "19.4498",
-        //         "buy_amount" => "12.8942",
-        //         "sell" => "39663.80",
-        //         "sell_amount" => "0.9388"
+        //         "latest_funding_rate" => "0",
+        //         "latest_funding_time" => 1715731200000,
+        //         "mark_price" => "61602.22",
+        //         "market" => "BTCUSDT",
+        //         "max_funding_rate" => "0.00375",
+        //         "min_funding_rate" => "-0.00375",
+        //         "next_funding_rate" => "0.00021074",
+        //         "next_funding_time" => 1715760000000
         //     }
         //
-        $timestamp = $this->safe_integer($contract, 'timestamp');
-        $contract = $this->omit($contract, 'timestamp');
-        $fundingDelta = $this->safe_integer($contract, 'funding_time') * 60 * 1000;
-        $fundingHour = ($timestamp . $fundingDelta) / 3600000;
-        $fundingTimestamp = (int) round($fundingHour) * 3600000;
+        $currentFundingTimestamp = $this->safe_integer($contract, 'latest_funding_time');
+        $futureFundingTimestamp = $this->safe_integer($contract, 'next_funding_time');
+        $marketId = $this->safe_string($contract, 'market');
         return array(
             'info' => $contract,
-            'symbol' => $this->safe_symbol(null, $market),
-            'markPrice' => $this->safe_number($contract, 'sign_price'),
-            'indexPrice' => $this->safe_number($contract, 'index_price'),
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'markPrice' => $this->safe_number($contract, 'mark_price'),
+            'indexPrice' => null,
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $this->safe_number($contract, 'funding_rate_next'),
-            'fundingTimestamp' => $fundingTimestamp,
-            'fundingDatetime' => $this->iso8601($fundingTimestamp),
-            'nextFundingRate' => $this->safe_number($contract, 'funding_rate_predict'),
-            'nextFundingTimestamp' => null,
-            'nextFundingDatetime' => null,
-            'previousFundingRate' => $this->safe_number($contract, 'funding_rate_last'),
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($contract, 'latest_funding_rate'),
+            'fundingTimestamp' => $currentFundingTimestamp,
+            'fundingDatetime' => $this->iso8601($currentFundingTimestamp),
+            'nextFundingRate' => $this->safe_number($contract, 'next_funding_rate'),
+            'nextFundingTimestamp' => $futureFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($futureFundingTimestamp),
+            'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
@@ -4530,13 +4500,14 @@ class coinex extends Exchange {
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
          * fetch the current funding rates
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate
          * @param {string[]} $symbols unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
+        $request = array();
         $market = null;
         if ($symbols !== null) {
             $symbol = $this->safe_value($symbols, 0);
@@ -4544,55 +4515,30 @@ class coinex extends Exchange {
             if (!$market['swap']) {
                 throw new BadSymbol($this->id . ' fetchFundingRates() supports swap contracts only');
             }
+            $marketIds = $this->market_ids($symbols);
+            $request['market'] = implode(',', $marketIds);
         }
-        $response = $this->v1PerpetualPublicGetMarketTickerAll ($params);
+        $response = $this->v2PublicGetFuturesFundingRate ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
-        //         "data":
-        //         {
-        //             "date" => 1650678472474,
-        //             "ticker" => {
-        //                 "BTCUSDT" => array(
-        //                     "vol" => "6090.9430",
-        //                     "low" => "39180.30",
-        //                     "open" => "40474.97",
-        //                     "high" => "40798.01",
-        //                     "last" => "39659.30",
-        //                     "buy" => "39663.79",
-        //                     "period" => 86400,
-        //                     "funding_time" => 372,
-        //                     "position_amount" => "270.1956",
-        //                     "funding_rate_last" => "0.00022913",
-        //                     "funding_rate_next" => "0.00013158",
-        //                     "funding_rate_predict" => "0.00016552",
-        //                     "insurance" => "16045554.83969682659674035672",
-        //                     "sign_price" => "39652.48",
-        //                     "index_price" => "39648.44250000",
-        //                     "sell_total" => "22.3913",
-        //                     "buy_total" => "19.4498",
-        //                     "buy_amount" => "12.8942",
-        //                     "sell" => "39663.80",
-        //                     "sell_amount" => "0.9388"
-        //                 }
+        //         "data" => array(
+        //             {
+        //                 "latest_funding_rate" => "0",
+        //                 "latest_funding_time" => 1715731200000,
+        //                 "mark_price" => "61602.22",
+        //                 "market" => "BTCUSDT",
+        //                 "max_funding_rate" => "0.00375",
+        //                 "min_funding_rate" => "-0.00375",
+        //                 "next_funding_rate" => "0.00021074",
+        //                 "next_funding_time" => 1715760000000
         //             }
         //         ),
         //         "message" => "OK"
         //     }
-        $data = $this->safe_value($response, 'data', array());
-        $tickers = $this->safe_value($data, 'ticker', array());
-        $timestamp = $this->safe_integer($data, 'date');
-        $result = array();
-        $marketIds = is_array($tickers) ? array_keys($tickers) : array();
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
-            if (mb_strpos($marketId, '_') === -1) { // skip _signprice and _indexprice
-                $marketInner = $this->safe_market($marketId, null, null, 'swap');
-                $ticker = $tickers[$marketId];
-                $ticker['timestamp'] = $timestamp;
-                $result[] = $this->parse_funding_rate($ticker, $marketInner);
-            }
-        }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $result = $this->parse_funding_rates($data, $market);
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
@@ -4665,13 +4611,13 @@ class coinex extends Exchange {
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
          * fetches historical funding rate prices
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate-history
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
          */
@@ -4684,52 +4630,46 @@ class coinex extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 1000);
         }
-        if ($limit === null) {
-            $limit = 100;
-        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'limit' => $limit,
-            'offset' => 0,
-            // 'end_time' => 1638990636,
         );
         if ($since !== null) {
             $request['start_time'] = $since;
         }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-        $response = $this->v1PerpetualPublicGetMarketFundingHistory ($this->extend($request, $params));
+        $response = $this->v2PublicGetFuturesFundingRateHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
         //         "data" => array(
-        //             "offset" => 0,
-        //             "limit" => 3,
-        //             "records" => array(
-        //                 array(
-        //                     "time" => 1650672021.6230309,
-        //                     "market" => "BTCUSDT",
-        //                     "asset" => "USDT",
-        //                     "funding_rate" => "0.00022913",
-        //                     "funding_rate_real" => "0.00022913"
-        //                 ),
-        //             )
+        //             array(
+        //                 "actual_funding_rate" => "0",
+        //                 "funding_time" => 1715731221761,
+        //                 "market" => "BTCUSDT",
+        //                 "theoretical_funding_rate" => "0"
+        //             ),
         //         ),
-        //         "message" => "OK"
+        //         "message" => "OK",
+        //         "pagination" => {
+        //             "has_next" => true
+        //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
-        $result = $this->safe_value($data, 'records', array());
+        $data = $this->safe_list($response, 'data', array());
         $rates = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $entry = $result[$i];
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'market');
             $symbolInner = $this->safe_symbol($marketId, $market, null, 'swap');
-            $timestamp = $this->safe_timestamp($entry, 'time');
+            $timestamp = $this->safe_integer($entry, 'funding_time');
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbolInner,
-                'fundingRate' => $this->safe_number($entry, 'funding_rate'),
+                'fundingRate' => $this->safe_number($entry, 'actual_funding_rate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
             );

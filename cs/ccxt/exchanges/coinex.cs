@@ -3620,7 +3620,7 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchFundingRate
         * @description fetch the current funding rate
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -3635,95 +3635,65 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await this.v1PerpetualPublicGetMarketTicker(this.extend(request, parameters));
+        object response = await this.v2PublicGetFuturesFundingRate(this.extend(request, parameters));
         //
         //     {
-        //          "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "vol": "6090.9430",
-        //                 "low": "39180.30",
-        //                 "open": "40474.97",
-        //                 "high": "40798.01",
-        //                 "last": "39659.30",
-        //                 "buy": "39663.79",
-        //                 "period": 86400,
-        //                 "funding_time": 372,
-        //                 "position_amount": "270.1956",
-        //                 "funding_rate_last": "0.00022913",
-        //                 "funding_rate_next": "0.00013158",
-        //                 "funding_rate_predict": "0.00016552",
-        //                 "insurance": "16045554.83969682659674035672",
-        //                 "sign_price": "39652.48",
-        //                 "index_price": "39648.44250000",
-        //                 "sell_total": "22.3913",
-        //                 "buy_total": "19.4498",
-        //                 "buy_amount": "12.8942",
-        //                 "sell": "39663.80",
-        //                 "sell_amount": "0.9388"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object ticker = this.safeValue(data, "ticker", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(data, "date");
-        ((IDictionary<string,object>)ticker)["timestamp"] = timestamp; // avoid changing parseFundingRate signature
-        return this.parseFundingRate(ticker, market);
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseFundingRate(first, market);
     }
 
     public override object parseFundingRate(object contract, object market = null)
     {
         //
-        // fetchFundingRate
+        // fetchFundingRate, fetchFundingRates
         //
         //     {
-        //         "vol": "6090.9430",
-        //         "low": "39180.30",
-        //         "open": "40474.97",
-        //         "high": "40798.01",
-        //         "last": "39659.30",
-        //         "buy": "39663.79",
-        //         "period": 86400,
-        //         "funding_time": 372,
-        //         "position_amount": "270.1956",
-        //         "funding_rate_last": "0.00022913",
-        //         "funding_rate_next": "0.00013158",
-        //         "funding_rate_predict": "0.00016552",
-        //         "insurance": "16045554.83969682659674035672",
-        //         "sign_price": "39652.48",
-        //         "index_price": "39648.44250000",
-        //         "sell_total": "22.3913",
-        //         "buy_total": "19.4498",
-        //         "buy_amount": "12.8942",
-        //         "sell": "39663.80",
-        //         "sell_amount": "0.9388"
+        //         "latest_funding_rate": "0",
+        //         "latest_funding_time": 1715731200000,
+        //         "mark_price": "61602.22",
+        //         "market": "BTCUSDT",
+        //         "max_funding_rate": "0.00375",
+        //         "min_funding_rate": "-0.00375",
+        //         "next_funding_rate": "0.00021074",
+        //         "next_funding_time": 1715760000000
         //     }
         //
-        object timestamp = this.safeInteger(contract, "timestamp");
-        contract = this.omit(contract, "timestamp");
-        object fundingDelta = multiply(multiply(this.safeInteger(contract, "funding_time"), 60), 1000);
-        object fundingHour = divide((add(timestamp, fundingDelta)), 3600000);
-        object fundingTimestamp = multiply(Math.Round(Convert.ToDouble(fundingHour)), 3600000);
+        object currentFundingTimestamp = this.safeInteger(contract, "latest_funding_time");
+        object futureFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        object marketId = this.safeString(contract, "market");
         return new Dictionary<string, object>() {
             { "info", contract },
-            { "symbol", this.safeSymbol(null, market) },
-            { "markPrice", this.safeNumber(contract, "sign_price") },
-            { "indexPrice", this.safeNumber(contract, "index_price") },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "markPrice", this.safeNumber(contract, "mark_price") },
+            { "indexPrice", null },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", this.safeNumber(contract, "funding_rate_next") },
-            { "fundingTimestamp", fundingTimestamp },
-            { "fundingDatetime", this.iso8601(fundingTimestamp) },
-            { "nextFundingRate", this.safeNumber(contract, "funding_rate_predict") },
-            { "nextFundingTimestamp", null },
-            { "nextFundingDatetime", null },
-            { "previousFundingRate", this.safeNumber(contract, "funding_rate_last") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "fundingRate", this.safeNumber(contract, "latest_funding_rate") },
+            { "fundingTimestamp", currentFundingTimestamp },
+            { "fundingDatetime", this.iso8601(currentFundingTimestamp) },
+            { "nextFundingRate", this.safeNumber(contract, "next_funding_rate") },
+            { "nextFundingTimestamp", futureFundingTimestamp },
+            { "nextFundingDatetime", this.iso8601(futureFundingTimestamp) },
+            { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
         };
@@ -3735,7 +3705,7 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchFundingRates
         * @description fetch the current funding rates
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         * @param {string[]} symbols unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -3743,6 +3713,7 @@ public partial class coinex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
+        object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -3752,57 +3723,30 @@ public partial class coinex : Exchange
             {
                 throw new BadSymbol ((string)add(this.id, " fetchFundingRates() supports swap contracts only")) ;
             }
+            object marketIds = this.marketIds(symbols);
+            ((IDictionary<string,object>)request)["market"] = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
-        object response = await this.v1PerpetualPublicGetMarketTickerAll(parameters);
+        object response = await this.v2PublicGetFuturesFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "BTCUSDT": {
-        //                     "vol": "6090.9430",
-        //                     "low": "39180.30",
-        //                     "open": "40474.97",
-        //                     "high": "40798.01",
-        //                     "last": "39659.30",
-        //                     "buy": "39663.79",
-        //                     "period": 86400,
-        //                     "funding_time": 372,
-        //                     "position_amount": "270.1956",
-        //                     "funding_rate_last": "0.00022913",
-        //                     "funding_rate_next": "0.00013158",
-        //                     "funding_rate_predict": "0.00016552",
-        //                     "insurance": "16045554.83969682659674035672",
-        //                     "sign_price": "39652.48",
-        //                     "index_price": "39648.44250000",
-        //                     "sell_total": "22.3913",
-        //                     "buy_total": "19.4498",
-        //                     "buy_amount": "12.8942",
-        //                     "sell": "39663.80",
-        //                     "sell_amount": "0.9388"
-        //                 }
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object tickers = this.safeValue(data, "ticker", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(data, "date");
-        object result = new List<object>() {};
-        object marketIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-        {
-            object marketId = getValue(marketIds, i);
-            if (isTrue(isEqual(getIndexOf(marketId, "_"), -1)))
-            {
-                object marketInner = this.safeMarket(marketId, null, null, "swap");
-                object ticker = getValue(tickers, marketId);
-                ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
-                ((IList<object>)result).Add(this.parseFundingRate(ticker, marketInner));
-            }
-        }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.parseFundingRates(data, market);
         return this.filterByArray(result, "symbol", symbols);
     }
 
@@ -3887,13 +3831,13 @@ public partial class coinex : Exchange
         /**
         * @method
         * @name coinex#fetchFundingRateHistory
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
         * @description fetches historical funding rate prices
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history
         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {int} [params.until] timestamp in ms of the latest funding rate
         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
         */
@@ -3911,56 +3855,51 @@ public partial class coinex : Exchange
         {
             return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 1000);
         }
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 100;
-        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "limit", limit },
-            { "offset", 0 },
         };
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
         var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.v1PerpetualPublicGetMarketFundingHistory(this.extend(request, parameters));
+        object response = await this.v2PublicGetFuturesFundingRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "offset": 0,
-        //             "limit": 3,
-        //             "records": [
-        //                 {
-        //                     "time": 1650672021.6230309,
-        //                     "market": "BTCUSDT",
-        //                     "asset": "USDT",
-        //                     "funding_rate": "0.00022913",
-        //                     "funding_rate_real": "0.00022913"
-        //                 },
-        //             ]
-        //         },
-        //         "message": "OK"
+        //         "data": [
+        //             {
+        //                 "actual_funding_rate": "0",
+        //                 "funding_time": 1715731221761,
+        //                 "market": "BTCUSDT",
+        //                 "theoretical_funding_rate": "0"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
-        object result = this.safeValue(data, "records", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object entry = getValue(result, i);
+            object entry = getValue(data, i);
             object marketId = this.safeString(entry, "market");
             object symbolInner = this.safeSymbol(marketId, market, null, "swap");
-            object timestamp = this.safeTimestamp(entry, "time");
+            object timestamp = this.safeInteger(entry, "funding_time");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbolInner },
-                { "fundingRate", this.safeNumber(entry, "funding_rate") },
+                { "fundingRate", this.safeNumber(entry, "actual_funding_rate") },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
             });
