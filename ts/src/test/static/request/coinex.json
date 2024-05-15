@@ -991,6 +991,19 @@
                 ]
             }
         ],
+        "fetchFundingRates": [
+            {
+                "description": "Fetch the funding rates for multiple symbols",
+                "method": "fetchFundingRates",
+                "url": "https://api.coinex.com/v2/futures/funding-rate?market=BTCUSDT%2CLTCUSDT",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
+        ],
         "fetchTradingFee": [
             {
                 "description": "Spot fetch trading fee",
