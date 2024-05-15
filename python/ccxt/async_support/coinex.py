@@ -3454,7 +3454,10 @@ class coinex(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated' for fetching spot margin orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        return await self.fetch_orders_by_status('pending', symbol, since, limit, params)
+        openOrders = await self.fetch_orders_by_status('pending', symbol, since, limit, params)
+        for i in range(0, len(openOrders)):
+            openOrders[i]['status'] = 'open'
+        return openOrders
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

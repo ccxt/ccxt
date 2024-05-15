@@ -3576,7 +3576,11 @@ class coinex extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated' for fetching spot margin orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        return $this->fetch_orders_by_status('pending', $symbol, $since, $limit, $params);
+        $openOrders = $this->fetch_orders_by_status('pending', $symbol, $since, $limit, $params);
+        for ($i = 0; $i < count($openOrders); $i++) {
+            $openOrders[$i]['status'] = 'open';
+        }
+        return $openOrders;
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

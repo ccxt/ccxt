@@ -2730,7 +2730,12 @@ public partial class coinex : Exchange
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByStatus("pending", symbol, since, limit, parameters);
+        object openOrders = await this.fetchOrdersByStatus("pending", symbol, since, limit, parameters);
+        for (object i = 0; isLessThan(i, getArrayLength(openOrders)); postFixIncrement(ref i))
+        {
+            ((IDictionary<string,object>)getValue(openOrders, i))["status"] = "open";
+        }
+        return openOrders;
     }
 
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

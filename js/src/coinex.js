@@ -3654,7 +3654,11 @@ export default class coinex extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.fetchOrdersByStatus('pending', symbol, since, limit, params);
+        const openOrders = await this.fetchOrdersByStatus('pending', symbol, since, limit, params);
+        for (let i = 0; i < openOrders.length; i++) {
+            openOrders[i]['status'] = 'open';
+        }
+        return openOrders;
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
