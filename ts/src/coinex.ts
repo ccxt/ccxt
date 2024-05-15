@@ -4545,8 +4545,8 @@ export default class coinex extends Exchange {
         //         "next_funding_time": 1715760000000
         //     }
         //
-        const previousFundingTimestamp = this.safeInteger (contract, 'latest_funding_time');
-        const currentFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const currentFundingTimestamp = this.safeInteger (contract, 'latest_funding_time');
+        const futureFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
         const marketId = this.safeString (contract, 'market');
         return {
             'info': contract,
@@ -4557,15 +4557,15 @@ export default class coinex extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (contract, 'next_funding_rate'),
+            'fundingRate': this.safeNumber (contract, 'latest_funding_rate'),
             'fundingTimestamp': currentFundingTimestamp,
             'fundingDatetime': this.iso8601 (currentFundingTimestamp),
-            'nextFundingRate': undefined,
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber (contract, 'latest_funding_rate'),
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingRate': this.safeNumber (contract, 'next_funding_rate'),
+            'nextFundingTimestamp': futureFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (futureFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 
@@ -4574,13 +4574,14 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        const request = {};
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
@@ -4588,55 +4589,30 @@ export default class coinex extends Exchange {
             if (!market['swap']) {
                 throw new BadSymbol (this.id + ' fetchFundingRates() supports swap contracts only');
             }
+            const marketIds = this.marketIds (symbols);
+            request['market'] = marketIds.join (',');
         }
-        const response = await this.v1PerpetualPublicGetMarketTickerAll (params);
+        const response = await this.v2PublicGetFuturesFundingRate (this.extend (request, params));
         //
         //     {
         //         "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "BTCUSDT": {
-        //                     "vol": "6090.9430",
-        //                     "low": "39180.30",
-        //                     "open": "40474.97",
-        //                     "high": "40798.01",
-        //                     "last": "39659.30",
-        //                     "buy": "39663.79",
-        //                     "period": 86400,
-        //                     "funding_time": 372,
-        //                     "position_amount": "270.1956",
-        //                     "funding_rate_last": "0.00022913",
-        //                     "funding_rate_next": "0.00013158",
-        //                     "funding_rate_predict": "0.00016552",
-        //                     "insurance": "16045554.83969682659674035672",
-        //                     "sign_price": "39652.48",
-        //                     "index_price": "39648.44250000",
-        //                     "sell_total": "22.3913",
-        //                     "buy_total": "19.4498",
-        //                     "buy_amount": "12.8942",
-        //                     "sell": "39663.80",
-        //                     "sell_amount": "0.9388"
-        //                 }
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
-        const data = this.safeValue (response, 'data', {});
-        const tickers = this.safeValue (data, 'ticker', {});
-        const timestamp = this.safeInteger (data, 'date');
-        const result = [];
-        const marketIds = Object.keys (tickers);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            if (marketId.indexOf ('_') === -1) { // skip _signprice and _indexprice
-                const marketInner = this.safeMarket (marketId, undefined, undefined, 'swap');
-                const ticker = tickers[marketId];
-                ticker['timestamp'] = timestamp;
-                result.push (this.parseFundingRate (ticker, marketInner));
-            }
-        }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = this.parseFundingRates (data, market);
         return this.filterByArray (result, 'symbol', symbols);
     }
 
