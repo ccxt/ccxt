@@ -6,7 +6,7 @@ import { AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended,
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -317,9 +317,9 @@ export default class wavesexchange extends Exchange {
                 },
             },
             'currencies': {
-                'WX': this.safeCurrencyStructure ({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseToInt ('8') }),
+                'WX': this.safeCurrencyStructure ({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseNumber ('1e-8') }),
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': undefined,
@@ -330,7 +330,7 @@ export default class wavesexchange extends Exchange {
                 'wavesAddress': undefined,
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
-                'wavesPrecision': 8,
+                'wavesPrecision': 1e-8,
                 'messagePrefix': 'W', // W for production, T for testnet
                 'networks': {
                     'ERC20': 'ETH',
@@ -568,8 +568,8 @@ export default class wavesexchange extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (entry, 'amountAssetDecimals'),
-                    'price': this.safeInteger (entry, 'priceAssetDecimals'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'amountAssetDecimals'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'priceAssetDecimals'))),
                 },
                 'limits': {
                     'leverage': {
