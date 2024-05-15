@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
-import { BadRequest, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
@@ -32,8 +32,8 @@ export default class oxfun extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
-                'cancelOrders': false,
+                'cancelOrder': true,
+                'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
@@ -85,7 +85,7 @@ export default class oxfun extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -179,14 +179,14 @@ export default class oxfun extends Exchange {
                         'v3/withdrawal-addresses': 1,
                         'v3/withdrawal': 1, // unified
                         'v3/withdrawal-fees': 1,
-                        'v3/orders/status': 1,
-                        'v3/orders/working': 1,
+                        'v3/orders/status': 1, // unified
+                        'v3/orders/working': 1, // unified
                         'v3/trades': 1, // unified
                     },
                     'post': {
-                        'v3/transfer': 1, // todo doesn't work
-                        'v3/withdrawal': 1,
-                        'v3/orders/place': 1,
+                        'v3/transfer': 1, // unified
+                        'v3/withdrawal': 1, // unified
+                        'v3/orders/place': 1, // unified
                     },
                     'delete': {
                         'v3/orders/cancel': 1,
@@ -2245,6 +2245,12 @@ export default class oxfun extends Exchange {
             'responseType': this.safeString (params, 'responseType', 'FULL'),
             'timestamp': this.safeInteger (params, 'timestamp', this.milliseconds ()),
         };
+        params = this.omit (params, [ 'responseType', 'timestamp' ]);
+        const recvWindow = this.safeInteger (params, 'recvWindow');
+        if (recvWindow !== undefined) {
+            request['recvWindow'] = recvWindow;
+            params = this.omit (params, 'recvWindow');
+        }
         const orderRequest = this.createOrderRequest (market, type, side, amount, price, params);
         request['orders'] = [ orderRequest ];
         const response = await this.privatePostV3OrdersPlace (request);
@@ -2491,6 +2497,110 @@ export default class oxfun extends Exchange {
         return this.parseOrder (data);
     }
 
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name oxfun#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://docs.ox.fun/?json#get-v3-orders-working
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.orderId] a unique id for the order
+         * @param {string} [params.clientOrderId] the client order id of the order
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privateGetV3OrdersWorking (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#cancelOrder
+         * @description cancels an open order
+         * @see https://docs.ox.fun/?json#delete-v3-orders-cancel
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.clientOrderId] a unique id for the order
+         * @param {int} [params.timestamp] in milliseconds
+         * @param {int} [params.recvWindow] in milliseconds
+         * @param {string} [params.responseType] 'FULL' or 'ACK'
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const request = {
+            'timestamp': this.milliseconds (),
+            'responseType': 'FULL',
+        };
+        const orderRequest = {
+            'marketCode': marketId,
+            'orderId': id,
+        };
+        const clientOrderId = this.safeInteger (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            orderRequest['clientOrderId'] = clientOrderId;
+        }
+        request['orders'] = [ orderRequest ];
+        const response = await this.privateDeleteV3OrdersCancel (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const order = this.safeDict (data, 0, {});
+        return this.parseOrder (order);
+    }
+
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#cancelOrders
+         * @description cancel multiple orders
+         * @see https://docs.ox.fun/?json#delete-v3-orders-cancel
+         * @param {string[]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.timestamp] in milliseconds
+         * @param {int} [params.recvWindow] in milliseconds
+         * @param {string} [params.responseType] 'FULL' or 'ACK'
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const request = {
+            'timestamp': this.milliseconds (),
+            'responseType': 'FULL',
+        };
+        const orders = [];
+        for (let i = 0; i < ids.length; i++) {
+            const order = {
+                'marketCode': marketId,
+                'orderId': ids[i],
+            };
+            orders.push (order);
+        }
+        request['orders'] = orders;
+        const response = await this.privateDeleteV3OrdersCancel (this.extend (request, params));
+        //
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         //
@@ -2525,7 +2635,7 @@ export default class oxfun extends Exchange {
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeStringN (order, [ 'price', 'matchPrice', 'limitPrice' ]),
             'average': undefined,
-            'amount': this.omitZero (this.safeString (order, 'totalQuantity', 'quantity')),
+            'amount': this.safeString2 (order, 'totalQuantity', 'quantity'),
             'filled': this.safeString2 (order, 'cumulativeMatchedQuantity', 'matchQuantity'),
             'remaining': this.safeString (order, 'remainQuantity'),
             'triggerPrice': triggerPrice,
@@ -2579,7 +2689,7 @@ export default class oxfun extends Exchange {
         const baseUrl = this.urls['api'][api];
         let url = baseUrl + '/' + path;
         let queryString = '';
-        if (method === 'GET' || method === 'DELETE') {
+        if (method === 'GET') {
             queryString = this.urlencode (params);
             if (queryString.length !== 0) {
                 url += '?' + queryString;
@@ -2593,7 +2703,7 @@ export default class oxfun extends Exchange {
             const datetime = datetimeParts[0];
             const nonce = this.nonce ();
             const urlParts = baseUrl.split ('//');
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'DELETE')) {
                 body = this.json (params);
                 queryString = body;
             }
