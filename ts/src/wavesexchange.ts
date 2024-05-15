@@ -1234,7 +1234,7 @@ export default class wavesexchange extends Exchange {
 
     toRealCurrencyAmount (code: string, amount: number, networkCode = undefined) {
         const currency = this.currency (code);
-        const stringValue = Precise.stringDiv (this.numberToString (amount), this.safeString (currency, 'amount'));
+        const stringValue = Precise.stringDiv (this.numberToString (amount), this.safeString (currency, 'precision'));
         return parseInt (stringValue);
     }
 
@@ -2588,18 +2588,45 @@ export default class wavesexchange extends Exchange {
         //         "amount": 0
         //     }
         //
+        // withdraw new:
+        //     {
+        //         type: "4",
+        //         id: "2xnWTqG9ar7jEDrLxfbVyyspPZ6XZNrrw9ai9sQ81Eya",
+        //         fee: "100000",
+        //         feeAssetId: null,
+        //         timestamp: "1715786263807",
+        //         version: "2",
+        //         sender: "3P81LLX1kk2CSJC9L8C2enxdHB7XvnSGAEE",
+        //         senderPublicKey: "DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJoXz",
+        //         proofs: [ "RyoKwdSYv3EqotJCYftfFM9JE2j1ZpDRxKwYfiRhLAFeyNp6VfJUXNDS884XfeCeHeNypNmTCZt5NYR1ekyjCX3", ],
+        //         recipient: "3P9tXxu38a8tgewNEKFzourVxeqHd11ppOc",
+        //         assetId: null,
+        //         feeAsset: null,
+        //         amount: "2000000",
+        //         attachment: "",
+        //     }
+        //
         currency = this.safeCurrency (undefined, currency);
+        const code = currency['code'];
+        const typeRaw = this.safeString (transaction, 'type');
+        const type = (typeRaw === '4') ? 'withdraw' : 'deposit';
+        const amount = this.parseNumber (this.fromRealCurrencyAmount (code, this.safeString (transaction, 'amount')));
+        const feeString = this.safeString (transaction, 'fee');
+        const feeAssetId = this.safeString (transaction, 'feeAssetId', 'WAVES');
+        const feeCode = this.safeCurrencyCode (feeAssetId);
+        const feeAmount = this.parseNumber (this.fromRealCurrencyAmount (feeCode, feeString));
+        const timestamp = this.safeInteger (transaction, 'timestamp');
         return {
-            'id': undefined,
+            'id': this.safeString (transaction, 'id'),
             'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'network': undefined,
-            'addressFrom': undefined,
+            'addressFrom': this.safeString (transaction, 'sender'),
             'address': undefined,
-            'addressTo': undefined,
-            'amount': undefined,
-            'type': undefined,
+            'addressTo': this.safeString (transaction, 'recipient'),
+            'amount': amount,
+            'type': type,
             'currency': currency['code'],
             'status': undefined,
             'updated': undefined,
@@ -2608,7 +2635,10 @@ export default class wavesexchange extends Exchange {
             'tagTo': undefined,
             'comment': undefined,
             'internal': undefined,
-            'fee': undefined,
+            'fee': {
+                'currency': feeCode,
+                'cost': feeAmount,
+            },
             'info': transaction,
         };
     }
