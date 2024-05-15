@@ -1278,6 +1278,15 @@ export default class wavesexchange extends Exchange {
         return this.fromPrecision (amount, scale);
     }
 
+    amountForCurrency (code, amountString) {
+        if (!(code in this.currencies)) {
+            return amountString;
+        }
+        const currency = this.currency (code);
+        const precisionAmount = this.safeString (currency, 'precision');
+        return Precise.stringMul (amountString, precisionAmount);
+    }
+
     priceFromPrecision (symbol, price) {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
@@ -1913,7 +1922,7 @@ export default class wavesexchange extends Exchange {
         //   ]
         // }
         const balances = this.safeValue (totalBalance, 'balances', []);
-        const result = {};
+        let result = {};
         let timestamp = undefined;
         const assetIds = [];
         const nonStandardBalances = [];
@@ -1924,17 +1933,14 @@ export default class wavesexchange extends Exchange {
             const issueTransaction = this.safeValue (entry, 'issueTransaction');
             const currencyId = this.safeString (entry, 'assetId');
             const balance = this.safeString (entry, 'balance');
-            if (issueTransaction === undefined) {
+            const currencyExists = (currencyId in this.currencies_by_id);
+            if (currencyExists) {
+                const code = this.safeCurrencyCode (currencyId);
+                result[code] = this.account ();
+                result[code]['total'] = this.amountForCurrency (code, balance);
+            } else if (issueTransaction === undefined) {
                 assetIds.push (currencyId);
                 nonStandardBalances.push (balance);
-                continue;
-            }
-            const decimals = this.safeInteger (issueTransaction, 'decimals');
-            let code = undefined;
-            if (currencyId in this.currencies_by_id) {
-                code = this.safeCurrencyCode (currencyId);
-                result[code] = this.account ();
-                result[code]['total'] = this.fromPrecision (balance, decimals);
             }
         }
         const nonStandardAssets = assetIds.length;
@@ -1948,11 +1954,11 @@ export default class wavesexchange extends Exchange {
                 const entry = data[i];
                 const balance = nonStandardBalances[i];
                 const inner = this.safeValue (entry, 'data');
-                const decimals = this.safeInteger (inner, 'precision');
+                const precision = this.parsePrecision (this.safeString (inner, 'precision'));
                 const ticker = this.safeString (inner, 'ticker');
                 const code = this.safeCurrencyCode (ticker);
                 result[code] = this.account ();
-                result[code]['total'] = this.fromPrecision (balance, decimals);
+                result[code]['total'] = Precise.stringMul (balance, precision);
             }
         }
         const currentTimestamp = this.milliseconds ();
@@ -1978,11 +1984,7 @@ export default class wavesexchange extends Exchange {
                 result[code] = this.account ();
             }
             const amount = this.safeString (reservedBalance, currencyId);
-            if (code in this.currencies) {
-                result[code]['used'] = this.currencyFromPrecision (code, amount);
-            } else {
-                result[code]['used'] = amount;
-            }
+            result[code]['used'] = this.amountForCurrency (code, amount);
         }
         const wavesRequest = {
             'address': wavesAddress,
@@ -1993,18 +1995,23 @@ export default class wavesexchange extends Exchange {
         //   "confirmations": 0,
         //   "balance": 909085978
         // }
-        result['WAVES'] = this.safeValue (result, 'WAVES', {});
-        result['WAVES']['total'] = this.currencyFromPrecision ('WAVES', this.safeString (wavesTotal, 'balance'));
-        const codes = Object.keys (result);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            if (this.safeValue (result[code], 'used') === undefined) {
-                result[code]['used'] = '0';
-            }
-        }
+        result['WAVES'] = this.safeValue (result, 'WAVES', this.account ());
+        result['WAVES']['total'] = this.amountForCurrency ('WAVES', this.safeString (wavesTotal, 'balance'));
+        result = this.setUndefinedBalancesToZero (result);
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         return this.safeBalance (result);
+    }
+
+    setUndefinedBalancesToZero (balances, key = 'used') {
+        const codes = Object.keys (balances);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            if (this.safeValue (balances[code], 'used') === undefined) {
+                balances[code][key] = '0';
+            }
+        }
+        return balances;
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
