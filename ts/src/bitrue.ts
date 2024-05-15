@@ -3128,6 +3128,10 @@ export default class bitrue extends Exchange {
                 signPath = signPath + '/' + version + '/' + path;
                 let signMessage = timestamp + method + signPath;
                 if (method === 'GET') {
+                    const keys = Object.keys (params);
+                    if (keys.length > 0) {
+                        signMessage += '?' + this.urlencode (params);
+                    }
                     const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
                     headers = {
                         'X-CH-APIKEY': this.apiKey,
