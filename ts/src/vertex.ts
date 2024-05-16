@@ -283,7 +283,7 @@ export default class vertex extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
+            'type': (spot) ? 'spot' : 'swap',
             'spot': spot,
             'margin': undefined,
             'swap': swap,
