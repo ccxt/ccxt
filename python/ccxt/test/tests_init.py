@@ -1,12 +1,25 @@
 # -*- coding: utf-8 -*-
 
-from helpers_for_tests import get_cli_arg_value, is_synchronous, argv, argvSymbol, argvMethod
+
+# ########## imports ##########
+from helpers_for_tests import get_cli_arg_value, is_synchronous, argv, argvSymbol, argvMethod, ccxt
 
 try:
     import asyncio
 except ImportError:
     asyncio = None
 
+from base.functions_auto.test_extend import test_base_functions_extend
+# tested inside imports itself
+import base.test_number  # noqa: F401
+import base.test_crypto  # noqa: F401
+
+
+
+
+
+
+# ########### args ########### 
 
 isBaseTests = get_cli_arg_value('--baseTests')
 isExchangeTests = get_cli_arg_value('--exchangeTests')
@@ -16,8 +29,10 @@ isAllTest = not reqResTests and not isBaseTests and not isExchangeTests  # if ne
 # ###### base tests #######
 if (isBaseTests or isAllTest):
     # test base things
-    from base_auto import BaseFunctionalitiesTestClass
-    BaseFunctionalitiesTestClass().init()
+    exchange = ccxt.Exchange({  # noqa: F405
+        'id': 'xyzexchange',
+    })
+    test_base_functions_extend(exchange)
     print('base tests passed!')
 
 
