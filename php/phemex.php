@@ -2229,7 +2229,7 @@ class phemex extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => null,
+                'currency' => $this->safe_currency_code($this->safe_string($order, 'feeCurrency')),
             );
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
@@ -2378,6 +2378,7 @@ class phemex extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->parse_order_side($this->safe_string_lower($order, 'side'));
         $type = $this->parse_order_type($this->safe_string($order, 'orderType'));
@@ -2407,6 +2408,20 @@ class phemex extends Exchange {
         }
         $takeProfit = $this->safe_string($order, 'takeProfitRp');
         $stopLoss = $this->safe_string($order, 'stopLossRp');
+        $feeValue = $this->omit_zero($this->safe_string($order, 'execFeeRv'));
+        $ptFeeRv = $this->omit_zero($this->safe_string($order, 'ptFeeRv'));
+        $fee = null;
+        if ($feeValue !== null) {
+            $fee = array(
+                'cost' => $feeValue,
+                'currency' => $market['quote'],
+            );
+        } elseif ($ptFeeRv !== null) {
+            $fee = array(
+                'cost' => $ptFeeRv,
+                'currency' => 'PT',
+            );
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2431,7 +2446,7 @@ class phemex extends Exchange {
             'cost' => $cost,
             'average' => null,
             'status' => $status,
-            'fee' => null,
+            'fee' => $fee,
             'trades' => null,
         ));
     }
