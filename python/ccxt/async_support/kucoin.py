@@ -4490,6 +4490,7 @@ class kucoin(Exchange, ImplicitAPI):
                 partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature
                 headers['KC-API-PARTNER'] = partnerId
+                headers['KC-API-PARTNER-VERIFY'] = 'true'
             if isBroker:
                 brokerName = self.safe_string(partner, 'name')
                 if brokerName is not None:

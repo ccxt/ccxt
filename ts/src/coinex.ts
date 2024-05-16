@@ -447,7 +447,9 @@ export default class coinex extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'accountsById': {
-                    'spot': '0',
+                    'spot': 'SPOT',
+                    'margin': 'MARGIN',
+                    'swap': 'FUTURES',
                 },
                 'networks': {
                     'BEP20': 'BSC',
@@ -3622,7 +3624,11 @@ export default class coinex extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.fetchOrdersByStatus ('pending', symbol, since, limit, params);
+        const openOrders = await this.fetchOrdersByStatus ('pending', symbol, since, limit, params);
+        for (let i = 0; i < openOrders.length; i++) {
+            openOrders[i]['status'] = 'open';
+        }
+        return openOrders;
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -4493,7 +4499,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4506,94 +4512,64 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.v1PerpetualPublicGetMarketTicker (this.extend (request, params));
+        const response = await this.v2PublicGetFuturesFundingRate (this.extend (request, params));
         //
         //     {
-        //          "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "vol": "6090.9430",
-        //                 "low": "39180.30",
-        //                 "open": "40474.97",
-        //                 "high": "40798.01",
-        //                 "last": "39659.30",
-        //                 "buy": "39663.79",
-        //                 "period": 86400,
-        //                 "funding_time": 372,
-        //                 "position_amount": "270.1956",
-        //                 "funding_rate_last": "0.00022913",
-        //                 "funding_rate_next": "0.00013158",
-        //                 "funding_rate_predict": "0.00016552",
-        //                 "insurance": "16045554.83969682659674035672",
-        //                 "sign_price": "39652.48",
-        //                 "index_price": "39648.44250000",
-        //                 "sell_total": "22.3913",
-        //                 "buy_total": "19.4498",
-        //                 "buy_amount": "12.8942",
-        //                 "sell": "39663.80",
-        //                 "sell_amount": "0.9388"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const ticker = this.safeValue (data, 'ticker', {});
-        const timestamp = this.safeInteger (data, 'date');
-        ticker['timestamp'] = timestamp; // avoid changing parseFundingRate signature
-        return this.parseFundingRate (ticker, market);
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseFundingRate (first, market);
     }
 
     parseFundingRate (contract, market: Market = undefined) {
         //
-        // fetchFundingRate
+        // fetchFundingRate, fetchFundingRates
         //
         //     {
-        //         "vol": "6090.9430",
-        //         "low": "39180.30",
-        //         "open": "40474.97",
-        //         "high": "40798.01",
-        //         "last": "39659.30",
-        //         "buy": "39663.79",
-        //         "period": 86400,
-        //         "funding_time": 372,
-        //         "position_amount": "270.1956",
-        //         "funding_rate_last": "0.00022913",
-        //         "funding_rate_next": "0.00013158",
-        //         "funding_rate_predict": "0.00016552",
-        //         "insurance": "16045554.83969682659674035672",
-        //         "sign_price": "39652.48",
-        //         "index_price": "39648.44250000",
-        //         "sell_total": "22.3913",
-        //         "buy_total": "19.4498",
-        //         "buy_amount": "12.8942",
-        //         "sell": "39663.80",
-        //         "sell_amount": "0.9388"
+        //         "latest_funding_rate": "0",
+        //         "latest_funding_time": 1715731200000,
+        //         "mark_price": "61602.22",
+        //         "market": "BTCUSDT",
+        //         "max_funding_rate": "0.00375",
+        //         "min_funding_rate": "-0.00375",
+        //         "next_funding_rate": "0.00021074",
+        //         "next_funding_time": 1715760000000
         //     }
         //
-        const timestamp = this.safeInteger (contract, 'timestamp');
-        contract = this.omit (contract, 'timestamp');
-        const fundingDelta = this.safeInteger (contract, 'funding_time') * 60 * 1000;
-        const fundingHour = (timestamp + fundingDelta) / 3600000;
-        const fundingTimestamp = Math.round (fundingHour) * 3600000;
+        const currentFundingTimestamp = this.safeInteger (contract, 'latest_funding_time');
+        const futureFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const marketId = this.safeString (contract, 'market');
         return {
             'info': contract,
-            'symbol': this.safeSymbol (undefined, market),
-            'markPrice': this.safeNumber (contract, 'sign_price'),
-            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'markPrice': this.safeNumber (contract, 'mark_price'),
+            'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fundingRate': this.safeNumber (contract, 'funding_rate_next'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': this.safeNumber (contract, 'funding_rate_predict'),
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber (contract, 'funding_rate_last'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'latest_funding_rate'),
+            'fundingTimestamp': currentFundingTimestamp,
+            'fundingDatetime': this.iso8601 (currentFundingTimestamp),
+            'nextFundingRate': this.safeNumber (contract, 'next_funding_rate'),
+            'nextFundingTimestamp': futureFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (futureFundingTimestamp),
+            'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
@@ -4604,13 +4580,14 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        const request = {};
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
@@ -4618,55 +4595,30 @@ export default class coinex extends Exchange {
             if (!market['swap']) {
                 throw new BadSymbol (this.id + ' fetchFundingRates() supports swap contracts only');
             }
+            const marketIds = this.marketIds (symbols);
+            request['market'] = marketIds.join (',');
         }
-        const response = await this.v1PerpetualPublicGetMarketTickerAll (params);
+        const response = await this.v2PublicGetFuturesFundingRate (this.extend (request, params));
         //
         //     {
         //         "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "BTCUSDT": {
-        //                     "vol": "6090.9430",
-        //                     "low": "39180.30",
-        //                     "open": "40474.97",
-        //                     "high": "40798.01",
-        //                     "last": "39659.30",
-        //                     "buy": "39663.79",
-        //                     "period": 86400,
-        //                     "funding_time": 372,
-        //                     "position_amount": "270.1956",
-        //                     "funding_rate_last": "0.00022913",
-        //                     "funding_rate_next": "0.00013158",
-        //                     "funding_rate_predict": "0.00016552",
-        //                     "insurance": "16045554.83969682659674035672",
-        //                     "sign_price": "39652.48",
-        //                     "index_price": "39648.44250000",
-        //                     "sell_total": "22.3913",
-        //                     "buy_total": "19.4498",
-        //                     "buy_amount": "12.8942",
-        //                     "sell": "39663.80",
-        //                     "sell_amount": "0.9388"
-        //                 }
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
-        const data = this.safeValue (response, 'data', {});
-        const tickers = this.safeValue (data, 'ticker', {});
-        const timestamp = this.safeInteger (data, 'date');
-        const result = [];
-        const marketIds = Object.keys (tickers);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            if (marketId.indexOf ('_') === -1) { // skip _signprice and _indexprice
-                const marketInner = this.safeMarket (marketId, undefined, undefined, 'swap');
-                const ticker = tickers[marketId];
-                ticker['timestamp'] = timestamp;
-                result.push (this.parseFundingRate (ticker, marketInner));
-            }
-        }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = this.parseFundingRates (data, market);
         return this.filterByArray (result, 'symbol', symbols);
     }
 
@@ -4743,13 +4695,13 @@ export default class coinex extends Exchange {
         /**
          * @method
          * @name coinex#fetchFundingRateHistory
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
          * @description fetches historical funding rate prices
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] timestamp in ms of the latest funding rate
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
@@ -4762,52 +4714,46 @@ export default class coinex extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000) as FundingRateHistory[];
         }
-        if (limit === undefined) {
-            limit = 100;
-        }
         const market = this.market (symbol);
         let request = {
             'market': market['id'],
-            'limit': limit,
-            'offset': 0,
-            // 'end_time': 1638990636,
         };
         if (since !== undefined) {
             request['start_time'] = since;
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         [ request, params ] = this.handleUntilOption ('end_time', request, params);
-        const response = await this.v1PerpetualPublicGetMarketFundingHistory (this.extend (request, params));
+        const response = await this.v2PublicGetFuturesFundingRateHistory (this.extend (request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "offset": 0,
-        //             "limit": 3,
-        //             "records": [
-        //                 {
-        //                     "time": 1650672021.6230309,
-        //                     "market": "BTCUSDT",
-        //                     "asset": "USDT",
-        //                     "funding_rate": "0.00022913",
-        //                     "funding_rate_real": "0.00022913"
-        //                 },
-        //             ]
-        //         },
-        //         "message": "OK"
+        //         "data": [
+        //             {
+        //                 "actual_funding_rate": "0",
+        //                 "funding_time": 1715731221761,
+        //                 "market": "BTCUSDT",
+        //                 "theoretical_funding_rate": "0"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
-        const result = this.safeValue (data, 'records', []);
+        const data = this.safeList (response, 'data', []);
         const rates = [];
-        for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             const marketId = this.safeString (entry, 'market');
             const symbolInner = this.safeSymbol (marketId, market, undefined, 'swap');
-            const timestamp = this.safeTimestamp (entry, 'time');
+            const timestamp = this.safeInteger (entry, 'funding_time');
             rates.push ({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                'fundingRate': this.safeNumber (entry, 'actual_funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             });
@@ -4935,41 +4881,45 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
+         * @see https://docs.coinex.com/api/v2/assets/transfer/http/transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
+        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
+        const toId = this.safeString (accountsById, toAccount, toAccount);
         const request = {
+            'ccy': currency['id'],
             'amount': amountToPrecision,
-            'coin_type': currency['id'],
+            'from_account_type': fromId,
+            'to_account_type': toId,
         };
-        let response = undefined;
-        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
-            request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer (this.extend (request, params));
-        } else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
-            request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer (this.extend (request, params));
-        } else {
-            const accountsById = this.safeValue (this.options, 'accountsById', {});
-            const fromId = this.safeString (accountsById, fromAccount, fromAccount);
-            const toId = this.safeString (accountsById, toAccount, toAccount);
-            // fromAccount and toAccount must be integers for margin transfers
-            // spot is 0, use fetchBalance() to find the margin account id
-            request['from_account'] = parseInt (fromId);
-            request['to_account'] = parseInt (toId);
-            response = await this.v1PrivatePostMarginTransfer (this.extend (request, params));
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            const symbol = this.safeString (params, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer() the symbol parameter must be defined for a margin account');
+            }
+            params = this.omit (params, 'symbol');
+            request['market'] = this.marketId (symbol);
         }
+        if ((fromAccount !== 'spot') && (toAccount !== 'spot')) {
+            throw new BadRequest (this.id + ' transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot');
+        }
+        const response = await this.v2PrivatePostAssetsTransfer (this.extend (request, params));
         //
-        //     {"code": 0, "data": null, "message": "Success"}
+        //     {
+        //         "code": 0,
+        //         "data": {},
+        //         "message": "OK"
+        //     }
         //
         return this.extend (this.parseTransfer (response, currency), {
             'amount': this.parseNumber (amountToPrecision),
@@ -4978,69 +4928,29 @@ export default class coinex extends Exchange {
         });
     }
 
-    parseTransferStatus (status: Str): Str {
+    parseTransferStatus (status) {
         const statuses = {
             '0': 'ok',
             'SUCCESS': 'ok',
+            'OK': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        //
-        // fetchTransfers Swap
-        //
-        //     {
-        //         "amount": "10",
-        //         "asset": "USDT",
-        //         "transfer_type": "transfer_out", // from swap to spot
-        //         "created_at": 1651633422
-        //     },
-        //
-        // fetchTransfers Margin
-        //
-        //     {
-        //         "id": 7580062,
-        //         "updated_at": 1653684379,
-        //         "user_id": 3620173,
-        //         "from_account_id": 0,
-        //         "to_account_id": 1,
-        //         "asset": "BTC",
-        //         "amount": "0.00160829",
-        //         "balance": "0.00160829",
-        //         "transfer_type": "IN",
-        //         "status": "SUCCESS",
-        //         "created_at": 1653684379
-        //     },
-        //
-        const timestamp = this.safeTimestamp (transfer, 'created_at');
-        const transferType = this.safeString (transfer, 'transfer_type');
-        let fromAccount = undefined;
-        let toAccount = undefined;
-        if (transferType === 'transfer_out') {
-            fromAccount = 'swap';
-            toAccount = 'spot';
-        } else if (transferType === 'transfer_in') {
-            fromAccount = 'spot';
-            toAccount = 'swap';
-        } else if (transferType === 'IN') {
-            fromAccount = 'spot';
-            toAccount = 'margin';
-        } else if (transferType === 'OUT') {
-            fromAccount = 'margin';
-            toAccount = 'spot';
-        }
-        const currencyId = this.safeString (transfer, 'asset');
-        const currencyCode = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (transfer, 'created_at');
+        const currencyId = this.safeString (transfer, 'ccy');
+        const fromId = this.safeString (transfer, 'from_account_type');
+        const toId = this.safeString (transfer, 'to_account_type');
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
         return {
-            'info': transfer,
-            'id': this.safeString (transfer, 'id'),
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': currencyCode,
+            'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': this.safeString (accountsById, fromId, fromId),
+            'toAccount': this.safeString (accountsById, toId, toId),
             'status': this.parseTransferStatus (this.safeString2 (transfer, 'code', 'status')),
         };
     }
