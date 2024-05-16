@@ -95,6 +95,7 @@ export default class vertex extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': false,
@@ -241,7 +242,7 @@ export default class vertex extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
-    convertToX18 (num: number | string) {
+    convertToX18 (num) {
         if (typeof num === 'string') {
             return Precise.stringMul (num, '1000000000000000000');
         }
@@ -249,7 +250,7 @@ export default class vertex extends Exchange {
         return Precise.stringMul (numStr, '1000000000000000000');
     }
 
-    convertFromX18 (num: number | string) {
+    convertFromX18 (num) {
         if (typeof num === 'string') {
             return Precise.stringDiv (num, '1000000000000000000');
         }
@@ -458,6 +459,41 @@ export default class vertex extends Exchange {
             result.push (this.parseMarket (rawMarket));
         }
         return result;
+    }
+
+    async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name vertex#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/status
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const request = {
+            'type': 'status',
+        };
+        const response = await this.v1GatewayGetQuery (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "data": "active",
+        //     "request_type": "query_status",
+        // }
+        //
+        let status = this.safeString (response, 'data');
+        if (status === 'active') {
+            status = 'ok';
+        } else {
+            status = 'error';
+        }
+        return {
+            'status': status,
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
