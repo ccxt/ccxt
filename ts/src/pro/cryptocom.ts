@@ -108,12 +108,18 @@ export default class cryptocom extends cryptocomRest {
             params['params'] = {};
         }
         let bookSubscriptionType = undefined;
-        [ bookSubscriptionType, params ] = this.handleOptionAndParamsTwoMethods (params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType');
+        if (bookSubscriptionType === undefined) {
+            [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        }
         if (bookSubscriptionType !== undefined) {
             params['params']['bookSubscriptionType'] = bookSubscriptionType;
         }
         let bookUpdateFrequency = undefined;
-        [ bookUpdateFrequency, params ] = this.handleOptionAndParamsTwoMethods (params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency');
+        [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency');
+        if (bookUpdateFrequency === undefined) {
+            [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency');
+        }
         if (bookUpdateFrequency !== undefined) {
             params['params']['bookSubscriptionType'] = bookSubscriptionType;
         }
