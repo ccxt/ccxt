@@ -1504,6 +1504,117 @@
                 ]
             }
         ],
+        "fetchOrders":[
+            {
+                "description": "swap order",
+                "method": "fetchOrders",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "OK",
+                  "data": [{
+                    "createdAt": "1715818144087",
+                    "symbol": "BTCUSDT",
+                    "orderQtyRq": "0.01",
+                    "side": "1",
+                    "posSide": "2",
+                    "priceRp": "75326.2",
+                    "execQtyRq": "0.01",
+                    "leavesQtyRq": "0",
+                    "execPriceRp": "66573.7",
+                    "orderValueRv": "665.737",
+                    "leavesValueRv": "0",
+                    "cumValueRv": "665.737",
+                    "stopDirection": "1",
+                    "stopPxRp": "66500",
+                    "trigger": "1",
+                    "actionBy": "4",
+                    "execFeeRv": "0.36615535",
+                    "ordType": "3",
+                    "ordStatus": "7",
+                    "clOrdId": "XXXXXXXXXXXXXXXXXXXXXX",
+                    "orderId": "XXXXXXXXXXXXXXXXXXXXXX",
+                    "execStatus": "7",
+                    "bizError": "0",
+                    "totalPnlRv": null,
+                    "avgTransactPriceRp": null,
+                    "orderDetailsVos": null,
+                    "tradeType": "1",
+                    "updatedAt": "1715818144091"
+                  }]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "createdAt": "1715818144087",
+                      "symbol": "BTCUSDT",
+                      "orderQtyRq": "0.01",
+                      "side": "1",
+                      "posSide": "2",
+                      "priceRp": "75326.2",
+                      "execQtyRq": "0.01",
+                      "leavesQtyRq": "0",
+                      "execPriceRp": "66573.7",
+                      "orderValueRv": "665.737",
+                      "leavesValueRv": "0",
+                      "cumValueRv": "665.737",
+                      "stopDirection": "1",
+                      "stopPxRp": "66500",
+                      "trigger": "1",
+                      "actionBy": "4",
+                      "execFeeRv": "0.36615535",
+                      "ordType": "3",
+                      "ordStatus": "7",
+                      "clOrdId": "XXXXXXXXXXXXXXXXXXXXXX",
+                      "orderId": "XXXXXXXXXXXXXXXXXXXXXX",
+                      "execStatus": "7",
+                      "bizError": "0",
+                      "totalPnlRv": null,
+                      "avgTransactPriceRp": null,
+                      "orderDetailsVos": null,
+                      "tradeType": "1",
+                      "updatedAt": "1715818144091"
+                    },
+                    "id": "XXXXXXXXXXXXXXXXXXXXXX",
+                    "clientOrderId": "XXXXXXXXXXXXXXXXXXXXXX",
+                    "datetime": "2024-05-16T00:09:04.087Z",
+                    "timestamp": 1715818144087,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 75326.2,
+                    "stopPrice": 66500,
+                    "triggerPrice": 66500,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": 0.01,
+                    "filled": 0.01,
+                    "remaining": 0,
+                    "cost": 665.737,
+                    "average": 66573.7,
+                    "status": "closed",
+                    "fee": {
+                      "cost": "0.36615535",
+                      "currency": "USDT"
+                    },
+                    "trades": [],
+                    "fees": [
+                      {
+                        "cost": 0.36615535,
+                        "currency": "USDT"
+                      }
+                    ],
+                    "lastUpdateTimestamp": null
+                  }
+                ]
+              }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
