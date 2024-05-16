@@ -2312,13 +2312,6 @@ class Transpiler {
 
         const tests = [];
 
-        // tests.push({
-        //     base: false,
-        //     tsFile: './ts/src/test/base_auto.ts',
-        //     pyFileSync: './python/ccxt/test/base_auto.py',
-        //     phpFileSync: './php/test/base_auto.php',
-        // });
-        
         for (const testName of baseFunctionTests) {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const test = {
