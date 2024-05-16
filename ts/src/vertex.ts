@@ -342,8 +342,8 @@ export default class vertex extends Exchange {
         const marketType = this.safeString (market, 'type');
         const quoteId = 'USDC';
         const quote = this.safeCurrencyCode (quoteId);
-        let base = this.safeString (market, 'symbol');
-        let baseId = this.safeString (market, 'baseId');
+        const baseId = this.safeString (market, 'symbol');
+        const base = this.safeCurrencyCode (baseId);
         const settleId = quoteId;
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
@@ -494,6 +494,98 @@ export default class vertex extends Exchange {
             'url': undefined,
             'info': response,
         };
+    }
+
+    parseTrade (trade, market: Market = undefined): Trade {
+        //
+        // {
+        //       "ticker_id": "ARB_USDC",
+        //       "trade_id": 999994,
+        //       "price": 1.1366122408151016,
+        //       "base_filled": 175,
+        //       "quote_filled": -198.90714214264278,
+        //       "timestamp": 1691068943,
+        //       "trade_type": "buy"
+        // }
+        //
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const tickerId = this.safeString (trade, 'ticker_id');
+        const splitTickerId = tickerId.split ('_');
+        const splitSymbol = splitTickerId[0].split ('-');
+        const marketId = splitSymbol[0] + splitTickerId[1];
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'base_filled');
+        const side = this.safeStringLower (trade, 'trade_type');
+        const id = this.safeString (trade, 'trade_id');
+        return this.safeTrade ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'type': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name vertex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/trades
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marketId = market['baseId'];
+        if (market['spot']) {
+            marketId = marketId + '_USDC';
+        } else {
+            marketId = marketId + '-PERP_USDC';
+        }
+        const request = {
+            'ticker_id': marketId,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v2ArchiveGetTrades (this.extend (request, params));
+        //
+        // [
+        //     {
+        //       "ticker_id": "ARB_USDC",
+        //       "trade_id": 999994,
+        //       "price": 1.1366122408151016,
+        //       "base_filled": 175,
+        //       "quote_filled": -198.90714214264278,
+        //       "timestamp": 1691068943,
+        //       "trade_type": "buy"
+        //     },
+        //     {
+        //       "ticker_id": "ARB_USDC",
+        //       "trade_id": 999978,
+        //       "price": 1.136512210806099,
+        //       "base_filled": 175,
+        //       "quote_filled": -198.8896368910673,
+        //       "timestamp": 1691068882,
+        //       "trade_type": "buy"
+        //     }
+        // ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
