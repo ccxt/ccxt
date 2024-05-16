@@ -168,6 +168,18 @@
                 "output": "nonce=1705242796801&pair=LTCUSDT&type=sell&ordertype=take-profit&volume=0.1&price=120"
             }
         ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "market buy order",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "LTC/USD",
+                  5
+                ],
+                "output": "nonce=1715881618883&pair=XLTCZUSD&type=buy&ordertype=market&volume=5&oflags=viqc"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
