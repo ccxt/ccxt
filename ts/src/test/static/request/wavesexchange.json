@@ -12,7 +12,7 @@
             {
                 "description": "limit buy",
                 "method": "createOrder",
-                "url": "https://matcher.wx.network/matcher/orderbook",
+                "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
                 "input": [
                   "WAVES/USDT",
                   "limit",
@@ -20,12 +20,12 @@
                   0.02,
                   3.123
                 ],
-                "output": "{\"senderPublicKey\":\"DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJovZ\",\"matcherPublicKey\":\"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5\",\"assetPair\":{\"amountAsset\":\"\",\"priceAsset\":\"G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC\"},\"orderType\":\"buy\",\"price\":3123000,\"amount\":2000000,\"timestamp\":1715788275511,\"expiration\":1718207475511,\"matcherFee\":24304,\"priceMode\":\"assetDecimals\",\"version\":4,\"chainId\":87,\"matcherFeeAssetId\":\"G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC\",\"signature\":\"Dc6BqKoN17Kb7SJNA7MTGTN1qsRiF7anTaDcYQ6ccSuhYtcjXum7Vps4vXde3tLPd9vQwpRshjVtdyiF9GFnWPs\"}"
+                "output": "{\"orderType\":\"buy\",\"amount\":2000000,\"price\":3123000}"
             },
             {
                 "description": "limit buy with exteme amounts",
                 "method": "createOrder",
-                "url": "https://matcher.wx.network/matcher/orderbook",
+                "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
                 "input": [
                   "WAVES/USDT",
                   "limit",
@@ -33,13 +33,12 @@
                   0.012345678912345679,
                   3.123456789123457
                 ],
-                "output": "{\"senderPublicKey\":\"DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJovZ\",\"matcherPublicKey\":\"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5\",\"assetPair\":{\"amountAsset\":\"\",\"priceAsset\":\"G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC\"},\"orderType\":\"buy\",\"price\":3123456,\"amount\":1234567,\"timestamp\":1715788593714,\"expiration\":1718207793714,\"matcherFee\":24346,\"priceMode\":\"assetDecimals\",\"version\":4,\"chainId\":87,\"matcherFeeAssetId\":\"G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC\",\"signature\":\"E17fqtxojT6awJa67V1LNSHRePzY2vaKycF1RodySFEF6z9fbA5oxmCHrogBCtLsjyK8rTKS6ad1MA6goVzNStX\"}"
+                "output": "{\"orderType\":\"buy\",\"amount\":1234567,\"price\":3123456}"
             },
-            
             {
                 "description": "sell limit",
                 "method": "createOrder",
-                "url": "https://matcher.wx.network/matcher/orderbook",
+                "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
                 "input": [
                   "WAVES/USDT",
                   "limit",
@@ -47,12 +46,12 @@
                   0.02,
                   2.123
                 ],
-                "output": "{\"senderPublicKey\":\"DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJovZ\",\"matcherPublicKey\":\"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5\",\"assetPair\":{\"amountAsset\":\"\",\"priceAsset\":\"G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC\"},\"orderType\":\"sell\",\"price\":2123000,\"amount\":2000000,\"timestamp\":1715788030806,\"expiration\":1718207230806,\"matcherFee\":1000000,\"priceMode\":\"assetDecimals\",\"version\":4,\"chainId\":87,\"signature\":\"buE3h8e4bdzriAyyYCfcZhjJsdLkxQjS61dhKmuhanUSUJyCXDqwHSVivk3Ha1GBj2VUghxExgYRb1Bb8higWEN\"}"
+                "output": "{\"orderType\":\"sell\",\"amount\":2000000,\"price\":2123000}"
             },
             {
                 "description": "sell limit with extreme amount",
                 "method": "createOrder",
-                "url": "https://matcher.wx.network/matcher/orderbook",
+                "url": "https://matcher.wx.network/matcher/orderbook/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC/calculateFee",
                 "input": [
                   "WAVES/USDT",
                   "limit",
@@ -60,11 +59,12 @@
                   0.012345678912345679,
                   2.123456789123457
                 ],
-                "output": "{\"senderPublicKey\":\"DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJovZ\",\"matcherPublicKey\":\"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5\",\"assetPair\":{\"amountAsset\":\"\",\"priceAsset\":\"G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC\"},\"orderType\":\"sell\",\"price\":2123456,\"amount\":1234567,\"timestamp\":1715788769446,\"expiration\":1718207969446,\"matcherFee\":1000000,\"priceMode\":\"assetDecimals\",\"version\":4,\"chainId\":87,\"signature\":\"2XgB3Vv5HDRTspGYMpWMecRmGDWXx6Cci3GuHhVoBsqEmaAsJ9Y7GJKHHNdN4V43pYfnSUugguUhbeCqQss1TSHS\"}"
+                "output": "{\"orderType\":\"sell\",\"amount\":1234567,\"price\":2123456}"
             }
         ],
         "withdraw": [
             {
+                "disabled":true,
                 "description": "simple amount",
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
@@ -73,9 +73,10 @@
                   0.02,
                   "3P9tXxu38a8tgewNEKFzourVsdqHd11pUsX"
                 ],
-                "output": "{\"senderPublicKey\":\"DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJovZ\",\"amount\":2000000,\"fee\":100000,\"type\":4,\"version\":2,\"attachment\":\"\",\"feeAssetId\":\"\",\"proofs\":[\"38KMEcppjpHfQTTRqEfxyufuN5wVHNSUJZefwP7qjy8vyXb3aYZ6ALCj9f7i9veVuB5MigQnognefsxZArRuNrdy\"],\"assetId\":\"\",\"recipient\":\"3P9tXxu38a8tgewNEKFzourVsdqHd11pUsX\",\"timestamp\":1715788358417,\"signature\":\"38KMEcppjpHfQTTRqEfxyufuN5wVHNSUJZefwP7qjy8vyXb3aYZ6ALCj9f7i9veVuB5MigQnognefsxZArRuNrdy\"}"
+                "output": "{\"senderPublicKey\":\"7vhqbdwotF593MRLMUtQvRkiR7aDdDf4Zp3yBrvzMYqr\",\"amount\":2000000,\"fee\":100000,\"type\":4,\"version\":2,\"attachment\":\"\",\"feeAssetId\":\"\",\"proofs\":[\"4dU6BXPmgbivVSin4sp9unPMocrp11Kd3sceovuTDdaXLX8hrWbSFsa8VuDQ5KBmBHCi3NaDvrP8tE6p7NzbFbER\"],\"assetId\":\"\",\"recipient\":\"3P9tXxu38a8tgewNEKFzourVsdqHd11pUsX\",\"timestamp\":1715788358417,\"signature\":\"4dU6BXPmgbivVSin4sp9unPMocrp11Kd3sceovuTDdaXLX8hrWbSFsa8VuDQ5KBmBHCi3NaDvrP8tE6p7NzbFbER\"}"
             },
             {
+               "disabled":true,
                 "description": "extreme amount",
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
@@ -84,7 +85,7 @@
                   0.012345678912345679,
                   "3P9tXxu38a8tgewNEKFzourVsdqHd11pUsX"
                 ],
-                "output": "{\"senderPublicKey\":\"DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJovZ\",\"amount\":1234567,\"fee\":100000,\"type\":4,\"version\":2,\"attachment\":\"\",\"feeAssetId\":\"\",\"proofs\":[\"5NVJeFLVuhkyro4NFxgBzWKTh5Y8LY7Sez1Jz3oLWpQZ3aKzvDsekfi6HyCPvvSBe2cssD4VcCSZoXqCob5Sk5Rz\"],\"assetId\":\"\",\"recipient\":\"3P9tXxu38a8tgewNEKFzourVsdqHd11pUsX\",\"timestamp\":1715788510988,\"signature\":\"5NVJeFLVuhkyro4NFxgBzWKTh5Y8LY7Sez1Jz3oLWpQZ3aKzvDsekfi6HyCPvvSBe2cssD4VcCSZoXqCob5Sk5Rz\"}"
+                "output": "{\"senderPublicKey\":\"7vhqbdwotF593MRLMUtQvRkiR7aDdDf4Zp3yBrvzMYqr\",\"amount\":1234567,\"fee\":100000,\"type\":4,\"version\":2,\"attachment\":\"\",\"feeAssetId\":\"\",\"proofs\":[\"B9fBho2jM61aZNZnvThgeWjkwprnvGuGKSQ7UQiVAg4s23feqfFgkXmBG3kYfrVTopoXeuKzkcfW8qhLNDk6V76\"],\"assetId\":\"\",\"recipient\":\"3P9tXxu38a8tgewNEKFzourVsdqHd11pUsX\",\"timestamp\":1715788510988,\"signature\":\"B9fBho2jM61aZNZnvThgeWjkwprnvGuGKSQ7UQiVAg4s23feqfFgkXmBG3kYfrVTopoXeuKzkcfW8qhLNDk6V76\"}"
             }
         ]
     }
