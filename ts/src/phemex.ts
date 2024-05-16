@@ -2254,7 +2254,7 @@ export default class phemex extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': this.safeCurrencyCode(this.safeString (order, 'feeCurrency'),
+                'currency': this.safeCurrencyCode (this.safeString (order, 'feeCurrency')),
             };
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
