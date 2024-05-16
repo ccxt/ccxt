@@ -47,9 +47,9 @@ export default class kraken extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTrailingAmountOrder': true,
-                'createMarketOrderWithCost': true,
+                'createMarketOrderWithCost': false,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketSellOrderWithCost': true,
+                'createMarketSellOrderWithCost': false,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -1387,6 +1387,7 @@ export default class kraken extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        // only buy orders are supported by the endpoint
         params['cost'] = cost;
         return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
@@ -1404,21 +1405,6 @@ export default class kraken extends Exchange {
          */
         await this.loadMarkets ();
         return await this.createMarketOrderWithCost (symbol, 'buy', cost, params);
-    }
-
-    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
-        /**
-         * @method
-         * @name kraken#createMarketSellOrderWithCost
-         * @description create a market buy order by providing the symbol, side and cost
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        return await this.createMarketOrderWithCost (symbol, 'sell', cost, params);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
