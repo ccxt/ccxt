@@ -1772,6 +1772,7 @@ export default class kraken extends Exchange {
         const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         const isMarketOrder = type === 'market';
         const cost = this.safeString (params, 'cost');
+        params = this.omit (params, [ 'cost' ]);
         const flags = this.safeString (params, 'oflags');
         const isViqcOrder = (flags !== undefined) && (flags.indexOf ('viqc') > -1); // volume in quote currency
         if (isMarketOrder && (cost !== undefined || isViqcOrder)) {
