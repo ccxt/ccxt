@@ -241,6 +241,22 @@ export default class vertex extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
+    convertToX18 (num: number | string) {
+        if (typeof num === 'string') {
+            return Precise.stringMul (num, '1000000000000000000');
+        }
+        const numStr = this.numberToString (num);
+        return Precise.stringMul (numStr, '1000000000000000000');
+    }
+
+    convertFromX18 (num: number | string) {
+        if (typeof num === 'string') {
+            return Precise.stringDiv (num, '1000000000000000000');
+        }
+        const numStr = this.numberToString (num);
+        return Precise.stringDiv (numStr, '1000000000000000000');
+    }
+
     async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
@@ -307,22 +323,23 @@ export default class vertex extends Exchange {
 
     parseMarket (market): Market {
         //
-        //     {
-        //         "product_id": 1,
-        //         "ticker_id": "BTC_USDC",
-        //         "market_type": "spot",
-        //         "name": "Bitcoin",
-        //         "symbol": "BTC",
-        //         "taker_fee": 0.0003,
-        //         "maker_fee": 0,
-        //         "can_withdraw": true,
-        //         "can_deposit": true
-        //     }
+        // {
+        //     "type": "spot",
+        //     "product_id": 3,
+        //     "symbol": "WETH",
+        //     "price_increment_x18": "100000000000000000",
+        //     "size_increment": "10000000000000000",
+        //     "min_size": "100000000000000000",
+        //     "min_depth_x18": "5000000000000000000000",
+        //     "max_spread_rate_x18": "2000000000000000",
+        //     "maker_fee_rate_x18": "0",
+        //     "taker_fee_rate_x18": "300000000000000",
+        //     "long_weight_initial_x18": "900000000000000000",
+        //     "long_weight_maintenance_x18": "950000000000000000"
+        // }
         //
-        const marketType = this.safeString (market, 'market_type');
-        const tickerId = this.safeString (market, 'ticker_id');
-        const spilitTickerId = tickerId.split ('_');
-        const quoteId = (spilitTickerId.length > 1) ? spilitTickerId[1] : 'USDC';
+        const marketType = this.safeString (market, 'type');
+        const quoteId = 'USDC';
         const quote = this.safeCurrencyCode (quoteId);
         let base = this.safeString (market, 'symbol');
         let baseId = this.safeString (market, 'baseId');
@@ -336,8 +353,11 @@ export default class vertex extends Exchange {
             const splitSymbol = base.split ('-');
             symbol = splitSymbol[0] + '/' + quote + ':' + settle;
         }
-        const taker = this.safeNumber (market, 'taker_fee');
-        const maker = this.safeNumber (market, 'maker_fee');
+        const priceIncrementX18 = this.safeString (market, 'price_increment_x18');
+        const sizeIncrementX18 = this.safeString (market, 'size_increment');
+        const minSizeX18 = this.safeString (market, 'min_size');
+        const takerX18 = this.safeNumber (market, 'taker_fee_rate_x18');
+        const makerX18 = this.safeNumber (market, 'maker_fee_rate_x18');
         return {
             'id': this.safeString (market, 'product_id'),
             'symbol': symbol,
@@ -355,18 +375,18 @@ export default class vertex extends Exchange {
             'option': false,
             'active': true,
             'contract': contract,
-            'linear': true,
+            'linear': swap,
             'inverse': false,
-            'taker': taker,
-            'maker': maker,
+            'taker': this.parseNumber (this.convertFromX18 (takerX18)),
+            'maker': this.parseNumber (this.convertFromX18 (makerX18)),
             'contractSize': this.parseNumber ('1'),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': this.parseNumber (this.convertFromX18 (sizeIncrementX18)),
+                'price': this.parseNumber (this.convertFromX18 (priceIncrementX18)),
             },
             'limits': {
                 'leverage': {
@@ -374,7 +394,7 @@ export default class vertex extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': undefined,
+                    'min': this.parseNumber (this.convertFromX18 (minSizeX18)),
                     'max': undefined,
                 },
                 'price': {
@@ -396,47 +416,48 @@ export default class vertex extends Exchange {
          * @method
          * @name vertex#fetchMarkets
          * @description retrieves data on all markets for vertex
-         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/assets
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const request = {};
-        const response = await this.v2GatewayGetAssets (this.extend (request, params));
+        const request = {
+            'type': 'symbols',
+        };
+        const response = await this.v1GatewayGetQuery (this.extend (request, params));
         //
-        // [
-        //     {
-        //         "product_id": 2,
-        //         "ticker_id": "BTC-PERP_USDC",
-        //         "market_type": "perp",
-        //         "name": "Bitcoin Perp",
-        //         "symbol": "BTC-PERP",
-        //         "maker_fee": 0.0002,
-        //         "taker_fee": 0,
-        //         "can_withdraw": false,
-        //         "can_deposit": false
+        // {
+        //     "status": "success",
+        //     "data": {
+        //         "symbols": {
+        //             "WETH": {
+        //                 "type": "spot",
+        //                 "product_id": 3,
+        //                 "symbol": "WETH",
+        //                 "price_increment_x18": "100000000000000000",
+        //                 "size_increment": "10000000000000000",
+        //                 "min_size": "100000000000000000",
+        //                 "min_depth_x18": "5000000000000000000000",
+        //                 "max_spread_rate_x18": "2000000000000000",
+        //                 "maker_fee_rate_x18": "0",
+        //                 "taker_fee_rate_x18": "300000000000000",
+        //                 "long_weight_initial_x18": "900000000000000000",
+        //                 "long_weight_maintenance_x18": "950000000000000000"
+        //             }
+        //         }
         //     },
-        //     {
-        //         "product_id": 1,
-        //         "ticker_id": "BTC_USDC",
-        //         "market_type": "spot",
-        //         "name": "Bitcoin",
-        //         "symbol": "BTC",
-        //         "taker_fee": 0.0003,
-        //         "maker_fee": 0,
-        //         "can_withdraw": true,
-        //         "can_deposit": true
-        //     }
-        // ]
+        //     "request_type": "query_symbols"
+        // }
         //
-        const data = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = this.safeDict (response, i, {});
-            const tickerId = this.safeString (market, 'ticker_id');
-            if (tickerId !== null) {
-                data.push (market);
-            }
+        const data = this.safeDict (response, 'data', {});
+        const markets = this.safeDict (data, 'symbols', {});
+        const symbols = Object.keys (markets);
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const rawMarket = this.safeDict (markets, symbol, {});
+            result.push (this.parseMarket (rawMarket));
         }
-        return this.parseMarkets (data);
+        return result;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -471,12 +492,15 @@ export default class vertex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (api, 0);
         const type = this.safeString (api, 1);
-        const url = this.implodeHostname (this.urls['api'][version][type]) + '/' + path;
+        let url = this.implodeHostname (this.urls['api'][version][type]) + '/' + path;
         if (method === 'POST') {
             headers = {
                 'Content-Type': 'application/json',
             };
             body = this.json (params);
+        }
+        if (Object.keys (params).length) {
+            url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
