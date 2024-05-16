@@ -717,6 +717,55 @@ export default class vertex extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
+    async fetchFundingRate (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name vertex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'funding_rate': {
+                'product_id': this.parseNumber (market['id']),
+            },
+        };
+        const response = await this.v1ArchivePost (this.extend (request, params));
+        //
+        // {
+        //     "product_id": 4,
+        //     "funding_rate_x18": "2447900598160952",
+        //     "update_time": "1680116326"
+        // }
+        //
+        const timestamp = this.safeTimestamp (response, 'update_time');
+        const fundingRateX18 = this.safeString (response, 'funding_rate_x18');
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.parseNumber (this.convertFromX18 (fundingRateX18)),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
+    
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
