@@ -4537,16 +4537,6 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOptionAndParamsTwoMethods (params: object, methodName1: string, methodName2: string, optionName: string, defaultValue = undefined) {
-        let value = undefined;
-        [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName, defaultValue);
-        // if still undefined, try methodName2
-        if (value === undefined) {
-            [ value, params ] = this.handleOptionAndParams (params, methodName2, optionName, defaultValue);
-        }
-        return [ value, params ];
-    }
-
     handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined) {
         let value = undefined;
         [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1, defaultValue);
