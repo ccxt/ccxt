@@ -1380,7 +1380,7 @@ export default class kraken extends Exchange {
          * @name kraken#createMarketOrderWithCost
          * @description create a market order by providing the symbol, side and cost
          * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
-         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
          * @param {string} side 'buy' or 'sell'
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1388,6 +1388,10 @@ export default class kraken extends Exchange {
          */
         await this.loadMarkets ();
         // only buy orders are supported by the endpoint
+        const market = this.market (symbol);
+        if (market['quote'] !== 'USD') {
+            throw new NotSupported (this.id + ' createMarketOrderWithCost() supports symbols with quote currency USD only');
+        }
         params['cost'] = cost;
         return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
