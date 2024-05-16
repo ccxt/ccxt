@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.23'
+__version__ = '4.3.24'
 
 # -----------------------------------------------------------------------------
 
@@ -2075,7 +2075,7 @@ class Exchange(object):
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
         result = parsedArray
-        # single-pass filter for both symbol and since.
+        # single-pass filter for both symbol and since
         if valueIsDefined or sinceIsDefined:
             result = []
             for i in range(0, len(parsedArray)):
@@ -5566,8 +5566,9 @@ class Exchange(object):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + str(1))
-                    cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorValue
+                    cursorString = '' if (cursorValue is None) else cursorValue
+                    iteration = (i + 1)
+                    cursorMessage = 'Cursor pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
                     self.log(cursorMessage)
                 if responseLength == 0:
                     break

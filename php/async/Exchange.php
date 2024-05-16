@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.23';
+$version = '4.3.24';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.23';
+    const VERSION = '4.3.24';
 
     public $browser;
     public $marketsLoading = null;
@@ -5119,8 +5119,9 @@ class Exchange extends \ccxt\Exchange {
                     $errors = 0;
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $iteration = ($i . (string) 1);
-                        $cursorMessage = 'Cursor pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorValue;
+                        $cursorString = ($cursorValue === null) ? '' : $cursorValue;
+                        $iteration = ($i + 1);
+                        $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorString;
                         $this->log ($cursorMessage);
                     }
                     if ($responseLength === 0) {
