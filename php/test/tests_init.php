@@ -20,8 +20,15 @@ $isAllTest = !$reqResTests && !$isBaseTests && !$isExchangeTests; // if neither 
 // ####### base tests #######
 if ($isBaseTests || $isAllTest) {
     // test base things
-    require_once __DIR__ . '/base_auto.php';
-    (new BaseFunctionalitiesTestClass ())->init();
+    require_once (__DIR__ . '/base/test_number.php');
+    require_once (__DIR__ . '/base/test_crypto.php');
+    require_once (__DIR__ . '/base/functions_auto/test_extend.php');
+
+    $exchange = new Exchange ([
+        'id'=> 'xyzexchange',
+    ]);
+
+    test_base_functions_extend($exchange);
     print('base tests passed!');
 }
 
