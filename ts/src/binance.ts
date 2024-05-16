@@ -3381,7 +3381,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchBalance', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
         let query = undefined;
         [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
@@ -5706,7 +5706,7 @@ export default class binance extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'createOrder', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -5792,7 +5792,7 @@ export default class binance extends Exchange {
             'side': side.toUpperCase (),
         };
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'createOrder', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
@@ -6106,7 +6106,7 @@ export default class binance extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchOrder', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrder', 'papi', 'portfolioMargin', false);
         const request = {
             'symbol': market['id'],
         };
@@ -6192,7 +6192,7 @@ export default class binance extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchOrders', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBool2 (params, 'stop', 'conditional');
         params = this.omit (params, [ 'stop', 'conditional', 'type' ]);
         let request = {
@@ -6459,7 +6459,7 @@ export default class binance extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'conditional', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -6552,7 +6552,7 @@ export default class binance extends Exchange {
             'symbol': market['id'],
         };
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'conditional', 'trigger' ]);
         params = this.omit (params, [ 'stop', 'conditional', 'trigger' ]);
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
@@ -6864,7 +6864,7 @@ export default class binance extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'cancelOrder', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBool2 (params, 'stop', 'conditional');
         const request = {
             'symbol': market['id'],
@@ -6957,7 +6957,7 @@ export default class binance extends Exchange {
             'symbol': market['id'],
         };
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBool2 (params, 'stop', 'conditional');
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, [ 'type', 'stop', 'conditional' ]);
@@ -7181,7 +7181,7 @@ export default class binance extends Exchange {
             }
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
             let isPortfolioMargin = undefined;
-            [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
+            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if (type === 'spot' || type === 'margin') {
                 if (isPortfolioMargin) {
                     response = await this.papiGetMarginMyTrades (this.extend (request, params));
@@ -8574,7 +8574,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
         const request = {
@@ -9526,7 +9526,7 @@ export default class binance extends Exchange {
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin = undefined;
-            [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
+            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
             let response = undefined;
             if (this.isLinear (type, subType)) {
                 if (isPortfolioMargin) {
@@ -9583,7 +9583,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
@@ -9904,7 +9904,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
@@ -9958,7 +9958,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
         params = this.omit (params, 'type');
         let response = undefined;
         if (this.isLinear (type, subType)) {
@@ -10116,7 +10116,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params, 'linear');
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchFundingHistory', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchFundingHistory', 'papi', 'portfolioMargin', false);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -10176,7 +10176,7 @@ export default class binance extends Exchange {
             'leverage': leverage,
         };
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'setLeverage', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (market['linear']) {
             if (isPortfolioMargin) {
@@ -10282,7 +10282,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', undefined, params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'setPositionMode', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'setPositionMode', 'papi', 'portfolioMargin', false);
         let dualSidePosition = undefined;
         if (hedged) {
             dualSidePosition = 'true';
@@ -10338,7 +10338,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverages', undefined, params, 'linear');
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
@@ -10634,7 +10634,7 @@ export default class binance extends Exchange {
             request['endTime'] = until;
         }
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchLedger', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLedger', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (type === 'option') {
             this.checkRequiredArgument ('fetchLedger', code, 'code');
@@ -11349,7 +11349,7 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
         let request = {};
         let market = undefined;
         if (code !== undefined) {
@@ -11453,7 +11453,7 @@ export default class binance extends Exchange {
         };
         let response = undefined;
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
             response = await this.papiPostRepayLoan (this.extend (request, params));
         } else {
@@ -11523,7 +11523,7 @@ export default class binance extends Exchange {
         };
         let response = undefined;
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'borrowCrossMargin', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'borrowCrossMargin', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
             response = await this.papiPostMarginLoan (this.extend (request, params));
         } else {
@@ -11791,7 +11791,7 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params, 'linear');
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', false);
         let request = {};
         if (type !== 'spot') {
             request['autoCloseType'] = 'LIQUIDATION';

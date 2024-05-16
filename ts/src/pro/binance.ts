@@ -1485,7 +1485,7 @@ export default class binance extends binanceRest {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'authenticate', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
@@ -1534,7 +1534,7 @@ export default class binance extends binanceRest {
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
         const subTypeInfo = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
         const subType = subTypeInfo[0];
         if (this.isLinear (type, subType)) {
@@ -1853,7 +1853,7 @@ export default class binance extends binanceRest {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'watchBalance', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
         let urlType = type;
         if (isPortfolioMargin) {
             urlType = 'papi';
@@ -2582,7 +2582,7 @@ export default class binance extends binanceRest {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'watchOrders', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
             urlType = 'papi';
         }
@@ -2877,7 +2877,7 @@ export default class binance extends binanceRest {
         }
         messageHash = type + ':positions' + messageHash;
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'watchPositions', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchPositions', 'papi', 'portfolioMargin', false);
         let urlType = type;
         if (isPortfolioMargin) {
             urlType = 'papi';
@@ -3258,7 +3258,7 @@ export default class binance extends binanceRest {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParamsTwoMethods (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
             urlType = 'papi';
         }
