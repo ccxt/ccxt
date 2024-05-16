@@ -765,7 +765,91 @@ export default class vertex extends Exchange {
         };
     }
 
-    
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "ticker_id": "BTC_USDC",
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDC",
+        //         "last_price": 25728.0,
+        //         "base_volume": 552.048,
+        //         "quote_volume": 14238632.207250029,
+        //         "price_change_percent_24h": -0.6348599635253989
+        //     }
+        //
+        const base = this.safeString (ticker, 'base_currency');
+        const quote = this.safeString (ticker, 'quote_currency');
+        let marketId = base + '/' + quote;
+        if (base.indexOf ('PERP') > 0) {
+            marketId = marketId.replace ('-PERP', '') + ':USDC';
+        }
+        market = this.market (marketId);
+        const last = this.safeString (ticker, 'last_price');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'price_change_percent_24h'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'base_volume'),
+            'quoteVolume': this.safeString (ticker, 'quote_volume'),
+            'info': ticker,
+        }, market);
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name vertex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/tickers
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const request = {};
+        const response = await this.v2ArchiveGetTickers (this.extend (request, params));
+        //
+        // {
+        //     "ETH_USDC": {
+        //         "ticker_id": "ETH_USDC",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USDC",
+        //         "last_price": 1619.1,
+        //         "base_volume": 1428.32,
+        //         "quote_volume": 2310648.316391866,
+        //         "price_change_percent_24h": -1.0509394462969588
+        //     },
+        //     "BTC_USDC": {
+        //         "ticker_id": "BTC_USDC",
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDC",
+        //         "last_price": 25728.0,
+        //         "base_volume": 552.048,
+        //         "quote_volume": 14238632.207250029,
+        //         "price_change_percent_24h": -0.6348599635253989
+        //     }
+        // }
+        //
+        const tickers = Object.values (response);
+        return this.parseTickers (tickers, symbols);
+    }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
