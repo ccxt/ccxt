@@ -1392,7 +1392,7 @@ export default class kraken extends Exchange {
         return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
 
-    async createMarkeBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name kraken#createMarketBuyOrderWithCost
