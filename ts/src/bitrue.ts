@@ -3144,7 +3144,7 @@ export default class bitrue extends Exchange {
                         'recvWindow': recvWindow,
                     }, params);
                     body = this.json (query);
-                    signMessage = signMessage + JSON.stringify (body);
+                    signMessage += body;
                     const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
                     headers = {
                         'Content-Type': 'application/json',
