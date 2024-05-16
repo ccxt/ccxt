@@ -550,12 +550,7 @@ export default class vertex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marketId = market['baseId'];
-        if (market['spot']) {
-            marketId = marketId + '_USDC';
-        } else {
-            marketId = marketId + '-PERP_USDC';
-        }
+        const marketId = market['baseId'] + '_USDC';
         const request = {
             'ticker_id': marketId,
         };
@@ -587,6 +582,71 @@ export default class vertex extends Exchange {
         //
         return this.parseTrades (response, market, since, limit);
     }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name vertex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/orderbook
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['baseId'] + '_USDC';
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'ticker_id': marketId,
+            'depth': limit,
+        };
+        const response = await this.v2GatewayGetOrderbook (this.extend (request, params));
+        //
+        // {
+        //     "ticker_id": "ETH-PERP_USDC",
+        //     "bids": [
+        //         [
+        //             1612.3,
+        //             0.31
+        //         ],
+        //         [
+        //             1612.0,
+        //             0.93
+        //         ],
+        //         [
+        //             1611.5,
+        //             1.55
+        //         ],
+        //         [
+        //             1610.8,
+        //             2.17
+        //         ]
+        //     ],
+        //     "asks": [
+        //         [
+        //             1612.9,
+        //             0.93
+        //         ],
+        //         [
+        //             1613.4,
+        //             1.55
+        //         ],
+        //         [
+        //             1614.1,
+        //             2.17
+        //         ]
+        //     ],
+        //     "timestamp": 1694375362016
+        // }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks');
+    }
+
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
