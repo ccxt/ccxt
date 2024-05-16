@@ -241,6 +241,70 @@ export default class vertex extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name vertex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/assets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const request = {};
+        const response = await this.v2GatewayGetAssets (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "product_id": 2,
+        //         "ticker_id": "BTC-PERP_USDC",
+        //         "market_type": "perp",
+        //         "name": "Bitcoin Perp",
+        //         "symbol": "BTC-PERP",
+        //         "maker_fee": 0.0002,
+        //         "taker_fee": 0,
+        //         "can_withdraw": false,
+        //         "can_deposit": false
+        //     },
+        //     {
+        //         "product_id": 1,
+        //         "ticker_id": "BTC_USDC",
+        //         "market_type": "spot",
+        //         "name": "Bitcoin",
+        //         "symbol": "BTC",
+        //         "taker_fee": 0.0003,
+        //         "maker_fee": 0,
+        //         "can_withdraw": true,
+        //         "can_deposit": true
+        //     }
+        // ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const data = this.safeDict (response, i, {});
+            const tickerId = this.safeString (data, 'ticker_id');
+            if ((tickerId !== undefined) && (tickerId.indexOf ('PERP') > 0)) {
+                continue;
+            }
+            const id = i;
+            const name = this.safeString (data, 'symbol');
+            const code = this.safeCurrencyCode (name);
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': undefined,
+                'info': data,
+                'active': undefined,
+                'deposit': this.safeBool (data, 'can_deposit'),
+                'withdraw': this.safeBool (data, 'can_withdraw'),
+                'networks': undefined,
+                'fee': undefined,
+                'limits': undefined,
+            };
+        }
+        return result;
+    }
+
     parseMarket (market): Market {
         //
         //     {
@@ -364,9 +428,14 @@ export default class vertex extends Exchange {
         //     }
         // ]
         //
-        const data = response.filter (function (market) {
-            return market.ticker_id !== null;
-        })
+        const data = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = this.safeDict (response, i, {});
+            const tickerId = this.safeString (market, 'ticker_id');
+            if (tickerId !== null) {
+                data.push (market);
+            }
+        }
         return this.parseMarkets (data);
     }
 
