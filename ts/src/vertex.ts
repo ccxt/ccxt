@@ -117,20 +117,15 @@ export default class vertex extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1m',
+                '1m': 60,
+                '5m': 300,
+                '15m': 900,
+                '1h': 3600,
+                '2h': 7200,
+                '4h': 14400,
+                '1d': 86400,
+                '1w': 604800,
+                '1M': 604800,
             },
             'hostname': 'vertexprotocol.com',
             'urls': {
@@ -166,7 +161,7 @@ export default class vertex extends Exchange {
                 'v1': {
                     'archive': {
                         'post': {
-                            'info': 1,
+                            '': 1,
                         },
                     },
                     'gateway': {
@@ -647,6 +642,81 @@ export default class vertex extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks');
     }
 
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        // example response in fetchOHLCV
+        return [
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.parseNumber (this.convertFromX18 (this.safeString (ohlcv, 'open_x18'))),
+            this.parseNumber (this.convertFromX18 (this.safeString (ohlcv, 'high_x18'))),
+            this.parseNumber (this.convertFromX18 (this.safeString (ohlcv, 'low_x18'))),
+            this.parseNumber (this.convertFromX18 (this.safeString (ohlcv, 'close_x18'))),
+            this.parseNumber (this.convertFromX18 (this.safeString (ohlcv, 'volume'))),
+        ];
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name vertex#fetchOHLCV
+         * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/candlesticks
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const ohlcvRequest = {
+            'product_id': this.parseNumber (market['id']),
+            'granularity': this.safeNumber (this.timeframes, timeframe),
+        };
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            ohlcvRequest['max_time'] = until;
+        }
+        if (limit !== undefined) {
+            ohlcvRequest['limit'] = Math.min (limit, 1000);
+        }
+        const request = {
+            'candlesticks': ohlcvRequest,
+        };
+        const response = await this.v1ArchivePost (this.extend (request, params));
+        //
+        // {
+        //     "candlesticks": [
+        //       {
+        //         "product_id": 1,
+        //         "granularity": 60,
+        //         "submission_idx": "627709",
+        //         "timestamp": "1680118140",
+        //         "open_x18": "27235000000000000000000",
+        //         "high_x18": "27298000000000000000000",
+        //         "low_x18": "27235000000000000000000",
+        //         "close_x18": "27298000000000000000000",
+        //         "volume": "1999999999999999998"
+        //       },
+        //       {
+        //         "product_id": 1,
+        //         "granularity": 60,
+        //         "submission_idx": "627699",
+        //         "timestamp": "1680118080",
+        //         "open_x18": "27218000000000000000000",
+        //         "high_x18": "27245000000000000000000",
+        //         "low_x18": "27218000000000000000000",
+        //         "close_x18": "27245000000000000000000",
+        //         "volume": "11852999999999999995"
+        //       }
+        //     ]
+        // }
+        //
+        const rows = this.safeList (response, 'candlesticks', []);
+        return this.parseOHLCVs (rows, market, timeframe, since, limit);
+    }
+
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
@@ -680,15 +750,19 @@ export default class vertex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (api, 0);
         const type = this.safeString (api, 1);
-        let url = this.implodeHostname (this.urls['api'][version][type]) + '/' + path;
+        let url = this.implodeHostname (this.urls['api'][version][type]);
+        if (version !== 'v1' || type !== 'archive') {
+            url = url + '/' + path;
+        }
         if (method === 'POST') {
             headers = {
                 'Content-Type': 'application/json',
             };
             body = this.json (params);
-        }
-        if (Object.keys (params).length) {
-            url += '?' + this.urlencode (params);
+        } else {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

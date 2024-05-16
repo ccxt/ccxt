@@ -9,7 +9,7 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    v1ArchivePostInfo (params?: {}): Promise<implicitReturnType>;
+    v1ArchivePost (params?: {}): Promise<implicitReturnType>;
     v1GatewayGetQuery (params?: {}): Promise<implicitReturnType>;
     v1GatewayGetSymbols (params?: {}): Promise<implicitReturnType>;
     v1GatewayPostQuery (params?: {}): Promise<implicitReturnType>;
