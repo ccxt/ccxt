@@ -185,7 +185,7 @@ var woofipro$1 = require('./src/pro/woofipro.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.23';
+const version = '4.3.24';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
