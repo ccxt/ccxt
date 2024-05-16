@@ -3128,6 +3128,10 @@ export default class bitrue extends Exchange {
                 signPath = signPath + '/' + version + '/' + path;
                 let signMessage = timestamp + method + signPath;
                 if (method === 'GET') {
+                    const keys = Object.keys (params);
+                    if (keys.length > 0) {
+                        signMessage += '?' + this.urlencode (params);
+                    }
                     const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
                     headers = {
                         'X-CH-APIKEY': this.apiKey,
@@ -3140,7 +3144,7 @@ export default class bitrue extends Exchange {
                         'recvWindow': recvWindow,
                     }, params);
                     body = this.json (query);
-                    signMessage = signMessage + JSON.stringify (body);
+                    signMessage += body;
                     const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
                     headers = {
                         'Content-Type': 'application/json',
