@@ -3129,7 +3129,8 @@ export default class bitrue extends Exchange {
                 let signMessage = timestamp + method + signPath;
                 if (method === 'GET') {
                     const keys = Object.keys (params);
-                    if (keys.length > 0) {
+                    const keysLength = keys.length;
+                    if (keysLength > 0) {
                         signMessage += '?' + this.urlencode (params);
                     }
                     const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
