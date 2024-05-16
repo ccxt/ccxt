@@ -96,6 +96,7 @@ class Transpiler {
             [ /.binaryToBase64/g, '.binary_to_base64'],
             [ /.stringToBase64/g, '.string_to_base64'],
             [ /.urlencodeBase64/g, '.urlencode_base64'],
+            [ /.handleTriggerPrices/g, '.handle_trigger_prices'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
