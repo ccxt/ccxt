@@ -288,16 +288,16 @@
         ],
         "transfer": [
             {
-                "description": "transfer from spot to swap",
+                "description": "Transfer from swap to spot",
                 "method": "transfer",
-                "url": "https://api.coinex.com/v1/contract/balance/transfer",
+                "url": "https://api.coinex.com/v2/assets/transfer",
                 "input": [
-                    "USDT",
-                    1,
-                    "spot",
-                    "swap"
+                  "USDT",
+                  10,
+                  "swap",
+                  "spot"
                 ],
-                "output": "{\"access_id\":\"53DD577FFFD741D4B53A5424ECD33196\",\"amount\":\"1\",\"coin_type\":\"USDT\",\"tonce\":\"1699460471970\",\"transfer_side\":\"in\"}"
+                "output": "{\"amount\":\"10\",\"ccy\":\"USDT\",\"from_account_type\":\"FUTURES\",\"to_account_type\":\"SPOT\"}"
             }
         ],
         "createOrder": [
