@@ -67,6 +67,7 @@
         "withdraw": [
             {
                 "description": "simple amount",
+                "disabled": true,
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
                 "input": [
@@ -78,6 +79,7 @@
             },
             {
                 "description": "extreme amount",
+                "disabled": true,
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
                 "input": [
