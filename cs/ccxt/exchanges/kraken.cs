@@ -1852,8 +1852,8 @@ public partial class kraken : Exchange
         object isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         object isMarketOrder = isEqual(type, "market");
         object cost = this.safeString(parameters, "cost");
-        parameters = this.omit(parameters, new List<object>() {"cost"});
         object flags = this.safeString(parameters, "oflags");
+        parameters = this.omit(parameters, new List<object>() {"cost", "oflags"});
         object isViqcOrder = isTrue((!isEqual(flags, null))) && isTrue((isGreaterThan(getIndexOf(flags, "viqc"), -1))); // volume in quote currency
         if (isTrue(isTrue(isMarketOrder) && isTrue((isTrue(!isEqual(cost, null)) || isTrue(isViqcOrder)))))
         {
@@ -1864,12 +1864,13 @@ public partial class kraken : Exchange
             {
                 ((IDictionary<string,object>)request)["volume"] = this.costToPrecision(symbol, cost);
             }
-            ((IDictionary<string,object>)request)["oflags"] = "viqc";
+            object extendedOflags = ((bool) isTrue((!isEqual(flags, null)))) ? add(flags, ",viqc") : "viqc";
+            ((IDictionary<string,object>)request)["oflags"] = extendedOflags;
         } else if (isTrue(isTrue(isLimitOrder) && !isTrue(isTrailingAmountOrder)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object reduceOnly = this.safeValue2(parameters, "reduceOnly", "reduce_only");
+        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         if (isTrue(isStopLossOrTakeProfitTrigger))
         {
             if (isTrue(isStopLossTriggerOrder))
@@ -1925,7 +1926,7 @@ public partial class kraken : Exchange
                 ((IDictionary<string,object>)request)["reduce_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        object close = this.safeValue(parameters, "close");
+        object close = this.safeDict(parameters, "close");
         if (isTrue(!isEqual(close, null)))
         {
             close = this.extend(new Dictionary<string, object>() {}, close);
@@ -1953,7 +1954,8 @@ public partial class kraken : Exchange
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(postOnly))
         {
-            ((IDictionary<string,object>)request)["oflags"] = "post";
+            object extendedPostFlags = ((bool) isTrue((!isEqual(flags, null)))) ? add(flags, ",post") : "post";
+            ((IDictionary<string,object>)request)["oflags"] = extendedPostFlags;
         }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingLimitAmount", "offset"});
         return new List<object>() {request, parameters};

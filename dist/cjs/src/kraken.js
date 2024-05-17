@@ -40,14 +40,14 @@ class kraken extends kraken$1 {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTrailingAmountOrder': true,
-                'createMarketOrderWithCost': false,
-                'createMarketBuyOrderWithCost': true,
-                'createMarketSellOrderWithCost': false,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -1741,8 +1741,8 @@ class kraken extends kraken$1 {
         const isLimitOrder = type.endsWith('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         const isMarketOrder = type === 'market';
         const cost = this.safeString(params, 'cost');
-        params = this.omit(params, ['cost']);
         const flags = this.safeString(params, 'oflags');
+        params = this.omit(params, ['cost', 'oflags']);
         const isViqcOrder = (flags !== undefined) && (flags.indexOf('viqc') > -1); // volume in quote currency
         if (isMarketOrder && (cost !== undefined || isViqcOrder)) {
             if (cost === undefined && (amount !== undefined)) {
@@ -1751,12 +1751,13 @@ class kraken extends kraken$1 {
             else {
                 request['volume'] = this.costToPrecision(symbol, cost);
             }
-            request['oflags'] = 'viqc';
+            const extendedOflags = (flags !== undefined) ? flags + ',viqc' : 'viqc';
+            request['oflags'] = extendedOflags;
         }
         else if (isLimitOrder && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         if (isStopLossOrTakeProfitTrigger) {
             if (isStopLossTriggerOrder) {
                 request['price'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
@@ -1804,7 +1805,7 @@ class kraken extends kraken$1 {
                 request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        let close = this.safeValue(params, 'close');
+        let close = this.safeDict(params, 'close');
         if (close !== undefined) {
             close = this.extend({}, close);
             const closePrice = this.safeValue(close, 'price');
@@ -1825,7 +1826,8 @@ class kraken extends kraken$1 {
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarket, false, params);
         if (postOnly) {
-            request['oflags'] = 'post';
+            const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
+            request['oflags'] = extendedPostFlags;
         }
         params = this.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset']);
         return [request, params];

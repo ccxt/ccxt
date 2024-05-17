@@ -1729,8 +1729,8 @@ class kraken extends Exchange {
         $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         $isMarketOrder = $type === 'market';
         $cost = $this->safe_string($params, 'cost');
-        $params = $this->omit($params, array( 'cost' ));
         $flags = $this->safe_string($params, 'oflags');
+        $params = $this->omit($params, array( 'cost', 'oflags' ));
         $isViqcOrder = ($flags !== null) && (mb_strpos($flags, 'viqc') > -1); // volume in quote currency
         if ($isMarketOrder && ($cost !== null || $isViqcOrder)) {
             if ($cost === null && ($amount !== null)) {
@@ -1738,11 +1738,12 @@ class kraken extends Exchange {
             } else {
                 $request['volume'] = $this->cost_to_precision($symbol, $cost);
             }
-            $request['oflags'] = 'viqc';
+            $extendedOflags = ($flags !== null) ? $flags . ',viqc' : 'viqc';
+            $request['oflags'] = $extendedOflags;
         } elseif ($isLimitOrder && !$isTrailingAmountOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         if ($isStopLossOrTakeProfitTrigger) {
             if ($isStopLossTriggerOrder) {
                 $request['price'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
@@ -1784,7 +1785,7 @@ class kraken extends Exchange {
                 $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        $close = $this->safe_value($params, 'close');
+        $close = $this->safe_dict($params, 'close');
         if ($close !== null) {
             $close = $this->extend(array(), $close);
             $closePrice = $this->safe_value($close, 'price');
@@ -1805,7 +1806,8 @@ class kraken extends Exchange {
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
         if ($postOnly) {
-            $request['oflags'] = 'post';
+            $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
+            $request['oflags'] = $extendedPostFlags;
         }
         $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ));
         return array( $request, $params );

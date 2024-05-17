@@ -1665,18 +1665,19 @@ class kraken(Exchange, ImplicitAPI):
         isLimitOrder = type.endswith('limit')  # supporting limit, stop-loss-limit, take-profit-limit, etc
         isMarketOrder = type == 'market'
         cost = self.safe_string(params, 'cost')
-        params = self.omit(params, ['cost'])
         flags = self.safe_string(params, 'oflags')
+        params = self.omit(params, ['cost', 'oflags'])
         isViqcOrder = (flags is not None) and (flags.find('viqc') > -1)  # volume in quote currency
         if isMarketOrder and (cost is not None or isViqcOrder):
             if cost is None and (amount is not None):
                 request['volume'] = self.cost_to_precision(symbol, self.number_to_string(amount))
             else:
                 request['volume'] = self.cost_to_precision(symbol, cost)
-            request['oflags'] = 'viqc'
+            extendedOflags = flags + ',viqc' if (flags is not None) else 'viqc'
+            request['oflags'] = extendedOflags
         elif isLimitOrder and not isTrailingAmountOrder:
             request['price'] = self.price_to_precision(symbol, price)
-        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         if isStopLossOrTakeProfitTrigger:
             if isStopLossTriggerOrder:
                 request['price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
@@ -1710,7 +1711,7 @@ class kraken(Exchange, ImplicitAPI):
                 request['reduce_only'] = True  # ws request can't have stringified bool
             else:
                 request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
-        close = self.safe_value(params, 'close')
+        close = self.safe_dict(params, 'close')
         if close is not None:
             close = self.extend({}, close)
             closePrice = self.safe_value(close, 'price')
@@ -1727,7 +1728,8 @@ class kraken(Exchange, ImplicitAPI):
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
         if postOnly:
-            request['oflags'] = 'post'
+            extendedPostFlags = flags + ',post' if (flags is not None) else 'post'
+            request['oflags'] = extendedPostFlags
         params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset'])
         return [request, params]
 
