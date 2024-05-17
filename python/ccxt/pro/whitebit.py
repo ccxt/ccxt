@@ -535,7 +535,7 @@ class whitebit(ccxt.async_support.whitebit):
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         id = self.safe_string(order, 'id')
-        clientOrderId = self.safe_string(order, 'client_order_id')
+        clientOrderId = self.omit_zero(self.safe_string(order, 'client_order_id'))
         price = self.safe_string(order, 'price')
         filled = self.safe_string(order, 'deal_stock')
         cost = self.safe_string(order, 'deal_money')

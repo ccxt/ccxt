@@ -578,7 +578,7 @@ export default class whitebit extends whitebitRest {
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         const id = this.safeString (order, 'id');
-        const clientOrderId = this.safeString (order, 'client_order_id');
+        const clientOrderId = this.omitZero (this.safeString (order, 'client_order_id'));
         const price = this.safeString (order, 'price');
         const filled = this.safeString (order, 'deal_stock');
         const cost = this.safeString (order, 'deal_money');
