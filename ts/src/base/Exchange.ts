@@ -4069,10 +4069,26 @@ export default class Exchange {
         return [ value, params ];
     }
 
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [string, object] {
+        const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
+        }
+        return [ value, params ];
+    }
+
     handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, object] {
         const value = this.safeInteger (params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, object] {
+        const value = this.safeInteger2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
         }
         return [ value, params ];
     }
@@ -4536,28 +4552,13 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOptionAndParams2 (params: object, methodName: string, methodName2: string, optionName: string, defaultValue = undefined) {
-        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
-        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
-        // check if params contain the key
-        let value = this.safeValue2 (params, optionName, defaultOptionName);
-        if (value !== undefined) {
-            params = this.omit (params, [ optionName, defaultOptionName ]);
-        } else {
-            // check if exchange has properties for this method
-            const exchangeWideMethodOptions = this.safeValue2 (this.options, methodName, methodName2);
-            if (exchangeWideMethodOptions !== undefined) {
-                // check if the option is defined inside this method's props
-                value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
-            }
-            if (value === undefined) {
-                // if it's still undefined, check if global exchange-wide option exists
-                value = this.safeValue2 (this.options, optionName, defaultOptionName);
-            }
-            // if it's still undefined, use the default value
-            value = (value !== undefined) ? value : defaultValue;
-        }
-        return [ value, params ];
+    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined) {
+        let value = undefined;
+        [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1, defaultValue);
+        // if still undefined, try optionName2
+        let value2 = undefined;
+        [ value2, params ] = this.handleOptionAndParams (params, methodName1, optionName2, value);
+        return [ value2, params ];
     }
 
     handleOption (methodName: string, optionName: string, defaultValue = undefined) {
