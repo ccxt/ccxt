@@ -6515,8 +6515,9 @@ myEx.proxyUrlCallback = function (url, method, headers, body) { ... return 'http
 
 If you need for special cases, you can override `userAgent` property like:
 ```
-ex.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)...'
+exchange.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)...'
 ```
+
 #### custom proxy agents
 
 Depending your programming language, you can set custom proxy agents.
