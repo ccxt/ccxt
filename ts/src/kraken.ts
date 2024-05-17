@@ -1241,7 +1241,7 @@ export default class kraken extends Exchange {
                     currency = market['quote'];
                 }
                 fee = {
-                    'cost': this.safeString (trade, 'fee'),
+                    'cost': this.safeNumber (trade, 'fee'),
                     'currency': currency,
                 };
             }
