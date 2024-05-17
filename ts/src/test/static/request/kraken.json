@@ -195,6 +195,16 @@
                   5
                 ],
                 "output": "nonce=1715881618883&pair=XLTCZUSD&type=buy&ordertype=market&volume=5&oflags=viqc"
+            },
+            {
+                "description": "usdt order",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "LTC/USDT",
+                  10
+                ],
+                "output": "nonce=1715951571837&pair=LTCUSDT&type=buy&ordertype=market&volume=10&oflags=viqc"
             }
         ],
         "fetchMyTrades": [

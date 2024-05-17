@@ -1388,10 +1388,6 @@ export default class kraken extends Exchange {
          */
         await this.loadMarkets ();
         // only buy orders are supported by the endpoint
-        const market = this.market (symbol);
-        if (market['quote'] !== 'USD') {
-            throw new NotSupported (this.id + ' createMarketOrderWithCost() supports symbols with quote currency USD only');
-        }
         params['cost'] = cost;
         return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
