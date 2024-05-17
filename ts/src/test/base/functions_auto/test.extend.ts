@@ -39,14 +39,14 @@ function testBaseFunctionsExtend (exchange: any) {
 
     // extend
     const extended = exchange.extend (obj1, obj2);
-    testBaseFunctionsExtend_checkExtended (extended, true);
+    tbfeCheckExtended (extended, true);
     // deepExtend
     const deepExtended = exchange.deepExtend (obj1, obj2);
-    testBaseFunctionsExtend_checkExtended (extended, true);
-    testBaseFunctionsExtend_checkExtended (deepExtended["sub"], false);
+    tbfeCheckExtended (extended, true);
+    tbfeCheckExtended (deepExtended["sub"], false);
 }
 
-function testBaseFunctionsExtend_checkExtended (extended: any, hasSub: boolean) {
+function tbfeCheckExtended (extended: any, hasSub: boolean) {
     assert (extended["a"] === 2);
     assert (extended["b"][0] === 3);
     assert (extended["b"][1] === 4);
