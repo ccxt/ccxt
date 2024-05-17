@@ -3240,6 +3240,8 @@ export default class Exchange {
     safeTrade (trade: object, market: Market = undefined): Trade {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
+        const fee = this.safeValue (trade, 'fee');
+        const fees = this.safeValue (trade, 'fees');
         let cost = this.safeString (trade, 'cost');
         if (cost === undefined) {
             // contract trading
@@ -3254,13 +3256,17 @@ export default class Exchange {
             }
             cost = Precise.stringMul (multiplyPrice, amount);
         }
-        const parseFee = this.safeValue (trade, 'fee') === undefined;
-        const parseFees = this.safeValue (trade, 'fees') === undefined;
+        const parseFee = fee === undefined;
+        const parseFees = fees === undefined;
         const shouldParseFees = parseFee || parseFees;
-        const fees = [];
-        const fee = this.safeValue (trade, 'fee');
+        let feesTemp = [];
         if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            if (fees !== undefined) {
+                feesTemp = fees;
+            } else {
+                feesTemp.push (fee);
+            }
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (feesTemp) : feesTemp;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
@@ -3268,28 +3274,9 @@ export default class Exchange {
                     reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
                 }
             }
-            if (!parseFee && (reducedLength === 0)) {
-                // copy fee to avoid modification by reference
-                const feeCopy = this.deepExtend (fee);
-                feeCopy['cost'] = this.safeNumber (feeCopy, 'cost');
-                if ('rate' in feeCopy) {
-                    feeCopy['rate'] = this.safeNumber (feeCopy, 'rate');
-                }
-                reducedFees.push (feeCopy);
-            }
-            if (parseFees) {
-                trade['fees'] = reducedFees;
-            }
-            if (parseFee && (reducedLength === 1)) {
+            trade['fees'] = reducedFees;
+            if (parseFee || (reducedLength === 1)) {
                 trade['fee'] = reducedFees[0];
-            }
-            const tradeFee = this.safeValue (trade, 'fee');
-            if (tradeFee !== undefined) {
-                tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
-                if ('rate' in tradeFee) {
-                    tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
-                }
-                trade['fee'] = tradeFee;
             }
         }
         trade['amount'] = this.parseNumber (amount);
