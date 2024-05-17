@@ -218,6 +218,7 @@ export default class oxfun extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
+                'sandboxMode': false,
                 'networks': {
                     'BTC': 'Bitcoin',
                     'ERC20': 'Ethereum',
@@ -233,11 +234,11 @@ export default class oxfun extends Exchange {
                     'Ethereum': 'ERC20',
                     'Avalanche': 'AVAX',
                     'Solana': 'SOL',
-                    'Arbitrum': 'ARB', // todo check
+                    'Arbitrum': 'ARB',
                     'Polygon': 'MATIC', // todo check
                     'Fantom': 'FTM', // todo check
                     'Base': 'ERC20', // todo check
-                    'BNBSmartChain': 'BNB', // todo check
+                    'BNBSmartChain': 'BNB',
                 },
             },
             'exceptions': {
@@ -264,6 +265,13 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"35034","message":"Wallet API is not functioning properly, please try again or contact support."}
                     // {"success":false,"code":"35046","message":"Error. Please refresh the page."}
                     // {"success":false,"code":"30001","message":"Required parameter 'quantity' is missing"}
+                    // 429 Rate limit reached
+                    // 10001 General networking failure
+                    // 20001 Invalid parameter
+                    // 30001 Missing parameter
+                    // 40001 Alert from the server
+                    // 50001 Unknown server error
+                    // 20031 The marketCode is closed for trading temporarily
                 },
                 'broad': {
                     // todo: add more error codes
@@ -1966,7 +1974,6 @@ export default class oxfun extends Exchange {
         //         "requestedAt": "1715591843616"
         //     }
         //
-        // todo: this is in progress
         const id = this.safeString (transaction, 'id');
         const type = this.safeString (transaction, 'type');
         transaction = this.omit (transaction, 'type');
@@ -2039,7 +2046,7 @@ export default class oxfun extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) { // todo does it work?
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitflex#withdraw
