@@ -626,15 +626,15 @@ export default class poloniexfutures extends Exchange {
         const amountString = this.safeString (trade, 'size');
         const side = this.safeString (trade, 'side');
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
+        const feeCost = this.safeNumber (trade, 'fee');
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrency === undefined) {
                 feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrency,
                 'rate': this.safeString (trade, 'feeRate'),
             };
