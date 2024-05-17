@@ -765,7 +765,7 @@ export default class coinbaseexchange extends Exchange {
                 feeRate = this.safeString (market, takerOrMaker);
             }
         }
-        const feeCost = this.safeString2 (trade, 'fill_fees', 'fee');
+        const feeCost = this.safeNumber2 (trade, 'fill_fees', 'fee');
         const fee = {
             'cost': feeCost,
             'currency': market['quote'],
