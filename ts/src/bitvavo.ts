@@ -798,13 +798,13 @@ export default class bitvavo extends Exchange {
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
         }
-        const feeCostString = this.safeString (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
-        if (feeCostString !== undefined) {
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }
