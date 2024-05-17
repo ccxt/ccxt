@@ -355,7 +355,7 @@ export default class mercado extends Exchange {
         const side = this.safeString (trade, 'type');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'quantity');
-        const feeCost = this.safeString (trade, 'fee_rate');
+        const feeCost = this.safeNumber (trade, 'fee_rate');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
