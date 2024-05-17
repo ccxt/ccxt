@@ -1008,7 +1008,7 @@ export default class coinsph extends Exchange {
         const amountString = this.safeString (trade, 'qty');
         const type = undefined;
         let fee = undefined;
-        const feeCost = this.safeString (trade, 'commission');
+        const feeCost = this.safeNumber (trade, 'commission');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commissionAsset');
             fee = {
