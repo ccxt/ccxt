@@ -924,24 +924,24 @@
         ],
         "fetchTransfers": [
             {
-                "description": "Spot fetch transfers",
+                "description": "Fetch transfers between spot and swap accounts",
                 "method": "fetchTransfers",
-                "url": "https://api.coinex.com/v1/contract/transfer/history?access_id=key&page=1&tonce=1702016708915&asset=BTC&limit=100",
+                "url": "https://api.coinex.com/v2/assets/transfer-history?ccy=BTC&transfer_type=FUTURES",
                 "input": [
-                    "BTC"
+                  "BTC"
                 ]
             },
             {
-                "description": "Spot-margin transfers",
+                "description": "Fetch transfers between spot and margin accounts",
                 "method": "fetchTransfers",
-                "url": "https://api.coinex.com/v1/margin/transfer/history?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&page=1&tonce=1706032791206",
+                "url": "https://api.coinex.com/v2/assets/transfer-history?ccy=BTC&transfer_type=MARGIN",
                 "input": [
-                    null,
-                    null,
-                    null,
-                    {
-                        "marginMode": "isolated"
-                    }
+                  "BTC",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
                 ]
             }
         ],
