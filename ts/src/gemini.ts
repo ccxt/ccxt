@@ -1048,7 +1048,7 @@ export default class gemini extends Exchange {
         const feeCurrencyId = this.safeString (trade, 'fee_currency');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
         const fee = {
-            'cost': this.safeString (trade, 'fee_amount'),
+            'cost': this.safeNumber (trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         };
         const priceString = this.safeString (trade, 'price');
