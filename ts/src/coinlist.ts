@@ -844,7 +844,7 @@ export default class coinlist extends Exchange {
         const order = this.safeString (trade, 'order_id');
         let fee = undefined;
         let side = undefined;
-        const feeCost = this.safeString (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             // only in fetchMyTrades
             const amountIsNegative = Precise.stringLt (amountString, '0');
