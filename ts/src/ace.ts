@@ -828,7 +828,7 @@ export default class ace extends Exchange {
         if (feeString !== undefined) {
             const feeSaveString = this.safeString (trade, 'feeSave');
             fee = {
-                'cost': Precise.stringSub (feeString, feeSaveString),
+                'cost': this.parseNumber (Precise.stringSub (feeString, feeSaveString)),
                 'currency': quoteId,
             };
         }
