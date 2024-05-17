@@ -3269,7 +3269,9 @@ export default class Exchange {
                     reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
                 }
             }
-            trade['fees'] = reducedFees;
+            if (parseFees) {
+                trade['fees'] = reducedFees;
+            }
             if (parseFee || (reducedLength === 1)) {
                 trade['fee'] = reducedFees[0];
             }
