@@ -1762,8 +1762,8 @@ export default class kraken extends Exchange {
         const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         const isMarketOrder = type === 'market';
         const cost = this.safeString (params, 'cost');
-        params = this.omit (params, [ 'cost' ]);
         const flags = this.safeString (params, 'oflags');
+        params = this.omit (params, [ 'cost', 'oflags' ]);
         const isViqcOrder = (flags !== undefined) && (flags.indexOf ('viqc') > -1); // volume in quote currency
         if (isMarketOrder && (cost !== undefined || isViqcOrder)) {
             if (cost === undefined && (amount !== undefined)) {
@@ -1771,11 +1771,12 @@ export default class kraken extends Exchange {
             } else {
                 request['volume'] = this.costToPrecision (symbol, cost);
             }
-            request['oflags'] = 'viqc';
+            const extendedOflags = (flags !== undefined) ? flags + ',viqc' : 'viqc';
+            request['oflags'] = extendedOflags;
         } else if (isLimitOrder && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         if (isStopLossOrTakeProfitTrigger) {
             if (isStopLossTriggerOrder) {
                 request['price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
@@ -1817,7 +1818,7 @@ export default class kraken extends Exchange {
                 request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        let close = this.safeValue (params, 'close');
+        let close = this.safeDict (params, 'close');
         if (close !== undefined) {
             close = this.extend ({}, close);
             const closePrice = this.safeValue (close, 'price');
@@ -1838,7 +1839,8 @@ export default class kraken extends Exchange {
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
         if (postOnly) {
-            request['oflags'] = 'post';
+            const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
+            request['oflags'] = extendedPostFlags;
         }
         params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ]);
         return [ request, params ];
