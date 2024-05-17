@@ -3254,10 +3254,12 @@ export default class Exchange {
             }
             cost = Precise.stringMul (multiplyPrice, amount);
         }
-        const fee = this.safeValue (trade, 'fee');
-        const fees = this.safeValue (trade, 'fees');
+        const fee = this.safeDict (trade, 'fee');
+        const fees = this.safeList (trade, 'fees');
+        const feeDefined = fee !== undefined;
+        const feesDefined = fees !== undefined;
         // parsing only if one of them is undefined (if both of them is undefined, then there is nothing to parse)
-        const shouldParseFees = ((fee === undefined) && (fees !== undefined)) || ((fee !== undefined) && (fees === undefined));
+        const shouldParseFees = (feeDefined && !feesDefined) || (!feeDefined && feesDefined);
         if (shouldParseFees) {
             const feesTemp = (fees !== undefined) ? fees : [ fee ];
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (feesTemp) : feesTemp;
@@ -3268,10 +3270,10 @@ export default class Exchange {
                     reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
                 }
             }
-            if (parseFees) {
+            if (!feesDefined) {
                 trade['fees'] = reducedFees;
             }
-            if (parseFee || (reducedLength === 1)) {
+            if (!feeDefined && (reducedLength === 1)) {
                 trade['fee'] = reducedFees[0];
             }
         }
