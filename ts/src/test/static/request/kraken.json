@@ -166,6 +166,23 @@
                     }
                 ],
                 "output": "nonce=1705242796801&pair=LTCUSDT&type=sell&ordertype=take-profit&volume=0.1&price=120"
+            },
+            {
+                "description": "order with multiple oflags combined",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50,
+                  {
+                    "postOnly": true,
+                    "oflags": "fcib"
+                  }
+                ],
+                "output": "nonce=1715945544767&pair=LTCUSDT&type=buy&ordertype=limit&volume=0.1&price=50&oflags=fcib%2Cpost"
             }
         ],
         "createMarketBuyOrderWithCost": [
