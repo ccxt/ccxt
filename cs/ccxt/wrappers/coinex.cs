@@ -1082,8 +1082,7 @@ public partial class coinex
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1094,13 +1093,19 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of  transfers structures to retrieve
+    /// int : the maximum number of transfer structures to retrieve
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' for fetching transfers to and from your margin account
     /// </description>
     /// </item>
     /// </list>

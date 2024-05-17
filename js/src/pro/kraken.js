@@ -137,7 +137,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('createOrderWs', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('createOrderWs', symbol, type, request, amount, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     handleCreateEditOrder(client, message) {
@@ -193,7 +193,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('editOrderWs', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('editOrderWs', symbol, type, request, amount, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
