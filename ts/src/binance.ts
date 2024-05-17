@@ -4542,7 +4542,7 @@ export default class binance extends Exchange {
             takerOrMaker = this.safeStringLower (trade, 'liquidity');
             if ('fee' in trade) {
                 fee = {
-                    'cost': this.safeString (trade, 'fee'),
+                    'cost': this.safeNumber (trade, 'fee'),
                     'currency': settle,
                 };
             }
