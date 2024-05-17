@@ -1152,8 +1152,8 @@ export default class bigone extends Exchange {
                 takerCurrencyCode = market['quote'];
             }
         }
-        const makerFeeCost = this.safeString (trade, 'maker_fee');
-        const takerFeeCost = this.safeString (trade, 'taker_fee');
+        const makerFeeCost = this.safeNumber (trade, 'maker_fee');
+        const takerFeeCost = this.safeNumber (trade, 'taker_fee');
         if (makerFeeCost !== undefined) {
             if (takerFeeCost !== undefined) {
                 result['fees'] = [
