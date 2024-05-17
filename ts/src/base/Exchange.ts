@@ -3259,13 +3259,8 @@ export default class Exchange {
         const parseFee = fee === undefined;
         const parseFees = fees === undefined;
         const shouldParseFees = parseFee || parseFees;
-        let feesTemp = [];
         if (shouldParseFees) {
-            if (fees !== undefined) {
-                feesTemp = fees;
-            } else {
-                feesTemp.push (fee);
-            }
+            const feesTemp = (fees !== undefined) ? fees : [ fee ];
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (feesTemp) : feesTemp;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
