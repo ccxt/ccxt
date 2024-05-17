@@ -1954,11 +1954,10 @@ export default class bitteam extends Exchange {
             feeInfo = this.safeValue (trade, 'feeTaker', {});
         }
         const feeCurrencyId = this.safeString (feeInfo, 'symbol');
-        const feeCost = this.safeString (feeInfo, 'amount');
+        const feeCost = this.safeNumber (feeInfo, 'amount');
         const fee = {
             'currency': this.safeCurrencyCode (feeCurrencyId),
             'cost': feeCost,
-            'rate': undefined,
         };
         const intTs = this.parseToInt (timestamp);
         return this.safeTrade ({
