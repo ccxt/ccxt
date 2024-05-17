@@ -800,7 +800,7 @@ export default class bitso extends Exchange {
             amount = Precise.stringAbs (amount);
         }
         let fee = undefined;
-        const feeCost = this.safeString (trade, 'fees_amount');
+        const feeCost = this.safeNumber (trade, 'fees_amount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fees_currency');
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
