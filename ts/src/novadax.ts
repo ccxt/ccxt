@@ -557,7 +557,7 @@ export default class novadax extends Exchange {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': this.safeString (trade, 'feeAmount'),
+                'cost': this.safeNumber (trade, 'feeAmount'),
                 'currency': feeCurrencyCode,
             };
         }
