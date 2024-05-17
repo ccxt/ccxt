@@ -115,7 +115,7 @@ export default class cryptocom extends cryptocomRest {
         let bookUpdateFrequency = undefined;
         let bookUpdateFrequency2 = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
-        [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', bookUpdateFrequency);
+        [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
             params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
         }
