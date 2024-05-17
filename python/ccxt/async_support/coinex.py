@@ -458,8 +458,15 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': True,
                 },
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'margin': 'MARGIN',
+                    'swap': 'FUTURES',
+                },
                 'accountsById': {
-                    'spot': '0',
+                    'SPOT': 'spot',
+                    'MARGIN': 'margin',
+                    'FUTURES': 'swap',
                 },
                 'networks': {
                     'BEP20': 'BSC',
@@ -4602,40 +4609,42 @@ class coinex(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
+        :see: https://docs.coinex.com/api/v2/assets/transfer/http/transfer
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.symbol]: unified ccxt symbol, required when either the fromAccount or toAccount is margin
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
+        accountsByType = self.safe_dict(self.options, 'accountsById', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         request = {
+            'ccy': currency['id'],
             'amount': amountToPrecision,
-            'coin_type': currency['id'],
+            'from_account_type': fromId,
+            'to_account_type': toId,
         }
-        response = None
-        if (fromAccount == 'spot') and (toAccount == 'swap'):
-            request['transfer_side'] = 'in'  # 'in' spot to swap, 'out' swap to spot
-            response = await self.v1PrivatePostContractBalanceTransfer(self.extend(request, params))
-        elif (fromAccount == 'swap') and (toAccount == 'spot'):
-            request['transfer_side'] = 'out'  # 'in' spot to swap, 'out' swap to spot
-            response = await self.v1PrivatePostContractBalanceTransfer(self.extend(request, params))
-        else:
-            accountsById = self.safe_value(self.options, 'accountsById', {})
-            fromId = self.safe_string(accountsById, fromAccount, fromAccount)
-            toId = self.safe_string(accountsById, toAccount, toAccount)
-            # fromAccount and toAccount must be integers for margin transfers
-            # spot is 0, use fetchBalance() to find the margin account id
-            request['from_account'] = int(fromId)
-            request['to_account'] = int(toId)
-            response = await self.v1PrivatePostMarginTransfer(self.extend(request, params))
+        if (fromAccount == 'margin') or (toAccount == 'margin'):
+            symbol = self.safe_string(params, 'symbol')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' transfer() the symbol parameter must be defined for a margin account')
+            params = self.omit(params, 'symbol')
+            request['market'] = self.market_id(symbol)
+        if (fromAccount != 'spot') and (toAccount != 'spot'):
+            raise BadRequest(self.id + ' transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot')
+        response = await self.v2PrivatePostAssetsTransfer(self.extend(request, params))
         #
-        #     {"code": 0, "data": null, "message": "Success"}
+        #     {
+        #         "code": 0,
+        #         "data": {},
+        #         "message": "OK"
+        #     }
         #
         return self.extend(self.parse_transfer(response, currency), {
             'amount': self.parse_number(amountToPrecision),
@@ -4643,158 +4652,85 @@ class coinex(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer_status(self, status: Str) -> Str:
+    def parse_transfer_status(self, status):
         statuses = {
             '0': 'ok',
             'SUCCESS': 'ok',
+            'OK': 'ok',
+            'finished': 'ok',
+            'FINISHED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
-        #
-        # fetchTransfers Swap
-        #
-        #     {
-        #         "amount": "10",
-        #         "asset": "USDT",
-        #         "transfer_type": "transfer_out",  # from swap to spot
-        #         "created_at": 1651633422
-        #     },
-        #
-        # fetchTransfers Margin
-        #
-        #     {
-        #         "id": 7580062,
-        #         "updated_at": 1653684379,
-        #         "user_id": 3620173,
-        #         "from_account_id": 0,
-        #         "to_account_id": 1,
-        #         "asset": "BTC",
-        #         "amount": "0.00160829",
-        #         "balance": "0.00160829",
-        #         "transfer_type": "IN",
-        #         "status": "SUCCESS",
-        #         "created_at": 1653684379
-        #     },
-        #
-        timestamp = self.safe_timestamp(transfer, 'created_at')
-        transferType = self.safe_string(transfer, 'transfer_type')
-        fromAccount = None
-        toAccount = None
-        if transferType == 'transfer_out':
-            fromAccount = 'swap'
-            toAccount = 'spot'
-        elif transferType == 'transfer_in':
-            fromAccount = 'spot'
-            toAccount = 'swap'
-        elif transferType == 'IN':
-            fromAccount = 'spot'
-            toAccount = 'margin'
-        elif transferType == 'OUT':
-            fromAccount = 'margin'
-            toAccount = 'spot'
-        currencyId = self.safe_string(transfer, 'asset')
-        currencyCode = self.safe_currency_code(currencyId, currency)
+        timestamp = self.safe_integer(transfer, 'created_at')
+        currencyId = self.safe_string(transfer, 'ccy')
+        fromId = self.safe_string(transfer, 'from_account_type')
+        toId = self.safe_string(transfer, 'to_account_type')
+        accountsById = self.safe_value(self.options, 'accountsById', {})
         return {
-            'info': transfer,
-            'id': self.safe_string(transfer, 'id'),
+            'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'currency': currencyCode,
+            'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(transfer, 'amount'),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': self.safe_string(accountsById, fromId, fromId),
+            'toAccount': self.safe_string(accountsById, toId, toId),
             'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'status')),
         }
 
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history
+        :see: https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
-        :param int [limit]: the maximum number of  transfers structures to retrieve
+        :param int [limit]: the maximum number of transfer structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' for fetching transfers to and from your margin account
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
-        currency = None
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a code argument')
+        currency = self.currency(code)
         request = {
-            'page': 1,
-            # 'limit': limit,
-            # 'asset': 'USDT',
-            # 'start_time': since,
-            # 'end_time': 1515806440,
-            # 'transfer_type': 'transfer_in',  # transfer_in: from Spot to Swap Account, transfer_out: from Swap to Spot Account
+            'ccy': currency['id'],
         }
-        page = self.safe_integer(params, 'page')
-        if page is not None:
-            request['page'] = page
-        if code is not None:
-            currency = self.currency(code)
-            request['asset'] = currency['id']
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchTransfers', params)
+        if marginMode is not None:
+            request['transfer_type'] = 'MARGIN'
+        else:
+            request['transfer_type'] = 'FUTURES'
         if since is not None:
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        else:
-            request['limit'] = 100
-        params = self.omit(params, 'page')
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchTransfers', params)
-        response = None
-        if marginMode is not None:
-            response = await self.v1PrivateGetMarginTransferHistory(self.extend(request, params))
-        else:
-            response = await self.v1PrivateGetContractTransferHistory(self.extend(request, params))
-        #
-        # Swap
+        request, params = self.handle_until_option('end_time', request, params)
+        response = await self.v2PrivateGetAssetsTransferHistory(self.extend(request, params))
         #
         #     {
-        #         "code": 0,
-        #         "data": {
-        #             "records": [
-        #                 {
-        #                     "amount": "10",
-        #                     "asset": "USDT",
-        #                     "transfer_type": "transfer_out",
-        #                     "created_at": 1651633422
-        #                 },
-        #             ],
-        #             "total": 5
+        #         "data": [
+        #             {
+        #                 "created_at": 1715848480646,
+        #                 "from_account_type": "SPOT",
+        #                 "to_account_type": "FUTURES",
+        #                 "ccy": "USDT",
+        #                 "amount": "10",
+        #                 "status": "finished"
+        #             },
+        #         ],
+        #         "pagination": {
+        #             "total": 8,
+        #             "has_next": False
         #         },
-        #         "message": "Success"
+        #         "code": 0,
+        #         "message": "OK"
         #     }
         #
-        # Margin
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "records": [
-        #                 {
-        #                     "id": 7580062,
-        #                     "updated_at": 1653684379,
-        #                     "user_id": 3620173,
-        #                     "from_account_id": 0,
-        #                     "to_account_id": 1,
-        #                     "asset": "BTC",
-        #                     "amount": "0.00160829",
-        #                     "balance": "0.00160829",
-        #                     "transfer_type": "IN",
-        #                     "status": "SUCCESS",
-        #                     "created_at": 1653684379
-        #                 }
-        #             ],
-        #             "total": 1
-        #         },
-        #         "message": "Success"
-        #     }
-        #
-        data = self.safe_value(response, 'data', {})
-        transfers = self.safe_list(data, 'records', [])
-        return self.parse_transfers(transfers, currency, since, limit)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_transfers(data, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """

@@ -272,13 +272,18 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
     return String.fromCharCode(...out);
 };
 function omitZero(stringNumber) {
-    if (stringNumber === undefined || stringNumber === '') {
-        return undefined;
+    try {
+        if (stringNumber === undefined || stringNumber === '') {
+            return undefined;
+        }
+        if (parseFloat(stringNumber) === 0) {
+            return undefined;
+        }
+        return stringNumber;
     }
-    if (parseFloat(stringNumber) === 0) {
-        return undefined;
+    catch (e) {
+        return stringNumber;
     }
-    return stringNumber;
 }
 /*  ------------------------------------------------------------------------ */
 

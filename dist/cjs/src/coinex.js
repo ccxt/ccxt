@@ -444,8 +444,15 @@ class coinex extends coinex$1 {
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': true,
                 },
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'margin': 'MARGIN',
+                    'swap': 'FUTURES',
+                },
                 'accountsById': {
-                    'spot': '0',
+                    'SPOT': 'spot',
+                    'MARGIN': 'margin',
+                    'FUTURES': 'swap',
                 },
                 'networks': {
                     'BEP20': 'BSC',
@@ -4887,43 +4894,45 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
+         * @see https://docs.coinex.com/api/v2/assets/transfer/http/transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
+        const accountsByType = this.safeDict(this.options, 'accountsById', {});
+        const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString(accountsByType, toAccount, toAccount);
         const request = {
+            'ccy': currency['id'],
             'amount': amountToPrecision,
-            'coin_type': currency['id'],
+            'from_account_type': fromId,
+            'to_account_type': toId,
         };
-        let response = undefined;
-        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
-            request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, params));
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            const symbol = this.safeString(params, 'symbol');
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' transfer() the symbol parameter must be defined for a margin account');
+            }
+            params = this.omit(params, 'symbol');
+            request['market'] = this.marketId(symbol);
         }
-        else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
-            request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, params));
+        if ((fromAccount !== 'spot') && (toAccount !== 'spot')) {
+            throw new errors.BadRequest(this.id + ' transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot');
         }
-        else {
-            const accountsById = this.safeValue(this.options, 'accountsById', {});
-            const fromId = this.safeString(accountsById, fromAccount, fromAccount);
-            const toId = this.safeString(accountsById, toAccount, toAccount);
-            // fromAccount and toAccount must be integers for margin transfers
-            // spot is 0, use fetchBalance() to find the margin account id
-            request['from_account'] = parseInt(fromId);
-            request['to_account'] = parseInt(toId);
-            response = await this.v1PrivatePostMarginTransfer(this.extend(request, params));
-        }
+        const response = await this.v2PrivatePostAssetsTransfer(this.extend(request, params));
         //
-        //     {"code": 0, "data": null, "message": "Success"}
+        //     {
+        //         "code": 0,
+        //         "data": {},
+        //         "message": "OK"
+        //     }
         //
         return this.extend(this.parseTransfer(response, currency), {
             'amount': this.parseNumber(amountToPrecision),
@@ -4935,67 +4944,26 @@ class coinex extends coinex$1 {
         const statuses = {
             '0': 'ok',
             'SUCCESS': 'ok',
+            'OK': 'ok',
+            'finished': 'ok',
+            'FINISHED': 'ok',
         };
         return this.safeString(statuses, status, status);
     }
     parseTransfer(transfer, currency = undefined) {
-        //
-        // fetchTransfers Swap
-        //
-        //     {
-        //         "amount": "10",
-        //         "asset": "USDT",
-        //         "transfer_type": "transfer_out", // from swap to spot
-        //         "created_at": 1651633422
-        //     },
-        //
-        // fetchTransfers Margin
-        //
-        //     {
-        //         "id": 7580062,
-        //         "updated_at": 1653684379,
-        //         "user_id": 3620173,
-        //         "from_account_id": 0,
-        //         "to_account_id": 1,
-        //         "asset": "BTC",
-        //         "amount": "0.00160829",
-        //         "balance": "0.00160829",
-        //         "transfer_type": "IN",
-        //         "status": "SUCCESS",
-        //         "created_at": 1653684379
-        //     },
-        //
-        const timestamp = this.safeTimestamp(transfer, 'created_at');
-        const transferType = this.safeString(transfer, 'transfer_type');
-        let fromAccount = undefined;
-        let toAccount = undefined;
-        if (transferType === 'transfer_out') {
-            fromAccount = 'swap';
-            toAccount = 'spot';
-        }
-        else if (transferType === 'transfer_in') {
-            fromAccount = 'spot';
-            toAccount = 'swap';
-        }
-        else if (transferType === 'IN') {
-            fromAccount = 'spot';
-            toAccount = 'margin';
-        }
-        else if (transferType === 'OUT') {
-            fromAccount = 'margin';
-            toAccount = 'spot';
-        }
-        const currencyId = this.safeString(transfer, 'asset');
-        const currencyCode = this.safeCurrencyCode(currencyId, currency);
+        const timestamp = this.safeInteger(transfer, 'created_at');
+        const currencyId = this.safeString(transfer, 'ccy');
+        const fromId = this.safeString(transfer, 'from_account_type');
+        const toId = this.safeString(transfer, 'to_account_type');
+        const accountsById = this.safeValue(this.options, 'accountsById', {});
         return {
-            'info': transfer,
-            'id': this.safeString(transfer, 'id'),
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'currency': currencyCode,
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(transfer, 'amount'),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': this.safeString(accountsById, fromId, fromId),
+            'toAccount': this.safeString(accountsById, toId, toId),
             'status': this.parseTransferStatus(this.safeString2(transfer, 'code', 'status')),
         };
     }
@@ -5004,31 +4972,29 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history
+         * @see https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
-         * @param {int} [limit] the maximum number of  transfers structures to retrieve
+         * @param {int} [limit] the maximum number of transfer structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching transfers to and from your margin account
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
-        let currency = undefined;
-        const request = {
-            'page': 1,
-            // 'limit': limit,
-            // 'asset': 'USDT',
-            // 'start_time': since,
-            // 'end_time': 1515806440,
-            // 'transfer_type': 'transfer_in', // transfer_in: from Spot to Swap Account, transfer_out: from Swap to Spot Account
-        };
-        const page = this.safeInteger(params, 'page');
-        if (page !== undefined) {
-            request['page'] = page;
+        if (code === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a code argument');
         }
-        if (code !== undefined) {
-            currency = this.currency(code);
-            request['asset'] = currency['id'];
+        const currency = this.currency(code);
+        let request = {
+            'ccy': currency['id'],
+        };
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchTransfers', params);
+        if (marginMode !== undefined) {
+            request['transfer_type'] = 'MARGIN';
+        }
+        else {
+            request['transfer_type'] = 'FUTURES';
         }
         if (since !== undefined) {
             request['start_time'] = since;
@@ -5036,66 +5002,30 @@ class coinex extends coinex$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        else {
-            request['limit'] = 100;
-        }
-        params = this.omit(params, 'page');
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchTransfers', params);
-        let response = undefined;
-        if (marginMode !== undefined) {
-            response = await this.v1PrivateGetMarginTransferHistory(this.extend(request, params));
-        }
-        else {
-            response = await this.v1PrivateGetContractTransferHistory(this.extend(request, params));
-        }
-        //
-        // Swap
+        [request, params] = this.handleUntilOption('end_time', request, params);
+        const response = await this.v2PrivateGetAssetsTransferHistory(this.extend(request, params));
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //             "records": [
-        //                 {
-        //                     "amount": "10",
-        //                     "asset": "USDT",
-        //                     "transfer_type": "transfer_out",
-        //                     "created_at": 1651633422
-        //                 },
-        //             ],
-        //             "total": 5
+        //         "data": [
+        //             {
+        //                 "created_at": 1715848480646,
+        //                 "from_account_type": "SPOT",
+        //                 "to_account_type": "FUTURES",
+        //                 "ccy": "USDT",
+        //                 "amount": "10",
+        //                 "status": "finished"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 8,
+        //             "has_next": false
         //         },
-        //         "message": "Success"
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
-        // Margin
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "records": [
-        //                 {
-        //                     "id": 7580062,
-        //                     "updated_at": 1653684379,
-        //                     "user_id": 3620173,
-        //                     "from_account_id": 0,
-        //                     "to_account_id": 1,
-        //                     "asset": "BTC",
-        //                     "amount": "0.00160829",
-        //                     "balance": "0.00160829",
-        //                     "transfer_type": "IN",
-        //                     "status": "SUCCESS",
-        //                     "created_at": 1653684379
-        //                 }
-        //             ],
-        //             "total": 1
-        //         },
-        //         "message": "Success"
-        //     }
-        //
-        const data = this.safeValue(response, 'data', {});
-        const transfers = this.safeList(data, 'records', []);
-        return this.parseTransfers(transfers, currency, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTransfers(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

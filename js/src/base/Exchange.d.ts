@@ -845,7 +845,9 @@ export default class Exchange {
     marketId(symbol: string): string;
     symbol(symbol: string): string;
     handleParamString(params: object, paramName: string, defaultValue?: Str): [string, object];
+    handleParamString2(params: object, paramName1: string, paramName2: string, defaultValue?: Str): [string, object];
     handleParamInteger(params: object, paramName: string, defaultValue?: Int): [Int, object];
+    handleParamInteger2(params: object, paramName1: string, paramName2: string, defaultValue?: Int): [Int, object];
     resolvePath(path: any, params: any): any[];
     getListFromObjectValues(objects: any, key: IndexType): any[];
     getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): any[];
@@ -897,7 +899,7 @@ export default class Exchange {
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
     handleOptionAndParams(params: object, methodName: string, optionName: string, defaultValue?: any): any[];
-    handleOptionAndParams2(params: object, methodName: string, methodName2: string, optionName: string, defaultValue?: any): any[];
+    handleOptionAndParams2(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): any[];
     handleOption(methodName: string, optionName: string, defaultValue?: any): any;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): any;
     handleSubTypeAndParams(methodName: string, market?: any, params?: {}, defaultValue?: any): any[];

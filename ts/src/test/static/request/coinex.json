@@ -288,16 +288,16 @@
         ],
         "transfer": [
             {
-                "description": "transfer from spot to swap",
+                "description": "Transfer from swap to spot",
                 "method": "transfer",
-                "url": "https://api.coinex.com/v1/contract/balance/transfer",
+                "url": "https://api.coinex.com/v2/assets/transfer",
                 "input": [
-                    "USDT",
-                    1,
-                    "spot",
-                    "swap"
+                  "USDT",
+                  10,
+                  "swap",
+                  "spot"
                 ],
-                "output": "{\"access_id\":\"53DD577FFFD741D4B53A5424ECD33196\",\"amount\":\"1\",\"coin_type\":\"USDT\",\"tonce\":\"1699460471970\",\"transfer_side\":\"in\"}"
+                "output": "{\"amount\":\"10\",\"ccy\":\"USDT\",\"from_account_type\":\"FUTURES\",\"to_account_type\":\"SPOT\"}"
             }
         ],
         "createOrder": [
@@ -924,24 +924,24 @@
         ],
         "fetchTransfers": [
             {
-                "description": "Spot fetch transfers",
+                "description": "Fetch transfers between spot and swap accounts",
                 "method": "fetchTransfers",
-                "url": "https://api.coinex.com/v1/contract/transfer/history?access_id=key&page=1&tonce=1702016708915&asset=BTC&limit=100",
+                "url": "https://api.coinex.com/v2/assets/transfer-history?ccy=BTC&transfer_type=FUTURES",
                 "input": [
-                    "BTC"
+                  "BTC"
                 ]
             },
             {
-                "description": "Spot-margin transfers",
+                "description": "Fetch transfers between spot and margin accounts",
                 "method": "fetchTransfers",
-                "url": "https://api.coinex.com/v1/margin/transfer/history?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&page=1&tonce=1706032791206",
+                "url": "https://api.coinex.com/v2/assets/transfer-history?ccy=BTC&transfer_type=MARGIN",
                 "input": [
-                    null,
-                    null,
-                    null,
-                    {
-                        "marginMode": "isolated"
-                    }
+                  "BTC",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
                 ]
             }
         ],

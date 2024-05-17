@@ -2168,7 +2168,7 @@ class phemex(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': None,
+                'currency': self.safe_currency_code(self.safe_string(order, 'feeCurrency')),
             }
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp'))))
@@ -2313,6 +2313,7 @@ class phemex(Exchange, ImplicitAPI):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.parse_order_side(self.safe_string_lower(order, 'side'))
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
@@ -2338,6 +2339,19 @@ class phemex(Exchange, ImplicitAPI):
             reduceOnly = True
         takeProfit = self.safe_string(order, 'takeProfitRp')
         stopLoss = self.safe_string(order, 'stopLossRp')
+        feeValue = self.omit_zero(self.safe_string(order, 'execFeeRv'))
+        ptFeeRv = self.omit_zero(self.safe_string(order, 'ptFeeRv'))
+        fee = None
+        if feeValue is not None:
+            fee = {
+                'cost': feeValue,
+                'currency': market['quote'],
+            }
+        elif ptFeeRv is not None:
+            fee = {
+                'cost': ptFeeRv,
+                'currency': 'PT',
+            }
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2362,7 +2376,7 @@ class phemex(Exchange, ImplicitAPI):
             'cost': cost,
             'average': None,
             'status': status,
-            'fee': None,
+            'fee': fee,
             'trades': None,
         })
 

@@ -329,33 +329,41 @@ public partial class Exchange
 
     public object omitZero(object value)
     {
-        if (value is double)
+        try
         {
-            if ((double)value == 0.0)
+            if (value is double)
             {
-                return null;
+                if ((double)value == 0.0)
+                {
+                    return null;
+                }
             }
+            if (value is Int64)
+            {
+                if ((Int64)value == 0)
+                {
+                    return null;
+                }
+            }
+            if (value is string)
+            {
+                // if ((string)value == "0")
+                // {
+                //     return null;
+                // }
+                var parsed = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+                if (parsed == 0)
+                {
+                    return null;
+                }
+            }
+            return value;
         }
-        if (value is Int64)
+        catch (Exception e)
         {
-            if ((Int64)value == 0)
-            {
-                return null;
-            }
+            return value;
         }
-        if (value is string)
-        {
-            // if ((string)value == "0")
-            // {
-            //     return null;
-            // }
-            var parsed = Convert.ToDouble(value, CultureInfo.InvariantCulture);
-            if (parsed == 0)
-            {
-                return null;
-            }
-        }
-        return value;
+
     }
 
     public virtual object sum(params object[] args)

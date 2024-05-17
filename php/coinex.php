@@ -440,8 +440,15 @@ class coinex extends Exchange {
                 'fetchDepositAddress' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'accountsByType' => array(
+                    'spot' => 'SPOT',
+                    'margin' => 'MARGIN',
+                    'swap' => 'FUTURES',
+                ),
                 'accountsById' => array(
-                    'spot' => '0',
+                    'SPOT' => 'spot',
+                    'MARGIN' => 'margin',
+                    'FUTURES' => 'swap',
                 ),
                 'networks' => array(
                     'BEP20' => 'BSC',
@@ -4799,41 +4806,45 @@ class coinex extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
+         * @see https://docs.coinex.com/api/v2/assets/transfer/http/transfer
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->symbol] unified ccxt $symbol, required when either the $fromAccount or $toAccount is margin
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
         $amountToPrecision = $this->currency_to_precision($code, $amount);
+        $accountsByType = $this->safe_dict($this->options, 'accountsById', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
+            'ccy' => $currency['id'],
             'amount' => $amountToPrecision,
-            'coin_type' => $currency['id'],
+            'from_account_type' => $fromId,
+            'to_account_type' => $toId,
         );
-        $response = null;
-        if (($fromAccount === 'spot') && ($toAccount === 'swap')) {
-            $request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
-            $response = $this->v1PrivatePostContractBalanceTransfer ($this->extend($request, $params));
-        } elseif (($fromAccount === 'swap') && ($toAccount === 'spot')) {
-            $request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
-            $response = $this->v1PrivatePostContractBalanceTransfer ($this->extend($request, $params));
-        } else {
-            $accountsById = $this->safe_value($this->options, 'accountsById', array());
-            $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
-            // $fromAccount and $toAccount must be integers for margin transfers
-            // spot is 0, use fetchBalance() to find the margin account id
-            $request['from_account'] = intval($fromId);
-            $request['to_account'] = intval($toId);
-            $response = $this->v1PrivatePostMarginTransfer ($this->extend($request, $params));
+        if (($fromAccount === 'margin') || ($toAccount === 'margin')) {
+            $symbol = $this->safe_string($params, 'symbol');
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' transfer() the $symbol parameter must be defined for a margin account');
+            }
+            $params = $this->omit($params, 'symbol');
+            $request['market'] = $this->market_id($symbol);
         }
+        if (($fromAccount !== 'spot') && ($toAccount !== 'spot')) {
+            throw new BadRequest($this->id . ' transfer() can only be between spot and swap, or spot and margin, either the $fromAccount or $toAccount must be spot');
+        }
+        $response = $this->v2PrivatePostAssetsTransfer ($this->extend($request, $params));
         //
-        //     array("code" => 0, "data" => null, "message" => "Success")
+        //     {
+        //         "code" => 0,
+        //         "data" => array(),
+        //         "message" => "OK"
+        //     }
         //
         return $this->extend($this->parse_transfer($response, $currency), array(
             'amount' => $this->parse_number($amountToPrecision),
@@ -4842,166 +4853,91 @@ class coinex extends Exchange {
         ));
     }
 
-    public function parse_transfer_status(?string $status): ?string {
+    public function parse_transfer_status($status) {
         $statuses = array(
             '0' => 'ok',
             'SUCCESS' => 'ok',
+            'OK' => 'ok',
+            'finished' => 'ok',
+            'FINISHED' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
-        //
-        // fetchTransfers Swap
-        //
-        //     array(
-        //         "amount" => "10",
-        //         "asset" => "USDT",
-        //         "transfer_type" => "transfer_out", // from swap to spot
-        //         "created_at" => 1651633422
-        //     ),
-        //
-        // fetchTransfers Margin
-        //
-        //     array(
-        //         "id" => 7580062,
-        //         "updated_at" => 1653684379,
-        //         "user_id" => 3620173,
-        //         "from_account_id" => 0,
-        //         "to_account_id" => 1,
-        //         "asset" => "BTC",
-        //         "amount" => "0.00160829",
-        //         "balance" => "0.00160829",
-        //         "transfer_type" => "IN",
-        //         "status" => "SUCCESS",
-        //         "created_at" => 1653684379
-        //     ),
-        //
-        $timestamp = $this->safe_timestamp($transfer, 'created_at');
-        $transferType = $this->safe_string($transfer, 'transfer_type');
-        $fromAccount = null;
-        $toAccount = null;
-        if ($transferType === 'transfer_out') {
-            $fromAccount = 'swap';
-            $toAccount = 'spot';
-        } elseif ($transferType === 'transfer_in') {
-            $fromAccount = 'spot';
-            $toAccount = 'swap';
-        } elseif ($transferType === 'IN') {
-            $fromAccount = 'spot';
-            $toAccount = 'margin';
-        } elseif ($transferType === 'OUT') {
-            $fromAccount = 'margin';
-            $toAccount = 'spot';
-        }
-        $currencyId = $this->safe_string($transfer, 'asset');
-        $currencyCode = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->safe_integer($transfer, 'created_at');
+        $currencyId = $this->safe_string($transfer, 'ccy');
+        $fromId = $this->safe_string($transfer, 'from_account_type');
+        $toId = $this->safe_string($transfer, 'to_account_type');
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
         return array(
-            'info' => $transfer,
-            'id' => $this->safe_string($transfer, 'id'),
+            'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'currency' => $currencyCode,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($transfer, 'amount'),
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
+            'fromAccount' => $this->safe_string($accountsById, $fromId, $fromId),
+            'toAccount' => $this->safe_string($accountsById, $toId, $toId),
             'status' => $this->parse_transfer_status($this->safe_string_2($transfer, 'code', 'status')),
         );
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch a history of internal $transfers made on an account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history
+         * fetch a history of internal transfers made on an account
+         * @see https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
          * @param {string} $code unified $currency $code of the $currency transferred
-         * @param {int} [$since] the earliest time in ms to fetch $transfers for
-         * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' for fetching transfers to and from your margin account
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
-        $currency = null;
-        $request = array(
-            'page' => 1,
-            // 'limit' => $limit,
-            // 'asset' => 'USDT',
-            // 'start_time' => $since,
-            // 'end_time' => 1515806440,
-            // 'transfer_type' => 'transfer_in', // transfer_in => from Spot to Swap Account, transfer_out => from Swap to Spot Account
-        );
-        $page = $this->safe_integer($params, 'page');
-        if ($page !== null) {
-            $request['page'] = $page;
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
         }
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['asset'] = $currency['id'];
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+        );
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTransfers', $params);
+        if ($marginMode !== null) {
+            $request['transfer_type'] = 'MARGIN';
+        } else {
+            $request['transfer_type'] = 'FUTURES';
         }
         if ($since !== null) {
             $request['start_time'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
-        } else {
-            $request['limit'] = 100;
         }
-        $params = $this->omit($params, 'page');
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTransfers', $params);
-        $response = null;
-        if ($marginMode !== null) {
-            $response = $this->v1PrivateGetMarginTransferHistory ($this->extend($request, $params));
-        } else {
-            $response = $this->v1PrivateGetContractTransferHistory ($this->extend($request, $params));
-        }
-        //
-        // Swap
+        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
+        $response = $this->v2PrivateGetAssetsTransferHistory ($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
         //         "data" => array(
-        //             "records" => array(
-        //                 array(
-        //                     "amount" => "10",
-        //                     "asset" => "USDT",
-        //                     "transfer_type" => "transfer_out",
-        //                     "created_at" => 1651633422
-        //                 ),
+        //             array(
+        //                 "created_at" => 1715848480646,
+        //                 "from_account_type" => "SPOT",
+        //                 "to_account_type" => "FUTURES",
+        //                 "ccy" => "USDT",
+        //                 "amount" => "10",
+        //                 "status" => "finished"
         //             ),
-        //             "total" => 5
         //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        // Margin
-        //
-        //     {
+        //         "pagination" => array(
+        //             "total" => 8,
+        //             "has_next" => false
+        //         ),
         //         "code" => 0,
-        //         "data" => {
-        //             "records" => array(
-        //                 array(
-        //                     "id" => 7580062,
-        //                     "updated_at" => 1653684379,
-        //                     "user_id" => 3620173,
-        //                     "from_account_id" => 0,
-        //                     "to_account_id" => 1,
-        //                     "asset" => "BTC",
-        //                     "amount" => "0.00160829",
-        //                     "balance" => "0.00160829",
-        //                     "transfer_type" => "IN",
-        //                     "status" => "SUCCESS",
-        //                     "created_at" => 1653684379
-        //                 }
-        //             ),
-        //             "total" => 1
-        //         ),
-        //         "message" => "Success"
+        //         "message" => "OK"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $transfers = $this->safe_list($data, 'records', array());
-        return $this->parse_transfers($transfers, $currency, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

@@ -141,7 +141,7 @@ class kraken extends \ccxt\async\kraken {
                 'pair' => $market['wsId'],
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            list($request, $params) = $this->orderRequest ('createOrderWs', $symbol, $type, $request, $price, $params);
+            list($request, $params) = $this->orderRequest ('createOrderWs', $symbol, $type, $request, $amount, $price, $params);
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
@@ -199,7 +199,7 @@ class kraken extends \ccxt\async\kraken {
                 'pair' => $market['wsId'],
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            list($request, $params) = $this->orderRequest ('editOrderWs', $symbol, $type, $request, $price, $params);
+            list($request, $params) = $this->orderRequest ('editOrderWs', $symbol, $type, $request, $amount, $price, $params);
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }

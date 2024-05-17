@@ -427,8 +427,15 @@ public partial class coinex : Exchange
                 { "fetchDepositAddress", new Dictionary<string, object>() {
                     { "fillResponseFromRequest", true },
                 } },
+                { "accountsByType", new Dictionary<string, object>() {
+                    { "spot", "SPOT" },
+                    { "margin", "MARGIN" },
+                    { "swap", "FUTURES" },
+                } },
                 { "accountsById", new Dictionary<string, object>() {
-                    { "spot", "0" },
+                    { "SPOT", "spot" },
+                    { "MARGIN", "margin" },
+                    { "FUTURES", "swap" },
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BEP20", "BSC" },
@@ -4040,45 +4047,49 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#transfer
         * @description transfer currency internally between wallets on the same account
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
+        * @see https://docs.coinex.com/api/v2/assets/transfer/http/transfer
         * @param {string} code unified currency code
         * @param {float} amount amount to transfer
         * @param {string} fromAccount account to transfer from
         * @param {string} toAccount account to transfer to
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
+        object accountsByType = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
+        object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
+        object toId = this.safeString(accountsByType, toAccount, toAccount);
         object request = new Dictionary<string, object>() {
+            { "ccy", getValue(currency, "id") },
             { "amount", amountToPrecision },
-            { "coin_type", getValue(currency, "id") },
+            { "from_account_type", fromId },
+            { "to_account_type", toId },
         };
-        object response = null;
-        if (isTrue(isTrue((isEqual(fromAccount, "spot"))) && isTrue((isEqual(toAccount, "swap")))))
+        if (isTrue(isTrue((isEqual(fromAccount, "margin"))) || isTrue((isEqual(toAccount, "margin")))))
         {
-            ((IDictionary<string,object>)request)["transfer_side"] = "in"; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, parameters));
-        } else if (isTrue(isTrue((isEqual(fromAccount, "swap"))) && isTrue((isEqual(toAccount, "spot")))))
-        {
-            ((IDictionary<string,object>)request)["transfer_side"] = "out"; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, parameters));
-        } else
-        {
-            object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
-            object fromId = this.safeString(accountsById, fromAccount, fromAccount);
-            object toId = this.safeString(accountsById, toAccount, toAccount);
-            // fromAccount and toAccount must be integers for margin transfers
-            // spot is 0, use fetchBalance() to find the margin account id
-            ((IDictionary<string,object>)request)["from_account"] = parseInt(fromId);
-            ((IDictionary<string,object>)request)["to_account"] = parseInt(toId);
-            response = await this.v1PrivatePostMarginTransfer(this.extend(request, parameters));
+            object symbol = this.safeString(parameters, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " transfer() the symbol parameter must be defined for a margin account")) ;
+            }
+            parameters = this.omit(parameters, "symbol");
+            ((IDictionary<string,object>)request)["market"] = this.marketId(symbol);
         }
+        if (isTrue(isTrue((!isEqual(fromAccount, "spot"))) && isTrue((!isEqual(toAccount, "spot")))))
+        {
+            throw new BadRequest ((string)add(this.id, " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot")) ;
+        }
+        object response = await this.v2PrivatePostAssetsTransfer(this.extend(request, parameters));
         //
-        //     {"code": 0, "data": null, "message": "Success"}
+        //     {
+        //         "code": 0,
+        //         "data": {},
+        //         "message": "OK"
+        //     }
         //
         return this.extend(this.parseTransfer(response, currency), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amountToPrecision) },
@@ -4092,70 +4103,28 @@ public partial class coinex : Exchange
         object statuses = new Dictionary<string, object>() {
             { "0", "ok" },
             { "SUCCESS", "ok" },
+            { "OK", "ok" },
+            { "finished", "ok" },
+            { "FINISHED", "ok" },
         };
         return this.safeString(statuses, status, status);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
     {
-        //
-        // fetchTransfers Swap
-        //
-        //     {
-        //         "amount": "10",
-        //         "asset": "USDT",
-        //         "transfer_type": "transfer_out", // from swap to spot
-        //         "created_at": 1651633422
-        //     },
-        //
-        // fetchTransfers Margin
-        //
-        //     {
-        //         "id": 7580062,
-        //         "updated_at": 1653684379,
-        //         "user_id": 3620173,
-        //         "from_account_id": 0,
-        //         "to_account_id": 1,
-        //         "asset": "BTC",
-        //         "amount": "0.00160829",
-        //         "balance": "0.00160829",
-        //         "transfer_type": "IN",
-        //         "status": "SUCCESS",
-        //         "created_at": 1653684379
-        //     },
-        //
-        object timestamp = this.safeTimestamp(transfer, "created_at");
-        object transferType = this.safeString(transfer, "transfer_type");
-        object fromAccount = null;
-        object toAccount = null;
-        if (isTrue(isEqual(transferType, "transfer_out")))
-        {
-            fromAccount = "swap";
-            toAccount = "spot";
-        } else if (isTrue(isEqual(transferType, "transfer_in")))
-        {
-            fromAccount = "spot";
-            toAccount = "swap";
-        } else if (isTrue(isEqual(transferType, "IN")))
-        {
-            fromAccount = "spot";
-            toAccount = "margin";
-        } else if (isTrue(isEqual(transferType, "OUT")))
-        {
-            fromAccount = "margin";
-            toAccount = "spot";
-        }
-        object currencyId = this.safeString(transfer, "asset");
-        object currencyCode = this.safeCurrencyCode(currencyId, currency);
+        object timestamp = this.safeInteger(transfer, "created_at");
+        object currencyId = this.safeString(transfer, "ccy");
+        object fromId = this.safeString(transfer, "from_account_type");
+        object toId = this.safeString(transfer, "to_account_type");
+        object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
-            { "info", transfer },
-            { "id", this.safeString(transfer, "id") },
+            { "id", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "currency", currencyCode },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "amount", this.safeNumber(transfer, "amount") },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
+            { "fromAccount", this.safeString(accountsById, fromId, fromId) },
+            { "toAccount", this.safeString(accountsById, toId, toId) },
             { "status", this.parseTransferStatus(this.safeString2(transfer, "code", "status")) },
         };
     }
@@ -4166,29 +4135,34 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#fetchTransfers
         * @description fetch a history of internal transfers made on an account
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history
+        * @see https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
         * @param {string} code unified currency code of the currency transferred
         * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of  transfers structures to retrieve
+        * @param {int} [limit] the maximum number of transfer structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching transfers to and from your margin account
         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object currency = null;
-        object request = new Dictionary<string, object>() {
-            { "page", 1 },
-        };
-        object page = this.safeInteger(parameters, "page");
-        if (isTrue(!isEqual(page, null)))
+        if (isTrue(isEqual(code, null)))
         {
-            ((IDictionary<string,object>)request)["page"] = page;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTransfers() requires a code argument")) ;
         }
-        if (isTrue(!isEqual(code, null)))
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "ccy", getValue(currency, "id") },
+        };
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTransfers", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(!isEqual(marginMode, null)))
         {
-            currency = this.currency(code);
-            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["transfer_type"] = "MARGIN";
+        } else
+        {
+            ((IDictionary<string,object>)request)["transfer_type"] = "FUTURES";
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -4197,70 +4171,33 @@ public partial class coinex : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
-        } else
-        {
-            ((IDictionary<string,object>)request)["limit"] = 100;
         }
-        parameters = this.omit(parameters, "page");
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTransfers", parameters);
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object response = null;
-        if (isTrue(!isEqual(marginMode, null)))
-        {
-            response = await this.v1PrivateGetMarginTransferHistory(this.extend(request, parameters));
-        } else
-        {
-            response = await this.v1PrivateGetContractTransferHistory(this.extend(request, parameters));
-        }
-        //
-        // Swap
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v2PrivateGetAssetsTransferHistory(this.extend(request, parameters));
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //             "records": [
-        //                 {
-        //                     "amount": "10",
-        //                     "asset": "USDT",
-        //                     "transfer_type": "transfer_out",
-        //                     "created_at": 1651633422
-        //                 },
-        //             ],
-        //             "total": 5
+        //         "data": [
+        //             {
+        //                 "created_at": 1715848480646,
+        //                 "from_account_type": "SPOT",
+        //                 "to_account_type": "FUTURES",
+        //                 "ccy": "USDT",
+        //                 "amount": "10",
+        //                 "status": "finished"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 8,
+        //             "has_next": false
         //         },
-        //         "message": "Success"
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
-        // Margin
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "records": [
-        //                 {
-        //                     "id": 7580062,
-        //                     "updated_at": 1653684379,
-        //                     "user_id": 3620173,
-        //                     "from_account_id": 0,
-        //                     "to_account_id": 1,
-        //                     "asset": "BTC",
-        //                     "amount": "0.00160829",
-        //                     "balance": "0.00160829",
-        //                     "transfer_type": "IN",
-        //                     "status": "SUCCESS",
-        //                     "created_at": 1653684379
-        //                 }
-        //             ],
-        //             "total": 1
-        //         },
-        //         "message": "Success"
-        //     }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transfers = this.safeList(data, "records", new List<object>() {});
-        return this.parseTransfers(transfers, currency, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTransfers(data, currency, since, limit);
     }
 
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)

@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.23';
+$version = '4.3.24';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.23';
+    const VERSION = '4.3.24';
 
     public $browser;
     public $marketsLoading = null;
@@ -2576,10 +2576,26 @@ class Exchange extends \ccxt\Exchange {
         return array( $value, $params );
     }
 
+    public function handle_param_string_2(array $params, string $paramName1, string $paramName2, ?string $defaultValue = null) {
+        $value = $this->safe_string_2($params, $paramName1, $paramName2, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $paramName1, $paramName2 ));
+        }
+        return array( $value, $params );
+    }
+
     public function handle_param_integer(array $params, string $paramName, ?int $defaultValue = null) {
         $value = $this->safe_integer($params, $paramName, $defaultValue);
         if ($value !== null) {
             $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
+    public function handle_param_integer_2(array $params, string $paramName1, string $paramName2, ?int $defaultValue = null) {
+        $value = $this->safe_integer_2($params, $paramName1, $paramName2, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $paramName1, $paramName2 ));
         }
         return array( $value, $params );
     }
@@ -3072,28 +3088,13 @@ class Exchange extends \ccxt\Exchange {
         return array( $value, $params );
     }
 
-    public function handle_option_and_params_2(array $params, string $methodName, string $methodName2, string $optionName, $defaultValue = null) {
-        // This method can be used to obtain method specific properties, i.e => $this->handle_option_and_params($params, 'fetchPosition', 'marginMode', 'isolated')
-        $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
-        // check if $params contain the key
-        $value = $this->safe_value_2($params, $optionName, $defaultOptionName);
-        if ($value !== null) {
-            $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
-        } else {
-            // check if exchange has properties for this method
-            $exchangeWideMethodOptions = $this->safe_value_2($this->options, $methodName, $methodName2);
-            if ($exchangeWideMethodOptions !== null) {
-                // check if the option is defined inside this method's props
-                $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
-            }
-            if ($value === null) {
-                // if it's still null, check if global exchange-wide option exists
-                $value = $this->safe_value_2($this->options, $optionName, $defaultOptionName);
-            }
-            // if it's still null, use the default $value
-            $value = ($value !== null) ? $value : $defaultValue;
-        }
-        return array( $value, $params );
+    public function handle_option_and_params_2(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null) {
+        $value = null;
+        list($value, $params) = $this->handle_option_and_params($params, $methodName1, $optionName1, $defaultValue);
+        // if still null, try $optionName2
+        $value2 = null;
+        list($value2, $params) = $this->handle_option_and_params($params, $methodName1, $optionName2, $value);
+        return array( $value2, $params );
     }
 
     public function handle_option(string $methodName, string $optionName, $defaultValue = null) {
@@ -5119,8 +5120,9 @@ class Exchange extends \ccxt\Exchange {
                     $errors = 0;
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $iteration = ($i . (string) 1);
-                        $cursorMessage = 'Cursor pagination call ' . $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorValue;
+                        $cursorString = ($cursorValue === null) ? '' : $cursorValue;
+                        $iteration = ($i + 1);
+                        $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorString;
                         $this->log ($cursorMessage);
                     }
                     if ($responseLength === 0) {

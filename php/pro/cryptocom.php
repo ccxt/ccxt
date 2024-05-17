@@ -112,14 +112,16 @@ class cryptocom extends \ccxt\async\cryptocom {
                 $params['params'] = array();
             }
             $bookSubscriptionType = null;
-            list($bookSubscriptionType, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-            if ($bookSubscriptionType !== null) {
-                $params['params']['bookSubscriptionType'] = $bookSubscriptionType;
-            }
+            $bookSubscriptionType2 = null;
+            list($bookSubscriptionType, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+            list($bookSubscriptionType2, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'bookSubscriptionType', $bookSubscriptionType);
+            $params['params']['bookSubscriptionType'] = $bookSubscriptionType2;
             $bookUpdateFrequency = null;
-            list($bookUpdateFrequency, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency');
-            if ($bookUpdateFrequency !== null) {
-                $params['params']['bookSubscriptionType'] = $bookSubscriptionType;
+            $bookUpdateFrequency2 = null;
+            list($bookUpdateFrequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'bookUpdateFrequency');
+            list($bookUpdateFrequency2, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', $bookUpdateFrequency);
+            if ($bookUpdateFrequency2 !== null) {
+                $params['params']['bookSubscriptionType'] = $bookUpdateFrequency2;
             }
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];

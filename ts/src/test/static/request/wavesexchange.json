@@ -1,11 +1,14 @@
 {
     "exchange": "wavesexchange",
-    "skipKeys": [],
+    "apiKey": "7vhqbdwotF593MRLMUtQvRkiR7aDdDf4Zp3yBrvzMYqr",
+    "secret": "ASar3DL4CNiHhkDzq7qj4KEVaMfqwphaPDbvTegYFwvd",
+    "skipKeys": ["senderPublicKey", "proofs", "timestamp", "matcherPublicKey", "signature"],
     "outputType": "json",
     "methods": {
         "createOrder": [
             {
                 "description": "limit buy",
+                "disabled": true,
                 "method": "createOrder",
                 "url": "https://matcher.wx.network/matcher/orderbook",
                 "input": [
@@ -19,6 +22,7 @@
             },
             {
                 "description": "limit buy with exteme amounts",
+                "disabled": true,
                 "method": "createOrder",
                 "url": "https://matcher.wx.network/matcher/orderbook",
                 "input": [
@@ -33,6 +37,7 @@
             
             {
                 "description": "sell limit",
+                "disabled": true,
                 "method": "createOrder",
                 "url": "https://matcher.wx.network/matcher/orderbook",
                 "input": [
@@ -47,6 +52,7 @@
             {
                 "description": "sell limit with extreme amount",
                 "method": "createOrder",
+                "disabled": true,
                 "url": "https://matcher.wx.network/matcher/orderbook",
                 "input": [
                   "WAVES/USDT",
@@ -61,6 +67,7 @@
         "withdraw": [
             {
                 "description": "simple amount",
+                "disabled": true,
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
                 "input": [
@@ -72,6 +79,7 @@
             },
             {
                 "description": "extreme amount",
+                "disabled": true,
                 "method": "withdraw",
                 "url": "https://nodes.wx.network/transactions/broadcast",
                 "input": [

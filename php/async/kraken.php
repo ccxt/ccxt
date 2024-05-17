@@ -50,6 +50,9 @@ class kraken extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -1383,6 +1386,43 @@ class kraken extends Exchange {
         }) ();
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a $market order by providing the $symbol, $side and $cost
+             * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+             * @param {string} $symbol unified $symbol of the $market to create an order in (only USD markets are supported)
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            // only buy orders are supported by the endpoint
+            $market = $this->market($symbol);
+            if ($market['quote'] !== 'USD') {
+                throw new NotSupported($this->id . ' createMarketOrderWithCost() supports symbols with quote currency USD only');
+            }
+            $params['cost'] = $cost;
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol, side and $cost
+             * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->create_market_order_with_cost($symbol, 'buy', $cost, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1412,7 +1452,7 @@ class kraken extends Exchange {
                 'ordertype' => $type,
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $price, $params);
+            $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $amount, $price, $params);
             $response = Async\await($this->privatePostAddOrder ($this->extend($orderRequest[0], $orderRequest[1])));
             //
             //     {
@@ -1717,7 +1757,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function order_request($method, $symbol, $type, $request, $price = null, $params = array ()) {
+    public function order_request(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array ()) {
         $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
         $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
         if ($clientOrderId !== null) {
@@ -1732,10 +1772,23 @@ class kraken extends Exchange {
         $trailingLimitAmount = $this->safe_string($params, 'trailingLimitAmount');
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
-        if ($isLimitOrder && !$isTrailingAmountOrder) {
+        $isMarketOrder = $type === 'market';
+        $cost = $this->safe_string($params, 'cost');
+        $flags = $this->safe_string($params, 'oflags');
+        $params = $this->omit($params, array( 'cost', 'oflags' ));
+        $isViqcOrder = ($flags !== null) && (mb_strpos($flags, 'viqc') > -1); // volume in quote currency
+        if ($isMarketOrder && ($cost !== null || $isViqcOrder)) {
+            if ($cost === null && ($amount !== null)) {
+                $request['volume'] = $this->cost_to_precision($symbol, $this->number_to_string($amount));
+            } else {
+                $request['volume'] = $this->cost_to_precision($symbol, $cost);
+            }
+            $extendedOflags = ($flags !== null) ? $flags . ',viqc' : 'viqc';
+            $request['oflags'] = $extendedOflags;
+        } elseif ($isLimitOrder && !$isTrailingAmountOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         if ($isStopLossOrTakeProfitTrigger) {
             if ($isStopLossTriggerOrder) {
                 $request['price'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
@@ -1777,7 +1830,7 @@ class kraken extends Exchange {
                 $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        $close = $this->safe_value($params, 'close');
+        $close = $this->safe_dict($params, 'close');
         if ($close !== null) {
             $close = $this->extend(array(), $close);
             $closePrice = $this->safe_value($close, 'price');
@@ -1798,7 +1851,8 @@ class kraken extends Exchange {
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
         if ($postOnly) {
-            $request['oflags'] = 'post';
+            $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
+            $request['oflags'] = $extendedPostFlags;
         }
         $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ));
         return array( $request, $params );
@@ -1836,7 +1890,7 @@ class kraken extends Exchange {
             if ($amount !== null) {
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
-            $orderRequest = $this->order_request('editOrder', $symbol, $type, $request, $price, $params);
+            $orderRequest = $this->order_request('editOrder', $symbol, $type, $request, $amount, $price, $params);
             $response = Async\await($this->privatePostEditOrder ($this->extend($orderRequest[0], $orderRequest[1])));
             //
             //     {

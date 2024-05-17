@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.23'
+__version__ = '4.3.24'
 
 # -----------------------------------------------------------------------------
 
@@ -1689,11 +1689,14 @@ class Exchange(object):
                 return default
 
     def omit_zero(self, string_number):
-        if string_number is None or string_number == '':
-            return None
-        if float(string_number) == 0:
-            return None
-        return string_number
+        try:
+            if string_number is None or string_number == '':
+                return None
+            if float(string_number) == 0:
+                return None
+            return string_number
+        except Exception:
+            return string_number
 
     def check_order_arguments(self, market, type, side, amount, price, params):
         if price is None:
@@ -2075,7 +2078,7 @@ class Exchange(object):
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
         result = parsedArray
-        # single-pass filter for both symbol and since.
+        # single-pass filter for both symbol and since
         if valueIsDefined or sinceIsDefined:
             result = []
             for i in range(0, len(parsedArray)):
@@ -3621,10 +3624,22 @@ class Exchange(object):
             params = self.omit(params, paramName)
         return [value, params]
 
+    def handle_param_string_2(self, params: object, paramName1: str, paramName2: str, defaultValue: Str = None):
+        value = self.safe_string_2(params, paramName1, paramName2, defaultValue)
+        if value is not None:
+            params = self.omit(params, [paramName1, paramName2])
+        return [value, params]
+
     def handle_param_integer(self, params: object, paramName: str, defaultValue: Int = None):
         value = self.safe_integer(params, paramName, defaultValue)
         if value is not None:
             params = self.omit(params, paramName)
+        return [value, params]
+
+    def handle_param_integer_2(self, params: object, paramName1: str, paramName2: str, defaultValue: Int = None):
+        value = self.safe_integer_2(params, paramName1, paramName2, defaultValue)
+        if value is not None:
+            params = self.omit(params, [paramName1, paramName2])
         return [value, params]
 
     def resolve_path(self, path, params):
@@ -3988,25 +4003,13 @@ class Exchange(object):
             value = value if (value is not None) else defaultValue
         return [value, params]
 
-    def handle_option_and_params_2(self, params: object, methodName: str, methodName2: str, optionName: str, defaultValue=None):
-        # This method can be used to obtain method specific properties, i.e: self.handle_option_and_params(params, 'fetchPosition', 'marginMode', 'isolated')
-        defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
-        # check if params contain the key
-        value = self.safe_value_2(params, optionName, defaultOptionName)
-        if value is not None:
-            params = self.omit(params, [optionName, defaultOptionName])
-        else:
-            # check if exchange has properties for self method
-            exchangeWideMethodOptions = self.safe_value_2(self.options, methodName, methodName2)
-            if exchangeWideMethodOptions is not None:
-                # check if the option is defined inside self method's props
-                value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
-            if value is None:
-                # if it's still None, check if global exchange-wide option exists
-                value = self.safe_value_2(self.options, optionName, defaultOptionName)
-            # if it's still None, use the default value
-            value = value if (value is not None) else defaultValue
-        return [value, params]
+    def handle_option_and_params_2(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None):
+        value = None
+        value, params = self.handle_option_and_params(params, methodName1, optionName1, defaultValue)
+        # if still None, try optionName2
+        value2 = None
+        value2, params = self.handle_option_and_params(params, methodName1, optionName2, value)
+        return [value2, params]
 
     def handle_option(self, methodName: str, optionName: str, defaultValue=None):
         # eslint-disable-next-line no-unused-vars
@@ -5566,8 +5569,9 @@ class Exchange(object):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + str(1))
-                    cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorValue
+                    cursorString = '' if (cursorValue is None) else cursorValue
+                    iteration = (i + 1)
+                    cursorMessage = 'Cursor pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
                     self.log(cursorMessage)
                 if responseLength == 0:
                     break
