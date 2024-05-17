@@ -3458,9 +3458,9 @@ export default class gate extends Exchange {
         amountString = Precise.stringAbs (amountString);
         const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
-        const feeAmount = this.safeString (trade, 'fee');
-        const gtFee = this.safeString (trade, 'gt_fee');
-        const pointFee = this.safeString (trade, 'point_fee');
+        const feeAmount = this.safeNumber (trade, 'fee');
+        const gtFee = this.safeNumber (trade, 'gt_fee');
+        const pointFee = this.safeNumber (trade, 'point_fee');
         const fees = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
