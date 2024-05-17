@@ -1665,7 +1665,7 @@ export default class mexc extends Exchange {
                 amountString = this.safeString (trade, 'vol');
                 side = this.parseOrderSide (this.safeString (trade, 'side'));
                 fee = {
-                    'cost': this.safeString (trade, 'fee'),
+                    'cost': this.safeNumber (trade, 'fee'),
                     'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
                 };
                 takerOrMaker = this.safeValue (trade, 'taker') ? 'taker' : 'maker';
@@ -1689,7 +1689,7 @@ export default class mexc extends Exchange {
                 const feeAsset = this.safeString (trade, 'commissionAsset');
                 if (feeAsset !== undefined) {
                     fee = {
-                        'cost': this.safeString (trade, 'commission'),
+                        'cost': this.safeNumber (trade, 'commission'),
                         'currency': this.safeCurrencyCode (feeAsset),
                     };
                 }
