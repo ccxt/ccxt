@@ -108,20 +108,16 @@ export default class cryptocom extends cryptocomRest {
             params['params'] = {};
         }
         let bookSubscriptionType = undefined;
-        [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType');
-        if (bookSubscriptionType === undefined) {
-            [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        }
-        if (bookSubscriptionType !== undefined) {
-            params['params']['bookSubscriptionType'] = bookSubscriptionType;
-        }
+        let bookSubscriptionType2 = undefined;
+        [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
         let bookUpdateFrequency = undefined;
+        let bookUpdateFrequency2 = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency');
-        if (bookUpdateFrequency === undefined) {
-            [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency');
-        }
+        [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', bookUpdateFrequency);
         if (bookUpdateFrequency !== undefined) {
-            params['params']['bookSubscriptionType'] = bookSubscriptionType;
+            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
