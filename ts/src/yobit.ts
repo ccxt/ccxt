@@ -657,12 +657,12 @@ export default class yobit extends Exchange {
         const amount = this.parseNumber (amountString);
         const type = 'limit'; // all trades are still limit trades
         let fee = undefined;
-        const feeCostString = this.safeNumber (trade, 'commission');
-        if (feeCostString !== undefined) {
+        const feeCost = this.safeNumber (trade, 'commission');
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }
