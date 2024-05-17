@@ -1829,7 +1829,7 @@ export default class phemex extends Exchange {
                 }
             }
             fee = {
-                'cost': feeCostString,
+                'cost': this.parseNumber (feeCostString),
                 'rate': feeRateString,
                 'currency': feeCurrencyCode,
             };
