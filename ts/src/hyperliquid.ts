@@ -2022,7 +2022,7 @@ export default class hyperliquid extends Exchange {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
-        const fee = this.safeString (trade, 'fee');
+        const fee = this.safeNumber (trade, 'fee');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
