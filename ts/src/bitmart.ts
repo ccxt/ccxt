@@ -37,7 +37,7 @@ export default class bitmart extends Exchange {
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
@@ -181,7 +181,7 @@ export default class bitmart extends Exchange {
                         'spot/v2/orders': 5,
                         'spot/v1/trades': 5,
                         // newer order endpoint
-                        'spot/v2/trades': 5,
+                        'spot/v2/trades': 4,
                         'spot/v3/orders': 5,
                         'spot/v2/order_detail': 1,
                         // margin
@@ -225,6 +225,7 @@ export default class bitmart extends Exchange {
                         'spot/v4/query/history-orders': 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/trades': 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/order-trades': 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/cancel_orders': 3,
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
@@ -2660,6 +2661,68 @@ export default class bitmart extends Exchange {
         }
         const order = this.parseOrder (id, market);
         return this.extend (order, { 'id': id });
+    }
+
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#cancelOrders
+         * @description cancel multiple orders
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const clientOrderIds = this.safeList (params, 'clientOrderIds');
+        params = this.omit (params, [ 'clientOrderIds' ]);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (clientOrderIds !== undefined) {
+            request['clientOrderIds'] = clientOrderIds.join (',');
+        } else {
+            request['orderIds'] = ids.join (',');
+        }
+        const response = await this.privatePostSpotV4CancelOrders (this.extend (request, params));
+        //
+        //  {
+        //      "message": "OK",
+        //      "code": 1000,
+        //      "trace": "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+        //      "data": {
+        //        "successIds": [
+        //          "213055379155243012"
+        //        ],
+        //        "failIds": [],
+        //        "totalCount": 1,
+        //        "successCount": 1,
+        //        "failedCount": 0
+        //      }
+        //  }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const allOrders = [];
+        const successIds = this.safeList (data, 'successIds', []);
+        for (let i = 0; i < successIds.length; i++) {
+            const id = successIds[i];
+            allOrders.push (this.safeOrder ({ 'id': id, 'status': 'canceled' }, market));
+        }
+        const failIds = this.safeList (data, 'failIds', []);
+        for (let i = 0; i < failIds.length; i++) {
+            const id = failIds[i];
+            allOrders.push (this.safeOrder ({ 'id': id, 'status': 'failed' }, market));
+        }
+        return allOrders;
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
