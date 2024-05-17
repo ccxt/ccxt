@@ -2267,7 +2267,7 @@ export default class wavesexchange extends Exchange {
         const side = this.safeString (order, 'orderType');
         const orderId = this.safeString (order, 'id');
         const fee = {
-            'cost': this.safeString (order, 'matcherFee'),
+            'cost': this.safeNumber (order, 'matcherFee'),
             'currency': this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES')),
         };
         return this.safeTrade ({
