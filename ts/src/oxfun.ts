@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/oxfun.js';
 import { Precise } from './base/Precise.js';
-import { ArgumentsRequired, BadRequest, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Account, Balances, Bool, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
@@ -241,9 +241,9 @@ export default class oxfun extends Exchange {
                     'BNBSmartChain': 'BNB',
                 },
             },
-            'exceptions': {
+            'exceptions': { // todo: complete exceptions
                 'exact': {
-                    // {"success":false,"code":"20001","message":"marketCode is invalid"}
+                    '-20001': BadRequest, // {"success":false,"code":"20001","message":"marketCode is invalid"}
                     // {"success":false,"code":"20001","message":"timeframe is invalid"}
                     // {"success":false,"code":"20001","message":"limit exceeds the maximum"}
                     // {"success":false,"code":"20001","message":"limit is invalid"}
@@ -252,7 +252,7 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"20001","message":"endTime must be greater than startTime"}
                     // {"success":false,"code":"20001","message":"level exceeds the maximum"}
                     // {"success":false,"code":"20001","message":"marketCode is invalid"}
-                    // {"success":false,"code":"30001","message":"Required parameter 'marketCode' is missing"}
+                    '-30001': BadRequest, // {"success":false,"code":"30001","message":"Required parameter 'marketCode' is missing"}
                     // {"event":null,"success":false,"message":"Validation failed","code":"0010","data":null} - failed transfer
                     // {"success":false,"code":"20001","message":"subAcc is invalid"}
                     // {"success":false,"message":null,"code":"500","timestamp":"2024-05-09T13:15:30.418+0000","data":null}
@@ -262,8 +262,8 @@ export default class oxfun extends Exchange {
                     // {"success":false,"code":"30001","message":"Required parameter 'timestamp' is missing","data":null}
                     // {"success":false,"code":"20001","message":"subAcc is invalid"}
                     // {"success":false,"code":"30001","message":"Required parameter 'externalFee' is missing"}
-                    // {"success":false,"code":"35034","message":"Wallet API is not functioning properly, please try again or contact support."}
-                    // {"success":false,"code":"35046","message":"Error. Please refresh the page."}
+                    '-35034': AuthenticationError, // {"success":false,"code":"35034","message":"Wallet API is not functioning properly, please try again or contact support."}
+                    '-35046': AuthenticationError, // {"success":false,"code":"35046","message":"Error. Please refresh the page."}
                     // {"success":false,"code":"30001","message":"Required parameter 'quantity' is missing"}
                     // 429 Rate limit reached
                     // 10001 General networking failure
@@ -2793,5 +2793,19 @@ export default class oxfun extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined;
+        }
+        if (code !== 200) {
+            const responseCode = this.safeString (response, 'code', undefined);
+            const feedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 }
