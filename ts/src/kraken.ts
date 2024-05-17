@@ -3091,6 +3091,9 @@ export default class kraken extends Exchange {
         if (body.indexOf ('Invalid arguments:volume') >= 0) {
             throw new InvalidOrder (this.id + ' ' + body);
         }
+        if (body.indexOf ('Invalid arguments:viqc') >= 0) {
+            throw new InvalidOrder (this.id + ' ' + body);
+        }
         if (body.indexOf ('Rate limit exceeded') >= 0) {
             throw new RateLimitExceeded (this.id + ' ' + body);
         }
