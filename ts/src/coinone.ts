@@ -682,7 +682,7 @@ export default class coinone extends Exchange {
             feeRateString = Precise.stringAbs (feeRateString);
             const feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
             fee = {
-                'cost': feeCostString,
+                'cost': this.parseNumber (feeCostString),
                 'currency': feeCurrencyCode,
                 'rate': feeRateString,
             };
