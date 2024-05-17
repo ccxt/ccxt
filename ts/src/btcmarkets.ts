@@ -746,10 +746,10 @@ export default class btcmarkets extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         const orderId = this.safeString (trade, 'orderId');
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
+        const feeCost = this.safeString (trade, 'fee');
+        if (feeCost !== undefined) {
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }
