@@ -944,12 +944,12 @@ export default class ndax extends Exchange {
             takerOrMaker = this.safeStringLower (trade, 'MakerTaker');
             side = this.safeStringLower (trade, 'Side');
             type = this.safeStringLower (trade, 'OrderType');
-            const feeCostString = this.safeString (trade, 'Fee');
-            if (feeCostString !== undefined) {
+            const feeCost = this.safeNumber (trade, 'Fee');
+            if (feeCost !== undefined) {
                 const feeCurrencyId = this.safeString (trade, 'FeeProductId');
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
                 fee = {
-                    'cost': feeCostString,
+                    'cost': feeCost,
                     'currency': feeCurrencyCode,
                 };
             }
