@@ -2049,8 +2049,8 @@ export default class oxfun extends Exchange {
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
-         * @param {string} params.network network for withdraw
-         * @param {bool} params.externalFee if false, then the fee is taken from the quantity, also with the burn fee for asset SOLO
+         * @param {string} [params.network] network for withdraw
+         * @param {bool} [params.externalFee] if false, then the fee is taken from the quantity, also with the burn fee for asset SOLO
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
