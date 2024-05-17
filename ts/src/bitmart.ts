@@ -2689,9 +2689,9 @@ export default class bitmart extends Exchange {
             'symbol': market['id'],
         };
         if (clientOrderIds !== undefined) {
-            request['clientOrderIds'] = clientOrderIds.join (',');
+            request['clientOrderIds'] = clientOrderIds;
         } else {
-            request['orderIds'] = ids.join (',');
+            request['orderIds'] = ids;
         }
         const response = await this.privatePostSpotV4CancelOrders (this.extend (request, params));
         //
