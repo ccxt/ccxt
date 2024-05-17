@@ -2129,13 +2129,17 @@ class Exchange {
     }
 
     public function omit_zero($string_number) {
-        if ($string_number === null || $string_number === '') {
-            return null;
+        try {
+            if ($string_number === null || $string_number === '') {
+                return null;
+            }
+            if (floatval($string_number) === 0.0) {
+                return null;
+            }
+            return $string_number;
+        } catch (Exception $e) {
+            return $string_number;
         }
-        if (floatval($string_number) === 0.0) {
-            return null;
-        }
-        return $string_number;
     }
 
     public function sleep($milliseconds) {

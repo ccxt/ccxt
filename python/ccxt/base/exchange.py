@@ -1689,11 +1689,14 @@ class Exchange(object):
                 return default
 
     def omit_zero(self, string_number):
-        if string_number is None or string_number == '':
-            return None
-        if float(string_number) == 0:
-            return None
-        return string_number
+        try:
+            if string_number is None or string_number == '':
+                return None
+            if float(string_number) == 0:
+                return None
+            return string_number
+        except Exception:
+            return string_number
 
     def check_order_arguments(self, market, type, side, amount, price, params):
         if price is None:
