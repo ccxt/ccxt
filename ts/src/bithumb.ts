@@ -635,12 +635,12 @@ export default class bithumb extends Exchange {
         const amountString = this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units'));
         const costString = this.safeString (trade, 'total');
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
+        const feeCost = this.safeNumber (trade, 'fee');
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }
