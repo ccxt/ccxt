@@ -1367,10 +1367,6 @@ class kraken extends kraken$1 {
          */
         await this.loadMarkets();
         // only buy orders are supported by the endpoint
-        const market = this.market(symbol);
-        if (market['quote'] !== 'USD') {
-            throw new errors.NotSupported(this.id + ' createMarketOrderWithCost() supports symbols with quote currency USD only');
-        }
         params['cost'] = cost;
         return await this.createOrder(symbol, 'market', side, cost, undefined, params);
     }
@@ -3056,6 +3052,9 @@ class kraken extends kraken$1 {
             throw new errors.CancelPending(this.id + ' ' + body);
         }
         if (body.indexOf('Invalid arguments:volume') >= 0) {
+            throw new errors.InvalidOrder(this.id + ' ' + body);
+        }
+        if (body.indexOf('Invalid arguments:viqc') >= 0) {
             throw new errors.InvalidOrder(this.id + ' ' + body);
         }
         if (body.indexOf('Rate limit exceeded') >= 0) {
