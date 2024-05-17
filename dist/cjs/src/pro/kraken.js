@@ -161,7 +161,7 @@ class kraken extends kraken$1 {
         const messageHash = this.safeValue(message, 'reqid');
         client.resolve(order, messageHash);
     }
-    async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrderWs
@@ -188,8 +188,10 @@ class kraken extends kraken$1 {
             'reqid': requestId,
             'orderid': id,
             'pair': market['wsId'],
-            'volume': this.amountToPrecision(symbol, amount),
         };
+        if (amount !== undefined) {
+            request['volume'] = this.amountToPrecision(symbol, amount);
+        }
         [request, params] = this.orderRequest('editOrderWs', symbol, type, request, amount, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }

@@ -171,7 +171,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve ($order, $messageHash);
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -197,8 +197,10 @@ class kraken extends \ccxt\async\kraken {
                 'reqid' => $requestId,
                 'orderid' => $id,
                 'pair' => $market['wsId'],
-                'volume' => $this->amount_to_precision($symbol, $amount),
             );
+            if ($amount !== null) {
+                $request['volume'] = $this->amount_to_precision($symbol, $amount);
+            }
             list($request, $params) = $this->orderRequest ('editOrderWs', $symbol, $type, $request, $amount, $price, $params);
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
