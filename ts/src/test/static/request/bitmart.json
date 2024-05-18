@@ -397,6 +397,21 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"2312213461000000\"}"
             }
         ],
+        "cancelOrders": [
+            {
+                "description": "spot orders",
+                "method": "cancelOrders",
+                "url": "https://api-cloud.bitmart.com/spot/v4/cancel_orders",
+                "input": [
+                  [
+                    "552971433421492224",
+                    "552972168286863360"
+                  ],
+                  "LTC/USDT"
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"orderIds\":[\"552971433421492224\",\"552972168286863360\"]}"
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "Cancel swap orders",
