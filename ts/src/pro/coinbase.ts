@@ -256,7 +256,7 @@ export default class coinbase extends coinbaseRest {
         const newTickers = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = events[i];
-            const tickers = this.safeValue (tickersObj, 'tickers', []);
+            const tickers = this.safeList (tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
                 const result = this.parseWsTicker (ticker);
