@@ -472,6 +472,7 @@ interface Exchange {
     fapiPublicGetContinuousKlines (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetMarkPriceKlines (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetIndexPriceKlines (params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetPremiumIndexKlines (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetFundingRate (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetFundingInfo (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetPremiumIndex (params?: {}): Promise<implicitReturnType>;

@@ -316,6 +316,7 @@ public partial class bybit : Exchange
                         { "v5/asset/coin/query-info", 28 },
                         { "v5/asset/withdraw/query-record", 10 },
                         { "v5/asset/withdraw/withdrawable-amount", 5 },
+                        { "v5/asset/withdraw/vasp/list", 5 },
                         { "v5/user/query-sub-members", 5 },
                         { "v5/user/query-api", 5 },
                         { "v5/user/sub-apikeys", 5 },
@@ -7700,7 +7701,7 @@ public partial class bybit : Exchange
         });
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -8773,6 +8774,44 @@ public partial class bybit : Exchange
         });
     }
 
+    public async virtual Task<object> getLeverageTiersPaginated(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "getLeverageTiersPaginated", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, null, null, parameters, "nextPageCursor", "cursor", null, 100);
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("getLeverageTiersPaginated", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "category", subType },
+        };
+        object response = await this.publicGetV5MarketRiskLimit(this.extend(request, parameters));
+        object result = this.addPaginationCursorToResult(response);
+        object first = this.safeDict(result, 0);
+        object total = getArrayLength(result);
+        object lastIndex = subtract(total, 1);
+        object last = this.safeDict(result, lastIndex);
+        object cursorValue = this.safeString(first, "nextPageCursor");
+        ((IDictionary<string,object>)last)["info"] = new Dictionary<string, object>() {
+            { "nextPageCursor", cursorValue },
+        };
+        ((List<object>)result)[Convert.ToInt32(lastIndex)] = last;
+        return result;
+    }
+
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
         /**
@@ -8783,11 +8822,13 @@ public partial class bybit : Exchange
         * @param {string[]} [symbols] a list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
+        object symbol = null;
         if (isTrue(!isEqual(symbols, null)))
         {
             market = this.market(getValue(symbols, 0));
@@ -8795,17 +8836,12 @@ public partial class bybit : Exchange
             {
                 throw new NotSupported ((string)add(this.id, " fetchLeverageTiers() is not supported for spot market")) ;
             }
+            symbol = getValue(market, "symbol");
         }
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "category", subType },
-        };
-        object response = await this.publicGetV5MarketRiskLimit(this.extend(request, parameters));
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeList(result, "list", new List<object>() {});
+        object data = await this.getLeverageTiersPaginated(symbol, this.extend(new Dictionary<string, object>() {
+            { "paginate", true },
+            { "paginationCalls", 20 },
+        }, parameters));
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
@@ -8834,9 +8870,14 @@ public partial class bybit : Exchange
         {
             object marketId = getValue(keys, i);
             object entry = getValue(grouped, marketId);
+            for (object j = 0; isLessThan(j, getArrayLength(entry)); postFixIncrement(ref j))
+            {
+                object id = this.safeInteger(getValue(entry, j), "id");
+                ((IDictionary<string,object>)getValue(entry, j))["id"] = id;
+            }
             object market = this.safeMarket(marketId, null, null, "contract");
             object symbol = getValue(market, "symbol");
-            ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(entry, market);
+            ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market);
         }
         return tiers;
     }

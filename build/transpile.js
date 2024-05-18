@@ -351,6 +351,7 @@ class Transpiler {
             [ /\.setTakeProfitAndStopLossParams\s/g, '.set_take_profit_and_stop_loss_params'],
             [ /\.randomBytes\s/g, '.random_bytes'],
             [ /\.createAuthToken\s/g, '.create_auth_token'],
+            [ /\.cancelOrderRequest\s/g, '.cancel_order_request'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -647,7 +648,6 @@ class Transpiler {
 
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
-            [ /this\.extend\s/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
@@ -991,10 +991,10 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
-            'Any': /: Any =/,
+            'Any': /: (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
-            'Bool': /: Bool =/,
+            'Bool': /: (?:List\[)?Bool =/,
             'Conversion': /-> Conversion:/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
             'CrossBorrowRates': /-> CrossBorrowRates:/,
@@ -1003,7 +1003,7 @@ class Transpiler {
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
-            'Int': /: Int =/,
+            'Int': /: (?:List\[)?Int =/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
@@ -1017,7 +1017,7 @@ class Transpiler {
             'Market': /(-> Market:|: Market)/,
             'MarketInterface': /-> MarketInterface:/,
             'MarketType': /: MarketType/,
-            'Num': /: Num =/,
+            'Num': /: (?:List\[)?Num =/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:List\[)?Order\]?:/,
@@ -1027,16 +1027,19 @@ class Transpiler {
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
-            'Str': /: Str =/,
-            'Strings': /: Strings =/,
+            'Str': /: (?:List\[)?Str =/,
+            'Strings': /: (?:List\[)?Strings =/,
             'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
+            'FundingRate': /-> FundingRate:/,
+            'FundingRates': /-> FundingRates:/,
             'Trade': /-> (?:List\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
             'TransferEntry': /-> TransferEntry:/,
+            'TransferEntries': /-> TransferEntries:/,
         }
         const matches = []
         let match
@@ -1689,7 +1692,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -2485,10 +2488,13 @@ class Transpiler {
                 replace (/precision_mode/g, 'precisionMode');
         };
 
-        const pyFixes = (str) => {
+        const pyFixes = (str, sync = false) => {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
             str = str.replace (/ == True/g, ' is True');
             str = str.replace (/ == False/g, ' is False');
+            if (sync) {
+                str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+            }
             return exchangeCamelCaseProps(str);
         }
 
@@ -2513,7 +2519,7 @@ class Transpiler {
             const isWs = test.tsFile.includes('ts/src/pro/');
             let phpAsync = phpFixes(result[0].content);
             let phpSync = phpFixes(result[1].content);
-            let pythonSync = pyFixes (result[2].content);
+            let pythonSync = pyFixes (result[2].content, true);
             let pythonAsync = pyFixes (result[3].content);
             if (tests.base) {
                 phpAsync = '';

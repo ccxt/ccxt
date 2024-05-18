@@ -310,7 +310,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             'average' => null,
             'baseVolume' => $this->safe_string($lastTicker, 'baseVolume'),
             'quoteVolume' => null,
-            'info' => array_merge($this->safe_value($lastTicker, 'info', array()), $ticker),
+            'info' => $this->extend($this->safe_value($lastTicker, 'info', array()), $ticker),
         ), $market);
     }
 
@@ -788,7 +788,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                     'channel' => 'auth',
                     'token' => $this->secret,
                 );
-                return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+                return $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
             }
             return Async\await($future);
         }) ();

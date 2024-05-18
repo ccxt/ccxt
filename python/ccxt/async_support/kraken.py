@@ -58,6 +58,9 @@ class kraken(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -818,7 +821,7 @@ class kraken(Exchange, ImplicitAPI):
             orderbook = self.safe_value(result, wsName, orderbook)
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "a":["2432.77000","1","1.000"],
@@ -1308,6 +1311,33 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
+    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+        :param str symbol: unified symbol of the market to create an order in(only USD markets are supported)
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        # only buy orders are supported by the endpoint
+        params['cost'] = cost
+        return await self.create_order(symbol, 'market', side, cost, None, params)
+
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market buy order by providing the symbol, side and cost
+        :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        return await self.create_market_order_with_cost(symbol, 'buy', cost, params)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
@@ -1336,7 +1366,7 @@ class kraken(Exchange, ImplicitAPI):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
-        orderRequest = self.order_request('createOrder', symbol, type, request, price, params)
+        orderRequest = self.order_request('createOrder', symbol, type, request, amount, price, params)
         response = await self.privatePostAddOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -1616,7 +1646,7 @@ class kraken(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    def order_request(self, method, symbol, type, request, price=None, params={}):
+    def order_request(self, method: str, symbol: str, type: str, request: dict, amount: Num, price: Num = None, params={}):
         clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
         params = self.omit(params, ['userref', 'clientOrderId'])
         if clientOrderId is not None:
@@ -1630,9 +1660,21 @@ class kraken(Exchange, ImplicitAPI):
         trailingLimitAmount = self.safe_string(params, 'trailingLimitAmount')
         isTrailingAmountOrder = trailingAmount is not None
         isLimitOrder = type.endswith('limit')  # supporting limit, stop-loss-limit, take-profit-limit, etc
-        if isLimitOrder and not isTrailingAmountOrder:
+        isMarketOrder = type == 'market'
+        cost = self.safe_string(params, 'cost')
+        flags = self.safe_string(params, 'oflags')
+        params = self.omit(params, ['cost', 'oflags'])
+        isViqcOrder = (flags is not None) and (flags.find('viqc') > -1)  # volume in quote currency
+        if isMarketOrder and (cost is not None or isViqcOrder):
+            if cost is None and (amount is not None):
+                request['volume'] = self.cost_to_precision(symbol, self.number_to_string(amount))
+            else:
+                request['volume'] = self.cost_to_precision(symbol, cost)
+            extendedOflags = flags + ',viqc' if (flags is not None) else 'viqc'
+            request['oflags'] = extendedOflags
+        elif isLimitOrder and not isTrailingAmountOrder:
             request['price'] = self.price_to_precision(symbol, price)
-        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         if isStopLossOrTakeProfitTrigger:
             if isStopLossTriggerOrder:
                 request['price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
@@ -1666,7 +1708,7 @@ class kraken(Exchange, ImplicitAPI):
                 request['reduce_only'] = True  # ws request can't have stringified bool
             else:
                 request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
-        close = self.safe_value(params, 'close')
+        close = self.safe_dict(params, 'close')
         if close is not None:
             close = self.extend({}, close)
             closePrice = self.safe_value(close, 'price')
@@ -1683,7 +1725,8 @@ class kraken(Exchange, ImplicitAPI):
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
         if postOnly:
-            request['oflags'] = 'post'
+            extendedPostFlags = flags + ',post' if (flags is not None) else 'post'
+            request['oflags'] = extendedPostFlags
         params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset'])
         return [request, params]
 
@@ -1716,7 +1759,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         if amount is not None:
             request['volume'] = self.amount_to_precision(symbol, amount)
-        orderRequest = self.order_request('editOrder', symbol, type, request, price, params)
+        orderRequest = self.order_request('editOrder', symbol, type, request, amount, price, params)
         response = await self.privatePostEditOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -2730,7 +2773,7 @@ class kraken(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -2807,6 +2850,8 @@ class kraken(Exchange, ImplicitAPI):
         if body.find('Cancel pending') >= 0:
             raise CancelPending(self.id + ' ' + body)
         if body.find('Invalid arguments:volume') >= 0:
+            raise InvalidOrder(self.id + ' ' + body)
+        if body.find('Invalid arguments:viqc') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
         if body.find('Rate limit exceeded') >= 0:
             raise RateLimitExceeded(self.id + ' ' + body)

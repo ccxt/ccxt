@@ -294,6 +294,9 @@ export interface FundingRate {
     previousFundingRate?: number;
 }
 
+export interface FundingRates extends Dictionary<FundingRate> {
+}
+
 export interface Position {
     symbol: string;
     id?: Str;
@@ -576,6 +579,9 @@ export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
 }
 
 export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+}
+
+export interface TransferEntries extends Dictionary<TransferEntry> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

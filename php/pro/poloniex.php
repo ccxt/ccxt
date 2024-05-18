@@ -110,7 +110,7 @@ class poloniex extends \ccxt\async\poloniex {
                         'signatureVersion' => '2',          // optional
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 //
                 //    {
@@ -167,7 +167,7 @@ class poloniex extends \ccxt\async\poloniex {
             if ($name !== 'balances') {
                 $subscribe['symbols'] = $marketIds;
             }
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -256,7 +256,7 @@ class poloniex extends \ccxt\async\poloniex {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            return Async\await($this->trade_request('createOrder', array_merge($request, $params)));
+            return Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
         }) ();
     }
 
@@ -296,7 +296,7 @@ class poloniex extends \ccxt\async\poloniex {
             $request = array(
                 'orderIds' => $ids,
             );
-            return Async\await($this->trade_request('cancelOrders', array_merge($request, $params)));
+            return Async\await($this->trade_request('cancelOrders', $this->extend($request, $params)));
         }) ();
     }
 

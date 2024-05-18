@@ -59,7 +59,7 @@ class ascendex extends \ccxt\async\ascendex {
                 'id' => (string) $id,
                 'op' => 'sub',
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -76,7 +76,7 @@ class ascendex extends \ccxt\async\ascendex {
                 'op' => 'sub',
                 'ch' => $channel,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             Async\await($this->authenticate($url, $params));
             return Async\await($this->watch($url, $messageHash, $message, $channel));
         }) ();
@@ -163,7 +163,7 @@ class ascendex extends \ccxt\async\ascendex {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $channel = 'trades' . ':' . $market['id'];
-            $params = array_merge($params, array(
+            $params = $this->extend($params, array(
                 'ch' => $channel,
             ));
             $trades = Async\await($this->watch_public($channel, $params));
@@ -224,7 +224,7 @@ class ascendex extends \ccxt\async\ascendex {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $channel = 'depth' . ':' . $market['id'];
-            $params = array_merge($params, array(
+            $params = $this->extend($params, array(
                 'ch' => $channel,
             ));
             $orderbook = Async\await($this->watch_public($channel, $params));
@@ -238,7 +238,7 @@ class ascendex extends \ccxt\async\ascendex {
             $market = $this->market($symbol);
             $action = 'depth-snapshot';
             $channel = $action . ':' . $market['id'];
-            $params = array_merge($params, array(
+            $params = $this->extend($params, array(
                 'action' => $action,
                 'args' => array(
                     'symbol' => $market['id'],
@@ -994,7 +994,7 @@ class ascendex extends \ccxt\async\ascendex {
                     'key' => $this->apiKey,
                     'sig' => $signature,
                 );
-                $future = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+                $future = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
                 $client->subscriptions[$messageHash] = $future;
             }
             return $future;

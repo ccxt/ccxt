@@ -1753,6 +1753,10 @@ class coinbase(Exchange, ImplicitAPI):
         request = {}
         if symbols is not None:
             request['product_ids'] = self.market_ids(symbols)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTickers', self.get_market_from_symbols(symbols), params, 'default')
+        if marketType is not None and marketType != 'default':
+            request['product_type'] = 'FUTURE' if (marketType == 'swap') else 'SPOT'
         response = self.v3PublicGetBrokerageMarketProducts(self.extend(request, params))
         #
         #     {
@@ -1877,7 +1881,7 @@ class coinbase(Exchange, ImplicitAPI):
         ticker['ask'] = self.safe_number(response, 'best_ask')
         return ticker
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickerV2
         #
@@ -3977,7 +3981,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'trade', {})
         return self.parse_conversion(data)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         fromCoin = self.safe_string(conversion, 'source_currency')
         fromCode = self.safe_currency_code(fromCoin, fromCurrency)
         to = self.safe_string(conversion, 'target_currency')

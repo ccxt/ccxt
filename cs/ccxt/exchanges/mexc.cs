@@ -4969,7 +4969,7 @@ public partial class mexc : Exchange
         });
     }
 
-    public async virtual Task<object> fetchTransfer(object id, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTransfer", null, parameters);
@@ -5004,7 +5004,7 @@ public partial class mexc : Exchange
         return null;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

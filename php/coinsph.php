@@ -633,11 +633,11 @@ class coinsph extends Exchange {
         $method = $this->safe_string($options, 'method', $defaultMethod);
         $tickers = null;
         if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
-            $tickers = $this->publicGetOpenapiQuoteV1TickerPrice (array_merge($request, $params));
+            $tickers = $this->publicGetOpenapiQuoteV1TickerPrice ($this->extend($request, $params));
         } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
-            $tickers = $this->publicGetOpenapiQuoteV1TickerBookTicker (array_merge($request, $params));
+            $tickers = $this->publicGetOpenapiQuoteV1TickerBookTicker ($this->extend($request, $params));
         } else {
-            $tickers = $this->publicGetOpenapiQuoteV1Ticker24hr (array_merge($request, $params));
+            $tickers = $this->publicGetOpenapiQuoteV1Ticker24hr ($this->extend($request, $params));
         }
         return $this->parse_tickers($tickers, $symbols, $params);
     }
@@ -662,16 +662,16 @@ class coinsph extends Exchange {
         $method = $this->safe_string($options, 'method', $defaultMethod);
         $ticker = null;
         if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
-            $ticker = $this->publicGetOpenapiQuoteV1TickerPrice (array_merge($request, $params));
+            $ticker = $this->publicGetOpenapiQuoteV1TickerPrice ($this->extend($request, $params));
         } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
-            $ticker = $this->publicGetOpenapiQuoteV1TickerBookTicker (array_merge($request, $params));
+            $ticker = $this->publicGetOpenapiQuoteV1TickerBookTicker ($this->extend($request, $params));
         } else {
-            $ticker = $this->publicGetOpenapiQuoteV1Ticker24hr (array_merge($request, $params));
+            $ticker = $this->publicGetOpenapiQuoteV1Ticker24hr ($this->extend($request, $params));
         }
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
@@ -767,7 +767,7 @@ class coinsph extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOpenapiQuoteV1Depth (array_merge($request, $params));
+        $response = $this->publicGetOpenapiQuoteV1Depth ($this->extend($request, $params));
         //
         //     {
         //         "lastUpdateId" => "1667022157000699400",
@@ -819,7 +819,7 @@ class coinsph extends Exchange {
                 $request['limit'] = $limit;
             }
         }
-        $response = $this->publicGetOpenapiQuoteV1Klines (array_merge($request, $params));
+        $response = $this->publicGetOpenapiQuoteV1Klines ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -874,7 +874,7 @@ class coinsph extends Exchange {
                 $request['limit'] = $limit;
             }
         }
-        $response = $this->publicGetOpenapiQuoteV1Trades (array_merge($request, $params));
+        $response = $this->publicGetOpenapiQuoteV1Trades ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -916,7 +916,7 @@ class coinsph extends Exchange {
         } elseif ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiV1MyTrades (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1MyTrades ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -937,7 +937,7 @@ class coinsph extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function parse_trade($trade, ?array $market = null): array {
@@ -1159,9 +1159,9 @@ class coinsph extends Exchange {
         $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = null;
         if ($testOrder) {
-            $response = $this->privatePostOpenapiV1OrderTest (array_merge($request, $params));
+            $response = $this->privatePostOpenapiV1OrderTest ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostOpenapiV1Order (array_merge($request, $params));
+            $response = $this->privatePostOpenapiV1Order ($this->extend($request, $params));
         }
         //
         //     {
@@ -1211,7 +1211,7 @@ class coinsph extends Exchange {
             $request['orderId'] = $id;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId' ));
-        $response = $this->privateGetOpenapiV1Order (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1Order ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -1232,7 +1232,7 @@ class coinsph extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetOpenapiV1OpenOrders (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1OpenOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1261,7 +1261,7 @@ class coinsph extends Exchange {
         } elseif ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiV1HistoryOrders (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1HistoryOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1283,7 +1283,7 @@ class coinsph extends Exchange {
             $request['orderId'] = $id;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId' ));
-        $response = $this->privateDeleteOpenapiV1Order (array_merge($request, $params));
+        $response = $this->privateDeleteOpenapiV1Order ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -1305,7 +1305,7 @@ class coinsph extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateDeleteOpenapiV1OpenOrders (array_merge($request, $params));
+        $response = $this->privateDeleteOpenapiV1OpenOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market);
     }
 
@@ -1489,7 +1489,7 @@ class coinsph extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetOpenapiV1AssetTradeFee (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1AssetTradeFee ($this->extend($request, $params));
         //
         //     array(
         //       {
@@ -1589,7 +1589,7 @@ class coinsph extends Exchange {
             $request['withdrawOrderId'] = $tag;
         }
         $params = $this->omit($params, 'network');
-        $response = $this->privatePostOpenapiWalletV1WithdrawApply (array_merge($request, $params));
+        $response = $this->privatePostOpenapiWalletV1WithdrawApply ($this->extend($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 
@@ -1617,7 +1617,7 @@ class coinsph extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiWalletV1DepositHistory (array_merge($request, $params));
+        $response = $this->privateGetOpenapiWalletV1DepositHistory ($this->extend($request, $params));
         //
         // array(
         //     array(
@@ -1673,7 +1673,7 @@ class coinsph extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiWalletV1WithdrawHistory (array_merge($request, $params));
+        $response = $this->privateGetOpenapiWalletV1WithdrawHistory ($this->extend($request, $params));
         //
         // array(
         //     array(
@@ -1834,7 +1834,7 @@ class coinsph extends Exchange {
             'network' => $networkId,
         );
         $params = $this->omit($params, 'network');
-        $response = $this->privateGetOpenapiWalletV1DepositAddress (array_merge($request, $params));
+        $response = $this->privateGetOpenapiWalletV1DepositAddress ($this->extend($request, $params));
         //
         //     {
         //         "coin" => "ETH",

@@ -137,7 +137,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('createOrderWs', symbol, type, request, price, params);
+        [request, params] = this.orderRequest('createOrderWs', symbol, type, request, amount, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     handleCreateEditOrder(client, message) {
@@ -164,7 +164,7 @@ export default class kraken extends krakenRest {
         const messageHash = this.safeValue(message, 'reqid');
         client.resolve(order, messageHash);
     }
-    async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrderWs
@@ -191,9 +191,11 @@ export default class kraken extends krakenRest {
             'reqid': requestId,
             'orderid': id,
             'pair': market['wsId'],
-            'volume': this.amountToPrecision(symbol, amount),
         };
-        [request, params] = this.orderRequest('editOrderWs', symbol, type, request, price, params);
+        if (amount !== undefined) {
+            request['volume'] = this.amountToPrecision(symbol, amount);
+        }
+        [request, params] = this.orderRequest('editOrderWs', symbol, type, request, amount, price, params);
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
@@ -770,6 +772,8 @@ export default class kraken extends krakenRest {
                 const localChecksum = this.crc32(payload, false);
                 if (localChecksum !== c) {
                     const error = new InvalidNonce(this.id + ' invalid checksum');
+                    delete client.subscriptions[messageHash];
+                    delete this.orderbooks[symbol];
                     client.reject(error, messageHash);
                     return;
                 }

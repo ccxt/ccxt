@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -404,6 +404,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchMarkets
          * @description retrieves data on all markets for woo
+         * @see https://docs.woo.org/#exchange-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -522,6 +523,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.woo.org/#market-trades-public
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -708,6 +710,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.woo.org/#available-token-public
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -865,6 +868,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#createTrailingAmountOrder
          * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @see https://docs.woo.org/#send-algo-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -891,6 +895,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#createTrailingPercentOrder
          * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @see https://docs.woo.org/#send-algo-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1670,6 +1675,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.woo.org/#orderbook-snapshot-public
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1806,6 +1812,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://docs.woo.org/#get-trades
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1848,8 +1855,8 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchMyTrades
-         * @see https://docs.woo.org/#get-trades
          * @description fetch all trades made by the user
+         * @see https://docs.woo.org/#get-trades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1910,6 +1917,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://docs.woo.org/#get-assets-of-subaccounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -2011,6 +2019,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.woo.org/#get-token-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2043,7 +2052,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         const request = { };
         let currency: Currency = undefined;
@@ -2097,7 +2106,7 @@ export default class woo extends Exchange {
         //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
         //     "success": true
         // }
-        return [ currency, this.safeValue (response, 'rows', {}) ];
+        return [ currency, this.safeList (response, 'rows', []) ];
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2105,6 +2114,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
@@ -2172,6 +2182,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2189,6 +2200,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2206,6 +2218,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://docs.woo.org/#get-asset-history
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2282,8 +2295,8 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#transfer
-         * @see https://docs.woo.org/#get-transfer-history
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.woo.org/#get-transfer-history
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -2317,7 +2330,7 @@ export default class woo extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
         /**
          * @method
          * @name woo#fetchTransfers
@@ -2371,7 +2384,7 @@ export default class woo extends Exchange {
         return this.parseTransfers (data, undefined, since, limit, params);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //    fetchTransfers
         //     {
@@ -2415,7 +2428,7 @@ export default class woo extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str): Str {
         const statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2431,6 +2444,7 @@ export default class woo extends Exchange {
          * @method
          * @name woo#withdraw
          * @description make a withdrawal
+         * @see https://docs.woo.org/#token-withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2911,7 +2925,7 @@ export default class woo extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
             'info': leverage,
@@ -3221,7 +3235,7 @@ export default class woo extends Exchange {
         return this.parseConversions (rows, code, 'sellAsset', 'buyAsset', since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //

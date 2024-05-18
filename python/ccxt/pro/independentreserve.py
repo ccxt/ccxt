@@ -213,6 +213,8 @@ class independentreserve(ccxt.async_support.independentreserve):
             responseChecksum = self.safe_integer(orderBook, 'Crc32')
             if calculatedChecksum != responseChecksum:
                 error = InvalidNonce(self.id + ' invalid checksum')
+                del client.subscriptions[messageHash]
+                del self.orderbooks[symbol]
                 client.reject(error, messageHash)
         if receivedSnapshot:
             client.resolve(orderbook, messageHash)

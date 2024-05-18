@@ -240,6 +240,8 @@ public partial class independentreserve : ccxt.independentreserve
             if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
             {
                 var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -360,6 +360,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/coin/query-info': 28,  # should be 25 but exceeds ratelimit unless the weight is 28 or higher
                         'v5/asset/withdraw/query-record': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
+                        'v5/asset/withdraw/vasp/list': 5,
                         # user
                         'v5/user/query-sub-members': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api': 5,  # 10/s => cost = 50 / 10 = 5
@@ -1852,7 +1853,7 @@ class bybit(Exchange, ImplicitAPI):
                 }))
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot
         #
@@ -6156,7 +6157,7 @@ class bybit(Exchange, ImplicitAPI):
         position = self.fetch_position(symbol, params)
         return self.parse_leverage(position, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {
@@ -6664,7 +6665,7 @@ class bybit(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
         """
         fetch a history of internal transfers made on an account
         :see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
@@ -6809,7 +6810,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             '0': 'ok',
             'OK': 'ok',
@@ -6817,7 +6818,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -7401,7 +7402,7 @@ class bybit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "symbol": "BTC-26JAN24-39000-C",
@@ -7580,6 +7581,33 @@ class bybit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
+    def get_leverage_tiers_paginated(self, symbol: Str = None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'getLeverageTiersPaginated', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('getLeverageTiersPaginated', symbol, None, None, params, 'nextPageCursor', 'cursor', None, 100)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('getLeverageTiersPaginated', market, params, 'linear')
+        request = {
+            'category': subType,
+        }
+        response = self.publicGetV5MarketRiskLimit(self.extend(request, params))
+        result = self.add_pagination_cursor_to_result(response)
+        first = self.safe_dict(result, 0)
+        total = len(result)
+        lastIndex = total - 1
+        last = self.safe_dict(result, lastIndex)
+        cursorValue = self.safe_string(first, 'nextPageCursor')
+        last['info'] = {
+            'nextPageCursor': cursorValue,
+        }
+        result[lastIndex] = last
+        return result
+
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         :see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
@@ -7587,22 +7615,18 @@ class bybit(Exchange, ImplicitAPI):
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: market subType, ['linear', 'inverse'], default is 'linear'
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
         market = None
+        symbol = None
         if symbols is not None:
             market = self.market(symbols[0])
             if market['spot']:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
-        request = {
-            'category': subType,
-        }
-        response = self.publicGetV5MarketRiskLimit(self.extend(request, params))
-        result = self.safe_dict(response, 'result', {})
-        data = self.safe_list(result, 'list', [])
+            symbol = market['symbol']
+        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 20}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
@@ -7628,9 +7652,12 @@ class bybit(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             marketId = keys[i]
             entry = grouped[marketId]
+            for j in range(0, len(entry)):
+                id = self.safe_integer(entry[j], 'id')
+                entry[j]['id'] = id
             market = self.safe_market(marketId, None, None, 'contract')
             symbol = market['symbol']
-            tiers[symbol] = self.parse_market_leverage_tiers(entry, market)
+            tiers[symbol] = self.parse_market_leverage_tiers(self.sort_by(entry, 'id'), market)
         return tiers
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
@@ -7876,7 +7903,7 @@ class bybit(Exchange, ImplicitAPI):
         resultList = self.safe_list(result, 'list', [])
         return self.parse_option_chain(resultList, None, 'symbol')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "symbol": "BTC-27DEC24-55000-P",

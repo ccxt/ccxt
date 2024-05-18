@@ -290,12 +290,12 @@ class zaif extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetDepthPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDepthPair ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol']);
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "last" => 9e-08,
@@ -350,7 +350,7 @@ class zaif extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetTickerPair (array_merge($request, $params)));
+            $ticker = Async\await($this->publicGetTickerPair ($this->extend($request, $params)));
             //
             // {
             //     "last" => 9e-08,
@@ -420,7 +420,7 @@ class zaif extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradesPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradesPair ($this->extend($request, $params)));
             //
             //      array(
             //          array(
@@ -468,7 +468,7 @@ class zaif extends Exchange {
                 'amount' => $amount,
                 'price' => $price,
             );
-            $response = Async\await($this->privatePostTrade (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTrade ($this->extend($request, $params)));
             return $this->safe_order(array(
                 'info' => $response,
                 'id' => (string) $response['return']['order_id'],
@@ -489,7 +489,7 @@ class zaif extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            return Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            return Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
         }) ();
     }
 
@@ -559,7 +559,7 @@ class zaif extends Exchange {
                 $market = $this->market($symbol);
                 $request['currency_pair'] = $market['id'];
             }
-            $response = Async\await($this->privatePostActiveOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostActiveOrders ($this->extend($request, $params)));
             return $this->parse_orders($response['return'], $market, $since, $limit);
         }) ();
     }
@@ -591,7 +591,7 @@ class zaif extends Exchange {
                 $market = $this->market($symbol);
                 $request['currency_pair'] = $market['id'];
             }
-            $response = Async\await($this->privatePostTradeHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeHistory ($this->extend($request, $params)));
             return $this->parse_orders($response['return'], $market, $since, $limit);
         }) ();
     }
@@ -625,7 +625,7 @@ class zaif extends Exchange {
             if ($tag !== null) {
                 $request['message'] = $tag;
             }
-            $result = Async\await($this->privatePostWithdraw (array_merge($request, $params)));
+            $result = Async\await($this->privatePostWithdraw ($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -716,7 +716,7 @@ class zaif extends Exchange {
                 $url .= 'tapi';
             }
             $nonce = $this->custom_nonce();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'nonce' => $nonce,
             ), $params));

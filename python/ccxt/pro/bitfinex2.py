@@ -642,6 +642,8 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         responseChecksum = self.safe_integer(message, 2)
         if responseChecksum != localChecksum:
             error = InvalidNonce(self.id + ' invalid checksum')
+            del client.subscriptions[messageHash]
+            del self.orderbooks[symbol]
             client.reject(error, messageHash)
 
     async def watch_balance(self, params={}) -> Balances:

@@ -220,7 +220,7 @@ class coincheck extends Exchange {
         $parsedOrders = $this->parse_orders($rawOrders, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($parsedOrders); $i++) {
-            $result[] = array_merge($parsedOrders[$i], array( 'status' => 'open' ));
+            $result[] = $this->extend($parsedOrders[$i], array( 'status' => 'open' ));
         }
         return $result;
     }
@@ -289,11 +289,11 @@ class coincheck extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetOrderBooks (array_merge($request, $params));
+        $response = $this->publicGetOrderBooks ($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "last":4192632.0,
@@ -348,7 +348,7 @@ class coincheck extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $ticker = $this->publicGetTicker (array_merge($request, $params));
+        $ticker = $this->publicGetTicker ($this->extend($request, $params));
         //
         // {
         //     "last":4192632.0,
@@ -460,7 +460,7 @@ class coincheck extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetExchangeOrdersTransactionsPagination (array_merge($request, $params));
+        $response = $this->privateGetExchangeOrdersTransactionsPagination ($this->extend($request, $params));
         //
         //      {
         //          "success" => true,
@@ -505,7 +505,7 @@ class coincheck extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetTrades (array_merge($request, $params));
+        $response = $this->publicGetTrades ($this->extend($request, $params));
         //
         //      {
         //          "id" => "206849494",
@@ -593,7 +593,7 @@ class coincheck extends Exchange {
             $request['rate'] = $price;
             $request['amount'] = $amount;
         }
-        $response = $this->privatePostExchangeOrders (array_merge($request, $params));
+        $response = $this->privatePostExchangeOrders ($this->extend($request, $params));
         $id = $this->safe_string($response, 'id');
         return $this->safe_order(array(
             'id' => $id,
@@ -613,7 +613,7 @@ class coincheck extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privateDeleteExchangeOrdersId (array_merge($request, $params));
+        return $this->privateDeleteExchangeOrdersId ($this->extend($request, $params));
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -636,7 +636,7 @@ class coincheck extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetDepositMoney (array_merge($request, $params));
+        $response = $this->privateGetDepositMoney ($this->extend($request, $params));
         // {
         //   "success" => true,
         //   "deposits" => array(
@@ -683,7 +683,7 @@ class coincheck extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetWithdraws (array_merge($request, $params));
+        $response = $this->privateGetWithdraws ($this->extend($request, $params));
         //  {
         //   "success" => true,
         //   "pagination" => array(
