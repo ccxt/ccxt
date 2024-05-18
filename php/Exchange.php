@@ -456,6 +456,7 @@ class Exchange {
         'novadax',
         'oceanex',
         'okcoin',
+        'okexchange',
         'okx',
         'onetrading',
         'p2b',
