@@ -148,7 +148,7 @@ export default class okexchange extends Exchange {
         return result;
     }
 
-    parseMarket (market):Market {
+    parseMarket (market): Market {
         const id = this.safeString (market, 'symbol');
         const symbol = this.safeString (market, 'symbol');
         let [ baseId, quoteId ] = symbol.split ('-');
@@ -317,7 +317,6 @@ export default class okexchange extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-
         await this.loadMarkets ();
         const market = this.market (symbol);
         const endTime = Date.now ();
