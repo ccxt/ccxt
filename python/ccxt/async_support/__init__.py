@@ -145,6 +145,7 @@ from ccxt.async_support.ndax import ndax                                        
 from ccxt.async_support.novadax import novadax                                  # noqa: F401
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
+from ccxt.async_support.okexchange import okexchange                            # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
@@ -252,6 +253,7 @@ exchanges = [
     'novadax',
     'oceanex',
     'okcoin',
+    'okexchange',
     'okx',
     'onetrading',
     'p2b',

@@ -117,7 +117,6 @@ export default class okexchange extends Exchange {
                         'oapi/v1/market/orderbook': 1,
                     },
                 },
-
             },
             'fees': {
                 'trading': {

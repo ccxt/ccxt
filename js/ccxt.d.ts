@@ -90,6 +90,7 @@ import ndax from './src/ndax.js';
 import novadax from './src/novadax.js';
 import oceanex from './src/oceanex.js';
 import okcoin from './src/okcoin.js';
+import okexchange from './src/okexchange.js';
 import okx from './src/okx.js';
 import onetrading from './src/onetrading.js';
 import p2b from './src/p2b.js';
@@ -261,6 +262,7 @@ declare const exchanges: {
     novadax: typeof novadax;
     oceanex: typeof oceanex;
     okcoin: typeof okcoin;
+    okexchange: typeof okexchange;
     okx: typeof okx;
     onetrading: typeof onetrading;
     p2b: typeof p2b;
@@ -507,6 +509,7 @@ declare const ccxt: {
     novadax: typeof novadax;
     oceanex: typeof oceanex;
     okcoin: typeof okcoin;
+    okexchange: typeof okexchange;
     okx: typeof okx;
     onetrading: typeof onetrading;
     p2b: typeof p2b;

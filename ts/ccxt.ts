@@ -131,6 +131,7 @@ import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
+import okexchange from  './src/okexchange.js'
 import okx from  './src/okx.js'
 import onetrading from  './src/onetrading.js'
 import p2b from  './src/p2b.js'
@@ -306,6 +307,7 @@ const exchanges = {
     'novadax':                novadax,
     'oceanex':                oceanex,
     'okcoin':                 okcoin,
+    'okexchange':             okexchange,
     'okx':                    okx,
     'onetrading':             onetrading,
     'p2b':                    p2b,
@@ -570,6 +572,7 @@ export {
     novadax,
     oceanex,
     okcoin,
+    okexchange,
     okx,
     onetrading,
     p2b,
