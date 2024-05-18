@@ -241,7 +241,7 @@ export default class oxfun extends Exchange {
                     'BNBSmartChain': 'BNB',
                 },
             },
-            'exceptions': { // todo: complete exceptions
+            'exceptions': {
                 'exact': {
                     '-20001': BadRequest, // {"success":false,"code":"20001","message":"marketCode is invalid"}
                     // {"success":false,"code":"20001","message":"timeframe is invalid"}
