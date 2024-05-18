@@ -401,6 +401,11 @@ public partial class bitmart : Exchange
         return await this.callAsync ("privatePostSpotV4QueryOrderTrades",parameters);
     }
 
+    public async Task<object> privatePostSpotV4CancelOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4CancelOrders",parameters);
+    }
+
     public async Task<object> privatePostSpotV3CancelOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostSpotV3CancelOrder",parameters);

@@ -257,13 +257,17 @@ class coinbase extends \ccxt\async\coinbase {
         //
         $channel = $this->safe_string($message, 'channel');
         $events = $this->safe_value($message, 'events', array());
+        $datetime = $this->safe_string($message, 'timestamp');
+        $timestamp = $this->parse8601($datetime);
         $newTickers = array();
         for ($i = 0; $i < count($events); $i++) {
             $tickersObj = $events[$i];
-            $tickers = $this->safe_value($tickersObj, 'tickers', array());
+            $tickers = $this->safe_list($tickersObj, 'tickers', array());
             for ($j = 0; $j < count($tickers); $j++) {
                 $ticker = $tickers[$j];
                 $result = $this->parse_ws_ticker($ticker);
+                $result['timestamp'] = $timestamp;
+                $result['datetime'] = $datetime;
                 $symbol = $result['symbol'];
                 $this->tickers[$symbol] = $result;
                 $wsMarketId = $this->safe_string($ticker, 'product_id');

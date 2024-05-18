@@ -235,13 +235,17 @@ class coinbase(ccxt.async_support.coinbase):
         #
         channel = self.safe_string(message, 'channel')
         events = self.safe_value(message, 'events', [])
+        datetime = self.safe_string(message, 'timestamp')
+        timestamp = self.parse8601(datetime)
         newTickers = []
         for i in range(0, len(events)):
             tickersObj = events[i]
-            tickers = self.safe_value(tickersObj, 'tickers', [])
+            tickers = self.safe_list(tickersObj, 'tickers', [])
             for j in range(0, len(tickers)):
                 ticker = tickers[j]
                 result = self.parse_ws_ticker(ticker)
+                result['timestamp'] = timestamp
+                result['datetime'] = datetime
                 symbol = result['symbol']
                 self.tickers[symbol] = result
                 wsMarketId = self.safe_string(ticker, 'product_id')

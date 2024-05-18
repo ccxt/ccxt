@@ -498,6 +498,7 @@ class ImplicitAPI:
     private_earn_get_v2_earn_loan_borrow_history = privateEarnGetV2EarnLoanBorrowHistory = Entry('v2/earn/loan/borrow-history', ['private', 'earn'], 'GET', {'cost': 2})
     private_earn_get_v2_earn_loan_debts = privateEarnGetV2EarnLoanDebts = Entry('v2/earn/loan/debts', ['private', 'earn'], 'GET', {'cost': 2})
     private_earn_get_v2_earn_loan_reduces = privateEarnGetV2EarnLoanReduces = Entry('v2/earn/loan/reduces', ['private', 'earn'], 'GET', {'cost': 2})
+    private_earn_get_v2_earn_account_assets = privateEarnGetV2EarnAccountAssets = Entry('v2/earn/account/assets', ['private', 'earn'], 'GET', {'cost': 2})
     private_earn_post_v2_earn_savings_subscribe = privateEarnPostV2EarnSavingsSubscribe = Entry('v2/earn/savings/subscribe', ['private', 'earn'], 'POST', {'cost': 2})
     private_earn_post_v2_earn_savings_redeem = privateEarnPostV2EarnSavingsRedeem = Entry('v2/earn/savings/redeem', ['private', 'earn'], 'POST', {'cost': 2})
     private_earn_post_v2_earn_sharkfin_subscribe = privateEarnPostV2EarnSharkfinSubscribe = Entry('v2/earn/sharkfin/subscribe', ['private', 'earn'], 'POST', {'cost': 2})
