@@ -91,7 +91,7 @@ class idex extends \ccxt\async\idex {
                 'markets' => [ $market['id'] ],
             );
             $messageHash = $name . ':' . $market['id'];
-            return Async\await($this->subscribe(array_merge($subscribeObject, $params), $messageHash));
+            return Async\await($this->subscribe($this->extend($subscribeObject, $params), $messageHash));
         }) ();
     }
 
@@ -520,7 +520,7 @@ class idex extends \ccxt\async\idex {
                     'wallet' => $this->walletAddress,
                     'nonce' => $this->uuidv1(),
                 );
-                $response = Async\await($this->privateGetWsToken (array_merge($request, $params)));
+                $response = Async\await($this->privateGetWsToken ($this->extend($request, $params)));
                 $this->options['lastAuthenticatedTime'] = $time;
                 $this->options['token'] = $this->safe_string($response, 'token');
             }

@@ -5016,6 +5016,7 @@ public partial class kucoin : Exchange
                 object partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, "base64");
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER-SIGN"] = partnerSignature;
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER"] = partnerId;
+                ((IDictionary<string,object>)headers)["KC-API-PARTNER-VERIFY"] = "true";
             }
             if (isTrue(isBroker))
             {

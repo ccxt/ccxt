@@ -1,6 +1,6 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/coinex.js';
-import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -292,7 +292,7 @@ export default class coinex extends Exchange {
                 'v2': {
                     'public': {
                         'get': {
-                            'maintain-info': 1,
+                            'maintain/info': 1,
                             'ping': 1,
                             'time': 1,
                             'spot/market': 1,
@@ -441,8 +441,15 @@ export default class coinex extends Exchange {
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': true,
                 },
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'margin': 'MARGIN',
+                    'swap': 'FUTURES',
+                },
                 'accountsById': {
-                    'spot': '0',
+                    'SPOT': 'spot',
+                    'MARGIN': 'margin',
+                    'FUTURES': 'swap',
                 },
                 'networks': {
                     'BEP20': 'BSC',
@@ -465,10 +472,53 @@ export default class coinex extends Exchange {
                     '36': RequestTimeout,
                     '213': RateLimitExceeded,
                     '107': InsufficientFunds,
+                    '158': PermissionDenied,
                     '600': OrderNotFound,
                     '601': InvalidOrder,
                     '602': InvalidOrder,
                     '606': InvalidOrder,
+                    '3008': RequestTimeout,
+                    '3109': InsufficientFunds,
+                    '3127': InvalidOrder,
+                    '3606': InvalidOrder,
+                    '3610': ExchangeError,
+                    '3612': InvalidOrder,
+                    '3613': InvalidOrder,
+                    '3614': InvalidOrder,
+                    '3615': InvalidOrder,
+                    '3616': InvalidOrder,
+                    '3617': InvalidOrder,
+                    '3618': InvalidOrder,
+                    '3619': InvalidOrder,
+                    '3620': InvalidOrder,
+                    '3621': InvalidOrder,
+                    '3622': InvalidOrder,
+                    '3627': InvalidOrder,
+                    '3628': InvalidOrder,
+                    '3629': InvalidOrder,
+                    '3632': InvalidOrder,
+                    '3633': InvalidOrder,
+                    '3634': InvalidOrder,
+                    '3635': InvalidOrder,
+                    '4001': ExchangeNotAvailable,
+                    '4002': RequestTimeout,
+                    '4003': ExchangeError,
+                    '4004': BadRequest,
+                    '4005': AuthenticationError,
+                    '4006': AuthenticationError,
+                    '4007': PermissionDenied,
+                    '4008': AuthenticationError,
+                    '4009': ExchangeError,
+                    '4010': ExchangeError,
+                    '4011': PermissionDenied,
+                    '4017': ExchangeError,
+                    '4115': AccountSuspended,
+                    '4117': BadSymbol,
+                    '4123': RateLimitExceeded,
+                    '4130': ExchangeError,
+                    '4158': ExchangeError,
+                    '4213': RateLimitExceeded,
+                    '4512': PermissionDenied, // Insufficient sub-account permissions, please check.
                 },
                 'broad': {
                     'ip not allow visit': PermissionDenied,
@@ -1138,115 +1188,50 @@ export default class coinex extends Exchange {
         //
         // Spot and Margin fetchMyTrades (private)
         //
-        //      {
-        //          "id": 2611520950,
-        //          "order_id": 63286573298,
-        //          "account_id": 0,
-        //          "create_time": 1638990636,
-        //          "type": "sell",
-        //          "role": "taker",
-        //          "price": "192.29",
-        //          "amount": "0.098",
-        //          "fee": "0.03768884",
-        //          "fee_asset": "USDT",
-        //          "market": "AAVEUSDT",
-        //          "deal_money": "18.84442"
-        //      }
+        //     {
+        //         "amount": "0.00010087",
+        //         "created_at": 1714618087585,
+        //         "deal_id": 4161200602,
+        //         "margin_market": "",
+        //         "market": "BTCUSDT",
+        //         "order_id": 117654919342,
+        //         "price": "57464.04",
+        //         "side": "sell"
+        //     }
         //
         // Swap fetchMyTrades (private)
         //
         //     {
-        //         "amount": "0.0012",
-        //         "deal_fee": "0.0237528",
-        //         "deal_insurance": "0",
-        //         "deal_margin": "15.8352",
-        //         "deal_order_id": 17797031903,
-        //         "deal_profit": "0",
-        //         "deal_stock": "47.5056",
-        //         "deal_type": 1,
-        //         "deal_user_id": 2969195,
-        //         "fee_asset": "",
-        //         "fee_discount": "0",
-        //         "fee_price": "0",
-        //         "fee_rate": "0.0005",
-        //         "fee_real_rate": "0.0005",
-        //         "id": 379044296,
-        //         "leverage": "3",
-        //         "margin_amount": "15.8352",
+        //         "deal_id": 1180222387,
+        //         "created_at": 1714119054558,
         //         "market": "BTCUSDT",
-        //         "open_price": "39588",
-        //         "order_id": 17797092987,
-        //         "position_amount": "0.0012",
-        //         "position_id": 62052321,
-        //         "position_type": 1,
-        //         "price": "39588",
-        //         "role": 2,
-        //         "side": 2,
-        //         "time": 1650675936.016103,
-        //         "user_id": 3620173
+        //         "side": "buy",
+        //         "order_id": 136915589622,
+        //         "price": "64376",
+        //         "amount": "0.0001"
         //     }
         //
-        let timestamp = this.safeTimestamp2(trade, 'create_time', 'time');
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger(trade, 'created_at');
+        const timestamp = this.safeInteger(trade, 'created_at');
+        let defaultType = this.safeString(this.options, 'defaultType');
+        if (market !== undefined) {
+            defaultType = market['type'];
         }
-        const tradeId = this.safeString2(trade, 'id', 'deal_id');
-        const orderId = this.safeString(trade, 'order_id');
-        const priceString = this.safeString(trade, 'price');
-        const amountString = this.safeString(trade, 'amount');
         const marketId = this.safeString(trade, 'market');
-        const marketType = this.safeString(trade, 'market_type');
-        const defaultType = (marketType === undefined) ? 'spot' : 'swap';
         market = this.safeMarket(marketId, market, undefined, defaultType);
-        const symbol = market['symbol'];
-        const costString = this.safeString(trade, 'deal_money');
-        let fee = undefined;
-        const feeCostString = this.safeString2(trade, 'fee', 'deal_fee');
-        if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString(trade, 'fee_asset');
-            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            fee = {
-                'cost': feeCostString,
-                'currency': feeCurrencyCode,
-            };
-        }
-        let takerOrMaker = this.safeString(trade, 'role');
-        if (takerOrMaker === '1') {
-            takerOrMaker = 'maker';
-        }
-        else if (takerOrMaker === '2') {
-            takerOrMaker = 'taker';
-        }
-        let side = undefined;
-        if (market['type'] === 'swap') {
-            const rawSide = this.safeInteger(trade, 'side');
-            if (rawSide === 1) {
-                side = 'sell';
-            }
-            else if (rawSide === 2) {
-                side = 'buy';
-            }
-            if (side === undefined) {
-                side = this.safeString2(trade, 'type', 'side');
-            }
-        }
-        else {
-            side = this.safeString2(trade, 'type', 'side');
-        }
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': symbol,
-            'id': tradeId,
-            'order': orderId,
+            'symbol': market['symbol'],
+            'id': this.safeString(trade, 'deal_id'),
+            'order': this.safeString(trade, 'order_id'),
             'type': undefined,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': fee,
+            'side': this.safeString(trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString(trade, 'price'),
+            'amount': this.safeString(trade, 'amount'),
+            'cost': this.safeString(trade, 'deal_money'),
+            'fee': undefined,
         }, market);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -3670,7 +3655,11 @@ export default class coinex extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.fetchOrdersByStatus('pending', symbol, since, limit, params);
+        const openOrders = await this.fetchOrdersByStatus('pending', symbol, since, limit, params);
+        for (let i = 0; i < openOrders.length; i++) {
+            openOrders[i]['status'] = 'open';
+        }
+        return openOrders;
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3824,155 +3813,110 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchMyTrades
          * @description fetch all trades made by the user
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http013_user_deals
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade014_user_deals
+         * @see https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals
+         * @see https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trades
+         * @param {string} [params.side] the side of the trades, either 'buy' or 'sell', required for swap
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets();
-        let market = undefined;
-        if (limit === undefined) {
-            limit = 100;
-        }
-        const request = {
-            'limit': limit,
-            'offset': 0, // SWAP, means query from a certain record
-            // 'page': 1, // SPOT
-            // 'side': 2, // SWAP, 0 for no limit, 1 for sell, 2 for buy
-            // 'start_time': since, // SWAP
-            // 'end_time': 1524228297, // SWAP
+        const market = this.market(symbol);
+        let request = {
+            'market': market['id'],
         };
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['market'] = market['id'];
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
-        if (type !== 'spot' && symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument for non-spot markets');
+        if (since !== undefined) {
+            request['start_time'] = since;
         }
-        const swap = (type === 'swap');
-        const accountId = this.safeInteger(params, 'account_id');
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
-        if (marginMode !== undefined) {
-            if (accountId === undefined) {
-                throw new BadRequest(this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
-            }
-            request['account_id'] = accountId;
-            params = this.omit(params, 'account_id');
-        }
+        [request, params] = this.handleUntilOption('end_time', request, params);
         let response = undefined;
-        if (swap) {
-            if (since !== undefined) {
-                request['start_time'] = since;
-            }
-            request['side'] = 0;
-            response = await this.v1PerpetualPrivateGetMarketUserDeals(this.extend(request, params));
+        if (market['swap']) {
+            request['market_type'] = 'FUTURES';
+            response = await this.v2PrivateGetFuturesUserDeals(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "deal_id": 1180222387,
+            //                 "created_at": 1714119054558,
+            //                 "market": "BTCUSDT",
+            //                 "side": "buy",
+            //                 "order_id": 136915589622,
+            //                 "price": "64376",
+            //                 "amount": "0.0001"
+            //             }
+            //         ],
+            //         "message": "OK",
+            //         "pagination": {
+            //             "has_next": true
+            //         }
+            //     }
+            //
         }
         else {
-            request['page'] = 1;
-            response = await this.v1PrivateGetOrderUserDeals(this.extend(request, params));
+            let marginMode = undefined;
+            [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
+            if (marginMode !== undefined) {
+                request['market_type'] = 'MARGIN';
+            }
+            else {
+                request['market_type'] = 'SPOT';
+            }
+            response = await this.v2PrivateGetSpotUserDeals(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "amount": "0.00010087",
+            //                 "created_at": 1714618087585,
+            //                 "deal_id": 4161200602,
+            //                 "margin_market": "",
+            //                 "market": "BTCUSDT",
+            //                 "order_id": 117654919342,
+            //                 "price": "57464.04",
+            //                 "side": "sell"
+            //             }
+            //         ],
+            //         "message": "OK",
+            //         "pagination": {
+            //             "has_next": true
+            //         }
+            //     }
+            //
         }
-        //
-        // Spot and Margin
-        //
-        //      {
-        //          "code": 0,
-        //          "data": {
-        //              "data": [
-        //                  {
-        //                      "id": 2611520950,
-        //                      "order_id": 63286573298,
-        //                      "account_id": 0,
-        //                      "create_time": 1638990636,
-        //                      "type": "sell",
-        //                      "role": "taker",
-        //                      "price": "192.29",
-        //                      "amount": "0.098",
-        //                      "fee": "0.03768884",
-        //                      "fee_asset": "USDT",
-        //                      "market": "AAVEUSDT",
-        //                      "deal_money": "18.84442"
-        //                          },
-        //                      ],
-        //              "curr_page": 1,
-        //              "has_next": false,
-        //              "count": 3
-        //              },
-        //          "message": "Success"
-        //      }
-        //
-        // Swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "limit": 100,
-        //             "offset": 0,
-        //             "records": [
-        //                 {
-        //                     "amount": "0.0012",
-        //                     "deal_fee": "0.0237528",
-        //                     "deal_insurance": "0",
-        //                     "deal_margin": "15.8352",
-        //                     "deal_order_id": 17797031903,
-        //                     "deal_profit": "0",
-        //                     "deal_stock": "47.5056",
-        //                     "deal_type": 1,
-        //                     "deal_user_id": 2969195,
-        //                     "fee_asset": "",
-        //                     "fee_discount": "0",
-        //                     "fee_price": "0",
-        //                     "fee_rate": "0.0005",
-        //                     "fee_real_rate": "0.0005",
-        //                     "id": 379044296,
-        //                     "leverage": "3",
-        //                     "margin_amount": "15.8352",
-        //                     "market": "BTCUSDT",
-        //                     "open_price": "39588",
-        //                     "order_id": 17797092987,
-        //                     "position_amount": "0.0012",
-        //                     "position_id": 62052321,
-        //                     "position_type": 1,
-        //                     "price": "39588",
-        //                     "role": 2,
-        //                     "side": 2,
-        //                     "time": 1650675936.016103,
-        //                     "user_id": 3620173
-        //                 }
-        //             ]
-        //         },
-        //         "message": "OK"
-        //     }
-        //
-        const tradeRequest = swap ? 'records' : 'data';
-        const data = this.safeValue(response, 'data');
-        const trades = this.safeList(data, tradeRequest, []);
-        return this.parseTrades(trades, market, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTrades(data, market, since, limit);
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchPositions
          * @description fetch all open positions
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
-         * @param {int} [params.side] *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
+         * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         let defaultMethod = undefined;
-        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'v1PerpetualPrivateGetPositionPending');
-        const isHistory = (defaultMethod === 'v1PerpetualPrivateGetPositionFinished');
+        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition');
         symbols = this.marketSymbols(symbols);
-        const request = {};
+        const request = {
+            'market_type': 'FUTURES',
+        };
         let market = undefined;
         if (symbols !== undefined) {
             let symbol = undefined;
@@ -3989,82 +3933,57 @@ export default class coinex extends Exchange {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        else {
-            if (isHistory) {
-                throw new ArgumentsRequired(this.id + ' fetchPositions() requires a symbol argument for closed positions');
-            }
-        }
-        if (isHistory) {
-            request['limit'] = 100;
-            request['side'] = this.safeInteger(params, 'side', 0); // 0: All, 1: Sell, 2: Buy
-        }
         let response = undefined;
-        if (defaultMethod === 'v1PerpetualPrivateGetPositionPending') {
-            response = await this.v1PerpetualPrivateGetPositionPending(this.extend(request, params));
+        if (defaultMethod === 'v2PrivateGetFuturesPendingPosition') {
+            response = await this.v2PrivateGetFuturesPendingPosition(this.extend(request, params));
         }
         else {
-            response = await this.v1PerpetualPrivateGetPositionFinished(this.extend(request, params));
+            response = await this.v2PrivateGetFuturesFinishedPosition(this.extend(request, params));
         }
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "adl_sort": 3396,
-        //                 "adl_sort_val": "0.00007786",
-        //                 "amount": "0.0005",
-        //                 "amount_max": "0.0005",
-        //                 "amount_max_margin": "6.42101333333333333333",
-        //                 "bkr_price": "25684.05333333333333346175",
-        //                 "bkr_price_imply": "0.00000000000000000000",
-        //                 "close_left": "0.0005",
-        //                 "create_time": 1651294226.110899,
-        //                 "deal_all": "19.26000000000000000000",
-        //                 "deal_asset_fee": "0.00000000000000000000",
-        //                 "fee_asset": "",
-        //                 "finish_type": 1,
-        //                 "first_price": "38526.08",
-        //                 "insurance": "0.00000000000000000000",
-        //                 "latest_price": "38526.08",
-        //                 "leverage": "3",
-        //                 "liq_amount": "0.00000000000000000000",
-        //                 "liq_order_price": "0",
-        //                 "liq_order_time": 0,
-        //                 "liq_price": "25876.68373333333333346175",
-        //                 "liq_price_imply": "0.00000000000000000000",
-        //                 "liq_profit": "0.00000000000000000000",
-        //                 "liq_time": 0,
-        //                 "mainten_margin": "0.005",
-        //                 "mainten_margin_amount": "0.09631520000000000000",
-        //                 "maker_fee": "0.00000000000000000000",
-        //                 "margin_amount": "6.42101333333333333333",
+        //                 "position_id": 305891033,
         //                 "market": "BTCUSDT",
-        //                 "open_margin": "0.33333333333333333333",
-        //                 "open_margin_imply": "0.00000000000000000000",
-        //                 "open_price": "38526.08000000000000000000",
-        //                 "open_val": "19.26304000000000000000",
-        //                 "open_val_max": "19.26304000000000000000",
-        //                 "position_id": 65847227,
-        //                 "profit_clearing": "-0.00963152000000000000",
-        //                 "profit_real": "-0.00963152000000000000",
-        //                 "profit_unreal": "0.00",
-        //                 "side": 2,
-        //                 "stop_loss_price": "0.00000000000000000000",
-        //                 "stop_loss_type": 0,
-        //                 "sy s": 0,
-        //                 "take_profit_price": "0.00000000000000000000",
-        //                 "take_profit_type": 0,
-        //                 "taker_fee": "0.00000000000000000000",
-        //                 "total": 4661,
-        //                 "type": 1,
-        //                 "update_time": 1651294226.111196,
-        //                 "user_id": 3620173
-        //             },
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
+        //             }
         //         ],
-        //         "message": "OK"
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
+        //         }
         //     }
         //
-        const position = this.safeValue(response, 'data', []);
+        const position = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < position.length; i++) {
             result.push(this.parsePosition(position[i], market));
@@ -4076,74 +3995,59 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchPosition
          * @description fetch data on a single open contract trade position
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+         * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
+            'market_type': 'FUTURES',
             'market': market['id'],
         };
-        const response = await this.v1PerpetualPrivateGetPositionPending(this.extend(request, params));
+        const response = await this.v2PrivateGetFuturesPendingPosition(this.extend(request, params));
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "adl_sort": 3396,
-        //                 "adl_sort_val": "0.00007786",
-        //                 "amount": "0.0005",
-        //                 "amount_max": "0.0005",
-        //                 "amount_max_margin": "6.42101333333333333333",
-        //                 "bkr_price": "25684.05333333333333346175",
-        //                 "bkr_price_imply": "0.00000000000000000000",
-        //                 "close_left": "0.0005",
-        //                 "create_time": 1651294226.110899,
-        //                 "deal_all": "19.26000000000000000000",
-        //                 "deal_asset_fee": "0.00000000000000000000",
-        //                 "fee_asset": "",
-        //                 "finish_type": 1,
-        //                 "first_price": "38526.08",
-        //                 "insurance": "0.00000000000000000000",
-        //                 "latest_price": "38526.08",
-        //                 "leverage": "3",
-        //                 "liq_amount": "0.00000000000000000000",
-        //                 "liq_order_price": "0",
-        //                 "liq_order_time": 0,
-        //                 "liq_price": "25876.68373333333333346175",
-        //                 "liq_price_imply": "0.00000000000000000000",
-        //                 "liq_profit": "0.00000000000000000000",
-        //                 "liq_time": 0,
-        //                 "mainten_margin": "0.005",
-        //                 "mainten_margin_amount": "0.09631520000000000000",
-        //                 "maker_fee": "0.00000000000000000000",
-        //                 "margin_amount": "6.42101333333333333333",
+        //                 "position_id": 305891033,
         //                 "market": "BTCUSDT",
-        //                 "open_margin": "0.33333333333333333333",
-        //                 "open_margin_imply": "0.00000000000000000000",
-        //                 "open_price": "38526.08000000000000000000",
-        //                 "open_val": "19.26304000000000000000",
-        //                 "open_val_max": "19.26304000000000000000",
-        //                 "position_id": 65847227,
-        //                 "profit_clearing": "-0.00963152000000000000",
-        //                 "profit_real": "-0.00963152000000000000",
-        //                 "profit_unreal": "0.00",
-        //                 "side": 2,
-        //                 "stop_loss_price": "0.00000000000000000000",
-        //                 "stop_loss_type": 0,
-        //                 "s ys": 0,
-        //                 "take_profit_price": "0.00000000000000000000",
-        //                 "take_profit_type": 0,
-        //                 "taker_fee": "0.00000000000000000000",
-        //                 "total": 4661,
-        //                 "type": 1,
-        //                 "update_time": 1651294226.111196,
-        //                 "user_id": 3620173
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
         //             }
         //         ],
-        //         "message": "OK"
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
+        //         }
         //     }
         //
         const data = this.safeList(response, 'data', []);
@@ -4151,140 +4055,69 @@ export default class coinex extends Exchange {
     }
     parsePosition(position, market = undefined) {
         //
-        // fetchPosition
-        //
         //     {
-        //         "adl_sort": 3396,
-        //         "adl_sort_val": "0.00007786",
-        //         "amount": "0.0005",
-        //         "amount_max": "0.0005",
-        //         "amount_max_margin": "6.42101333333333333333",
-        //         "bkr_price": "25684.05333333333333346175",
-        //         "bkr_price_imply": "0.00000000000000000000",
-        //         "close_left": "0.0005",
-        //         "create_time": 1651294226.110899,
-        //         "deal_all": "19.26000000000000000000",
-        //         "deal_asset_fee": "0.00000000000000000000",
-        //         "fee_asset": "",
-        //         "finish_type": 1,
-        //         "first_price": "38526.08",
-        //         "insurance": "0.00000000000000000000",
-        //         "latest_price": "38526.08",
-        //         "leverage": "3",
-        //         "liq_amount": "0.00000000000000000000",
-        //         "liq_order_price": "0",
-        //         "liq_order_time": 0,
-        //         "liq_price": "25876.68373333333333346175",
-        //         "liq_price_imply": "0.00000000000000000000",
-        //         "liq_profit": "0.00000000000000000000",
-        //         "liq_time": 0,
-        //         "mainten_margin": "0.005",
-        //         "mainten_margin_amount": "0.09631520000000000000",
-        //         "maker_fee": "0.00000000000000000000",
-        //         "margin_amount": "6.42101333333333333333",
+        //         "position_id": 305891033,
         //         "market": "BTCUSDT",
-        //         "open_margin": "0.33333333333333333333",
-        //         "open_margin_imply": "0.00000000000000000000",
-        //         "open_price": "38526.08000000000000000000",
-        //         "open_val": "19.26304000000000000000",
-        //         "open_val_max": "19.26304000000000000000",
-        //         "position_id": 65847227,
-        //         "profit_clearing": "-0.00963152000000000000",
-        //         "profit_real": "-0.00963152000000000000",
-        //         "profit_unreal": "0.00",
-        //         "side": 2,
-        //         "stop_loss_price": "0.00000000000000000000",
-        //         "stop_loss_type": 0,
-        //         "s ys": 0,
-        //         "take_profit_price": "0.00000000000000000000",
-        //         "take_profit_type": 0,
-        //         "taker_fee": "0.00000000000000000000",
-        //         "total": 4661,
-        //         "type": 1,
-        //         "update_time": 1651294226.111196,
-        //         "user_id": 3620173
+        //         "market_type": "FUTURES",
+        //         "side": "long",
+        //         "margin_mode": "cross",
+        //         "open_interest": "0.0001",
+        //         "close_avbl": "0.0001",
+        //         "ath_position_amount": "0.0001",
+        //         "unrealized_pnl": "0",
+        //         "realized_pnl": "-0.00311684",
+        //         "avg_entry_price": "62336.8",
+        //         "cml_position_value": "6.23368",
+        //         "max_position_value": "6.23368",
+        //         "created_at": 1715152208041,
+        //         "updated_at": 1715152208041,
+        //         "take_profit_price": "0",
+        //         "stop_loss_price": "0",
+        //         "take_profit_type": "",
+        //         "stop_loss_type": "",
+        //         "settle_price": "62336.8",
+        //         "settle_value": "6.23368",
+        //         "leverage": "3",
+        //         "margin_avbl": "2.07789333",
+        //         "ath_margin_size": "2.07789333",
+        //         "position_margin_rate": "2.40545879023305655728",
+        //         "maintenance_margin_rate": "0.005",
+        //         "maintenance_margin_value": "0.03118094",
+        //         "liq_price": "0",
+        //         "bkr_price": "0",
+        //         "adl_level": 1
         //     }
-        //
-        //
-        // fetchPositionHistory
-        //
-        //    {
-        //        amount_max: '10',
-        //        amount_max_margin: '2.03466666666666666666',
-        //        bkr_price: '0',
-        //        create_time: '1711150526.2581',
-        //        deal_all: '12.591',
-        //        deal_asset_fee: '0',
-        //        fee_asset: '',
-        //        finish_type: '5',
-        //        first_price: '0.6104',
-        //        latest_price: '0.6487',
-        //        leverage: '3',
-        //        liq_amount: '0',
-        //        liq_price: '0',
-        //        liq_profit: '0',
-        //        mainten_margin: '0.01',
-        //        market: 'XRPUSDT',
-        //        market_type: '1',
-        //        open_price: '0.6104',
-        //        open_val_max: '6.104',
-        //        position_id: '297371462',
-        //        profit_real: '0.35702107169',
-        //        settle_price: '0.6104',
-        //        settle_val: '0',
-        //        side: '2',
-        //        s ys: "0",
-        //        type: '2',
-        //        update_time: '1711391446.133233',
-        //        user_id: '3685860'
-        //    }
         //
         const marketId = this.safeString(position, 'market');
         market = this.safeMarket(marketId, market, undefined, 'swap');
-        const symbol = market['symbol'];
-        const positionId = this.safeInteger(position, 'position_id');
-        const marginModeInteger = this.safeInteger(position, 'type');
-        const marginMode = (marginModeInteger === 1) ? 'isolated' : 'cross';
-        const liquidationPrice = this.safeString(position, 'liq_price');
-        const entryPrice = this.safeString(position, 'open_price');
-        const unrealizedPnl = this.safeString(position, 'profit_unreal');
-        const contracts = this.safeNumber(position, 'amount');
-        const sideInteger = this.safeInteger(position, 'side');
-        const side = (sideInteger === 1) ? 'short' : 'long';
-        const timestamp = this.safeTimestamp(position, 'update_time');
-        const maintenanceMargin = this.safeString(position, 'mainten_margin_amount');
-        const maintenanceMarginPercentage = this.safeString(position, 'mainten_margin');
-        const collateral = this.safeString2(position, 'margin_amount', 'amount_max_margin');
-        const leverage = this.safeString(position, 'leverage');
-        const notional = this.safeString(position, 'open_val');
-        const initialMargin = Precise.stringDiv(notional, leverage);
-        const initialMarginPercentage = Precise.stringDiv('1', leverage);
+        const timestamp = this.safeInteger(position, 'created_at');
         return this.safePosition({
             'info': position,
-            'id': positionId,
-            'symbol': symbol,
-            'notional': this.parseNumber(notional),
-            'marginMode': marginMode,
-            'liquidationPrice': liquidationPrice,
-            'entryPrice': this.parseNumber(entryPrice),
-            'unrealizedPnl': this.parseNumber(unrealizedPnl),
+            'id': this.safeInteger(position, 'position_id'),
+            'symbol': market['symbol'],
+            'notional': this.safeNumber(position, 'settle_value'),
+            'marginMode': this.safeString(position, 'margin_mode'),
+            'liquidationPrice': this.safeNumber(position, 'liq_price'),
+            'entryPrice': this.safeNumber(position, 'avg_entry_price'),
+            'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
+            'realizedPnl': this.safeNumber(position, 'realized_pnl'),
             'percentage': undefined,
-            'contracts': contracts,
+            'contracts': this.safeNumber(position, 'close_avbl'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'markPrice': undefined,
             'lastPrice': undefined,
-            'side': side,
+            'side': this.safeString(position, 'side'),
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastUpdateTimestamp': undefined,
-            'maintenanceMargin': this.parseNumber(maintenanceMargin),
-            'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
-            'collateral': this.parseNumber(collateral),
-            'initialMargin': this.parseNumber(initialMargin),
-            'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
-            'leverage': this.parseNumber(leverage),
-            'marginRatio': undefined,
+            'lastUpdateTimestamp': this.safeInteger(position, 'updated_at'),
+            'maintenanceMargin': this.safeNumber(position, 'maintenance_margin_value'),
+            'maintenanceMarginPercentage': this.safeNumber(position, 'maintenance_margin_rate'),
+            'collateral': this.safeNumber(position, 'margin_avbl'),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber(position, 'leverage'),
+            'marginRatio': this.safeNumber(position, 'position_margin_rate'),
             'stopLossPrice': this.omitZero(this.safeString(position, 'stop_loss_price')),
             'takeProfitPrice': this.omitZero(this.safeString(position, 'take_profit_price')),
         });
@@ -4294,10 +4127,11 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+         * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} params.leverage the rate of leverage
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -4312,37 +4146,37 @@ export default class coinex extends Exchange {
         if (market['type'] !== 'swap') {
             throw new BadSymbol(this.id + ' setMarginMode() supports swap contracts only');
         }
-        let defaultPositionType = undefined;
-        if (marginMode === 'isolated') {
-            defaultPositionType = 1;
-        }
-        else if (marginMode === 'cross') {
-            defaultPositionType = 2;
-        }
         const leverage = this.safeInteger(params, 'leverage');
         const maxLeverage = this.safeInteger(market['limits']['leverage'], 'max', 100);
-        const positionType = this.safeInteger(params, 'position_type', defaultPositionType);
         if (leverage === undefined) {
             throw new ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter');
         }
-        if (positionType === undefined) {
-            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a position_type parameter that will transfer margin to the specified trading pair');
-        }
-        if ((leverage < 3) || (leverage > maxLeverage)) {
-            throw new BadRequest(this.id + ' setMarginMode() leverage should be between 3 and ' + maxLeverage.toString() + ' for ' + symbol);
+        if ((leverage < 1) || (leverage > maxLeverage)) {
+            throw new BadRequest(this.id + ' setMarginMode() leverage should be between 1 and ' + maxLeverage.toString() + ' for ' + symbol);
         }
         const request = {
             'market': market['id'],
-            'leverage': leverage.toString(),
-            'position_type': positionType, // 1: isolated, 2: cross
+            'market_type': 'FUTURES',
+            'margin_mode': marginMode,
+            'leverage': leverage,
         };
-        return await this.v1PerpetualPrivatePostMarketAdjustLeverage(this.extend(request, params));
+        return await this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "leverage": 1,
+        //             "margin_mode": "isolated"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**
          * @method
          * @name coinex#setLeverage
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
+         * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
@@ -4360,13 +4194,6 @@ export default class coinex extends Exchange {
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params, 'cross');
-        let positionType = undefined;
-        if (marginMode === 'isolated') {
-            positionType = 1;
-        }
-        else if (marginMode === 'cross') {
-            positionType = 2;
-        }
         const minLeverage = this.safeInteger(market['limits']['leverage'], 'min', 1);
         const maxLeverage = this.safeInteger(market['limits']['leverage'], 'max', 100);
         if ((leverage < minLeverage) || (leverage > maxLeverage)) {
@@ -4374,57 +4201,84 @@ export default class coinex extends Exchange {
         }
         const request = {
             'market': market['id'],
-            'leverage': leverage.toString(),
-            'position_type': positionType, // 1: isolated, 2: cross
+            'market_type': 'FUTURES',
+            'margin_mode': marginMode,
+            'leverage': leverage,
         };
-        return await this.v1PerpetualPrivatePostMarketAdjustLeverage(this.extend(request, params));
+        return await this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "leverage": 1,
+        //             "margin_mode": "isolated"
+        //         },
+        //         "message": "OK"
+        //     }
+        //
     }
     async fetchLeverageTiers(symbols = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
-        const response = await this.v1PerpetualPublicGetMarketLimitConfig(params);
+        const request = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds(symbols);
+            request['market'] = marketIds.join(',');
+        }
+        const response = await this.v2PublicGetFuturesPositionLevel(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "BTCUSD": [
-        //                 ["500001", "100", "0.005"],
-        //                 ["1000001", "50", "0.01"],
-        //                 ["2000001", "30", "0.015"],
-        //                 ["5000001", "20", "0.02"],
-        //                 ["10000001", "15", "0.025"],
-        //                 ["20000001", "10", "0.03"]
-        //             ],
-        //             ...
-        //         },
+        //         "data": [
+        //             {
+        //                 "level": [
+        //                     {
+        //                         "amount": "20001",
+        //                         "leverage": "20",
+        //                         "maintenance_margin_rate": "0.02",
+        //                         "min_initial_margin_rate": "0.05"
+        //                     },
+        //                     {
+        //                         "amount": "50001",
+        //                         "leverage": "10",
+        //                         "maintenance_margin_rate": "0.04",
+        //                         "min_initial_margin_rate": "0.1"
+        //                     },
+        //                 ],
+        //                 "market": "MINAUSDT"
+        //             },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        return this.parseLeverageTiers(data, symbols, undefined);
+        const data = this.safeList(response, 'data', []);
+        return this.parseLeverageTiers(data, symbols, 'market');
     }
-    parseMarketLeverageTiers(item, market = undefined) {
+    parseMarketLeverageTiers(info, market = undefined) {
         const tiers = [];
+        const brackets = this.safeList(info, 'level', []);
         let minNotional = 0;
-        for (let j = 0; j < item.length; j++) {
-            const bracket = item[j];
-            const maxNotional = this.safeNumber(bracket, 0);
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            const marketId = this.safeString(info, 'market');
+            market = this.safeMarket(marketId, market, undefined, 'swap');
+            const maxNotional = this.safeNumber(tier, 'amount');
             tiers.push({
-                'tier': j + 1,
+                'tier': this.sum(i, 1),
                 'currency': market['linear'] ? market['base'] : market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeNumber(bracket, 2),
-                'maxLeverage': this.safeInteger(bracket, 1),
-                'info': bracket,
+                'maintenanceMarginRate': this.safeNumber(tier, 'maintenance_margin_rate'),
+                'maxLeverage': this.safeInteger(tier, 'leverage'),
+                'info': tier,
             });
             minNotional = maxNotional;
         }
@@ -4433,72 +4287,60 @@ export default class coinex extends Exchange {
     async modifyMarginHelper(symbol, amount, addOrReduce, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
+        const rawAmount = this.amountToPrecision(symbol, amount);
+        let requestAmount = rawAmount;
+        if (addOrReduce === 'reduce') {
+            requestAmount = Precise.stringNeg(rawAmount);
+        }
         const request = {
             'market': market['id'],
-            'amount': this.amountToPrecision(symbol, amount),
-            'type': addOrReduce,
+            'market_type': 'FUTURES',
+            'amount': requestAmount,
         };
-        const response = await this.v1PerpetualPrivatePostPositionAdjustMargin(this.extend(request, params));
+        const response = await this.v2PrivatePostFuturesAdjustPositionMargin(this.extend(request, params));
         //
         //     {
         //         "code": 0,
         //         "data": {
-        //             "adl_sort": 1,
-        //             "adl_sort_val": "0.00004320",
-        //             "amount": "0.0005",
-        //             "amount_max": "0.0005",
-        //             "amount_max_margin": "6.57352000000000000000",
-        //             "bkr_price": "16294.08000000000000011090",
-        //             "bkr_price_imply": "0.00000000000000000000",
-        //             "close_left": "0.0005",
-        //             "create_time": 1651202571.320778,
-        //             "deal_all": "19.72000000000000000000",
-        //             "deal_asset_fee": "0.00000000000000000000",
-        //             "fee_asset": "",
-        //             "finish_type": 1,
-        //             "first_price": "39441.12",
-        //             "insurance": "0.00000000000000000000",
-        //             "latest_price": "39441.12",
+        //             "adl_level": 1,
+        //             "ath_margin_size": "2.034928",
+        //             "ath_position_amount": "0.0001",
+        //             "avg_entry_price": "61047.84",
+        //             "bkr_price": "30698.5600000000000004142",
+        //             "close_avbl": "0.0001",
+        //             "cml_position_value": "6.104784",
+        //             "created_at": 1715488472908,
         //             "leverage": "3",
-        //             "liq_amount": "0.00000000000000000000",
-        //             "liq_order_price": "0",
-        //             "liq_order_time": 0,
-        //             "liq_price": "16491.28560000000000011090",
-        //             "liq_price_imply": "0.00000000000000000000",
-        //             "liq_profit": "0.00000000000000000000",
-        //             "liq_time": 0,
-        //             "mainten_margin": "0.005",
-        //             "mainten_margin_amount": "0.09860280000000000000",
-        //             "maker_fee": "0.00000000000000000000",
-        //             "margin_amount": "11.57352000000000000000",
+        //             "liq_price": "30852.82412060301507579316",
+        //             "maintenance_margin_rate": "0.005",
+        //             "maintenance_margin_value": "0.03051465",
+        //             "margin_avbl": "3.034928",
+        //             "margin_mode": "isolated",
         //             "market": "BTCUSDT",
-        //             "open_margin": "0.58687582908396110455",
-        //             "open_margin_imply": "0.00000000000000000000",
-        //             "open_price": "39441.12000000000000000000",
-        //             "open_val": "19.72056000000000000000",
-        //             "open_val_max": "19.72056000000000000000",
-        //             "position_id": 65171206,
-        //             "profit_clearing": "-0.00986028000000000000",
-        //             "profit_real": "-0.00986028000000000000",
-        //             "profit_unreal": "0.00",
-        //             "side": 2,
-        //             "stop_loss_price": "0.00000000000000000000",
-        //             "stop_loss_type": 0,
-        //             "s ys": 0,
-        //             "take_profit_price": "0.00000000000000000000",
-        //             "take_profit_type": 0,
-        //             "taker_fee": "0.00000000000000000000",
-        //             "total": 3464,
-        //             "type": 1,
-        //             "update_time": 1651202638.911212,
-        //             "user_id": 3620173
+        //             "market_type": "FUTURES",
+        //             "max_position_value": "6.104784",
+        //             "open_interest": "0.0001",
+        //             "position_id": 306458800,
+        //             "position_margin_rate": "0.49713929272518077625",
+        //             "realized_pnl": "-0.003052392",
+        //             "settle_price": "61047.84",
+        //             "settle_value": "6.104784",
+        //             "side": "long",
+        //             "stop_loss_price": "0",
+        //             "stop_loss_type": "",
+        //             "take_profit_price": "0",
+        //             "take_profit_type": "",
+        //             "unrealized_pnl": "0",
+        //             "updated_at": 1715488805563
         //         },
-        //         "message":"OK"
+        //         "message": "OK"
         //     }
         //
         const data = this.safeDict(response, 'data');
-        const status = this.safeString(response, 'message');
+        const status = this.safeStringLower(response, 'message');
+        const type = (addOrReduce === 'reduce') ? 'reduce' : 'add';
         return this.extend(this.parseMarginModification(data, market), {
+            'type': type,
             'amount': this.parseNumber(amount),
             'status': status,
         });
@@ -4507,86 +4349,66 @@ export default class coinex extends Exchange {
         //
         // addMargin/reduceMargin
         //
-        //    {
-        //        "adl_sort": 1,
-        //        "adl_sort_val": "0.00004320",
-        //        "amount": "0.0005",
-        //        "amount_max": "0.0005",
-        //        "amount_max_margin": "6.57352000000000000000",
-        //        "bkr_price": "16294.08000000000000011090",
-        //        "bkr_price_imply": "0.00000000000000000000",
-        //        "close_left": "0.0005",
-        //        "create_time": 1651202571.320778,
-        //        "deal_all": "19.72000000000000000000",
-        //        "deal_asset_fee": "0.00000000000000000000",
-        //        "fee_asset": "",
-        //        "finish_type": 1,
-        //        "first_price": "39441.12",
-        //        "insurance": "0.00000000000000000000",
-        //        "latest_price": "39441.12",
-        //        "leverage": "3",
-        //        "liq_amount": "0.00000000000000000000",
-        //        "liq_order_price": "0",
-        //        "liq_order_time": 0,
-        //        "liq_price": "16491.28560000000000011090",
-        //        "liq_price_imply": "0.00000000000000000000",
-        //        "liq_profit": "0.00000000000000000000",
-        //        "liq_time": 0,
-        //        "mainten_margin": "0.005",
-        //        "mainten_margin_amount": "0.09860280000000000000",
-        //        "maker_fee": "0.00000000000000000000",
-        //        "margin_amount": "11.57352000000000000000",
-        //        "market": "BTCUSDT",
-        //        "open_margin": "0.58687582908396110455",
-        //        "open_margin_imply": "0.00000000000000000000",
-        //        "open_price": "39441.12000000000000000000",
-        //        "open_val": "19.72056000000000000000",
-        //        "open_val_max": "19.72056000000000000000",
-        //        "position_id": 65171206,
-        //        "profit_clearing": "-0.00986028000000000000",
-        //        "profit_real": "-0.00986028000000000000",
-        //        "profit_unreal": "0.00",
-        //        "side": 2,
-        //        "stop_loss_price": "0.00000000000000000000",
-        //        "stop_loss_type": 0,
-        //        "sy s": 0,
-        //        "take_profit_price": "0.00000000000000000000",
-        //        "take_profit_type": 0,
-        //        "taker_fee": "0.00000000000000000000",
-        //        "total": 3464,
-        //        "type": 1,
-        //        "update_time": 1651202638.911212,
-        //        "user_id": 3620173
-        //    }
+        //     {
+        //         "adl_level": 1,
+        //         "ath_margin_size": "2.034928",
+        //         "ath_position_amount": "0.0001",
+        //         "avg_entry_price": "61047.84",
+        //         "bkr_price": "30698.5600000000000004142",
+        //         "close_avbl": "0.0001",
+        //         "cml_position_value": "6.104784",
+        //         "created_at": 1715488472908,
+        //         "leverage": "3",
+        //         "liq_price": "30852.82412060301507579316",
+        //         "maintenance_margin_rate": "0.005",
+        //         "maintenance_margin_value": "0.03051465",
+        //         "margin_avbl": "3.034928",
+        //         "margin_mode": "isolated",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "max_position_value": "6.104784",
+        //         "open_interest": "0.0001",
+        //         "position_id": 306458800,
+        //         "position_margin_rate": "0.49713929272518077625",
+        //         "realized_pnl": "-0.003052392",
+        //         "settle_price": "61047.84",
+        //         "settle_value": "6.104784",
+        //         "side": "long",
+        //         "stop_loss_price": "0",
+        //         "stop_loss_type": "",
+        //         "take_profit_price": "0",
+        //         "take_profit_type": "",
+        //         "unrealized_pnl": "0",
+        //         "updated_at": 1715488805563
+        //     }
         //
         // fetchMarginAdjustmentHistory
         //
-        //    {
-        //        bkr_price: '0',
-        //        leverage: '3',
-        //        liq_price: '0',
-        //        margin_amount: '5.33236666666666666666',
-        //        margin_change: '3',
-        //        market: 'XRPUSDT',
-        //        position_amount: '11',
-        //        position_id: '297155652',
-        //        position_type: '2',
-        //        settle_price: '0.6361',
-        //        time: '1711050906.382891',
-        //        type: '1',
-        //        user_id: '3685860'
-        //    }
+        //     {
+        //         "bkr_pirce": "24698.56000000000000005224",
+        //         "created_at": 1715489978697,
+        //         "leverage": "3",
+        //         "liq_price": "24822.67336683417085432386",
+        //         "margin_avbl": "3.634928",
+        //         "margin_change": "-1.5",
+        //         "margin_mode": "isolated",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "open_interest": "0.0001",
+        //         "position_id": 306458800,
+        //         "settle_price": "61047.84"
+        //     }
         //
         const marketId = this.safeString(data, 'market');
-        const type = this.safeString(data, 'type');
-        const timestamp = this.safeIntegerProduct2(data, 'time', 'update_time', 1000);
+        const timestamp = this.safeInteger2(data, 'updated_at', 'created_at');
+        const change = this.safeString(data, 'margin_change');
         return {
             'info': data,
             'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
-            'type': (type === '1') ? 'add' : 'reduce',
+            'type': undefined,
             'marginMode': 'isolated',
-            'amount': this.safeNumber(data, 'margin_change'),
-            'total': this.safeNumber(data, 'position_amount'),
+            'amount': this.parseNumber(Precise.stringAbs(change)),
+            'total': this.safeNumber(data, 'margin_avbl'),
             'code': market['quote'],
             'status': undefined,
             'timestamp': timestamp,
@@ -4598,33 +4420,33 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#addMargin
          * @description add margin
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
+         * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
-        return await this.modifyMarginHelper(symbol, amount, 1, params);
+        return await this.modifyMarginHelper(symbol, amount, 'add', params);
     }
     async reduceMargin(symbol, amount, params = {}) {
         /**
          * @method
          * @name coinex#reduceMargin
          * @description remove margin from a position
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
+         * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
-        return await this.modifyMarginHelper(symbol, amount, 2, params);
+        return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingHistory
-         * @description fetch the history of funding payments paid and received on this account
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position
+         * @description fetch the history of funding fee payments paid and received on this account
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4634,54 +4456,47 @@ export default class coinex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
-        limit = (limit === undefined) ? 100 : limit;
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'market': market['id'],
-            'limit': limit,
-            // 'offset': 0,
-            // 'end_time': 1638990636000,
-            // 'windowtime': 1638990636000,
+            'market_type': 'FUTURES',
         };
+        [request, params] = this.handleUntilOption('end_time', request, params);
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.v1PerpetualPrivateGetPositionFunding(this.extend(request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v2PrivateGetFuturesPositionFundingHistory(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "limit": 100,
-        //             "offset": 0,
-        //             "records": [
-        //                 {
-        //                     "amount": "0.0012",
-        //                     "asset": "USDT",
-        //                     "funding": "-0.0095688273996",
-        //                     "funding_rate": "0.00020034",
-        //                     "market": "BTCUSDT",
-        //                     "position_id": 62052321,
-        //                     "price": "39802.45",
-        //                     "real_funding_rate": "0.00020034",
-        //                     "side": 2,
-        //                     "time": 1650729623.933885,
-        //                     "type": 1,
-        //                     "user_id": 3620173,
-        //                     "value": "47.76294"
-        //                 },
-        //             ]
-        //         },
-        //         "message": "OK"
+        //         "data": [
+        //             {
+        //                 "ccy": "USDT",
+        //                 "created_at": 1715673620183,
+        //                 "funding_rate": "0",
+        //                 "funding_value": "0",
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "position_id": 306458800,
+        //                 "side": "long"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const resultList = this.safeValue(data, 'records', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
-        for (let i = 0; i < resultList.length; i++) {
-            const entry = resultList[i];
-            const timestamp = this.safeTimestamp(entry, 'time');
-            const currencyId = this.safeString(entry, 'asset');
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger(entry, 'created_at');
+            const currencyId = this.safeString(entry, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
             result.push({
                 'info': entry,
@@ -4690,7 +4505,7 @@ export default class coinex extends Exchange {
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'id': this.safeNumber(entry, 'position_id'),
-                'amount': this.safeNumber(entry, 'funding'),
+                'amount': this.safeNumber(entry, 'funding_value'),
             });
         }
         return result;
@@ -4700,7 +4515,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4713,93 +4528,63 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.v1PerpetualPublicGetMarketTicker(this.extend(request, params));
+        const response = await this.v2PublicGetFuturesFundingRate(this.extend(request, params));
         //
         //     {
-        //          "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "vol": "6090.9430",
-        //                 "low": "39180.30",
-        //                 "open": "40474.97",
-        //                 "high": "40798.01",
-        //                 "last": "39659.30",
-        //                 "buy": "39663.79",
-        //                 "period": 86400,
-        //                 "funding_time": 372,
-        //                 "position_amount": "270.1956",
-        //                 "funding_rate_last": "0.00022913",
-        //                 "funding_rate_next": "0.00013158",
-        //                 "funding_rate_predict": "0.00016552",
-        //                 "insurance": "16045554.83969682659674035672",
-        //                 "sign_price": "39652.48",
-        //                 "index_price": "39648.44250000",
-        //                 "sell_total": "22.3913",
-        //                 "buy_total": "19.4498",
-        //                 "buy_amount": "12.8942",
-        //                 "sell": "39663.80",
-        //                 "sell_amount": "0.9388"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const ticker = this.safeValue(data, 'ticker', {});
-        const timestamp = this.safeInteger(data, 'date');
-        ticker['timestamp'] = timestamp; // avoid changing parseFundingRate signature
-        return this.parseFundingRate(ticker, market);
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
+        return this.parseFundingRate(first, market);
     }
     parseFundingRate(contract, market = undefined) {
         //
-        // fetchFundingRate
+        // fetchFundingRate, fetchFundingRates
         //
         //     {
-        //         "vol": "6090.9430",
-        //         "low": "39180.30",
-        //         "open": "40474.97",
-        //         "high": "40798.01",
-        //         "last": "39659.30",
-        //         "buy": "39663.79",
-        //         "period": 86400,
-        //         "funding_time": 372,
-        //         "position_amount": "270.1956",
-        //         "funding_rate_last": "0.00022913",
-        //         "funding_rate_next": "0.00013158",
-        //         "funding_rate_predict": "0.00016552",
-        //         "insurance": "16045554.83969682659674035672",
-        //         "sign_price": "39652.48",
-        //         "index_price": "39648.44250000",
-        //         "sell_total": "22.3913",
-        //         "buy_total": "19.4498",
-        //         "buy_amount": "12.8942",
-        //         "sell": "39663.80",
-        //         "sell_amount": "0.9388"
+        //         "latest_funding_rate": "0",
+        //         "latest_funding_time": 1715731200000,
+        //         "mark_price": "61602.22",
+        //         "market": "BTCUSDT",
+        //         "max_funding_rate": "0.00375",
+        //         "min_funding_rate": "-0.00375",
+        //         "next_funding_rate": "0.00021074",
+        //         "next_funding_time": 1715760000000
         //     }
         //
-        const timestamp = this.safeInteger(contract, 'timestamp');
-        contract = this.omit(contract, 'timestamp');
-        const fundingDelta = this.safeInteger(contract, 'funding_time') * 60 * 1000;
-        const fundingHour = (timestamp + fundingDelta) / 3600000;
-        const fundingTimestamp = Math.round(fundingHour) * 3600000;
+        const currentFundingTimestamp = this.safeInteger(contract, 'latest_funding_time');
+        const futureFundingTimestamp = this.safeInteger(contract, 'next_funding_time');
+        const marketId = this.safeString(contract, 'market');
         return {
             'info': contract,
-            'symbol': this.safeSymbol(undefined, market),
-            'markPrice': this.safeNumber(contract, 'sign_price'),
-            'indexPrice': this.safeNumber(contract, 'index_price'),
+            'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
+            'markPrice': this.safeNumber(contract, 'mark_price'),
+            'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'fundingRate': this.safeNumber(contract, 'funding_rate_next'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601(fundingTimestamp),
-            'nextFundingRate': this.safeNumber(contract, 'funding_rate_predict'),
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber(contract, 'funding_rate_last'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber(contract, 'latest_funding_rate'),
+            'fundingTimestamp': currentFundingTimestamp,
+            'fundingDatetime': this.iso8601(currentFundingTimestamp),
+            'nextFundingRate': this.safeNumber(contract, 'next_funding_rate'),
+            'nextFundingTimestamp': futureFundingTimestamp,
+            'nextFundingDatetime': this.iso8601(futureFundingTimestamp),
+            'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
@@ -4809,13 +4594,14 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
+        const request = {};
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue(symbols, 0);
@@ -4823,55 +4609,30 @@ export default class coinex extends Exchange {
             if (!market['swap']) {
                 throw new BadSymbol(this.id + ' fetchFundingRates() supports swap contracts only');
             }
+            const marketIds = this.marketIds(symbols);
+            request['market'] = marketIds.join(',');
         }
-        const response = await this.v1PerpetualPublicGetMarketTickerAll(params);
+        const response = await this.v2PublicGetFuturesFundingRate(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data":
-        //         {
-        //             "date": 1650678472474,
-        //             "ticker": {
-        //                 "BTCUSDT": {
-        //                     "vol": "6090.9430",
-        //                     "low": "39180.30",
-        //                     "open": "40474.97",
-        //                     "high": "40798.01",
-        //                     "last": "39659.30",
-        //                     "buy": "39663.79",
-        //                     "period": 86400,
-        //                     "funding_time": 372,
-        //                     "position_amount": "270.1956",
-        //                     "funding_rate_last": "0.00022913",
-        //                     "funding_rate_next": "0.00013158",
-        //                     "funding_rate_predict": "0.00016552",
-        //                     "insurance": "16045554.83969682659674035672",
-        //                     "sign_price": "39652.48",
-        //                     "index_price": "39648.44250000",
-        //                     "sell_total": "22.3913",
-        //                     "buy_total": "19.4498",
-        //                     "buy_amount": "12.8942",
-        //                     "sell": "39663.80",
-        //                     "sell_amount": "0.9388"
-        //                 }
+        //         "data": [
+        //             {
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         },
+        //         ],
         //         "message": "OK"
         //     }
-        const data = this.safeValue(response, 'data', {});
-        const tickers = this.safeValue(data, 'ticker', {});
-        const timestamp = this.safeInteger(data, 'date');
-        const result = [];
-        const marketIds = Object.keys(tickers);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            if (marketId.indexOf('_') === -1) { // skip _signprice and _indexprice
-                const marketInner = this.safeMarket(marketId, undefined, undefined, 'swap');
-                const ticker = tickers[marketId];
-                ticker['timestamp'] = timestamp;
-                result.push(this.parseFundingRate(ticker, marketInner));
-            }
-        }
+        //
+        const data = this.safeList(response, 'data', []);
+        const result = this.parseFundingRates(data, market);
         return this.filterByArray(result, 'symbol', symbols);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -4945,13 +4706,13 @@ export default class coinex extends Exchange {
         /**
          * @method
          * @name coinex#fetchFundingRateHistory
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
          * @description fetches historical funding rate prices
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] timestamp in ms of the latest funding rate
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
@@ -4964,52 +4725,46 @@ export default class coinex extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000);
         }
-        if (limit === undefined) {
-            limit = 100;
-        }
         const market = this.market(symbol);
         let request = {
             'market': market['id'],
-            'limit': limit,
-            'offset': 0,
-            // 'end_time': 1638990636,
         };
         if (since !== undefined) {
             request['start_time'] = since;
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         [request, params] = this.handleUntilOption('end_time', request, params);
-        const response = await this.v1PerpetualPublicGetMarketFundingHistory(this.extend(request, params));
+        const response = await this.v2PublicGetFuturesFundingRateHistory(this.extend(request, params));
         //
         //     {
         //         "code": 0,
-        //         "data": {
-        //             "offset": 0,
-        //             "limit": 3,
-        //             "records": [
-        //                 {
-        //                     "time": 1650672021.6230309,
-        //                     "market": "BTCUSDT",
-        //                     "asset": "USDT",
-        //                     "funding_rate": "0.00022913",
-        //                     "funding_rate_real": "0.00022913"
-        //                 },
-        //             ]
-        //         },
-        //         "message": "OK"
+        //         "data": [
+        //             {
+        //                 "actual_funding_rate": "0",
+        //                 "funding_time": 1715731221761,
+        //                 "market": "BTCUSDT",
+        //                 "theoretical_funding_rate": "0"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
-        const result = this.safeValue(data, 'records', []);
+        const data = this.safeList(response, 'data', []);
         const rates = [];
-        for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             const marketId = this.safeString(entry, 'market');
             const symbolInner = this.safeSymbol(marketId, market, undefined, 'swap');
-            const timestamp = this.safeTimestamp(entry, 'time');
+            const timestamp = this.safeInteger(entry, 'funding_time');
             rates.push({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': this.safeNumber(entry, 'funding_rate'),
+                'fundingRate': this.safeNumber(entry, 'actual_funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
             });
@@ -5136,43 +4891,45 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
+         * @see https://docs.coinex.com/api/v2/assets/transfer/http/transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
+        const accountsByType = this.safeDict(this.options, 'accountsById', {});
+        const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString(accountsByType, toAccount, toAccount);
         const request = {
+            'ccy': currency['id'],
             'amount': amountToPrecision,
-            'coin_type': currency['id'],
+            'from_account_type': fromId,
+            'to_account_type': toId,
         };
-        let response = undefined;
-        if ((fromAccount === 'spot') && (toAccount === 'swap')) {
-            request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, params));
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            const symbol = this.safeString(params, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' transfer() the symbol parameter must be defined for a margin account');
+            }
+            params = this.omit(params, 'symbol');
+            request['market'] = this.marketId(symbol);
         }
-        else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
-            request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
-            response = await this.v1PrivatePostContractBalanceTransfer(this.extend(request, params));
+        if ((fromAccount !== 'spot') && (toAccount !== 'spot')) {
+            throw new BadRequest(this.id + ' transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot');
         }
-        else {
-            const accountsById = this.safeValue(this.options, 'accountsById', {});
-            const fromId = this.safeString(accountsById, fromAccount, fromAccount);
-            const toId = this.safeString(accountsById, toAccount, toAccount);
-            // fromAccount and toAccount must be integers for margin transfers
-            // spot is 0, use fetchBalance() to find the margin account id
-            request['from_account'] = parseInt(fromId);
-            request['to_account'] = parseInt(toId);
-            response = await this.v1PrivatePostMarginTransfer(this.extend(request, params));
-        }
+        const response = await this.v2PrivatePostAssetsTransfer(this.extend(request, params));
         //
-        //     {"code": 0, "data": null, "message": "Success"}
+        //     {
+        //         "code": 0,
+        //         "data": {},
+        //         "message": "OK"
+        //     }
         //
         return this.extend(this.parseTransfer(response, currency), {
             'amount': this.parseNumber(amountToPrecision),
@@ -5184,67 +4941,26 @@ export default class coinex extends Exchange {
         const statuses = {
             '0': 'ok',
             'SUCCESS': 'ok',
+            'OK': 'ok',
+            'finished': 'ok',
+            'FINISHED': 'ok',
         };
         return this.safeString(statuses, status, status);
     }
     parseTransfer(transfer, currency = undefined) {
-        //
-        // fetchTransfers Swap
-        //
-        //     {
-        //         "amount": "10",
-        //         "asset": "USDT",
-        //         "transfer_type": "transfer_out", // from swap to spot
-        //         "created_at": 1651633422
-        //     },
-        //
-        // fetchTransfers Margin
-        //
-        //     {
-        //         "id": 7580062,
-        //         "updated_at": 1653684379,
-        //         "user_id": 3620173,
-        //         "from_account_id": 0,
-        //         "to_account_id": 1,
-        //         "asset": "BTC",
-        //         "amount": "0.00160829",
-        //         "balance": "0.00160829",
-        //         "transfer_type": "IN",
-        //         "status": "SUCCESS",
-        //         "created_at": 1653684379
-        //     },
-        //
-        const timestamp = this.safeTimestamp(transfer, 'created_at');
-        const transferType = this.safeString(transfer, 'transfer_type');
-        let fromAccount = undefined;
-        let toAccount = undefined;
-        if (transferType === 'transfer_out') {
-            fromAccount = 'swap';
-            toAccount = 'spot';
-        }
-        else if (transferType === 'transfer_in') {
-            fromAccount = 'spot';
-            toAccount = 'swap';
-        }
-        else if (transferType === 'IN') {
-            fromAccount = 'spot';
-            toAccount = 'margin';
-        }
-        else if (transferType === 'OUT') {
-            fromAccount = 'margin';
-            toAccount = 'spot';
-        }
-        const currencyId = this.safeString(transfer, 'asset');
-        const currencyCode = this.safeCurrencyCode(currencyId, currency);
+        const timestamp = this.safeInteger(transfer, 'created_at');
+        const currencyId = this.safeString(transfer, 'ccy');
+        const fromId = this.safeString(transfer, 'from_account_type');
+        const toId = this.safeString(transfer, 'to_account_type');
+        const accountsById = this.safeValue(this.options, 'accountsById', {});
         return {
-            'info': transfer,
-            'id': this.safeInteger(transfer, 'id'),
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'currency': currencyCode,
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(transfer, 'amount'),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': this.safeString(accountsById, fromId, fromId),
+            'toAccount': this.safeString(accountsById, toId, toId),
             'status': this.parseTransferStatus(this.safeString2(transfer, 'code', 'status')),
         };
     }
@@ -5253,31 +4969,29 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history
+         * @see https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
-         * @param {int} [limit] the maximum number of  transfers structures to retrieve
+         * @param {int} [limit] the maximum number of transfer structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching transfers to and from your margin account
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
-        let currency = undefined;
-        const request = {
-            'page': 1,
-            // 'limit': limit,
-            // 'asset': 'USDT',
-            // 'start_time': since,
-            // 'end_time': 1515806440,
-            // 'transfer_type': 'transfer_in', // transfer_in: from Spot to Swap Account, transfer_out: from Swap to Spot Account
-        };
-        const page = this.safeInteger(params, 'page');
-        if (page !== undefined) {
-            request['page'] = page;
+        if (code === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchTransfers() requires a code argument');
         }
-        if (code !== undefined) {
-            currency = this.currency(code);
-            request['asset'] = currency['id'];
+        const currency = this.currency(code);
+        let request = {
+            'ccy': currency['id'],
+        };
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchTransfers', params);
+        if (marginMode !== undefined) {
+            request['transfer_type'] = 'MARGIN';
+        }
+        else {
+            request['transfer_type'] = 'FUTURES';
         }
         if (since !== undefined) {
             request['start_time'] = since;
@@ -5285,66 +4999,30 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        else {
-            request['limit'] = 100;
-        }
-        params = this.omit(params, 'page');
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchTransfers', params);
-        let response = undefined;
-        if (marginMode !== undefined) {
-            response = await this.v1PrivateGetMarginTransferHistory(this.extend(request, params));
-        }
-        else {
-            response = await this.v1PrivateGetContractTransferHistory(this.extend(request, params));
-        }
-        //
-        // Swap
+        [request, params] = this.handleUntilOption('end_time', request, params);
+        const response = await this.v2PrivateGetAssetsTransferHistory(this.extend(request, params));
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //             "records": [
-        //                 {
-        //                     "amount": "10",
-        //                     "asset": "USDT",
-        //                     "transfer_type": "transfer_out",
-        //                     "created_at": 1651633422
-        //                 },
-        //             ],
-        //             "total": 5
+        //         "data": [
+        //             {
+        //                 "created_at": 1715848480646,
+        //                 "from_account_type": "SPOT",
+        //                 "to_account_type": "FUTURES",
+        //                 "ccy": "USDT",
+        //                 "amount": "10",
+        //                 "status": "finished"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 8,
+        //             "has_next": false
         //         },
-        //         "message": "Success"
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
-        // Margin
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "records": [
-        //                 {
-        //                     "id": 7580062,
-        //                     "updated_at": 1653684379,
-        //                     "user_id": 3620173,
-        //                     "from_account_id": 0,
-        //                     "to_account_id": 1,
-        //                     "asset": "BTC",
-        //                     "amount": "0.00160829",
-        //                     "balance": "0.00160829",
-        //                     "transfer_type": "IN",
-        //                     "status": "SUCCESS",
-        //                     "created_at": 1653684379
-        //                 }
-        //             ],
-        //             "total": 1
-        //         },
-        //         "message": "Success"
-        //     }
-        //
-        const data = this.safeValue(response, 'data', {});
-        const transfers = this.safeList(data, 'records', []);
-        return this.parseTransfers(transfers, currency, since, limit);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTransfers(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -5933,72 +5611,72 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchPositionHistory
          * @description fetches historical positions
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
          * @param {string} symbol unified contract symbol
-         * @param {int} [since] not used by coinex fetchPositionHistory
-         * @param {int} [limit] the maximum amount of records to fetch, default=1000
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} [params.side] 0: all 1: sell, 2: buy
+         * @param {int} [since] the earliest time in ms to fetch positions for
+         * @param {int} [limit] the maximum amount of records to fetch, default is 10
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch positions for
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (limit === undefined) {
-            limit = 1000;
-        }
-        const request = {
+        let request = {
+            'market_type': 'FUTURES',
             'market': market['id'],
-            'side': 0,
-            'limit': limit,
         };
-        const response = await this.v1PerpetualPrivateGetPositionFinished(this.extend(request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        [request, params] = this.handleUntilOption('end_time', request, params);
+        const response = await this.v2PrivateGetFuturesFinishedPosition(this.extend(request, params));
         //
-        //    {
-        //        code: '0',
-        //        data: {
-        //            limit: '1000',
-        //            offset: '0',
-        //            records: [
-        //                {
-        //                    amount_max: '10',
-        //                    amount_max_margin: '2.03466666666666666666',
-        //                    bkr_price: '0',
-        //                    create_time: '1711150526.2581',
-        //                    deal_all: '12.591',
-        //                    deal_asset_fee: '0',
-        //                    fee_asset: '',
-        //                    finish_type: '5',
-        //                    first_price: '0.6104',
-        //                    latest_price: '0.6487',
-        //                    leverage: '3',
-        //                    liq_amount: '0',
-        //                    liq_price: '0',
-        //                    liq_profit: '0',
-        //                    mainten_margin: '0.01',
-        //                    market: 'XRPUSDT',
-        //                    market_type: '1',
-        //                    open_price: '0.6104',
-        //                    open_val_max: '6.104',
-        //                    position_id: '297371462',
-        //                    profit_real: '0.35702107169',
-        //                    settle_price: '0.6104',
-        //                    settle_val: '0',
-        //                    side: '2',
-        //                    sy s: '0',
-        //                    type: '2',
-        //                    update_time: '1711391446.133233',
-        //                    user_id: '3685860'
-        //                },
-        //                ...
-        //            ]
-        //        },
-        //        message: 'OK'
-        //    }
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "position_id": 305891033,
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
+        //             }
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
+        //         }
+        //     }
         //
-        const data = this.safeDict(response, 'data');
-        const records = this.safeList(data, 'records');
+        const records = this.safeList(response, 'data', []);
         const positions = this.parsePositions(records);
         return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
     }
@@ -6141,7 +5819,7 @@ export default class coinex extends Exchange {
         const code = this.safeString(response, 'code');
         const data = this.safeValue(response, 'data');
         const message = this.safeString(response, 'message');
-        if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
+        if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message.toLowerCase() !== 'ok') && !data)) {
             const feedback = this.id + ' ' + message;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
@@ -6154,71 +5832,66 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchMarginAdjustmentHistory
          * @description fetches the history of margin added or reduced from contract isolated positions
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
-         * @param {string} [symbol] unified market symbol
+         * @see https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history
+         * @param {string} symbol unified market symbol
          * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
          * @param {int} [since] timestamp in ms of the earliest change to fetch
-         * @param {int} [limit] the maximum amount of changes to fetch, default=100, max=100
+         * @param {int} [limit] the maximum amount of changes to fetch, default is 10
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @param {int} [params.until] timestamp in ms of the latest change to fetch
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} [params.offset] offset
+         * @param {int} [params.positionId] the id of the position that you want to retrieve margin adjustment history for
          * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
-        const until = this.safeInteger(params, 'until');
-        params = this.omit(params, 'until');
-        if (limit === undefined) {
-            limit = 100;
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory() requires a symbol argument');
         }
-        const request = {
-            'market': '',
-            'position_id': 0,
-            'offset': 0,
-            'limit': limit,
+        const positionId = this.safeInteger2(params, 'positionId', 'position_id');
+        params = this.omit(params, 'positionId');
+        if (positionId === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchMarginAdjustmentHistory() requires a positionId parameter');
+        }
+        const market = this.market(symbol);
+        let request = {
+            'market': market['id'],
+            'market_type': 'FUTURES',
+            'position_id': positionId,
         };
-        if (symbol !== undefined) {
-            const market = this.market(symbol);
-            request['market'] = market['id'];
-        }
+        [request, params] = this.handleUntilOption('end_time', request, params);
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        if (until !== undefined) {
-            request['end_time'] = until;
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
-        const response = await this.v1PerpetualPrivateGetPositionMarginHistory(this.extend(request, params));
+        const response = await this.v2PrivateGetFuturesPositionMarginHistory(this.extend(request, params));
         //
-        //    {
-        //        code: '0',
-        //        data: {
-        //            limit: '100',
-        //            offset: '0',
-        //            records: [
-        //                {
-        //                    bkr_price: '0',
-        //                    leverage: '3',
-        //                    liq_price: '0',
-        //                    margin_amount: '5.33236666666666666666',
-        //                    margin_change: '3',
-        //                    market: 'XRPUSDT',
-        //                    position_amount: '11',
-        //                    position_id: '297155652',
-        //                    position_type: '2',
-        //                    settle_price: '0.6361',
-        //                    time: '1711050906.382891',
-        //                    type: '1',
-        //                    user_id: '3685860'
-        //                }
-        //            ]
-        //        },
-        //        message: 'OK'
-        //    }
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "bkr_pirce": "24698.56000000000000005224",
+        //                 "created_at": 1715489978697,
+        //                 "leverage": "3",
+        //                 "liq_price": "24822.67336683417085432386",
+        //                 "margin_avbl": "3.634928",
+        //                 "margin_change": "-1.5",
+        //                 "margin_mode": "isolated",
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "open_interest": "0.0001",
+        //                 "position_id": 306458800,
+        //                 "settle_price": "61047.84"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
+        //         }
+        //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        const records = this.safeList(data, 'records', []);
-        const modifications = this.parseMarginModifications(records, undefined, 'market', 'swap');
+        const data = this.safeList(response, 'data', []);
+        const modifications = this.parseMarginModifications(data, undefined, 'market', 'swap');
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
     }
 }

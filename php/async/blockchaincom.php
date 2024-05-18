@@ -388,7 +388,7 @@ class blockchaincom extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetL3Symbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetL3Symbol ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
         }) ();
     }
@@ -403,12 +403,12 @@ class blockchaincom extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetL2Symbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetL2Symbol ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //     "symbol" => "BTC-USD",
@@ -460,7 +460,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
             return $this->parse_ticker($response, $market);
         }) ();
     }
@@ -607,7 +607,7 @@ class blockchaincom extends Exchange {
             if ($stopPriceRequired) {
                 $request['stopPx'] = $this->price_to_precision($symbol, $stopPrice);
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -625,7 +625,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
             return array(
                 'id' => $id,
                 'info' => $response,
@@ -652,7 +652,7 @@ class blockchaincom extends Exchange {
                 $marketId = $this->market_id($symbol);
                 $request['symbol'] = $marketId;
             }
-            $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
             return array(
                 'symbol' => $symbol,
                 'info' => $response,
@@ -755,7 +755,7 @@ class blockchaincom extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -828,7 +828,7 @@ class blockchaincom extends Exchange {
                 $request['symbol'] = $this->market_id($symbol);
                 $market = $this->market($symbol);
             }
-            $trades = Async\await($this->privateGetFills (array_merge($request, $params)));
+            $trades = Async\await($this->privateGetFills ($this->extend($request, $params)));
             return $this->parse_trades($trades, $market, $since, $limit, $params); // need to define
         }) ();
     }
@@ -847,7 +847,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostDepositsCurrency (array_merge($request, $params)));
+            $response = Async\await($this->privatePostDepositsCurrency ($this->extend($request, $params)));
             $rawAddress = $this->safe_string($response, 'address');
             $tag = null;
             $address = null;
@@ -969,7 +969,7 @@ class blockchaincom extends Exchange {
                 'beneficiary' => $address,
                 'sendMax' => false,
             );
-            $response = Async\await($this->privatePostWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawals ($this->extend($request, $params)));
             //
             //     array(
             //         "amount" => "30.0",
@@ -1008,7 +1008,7 @@ class blockchaincom extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->privateGetWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdrawals ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency, $since, $limit);
         }) ();
     }
@@ -1027,7 +1027,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'withdrawalId' => $id,
             );
-            $response = Async\await($this->privateGetWithdrawalsWithdrawalId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdrawalsWithdrawalId ($this->extend($request, $params)));
             return $this->parse_transaction($response);
         }) ();
     }
@@ -1055,7 +1055,7 @@ class blockchaincom extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->privateGetDeposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetDeposits ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency, $since, $limit);
         }) ();
     }
@@ -1075,7 +1075,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'depositId' => $depositId,
             );
-            $deposit = Async\await($this->privateGetDepositsDepositId (array_merge($request, $params)));
+            $deposit = Async\await($this->privateGetDepositsDepositId ($this->extend($request, $params)));
             return $this->parse_transaction($deposit);
         }) ();
     }
@@ -1094,7 +1094,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'account' => $accountName,
             );
-            $response = Async\await($this->privateGetAccounts (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccounts ($this->extend($request, $params)));
             //
             //     {
             //         "primary" => array(
@@ -1143,7 +1143,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersOrderId ($this->extend($request, $params)));
             //
             //     {
             //         "exOrdId" => 11111111,

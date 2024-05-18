@@ -11,9 +11,12 @@ const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedOb
 , urlencodeWithArrayRepeat = (object) => qs.stringify(object, { arrayFormat: 'repeat' }), rawencode = (object) => qs.stringify(object, { encode: false }), encode = utf8.decode // lol
 , decode = utf8.encode
 // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
-, urlencodeBase64 = (base64string) => base64string.replace(/[=]+$/, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_'), numberToLE = (n, padding) => numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => numberToBytesBE(BigInt(n), padding);
+, urlencodeBase64 = (payload) => {
+    const payload64 = (typeof payload === 'string') ? stringToBase64(payload) : binaryToBase64(payload);
+    return payload64.replace(/[=]+$/, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+}, numberToLE = (n, padding) => numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => numberToBytesBE(BigInt(n), padding);
 function packb(req) {
     return serialize(req);
 }

@@ -2974,7 +2974,7 @@ public partial class bitrue : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -3242,6 +3242,12 @@ public partial class bitrue : Exchange
                 object signMessage = add(add(timestamp, method), signPath);
                 if (isTrue(isEqual(method, "GET")))
                 {
+                    object keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+                    object keysLength = getArrayLength(keys);
+                    if (isTrue(isGreaterThan(keysLength, 0)))
+                    {
+                        signMessage = add(signMessage, add("?", this.urlencode(parameters)));
+                    }
                     object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "X-CH-APIKEY", this.apiKey },
@@ -3255,7 +3261,7 @@ public partial class bitrue : Exchange
                         { "recvWindow", recvWindow },
                     }, parameters);
                     body = this.json(query);
-                    signMessage = add(signMessage, json(body));
+                    signMessage = add(signMessage, body);
                     object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },

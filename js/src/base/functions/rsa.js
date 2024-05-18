@@ -1,6 +1,6 @@
 import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
 import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
-import { urlencodeBase64, stringToBase64, base16ToBinary, binaryToBase64 } from './encode.js';
+import { urlencodeBase64, base16ToBinary, base64ToBinary } from './encode.js';
 import { hmac } from './crypto.js';
 import { P256 } from '../../static_dependencies/noble-curves/p256.js';
 import { ecdsa } from '../../base/functions/crypto.js';
@@ -21,22 +21,22 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
         request['iat'] = header['iat'];
         delete header['iat'];
     }
-    const encodedHeader = urlencodeBase64(stringToBase64(JSON.stringify(header)));
-    const encodedData = urlencodeBase64(stringToBase64(JSON.stringify(request)));
+    const encodedHeader = urlencodeBase64(JSON.stringify(header));
+    const encodedData = urlencodeBase64(JSON.stringify(request));
     const token = [encodedHeader, encodedData].join('.');
     const algoType = alg.slice(0, 2);
     let signature = undefined;
     if (algoType === 'HS') {
-        signature = urlencodeBase64(hmac(token, secret, hash, 'base64'));
+        signature = urlencodeBase64(hmac(token, secret, hash, 'binary'));
     }
     else if (isRSA || algoType === 'RS') {
-        signature = urlencodeBase64(rsa(token, utf8.encode(secret), hash));
+        signature = urlencodeBase64(base64ToBinary(rsa(token, utf8.encode(secret), hash)));
     }
     else if (algoType === 'ES') {
         const signedHash = ecdsa(token, utf8.encode(secret), P256, hash);
         const r = signedHash.r.padStart(64, '0');
         const s = signedHash.s.padStart(64, '0');
-        signature = urlencodeBase64(binaryToBase64(base16ToBinary(r + s)));
+        signature = urlencodeBase64(base16ToBinary(r + s));
     }
     return [token, signature].join('.');
 }

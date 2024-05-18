@@ -412,12 +412,12 @@ class indodax extends Exchange {
             $request = array(
                 'pair' => $market['base'] . $market['quote'],
             );
-            $orderbook = Async\await($this->publicGetApiDepthPair (array_merge($request, $params)));
+            $orderbook = Async\await($this->publicGetApiDepthPair ($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'buy', 'sell');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"0.01951",
@@ -473,7 +473,7 @@ class indodax extends Exchange {
             $request = array(
                 'pair' => $market['base'] . $market['quote'],
             );
-            $response = Async\await($this->publicGetApiTickerPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetApiTickerPair ($this->extend($request, $params)));
             //
             //     {
             //         "ticker" => {
@@ -520,7 +520,7 @@ class indodax extends Exchange {
             // }
             //
             $response = Async\await($this->publicGetApiTickerAll ($params));
-            $tickers = $this->safe_list($response, 'tickers');
+            $tickers = $this->safe_dict($response, 'tickers', array());
             return $this->parse_tickers($tickers, $symbols);
         }) ();
     }
@@ -560,7 +560,7 @@ class indodax extends Exchange {
             $request = array(
                 'pair' => $market['base'] . $market['quote'],
             );
-            $response = Async\await($this->publicGetApiTradesPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetApiTradesPair ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -619,7 +619,7 @@ class indodax extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['from'] = $now - $limit * $duration - 1;
             }
-            $response = Async\await($this->publicGetTradingviewHistoryV2 (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradingviewHistoryV2 ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -742,9 +742,9 @@ class indodax extends Exchange {
                 'pair' => $market['id'],
                 'order_id' => $id,
             );
-            $response = Async\await($this->privatePostGetOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetOrder ($this->extend($request, $params)));
             $orders = $response['return'];
-            $order = $this->parse_order(array_merge(array( 'id' => $id ), $orders['order']), $market);
+            $order = $this->parse_order($this->extend(array( 'id' => $id ), $orders['order']), $market);
             $order['info'] = $response;
             return $order;
         }) ();
@@ -768,7 +768,7 @@ class indodax extends Exchange {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
             }
-            $response = Async\await($this->privatePostOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOpenOrders ($this->extend($request, $params)));
             $rawOrders = $response['return']['orders'];
             // array( success => 1, return => array( orders => null )) if no orders
             if (!$rawOrders) {
@@ -811,7 +811,7 @@ class indodax extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privatePostOrderHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderHistory ($this->extend($request, $params)));
             $orders = $this->parse_orders($response['return']['orders'], $market);
             $orders = $this->filter_by($orders, 'status', 'closed');
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
@@ -848,7 +848,7 @@ class indodax extends Exchange {
                 $request[$market['baseId']] = $amount;
             }
             $request[$currency] = $amount;
-            $result = Async\await($this->privatePostTrade (array_merge($request, $params)));
+            $result = Async\await($this->privatePostTrade ($this->extend($request, $params)));
             $data = $this->safe_value($result, 'return', array());
             $id = $this->safe_string($data, 'order_id');
             return $this->safe_order(array(
@@ -882,7 +882,7 @@ class indodax extends Exchange {
                 'pair' => $market['id'],
                 'type' => $side,
             );
-            return Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            return Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
         }) ();
     }
 
@@ -900,7 +900,7 @@ class indodax extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostWithdrawFee (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawFee ($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -939,7 +939,7 @@ class indodax extends Exchange {
                 $request['start'] = $startTime;
                 $request['end'] = $this->iso8601($this->milliseconds(mb_substr()), 0, 10 - 0);
             }
-            $response = Async\await($this->privatePostTransHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTransHistory ($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -1055,7 +1055,7 @@ class indodax extends Exchange {
             if ($tag) {
                 $request['withdraw_memo'] = $tag;
             }
-            $response = Async\await($this->privatePostWithdrawCoin (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawCoin ($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -1256,7 +1256,7 @@ class indodax extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'timestamp' => $this->nonce(),
                 'recvWindow' => $this->options['recvWindow'],

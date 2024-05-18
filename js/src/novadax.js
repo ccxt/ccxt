@@ -1186,7 +1186,6 @@ export default class novadax extends Exchange {
             'info': transfer,
             'id': id,
             'amount': undefined,
-            'code': currencyCode,
             'currency': currencyCode,
             'fromAccount': undefined,
             'toAccount': undefined,

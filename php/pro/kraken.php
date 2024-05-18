@@ -141,8 +141,8 @@ class kraken extends \ccxt\async\kraken {
                 'pair' => $market['wsId'],
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            list($request, $params) = $this->orderRequest ('createOrderWs', $symbol, $type, $request, $price, $params);
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            list($request, $params) = $this->orderRequest ('createOrderWs', $symbol, $type, $request, $amount, $price, $params);
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -171,7 +171,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve ($order, $messageHash);
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -197,10 +197,12 @@ class kraken extends \ccxt\async\kraken {
                 'reqid' => $requestId,
                 'orderid' => $id,
                 'pair' => $market['wsId'],
-                'volume' => $this->amount_to_precision($symbol, $amount),
             );
-            list($request, $params) = $this->orderRequest ('editOrderWs', $symbol, $type, $request, $price, $params);
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            if ($amount !== null) {
+                $request['volume'] = $this->amount_to_precision($symbol, $amount);
+            }
+            list($request, $params) = $this->orderRequest ('editOrderWs', $symbol, $type, $request, $amount, $price, $params);
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -225,7 +227,7 @@ class kraken extends \ccxt\async\kraken {
                 'reqid' => $requestId,
                 'txid' => $ids,
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -252,7 +254,7 @@ class kraken extends \ccxt\async\kraken {
                 'reqid' => $requestId,
                 'txid' => array( $clientOrderId ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -291,7 +293,7 @@ class kraken extends \ccxt\async\kraken {
                 'token' => $token,
                 'reqid' => $requestId,
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -584,7 +586,7 @@ class kraken extends \ccxt\async\kraken {
                     throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25, 100, 500 and 1000 only');
                 }
             }
-            $orderbook = Async\await($this->watch_multi_helper('orderbook', 'book', $symbols, array( 'limit' => $limit ), array_merge($request, $params)));
+            $orderbook = Async\await($this->watch_multi_helper('orderbook', 'book', $symbols, array( 'limit' => $limit ), $this->extend($request, $params)));
             return $orderbook->limit ();
         }) ();
     }
@@ -799,6 +801,8 @@ class kraken extends \ccxt\async\kraken {
                 $localChecksum = $this->crc32($payload, false);
                 if ($localChecksum !== $c) {
                     $error = new InvalidNonce ($this->id . ' invalid checksum');
+                    unset($client->subscriptions[$messageHash]);
+                    unset($this->orderbooks[$symbol]);
                     $client->reject ($error, $messageHash);
                     return;
                 }
@@ -977,7 +981,7 @@ class kraken extends \ccxt\async\kraken {
                 for ($j = 0; $j < count($ids); $j++) {
                     $id = $ids[$j];
                     $trade = $trades[$id];
-                    $parsed = $this->parse_ws_trade(array_merge(array( 'id' => $id ), $trade));
+                    $parsed = $this->parse_ws_trade($this->extend(array( 'id' => $id ), $trade));
                     $stored->append ($parsed);
                     $symbol = $parsed['symbol'];
                     $symbols[$symbol] = true;
@@ -1196,7 +1200,7 @@ class kraken extends \ccxt\async\kraken {
                     $previousOrder = $this->safe_value($previousOrders, $id);
                     $newOrder = $parsed;
                     if ($previousOrder !== null) {
-                        $newRawOrder = array_merge($previousOrder['info'], $newOrder['info']);
+                        $newRawOrder = $this->extend($previousOrder['info'], $newOrder['info']);
                         $newOrder = $this->parse_ws_order($newRawOrder);
                         $newOrder['id'] = $id;
                     }

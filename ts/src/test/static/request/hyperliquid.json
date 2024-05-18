@@ -540,7 +540,7 @@
                         "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
                     }
                 ],
-                "output": "{\"type\":\"openOrders\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+                "output": "{\"type\":\"frontendOpenOrders\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
             }
         ],
         "fetchOrder": [

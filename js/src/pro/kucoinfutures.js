@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class kucoinfutures extends kucoinfuturesRest {
     describe() {
@@ -12,6 +12,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchTickers': true,
                 'watchBidsAsks': true,
                 'watchTrades': true,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchBalance': true,
@@ -22,6 +23,21 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchOrderBookForSymbols': true,
             },
             'options': {
+                'timeframes': {
+                    '1m': '1min',
+                    '3m': '1min',
+                    '5m': '5min',
+                    '15m': '15min',
+                    '30m': '30min',
+                    '1h': '1hour',
+                    '2h': '2hour',
+                    '4h': '4hour',
+                    '8h': '8hour',
+                    '12h': '12hour',
+                    '1d': '1day',
+                    '1w': '1week',
+                    '1M': '1month',
+                },
                 'accountsByType': {
                     'swap': 'future',
                     'cross': 'margin',
@@ -564,6 +580,81 @@ export default class kucoinfutures extends kucoinfuturesRest {
         client.resolve(trades, messageHash);
         return message;
     }
+    async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#watchOHLCV
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const url = await this.negotiate(false);
+        const marketId = this.marketId(symbol);
+        const timeframes = this.safeDict(this.options, 'timeframes');
+        const timeframeId = this.safeString(timeframes, timeframe, timeframe);
+        const topic = '/contractMarket/limitCandle:' + marketId + '_' + timeframeId;
+        const messageHash = 'ohlcv::' + symbol + '_' + timeframe;
+        const ohlcv = await this.subscribe(url, messageHash, topic, undefined, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+    handleOHLCV(client, message) {
+        //
+        //    {
+        //        "topic":"/contractMarket/limitCandle:LTCUSDTM_1min",
+        //        "type":"message",
+        //        "data":{
+        //            "symbol":"LTCUSDTM",
+        //            "candles":[
+        //                "1715470980",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "61.0",
+        //                "61"
+        //            ],
+        //            "time":1715470994801
+        //        },
+        //        "subject":"candle.stick"
+        //    }
+        //
+        const topic = this.safeString(message, 'topic');
+        const parts = topic.split('_');
+        const timeframeId = this.safeString(parts, 1);
+        const data = this.safeDict(message, 'data');
+        const timeframes = this.safeDict(this.options, 'timeframes');
+        const timeframe = this.findTimeframe(timeframeId, timeframes);
+        const marketId = this.safeString(data, 'symbol');
+        const symbol = this.safeSymbol(marketId);
+        const messageHash = 'ohlcv::' + symbol + '_' + timeframe;
+        const ohlcv = this.safeList(data, 'candles');
+        const parsed = [
+            this.safeInteger(ohlcv, 0),
+            this.safeNumber(ohlcv, 1),
+            this.safeNumber(ohlcv, 2),
+            this.safeNumber(ohlcv, 3),
+            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 6), // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        ];
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        if (!(timeframe in this.ohlcvs[symbol])) {
+            const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp(limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        stored.append(parsed);
+        client.resolve(stored, messageHash);
+    }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
@@ -980,6 +1071,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const methods = {
             'level2': this.handleOrderBook,
             'ticker': this.handleTicker,
+            'candle.stick': this.handleOHLCV,
             'tickerV2': this.handleBidAsk,
             'availableBalance.change': this.handleBalance,
             'match': this.handleTrade,

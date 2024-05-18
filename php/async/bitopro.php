@@ -381,7 +381,7 @@ class bitopro extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "pair":"btc_twd",
@@ -434,7 +434,7 @@ class bitopro extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersPair ($this->extend($request, $params)));
             $ticker = $this->safe_value($response, 'data', array());
             //
             //     {
@@ -502,7 +502,7 @@ class bitopro extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderBookPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderBookPair ($this->extend($request, $params)));
             //
             //     {
             //         "bids":array(
@@ -630,7 +630,7 @@ class bitopro extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradesPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradesPair ($this->extend($request, $params)));
             $trades = $this->safe_value($response, 'data', array());
             //
             //     {
@@ -786,7 +786,7 @@ class bitopro extends Exchange {
                 $request['from'] = (int) floor($since / 1000);
                 $request['to'] = $this->sum($request['from'], $limit * $timeframeInSeconds);
             }
-            $response = Async\await($this->publicGetTradingHistoryPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradingHistoryPair ($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data', array());
             //
             //     {
@@ -1052,7 +1052,7 @@ class bitopro extends Exchange {
             if ($postOnly) {
                 $request['timeInForce'] = 'POST_ONLY';
             }
-            $response = Async\await($this->privatePostOrdersPair (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrdersPair ($this->extend($request, $params)));
             //
             //     {
             //         "orderId" => "2220595581",
@@ -1086,7 +1086,7 @@ class bitopro extends Exchange {
                 'id' => $id,
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privateDeleteOrdersPairId (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersPairId ($this->extend($request, $params)));
             //
             //     {
             //         "orderId":"8777138788",
@@ -1118,7 +1118,7 @@ class bitopro extends Exchange {
             $id = $market['uppercaseId'];
             $request = array();
             $request[$id] = $ids;
-            $response = Async\await($this->privatePutOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePutOrders ($this->extend($request, $params)));
             //
             //     {
             //         "data":{
@@ -1150,9 +1150,9 @@ class bitopro extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
-                $response = Async\await($this->privateDeleteOrdersPair (array_merge($request, $params)));
+                $response = Async\await($this->privateDeleteOrdersPair ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateDeleteOrdersAll (array_merge($request, $params)));
+                $response = Async\await($this->privateDeleteOrdersAll ($this->extend($request, $params)));
             }
             $result = $this->safe_value($response, 'data', array());
             //
@@ -1187,7 +1187,7 @@ class bitopro extends Exchange {
                 'orderId' => $id,
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privateGetOrdersPairOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersPairOrderId ($this->extend($request, $params)));
             //
             //     {
             //         "id":"8777138788",
@@ -1244,7 +1244,7 @@ class bitopro extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOrdersAllPair (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersAllPair ($this->extend($request, $params)));
             $orders = $this->safe_value($response, 'data');
             if ($orders === null) {
                 $orders = array();
@@ -1284,7 +1284,7 @@ class bitopro extends Exchange {
             $request = array(
                 'statusKind' => 'OPEN',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1301,7 +1301,7 @@ class bitopro extends Exchange {
         $request = array(
             'statusKind' => 'DONE',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1323,7 +1323,7 @@ class bitopro extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privateGetOrdersTradesPair (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersTradesPair ($this->extend($request, $params)));
             $trades = $this->safe_value($response, 'data', array());
             //
             //     {
@@ -1474,7 +1474,7 @@ class bitopro extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetWalletDepositHistoryCurrency (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWalletDepositHistoryCurrency ($this->extend($request, $params)));
             $result = $this->safe_value($response, 'data', array());
             //
             //     {
@@ -1527,7 +1527,7 @@ class bitopro extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetWalletWithdrawHistoryCurrency (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWalletWithdrawHistoryCurrency ($this->extend($request, $params)));
             $result = $this->safe_value($response, 'data', array());
             //
             //     {
@@ -1570,7 +1570,7 @@ class bitopro extends Exchange {
                 'serial' => $id,
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetWalletWithdrawCurrencySerial (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWalletWithdrawCurrencySerial ($this->extend($request, $params)));
             $result = $this->safe_value($response, 'data', array());
             //
             //     {
@@ -1626,7 +1626,7 @@ class bitopro extends Exchange {
             if ($tag !== null) {
                 $request['message'] = $tag;
             }
-            $response = Async\await($this->privatePostWalletWithdrawCurrency (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWalletWithdrawCurrency ($this->extend($request, $params)));
             $result = $this->safe_value($response, 'data', array());
             //
             //     {

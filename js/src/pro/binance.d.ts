@@ -52,7 +52,7 @@ export default class binance extends binanceRest {
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     handleOrderWs(client: Client, message: any): void;
     handleOrdersWs(client: Client, message: any): void;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     handleEditOrderWs(client: Client, message: any): void;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;

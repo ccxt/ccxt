@@ -35,6 +35,9 @@ class kraken extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -627,7 +630,7 @@ class kraken extends Exchange {
             // array( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
         );
         for ($i = 0; $i < count($markets); $i++) {
-            $result[] = array_merge($defaults, $markets[$i]);
+            $result[] = $this->extend($defaults, $markets[$i]);
         }
         return $result;
     }
@@ -709,7 +712,7 @@ class kraken extends Exchange {
             'pair' => $market['id'],
             'fee-info' => true,
         );
-        $response = $this->privatePostTradeVolume (array_merge($request, $params));
+        $response = $this->privatePostTradeVolume ($this->extend($request, $params));
         //
         //     {
         //        "error" => array(),
@@ -785,7 +788,7 @@ class kraken extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // 100
         }
-        $response = $this->publicGetDepth (array_merge($request, $params));
+        $response = $this->publicGetDepth ($this->extend($request, $params));
         //
         //     {
         //         "error":array(),
@@ -817,7 +820,7 @@ class kraken extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "a":["2432.77000","1","1.000"],
@@ -889,7 +892,7 @@ class kraken extends Exchange {
             }
             $request['pair'] = implode(',', $marketIds);
         }
-        $response = $this->publicGetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker ($this->extend($request, $params));
         $tickers = $response['result'];
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
@@ -920,7 +923,7 @@ class kraken extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker ($this->extend($request, $params));
         $ticker = $response['result'][$market['id']];
         return $this->parse_ticker($ticker, $market);
     }
@@ -981,7 +984,7 @@ class kraken extends Exchange {
             // the adding of '000000' is copied from the fetchTrades function
             $request['since'] = $this->number_to_string($since) . '000000'; // expected to be in nanoseconds
         }
-        $response = $this->publicGetOHLC (array_merge($request, $params));
+        $response = $this->publicGetOHLC ($this->extend($request, $params));
         //
         //     {
         //         "error":array(),
@@ -1087,7 +1090,7 @@ class kraken extends Exchange {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->privatePostLedgers (array_merge($request, $params));
+        $response = $this->privatePostLedgers ($this->extend($request, $params));
         // {  error => array(),
         //   "result" => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(   refid => "A2B4HBV-L4MDIE-JU4N3N",
         //                                                   "time" =>  1520103488.314,
@@ -1114,7 +1117,7 @@ class kraken extends Exchange {
         // https://www.kraken.com/features/api#query-ledgers
         $this->load_markets();
         $ids = implode(',', $ids);
-        $request = array_merge(array(
+        $request = $this->extend(array(
             'id' => $ids,
         ), $params);
         $response = $this->privatePostQueryLedgers ($request);
@@ -1271,7 +1274,7 @@ class kraken extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->publicGetTrades (array_merge($request, $params));
+        $response = $this->publicGetTrades ($this->extend($request, $params));
         //
         //     {
         //         "error" => array(),
@@ -1344,6 +1347,35 @@ class kraken extends Exchange {
         return $this->parse_balance($response);
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+        /**
+         * create a market order by providing the $symbol, $side and $cost
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @param {string} $symbol unified $symbol of the market to create an order in (only USD markets are supported)
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        // only buy orders are supported by the endpoint
+        $params['cost'] = $cost;
+        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        /**
+         * create a market buy order by providing the $symbol, side and $cost
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        return $this->create_market_order_with_cost($symbol, 'buy', $cost, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
@@ -1372,8 +1404,8 @@ class kraken extends Exchange {
             'ordertype' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
-        $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $price, $params);
-        $response = $this->privatePostAddOrder (array_merge($orderRequest[0], $orderRequest[1]));
+        $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $amount, $price, $params);
+        $response = $this->privatePostAddOrder ($this->extend($orderRequest[0], $orderRequest[1]));
         //
         //     {
         //         "error" => array(),
@@ -1676,7 +1708,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function order_request($method, $symbol, $type, $request, $price = null, $params = array ()) {
+    public function order_request(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array ()) {
         $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
         $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
         if ($clientOrderId !== null) {
@@ -1691,10 +1723,23 @@ class kraken extends Exchange {
         $trailingLimitAmount = $this->safe_string($params, 'trailingLimitAmount');
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
-        if ($isLimitOrder && !$isTrailingAmountOrder) {
+        $isMarketOrder = $type === 'market';
+        $cost = $this->safe_string($params, 'cost');
+        $flags = $this->safe_string($params, 'oflags');
+        $params = $this->omit($params, array( 'cost', 'oflags' ));
+        $isViqcOrder = ($flags !== null) && (mb_strpos($flags, 'viqc') > -1); // volume in quote currency
+        if ($isMarketOrder && ($cost !== null || $isViqcOrder)) {
+            if ($cost === null && ($amount !== null)) {
+                $request['volume'] = $this->cost_to_precision($symbol, $this->number_to_string($amount));
+            } else {
+                $request['volume'] = $this->cost_to_precision($symbol, $cost);
+            }
+            $extendedOflags = ($flags !== null) ? $flags . ',viqc' : 'viqc';
+            $request['oflags'] = $extendedOflags;
+        } elseif ($isLimitOrder && !$isTrailingAmountOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         if ($isStopLossOrTakeProfitTrigger) {
             if ($isStopLossTriggerOrder) {
                 $request['price'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
@@ -1736,9 +1781,9 @@ class kraken extends Exchange {
                 $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        $close = $this->safe_value($params, 'close');
+        $close = $this->safe_dict($params, 'close');
         if ($close !== null) {
-            $close = array_merge(array(), $close);
+            $close = $this->extend(array(), $close);
             $closePrice = $this->safe_value($close, 'price');
             if ($closePrice !== null) {
                 $close['price'] = $this->price_to_precision($symbol, $closePrice);
@@ -1757,7 +1802,8 @@ class kraken extends Exchange {
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
         if ($postOnly) {
-            $request['oflags'] = 'post';
+            $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
+            $request['oflags'] = $extendedPostFlags;
         }
         $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ));
         return array( $request, $params );
@@ -1794,8 +1840,8 @@ class kraken extends Exchange {
         if ($amount !== null) {
             $request['volume'] = $this->amount_to_precision($symbol, $amount);
         }
-        $orderRequest = $this->order_request('editOrder', $symbol, $type, $request, $price, $params);
-        $response = $this->privatePostEditOrder (array_merge($orderRequest[0], $orderRequest[1]));
+        $orderRequest = $this->order_request('editOrder', $symbol, $type, $request, $amount, $price, $params);
+        $response = $this->privatePostEditOrder ($this->extend($orderRequest[0], $orderRequest[1]));
         //
         //     {
         //         "error" => array(),
@@ -1838,7 +1884,7 @@ class kraken extends Exchange {
         } else {
             $request['txid'] = $id;
         }
-        $response = $this->privatePostQueryOrders (array_merge($request, $query));
+        $response = $this->privatePostQueryOrders ($this->extend($request, $query));
         //
         //     {
         //         "error":array(),
@@ -1880,7 +1926,7 @@ class kraken extends Exchange {
         if (!(is_array($result) && array_key_exists($id, $result))) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find order $id ' . $id);
         }
-        return $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
+        return $this->parse_order($this->extend(array( 'id' => $id ), $result[$id]));
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1972,7 +2018,7 @@ class kraken extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
-        $response = $this->privatePostQueryOrders (array_merge(array(
+        $response = $this->privatePostQueryOrders ($this->extend(array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => implode(',', $ids), // comma delimited list of transaction $ids to query info about (20 maximum)
         ), $params));
@@ -1982,7 +2028,7 @@ class kraken extends Exchange {
         for ($i = 0; $i < count($orderIds); $i++) {
             $id = $orderIds[$i];
             $item = $result[$id];
-            $order = $this->parse_order(array_merge(array( 'id' => $id ), $item));
+            $order = $this->parse_order($this->extend(array( 'id' => $id ), $item));
             $orders[] = $order;
         }
         return $orders;
@@ -2009,7 +2055,7 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
-        $response = $this->privatePostTradesHistory (array_merge($request, $params));
+        $response = $this->privatePostTradesHistory ($this->extend($request, $params));
         //
         //     {
         //         "error" => array(),
@@ -2064,7 +2110,7 @@ class kraken extends Exchange {
         );
         $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
         try {
-            $response = $this->privatePostCancelOrder (array_merge($request, $params));
+            $response = $this->privatePostCancelOrder ($this->extend($request, $params));
         } catch (Exception $e) {
             if ($this->last_http_response) {
                 if (mb_strpos($this->last_http_response, 'EOrder:Unknown order') !== false) {
@@ -2088,7 +2134,7 @@ class kraken extends Exchange {
         $request = array(
             'orders' => $ids,
         );
-        $response = $this->privatePostCancelOrderBatch (array_merge($request, $params));
+        $response = $this->privatePostCancelOrderBatch ($this->extend($request, $params));
         //
         //     {
         //         "error" => array(),
@@ -2127,7 +2173,7 @@ class kraken extends Exchange {
         $request = array(
             'timeout' => ($timeout > 0) ? ($this->parse_to_int($timeout / 1000)) : 0,
         );
-        $response = $this->privatePostCancelAllOrdersAfter (array_merge($request, $params));
+        $response = $this->privatePostCancelAllOrdersAfter ($this->extend($request, $params));
         //
         //     {
         //         "error" => [ ],
@@ -2161,7 +2207,7 @@ class kraken extends Exchange {
             $request['userref'] = $clientOrderId;
             $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
         }
-        $response = $this->privatePostOpenOrders (array_merge($request, $query));
+        $response = $this->privatePostOpenOrders ($this->extend($request, $query));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2194,7 +2240,7 @@ class kraken extends Exchange {
             $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
         }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
-        $response = $this->privatePostClosedOrders (array_merge($request, $query));
+        $response = $this->privatePostClosedOrders ($this->extend($request, $query));
         //
         //     {
         //         "error":array(),
@@ -2374,7 +2420,7 @@ class kraken extends Exchange {
     public function parse_transactions_by_type($type, $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
-            $transaction = $this->parse_transaction(array_merge(array(
+            $transaction = $this->parse_transaction($this->extend(array(
                 'type' => $type,
             ), $transactions[$i]));
             $result[] = $transaction;
@@ -2404,7 +2450,7 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = $since;
         }
-        $response = $this->privatePostDepositStatus (array_merge($request, $params));
+        $response = $this->privatePostDepositStatus ($this->extend($request, $params));
         //
         //     {  error => array(),
         //       "result" => array( { "method" => "Ether (Hex)",
@@ -2470,7 +2516,7 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['since'] = (string) $since;
         }
-        $response = $this->privatePostWithdrawStatus (array_merge($request, $params));
+        $response = $this->privatePostWithdrawStatus ($this->extend($request, $params));
         //
         // with no pagination
         //     {  error => array(),
@@ -2542,7 +2588,7 @@ class kraken extends Exchange {
         $request = array(
             'new' => 'true',
         );
-        return $this->fetch_deposit_address($code, array_merge($request, $params));
+        return $this->fetch_deposit_address($code, $this->extend($request, $params));
     }
 
     public function fetch_deposit_methods(string $code, $params = array ()) {
@@ -2558,7 +2604,7 @@ class kraken extends Exchange {
         $request = array(
             'asset' => $currency['id'],
         );
-        $response = $this->privatePostDepositMethods (array_merge($request, $params));
+        $response = $this->privatePostDepositMethods ($this->extend($request, $params));
         //
         //     {
         //         "error":array(),
@@ -2629,7 +2675,7 @@ class kraken extends Exchange {
             'asset' => $currency['id'],
             'method' => $depositMethod,
         );
-        $response = $this->privatePostDepositAddresses (array_merge($request, $params));
+        $response = $this->privatePostDepositAddresses ($this->extend($request, $params));
         //
         //     {
         //         "error":array(),
@@ -2688,7 +2734,7 @@ class kraken extends Exchange {
                 'amount' => $amount,
                 'address' => $address,
             );
-            $response = $this->privatePostWithdraw (array_merge($request, $params));
+            $response = $this->privatePostWithdraw ($this->extend($request, $params));
             //
             //     {
             //         "error" => array(),
@@ -2717,7 +2763,7 @@ class kraken extends Exchange {
             'docalcs' => 'true', // whether or not to include profit/loss calculations
             'consolidation' => 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
         );
-        $response = $this->privatePostOpenPositions (array_merge($request, $params));
+        $response = $this->privatePostOpenPositions ($this->extend($request, $params));
         //
         // no consolidation
         //
@@ -2863,7 +2909,7 @@ class kraken extends Exchange {
         if ($fromAccount !== 'Spot Wallet') {
             throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount . '. Use krakenfutures instead to $transfer from the futures account.');
         }
-        $response = $this->privatePostWalletTransfer (array_merge($request, $params));
+        $response = $this->privatePostWalletTransfer ($this->extend($request, $params));
         //
         //   {
         //       "error":array(
@@ -2874,14 +2920,14 @@ class kraken extends Exchange {
         //   }
         //
         $transfer = $this->parse_transfer($response, $currency);
-        return array_merge($transfer, array(
+        return $this->extend($transfer, array(
             'amount' => $amount,
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
         ));
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -2921,9 +2967,9 @@ class kraken extends Exchange {
             $nonce = (string) $this->nonce();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if ($isCancelOrderBatch) {
-                $body = $this->json(array_merge(array( 'nonce' => $nonce ), $params));
+                $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {
-                $body = $this->urlencode_nested(array_merge(array( 'nonce' => $nonce ), $params));
+                $body = $this->urlencode_nested($this->extend(array( 'nonce' => $nonce ), $params));
             }
             $auth = $this->encode($nonce . $body);
             $hash = $this->hash($auth, 'sha256', 'binary');
@@ -2970,6 +3016,9 @@ class kraken extends Exchange {
             throw new CancelPending($this->id . ' ' . $body);
         }
         if (mb_strpos($body, 'Invalid arguments:volume') !== false) {
+            throw new InvalidOrder($this->id . ' ' . $body);
+        }
+        if (mb_strpos($body, 'Invalid arguments:viqc') !== false) {
             throw new InvalidOrder($this->id . ' ' . $body);
         }
         if (mb_strpos($body, 'Rate limit exceeded') !== false) {

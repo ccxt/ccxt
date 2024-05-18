@@ -13,10 +13,11 @@ include_once PATH_TO_CCXT . '/test/base/test_ticker.php';
 include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
+    // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
+    // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
-        $without_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, null);
-        $with_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol]);
-        Async\await(Promise\all([$with_symbol, $without_symbol]));
+        Async\await(Promise\all([test_fetch_tickers_helper($exchange, $skipped_properties, null), test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol])]));
+
     }) ();
 }
 

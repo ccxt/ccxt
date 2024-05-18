@@ -2148,10 +2148,8 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        amount = this.parseToNumeric(amount);
         const request = {
-            'amount': amount,
+            'amount': this.parseToNumeric(this.currencyToPrecision(code, amount)),
             'currency': currency['id'].toUpperCase(),
         };
         let response = undefined;

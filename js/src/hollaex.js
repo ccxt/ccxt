@@ -531,12 +531,12 @@ export default class hollaex extends Exchange {
         //
         return this.parseTickers(response, symbols);
     }
-    parseTickers(response, symbols = undefined, params = {}) {
+    parseTickers(tickers, symbols = undefined, params = {}) {
         const result = {};
-        const keys = Object.keys(response);
+        const keys = Object.keys(tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const ticker = response[key];
+            const ticker = tickers[key];
             const marketId = this.safeString(ticker, 'symbol', key);
             const market = this.safeMarket(marketId, undefined, '-');
             const symbol = market['symbol'];

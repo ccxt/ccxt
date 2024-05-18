@@ -217,7 +217,7 @@ class bithumb extends Exchange {
                 $request = array(
                     'quoteId' => $quoteId,
                 );
-                $response = Async\await($this->publicGetTickerALLQuoteId (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTickerALLQuoteId ($this->extend($request, $params)));
                 $data = $this->safe_value($response, 'data');
                 $currencyIds = is_array($data) ? array_keys($data) : array();
                 for ($j = 0; $j < count($currencyIds); $j++) {
@@ -316,7 +316,7 @@ class bithumb extends Exchange {
             $request = array(
                 'currency' => 'ALL',
             );
-            $response = Async\await($this->privatePostInfoBalance (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoBalance ($this->extend($request, $params)));
             return $this->parse_balance($response);
         }) ();
     }
@@ -340,7 +340,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 30, max 30
             }
-            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -367,7 +367,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -435,7 +435,7 @@ class bithumb extends Exchange {
                 $request = array(
                     'quoteId' => $quoteId,
                 );
-                $response = Async\await($this->publicGetTickerALLQuoteId (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTickerALLQuoteId ($this->extend($request, $params)));
                 //
                 //     {
                 //         "status":"0000",
@@ -490,7 +490,7 @@ class bithumb extends Exchange {
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetTickerBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickerBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -555,7 +555,7 @@ class bithumb extends Exchange {
                 'quoteId' => $market['quoteId'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -682,7 +682,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 20, max 100
             }
-            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -731,7 +731,7 @@ class bithumb extends Exchange {
             } else {
                 $method = 'privatePostTradeMarket' . $this->capitalize($side);
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             $id = $this->safe_string($response, 'order_id');
             if ($id === null) {
                 throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
@@ -766,7 +766,7 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            $response = Async\await($this->privatePostInfoOrderDetail (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoOrderDetail ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -795,7 +795,7 @@ class bithumb extends Exchange {
             //     }
             //
             $data = $this->safe_dict($response, 'data');
-            return $this->parse_order(array_merge($data, array( 'order_id' => $id )), $market);
+            return $this->parse_order($this->extend($data, array( 'order_id' => $id )), $market);
         }) ();
     }
 
@@ -934,7 +934,7 @@ class bithumb extends Exchange {
             if ($since !== null) {
                 $request['after'] = $since;
             }
-            $response = Async\await($this->privatePostInfoOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoOrders ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -984,7 +984,7 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            return Async\await($this->privatePostTradeCancel (array_merge($request, $params)));
+            return Async\await($this->privatePostTradeCancel ($this->extend($request, $params)));
         }) ();
     }
 
@@ -993,7 +993,7 @@ class bithumb extends Exchange {
             $request = array(
                 'side' => $order['side'],
             );
-            return Async\await($this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params)));
+            return Async\await($this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params)));
         }) ();
     }
 
@@ -1026,7 +1026,7 @@ class bithumb extends Exchange {
                     $request['destination'] = $tag;
                 }
             }
-            $response = Async\await($this->privatePostTradeBtcWithdrawal (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeBtcWithdrawal ($this->extend($request, $params)));
             //
             // array( "status" : "0000")
             //
@@ -1091,7 +1091,7 @@ class bithumb extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce();

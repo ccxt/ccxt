@@ -178,9 +178,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
             if ($subscription === null) {
                 $subscription = $subscriptionRequest;
             } else {
-                $subscription = array_merge($subscriptionRequest, $subscription);
+                $subscription = $this->extend($subscriptionRequest, $subscription);
             }
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $name, $subscriptionRequest));
         }) ();
     }
@@ -879,32 +879,37 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
 
     public function handle_delta($orderbook, $delta) {
         //
-        //    {
-        //        "sequence" => 18,                   // Sequence number which is used to judge the continuity of pushed messages
-        //        "change" => "5000.0,sell,83"        // Price, $side, quantity
-        //        "timestamp" => 1551770400000
-        //    }
+        //    array(
+        //      $sequence => 123677914,
+        //      $lastSequence => 123677913,
+        //      $change => '80.36,buy,4924',
+        //      $changes => array( '80.19,buy,0',"80.15,buy,10794" ),
+        //      $timestamp => 1715643483528
+        //    ),
         //
         $sequence = $this->safe_integer($delta, 'sequence');
+        $lastSequence = $this->safe_integer($delta, 'lastSequence');
         $nonce = $this->safe_integer($orderbook, 'nonce');
-        if ($nonce !== $sequence - 1) {
-            $checksum = $this->safe_bool($this->options, 'checksum', true);
-            if ($checksum) {
-                // todo => client.reject from handleOrderBookMessage properly
-                throw new InvalidNonce($this->id . ' watchOrderBook received an out-of-order nonce');
-            }
+        if ($nonce > $sequence) {
+            return;
         }
-        $change = $this->safe_string($delta, 'change');
-        $splitChange = explode(',', $change);
-        $price = $this->safe_number($splitChange, 0);
-        $side = $this->safe_string($splitChange, 1);
-        $size = $this->safe_number($splitChange, 2);
+        if ($nonce !== $lastSequence) {
+            throw new InvalidNonce($this->id . ' watchOrderBook received an out-of-order nonce');
+        }
+        $changes = $this->safe_list($delta, 'changes');
+        for ($i = 0; $i < count($changes); $i++) {
+            $change = $changes[$i];
+            $splitChange = explode(',', $change);
+            $price = $this->safe_number($splitChange, 0);
+            $side = $this->safe_string($splitChange, 1);
+            $size = $this->safe_number($splitChange, 2);
+            $orderBookSide = ($side === 'buy') ? $orderbook['bids'] : $orderbook['asks'];
+            $orderBookSide->store ($price, $size);
+        }
         $timestamp = $this->safe_integer($delta, 'timestamp');
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $orderbook['nonce'] = $sequence;
-        $orderBookSide = ($side === 'buy') ? $orderbook['bids'] : $orderbook['asks'];
-        $orderBookSide->store ($price, $size);
     }
 
     public function handle_balance(Client $client, $message) {

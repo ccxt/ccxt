@@ -966,7 +966,7 @@ class deribit extends \ccxt\async\deribit {
                         'data' => '',
                     ),
                 );
-                $future = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+                $future = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
                 $client->subscriptions[$messageHash] = $future;
             }
             return $future;

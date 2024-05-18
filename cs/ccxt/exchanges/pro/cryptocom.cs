@@ -111,20 +111,25 @@ public partial class cryptocom : ccxt.cryptocom
             ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
         }
         object bookSubscriptionType = null;
-        var bookSubscriptionTypeparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", "watchOrderBookForSymbols", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        object bookSubscriptionType2 = null;
+        var bookSubscriptionTypeparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
         bookSubscriptionType = ((IList<object>)bookSubscriptionTypeparametersVariable)[0];
         parameters = ((IList<object>)bookSubscriptionTypeparametersVariable)[1];
-        if (isTrue(!isEqual(bookSubscriptionType, null)))
-        {
-            ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType;
-        }
+        var bookSubscriptionType2parametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        bookSubscriptionType2 = ((IList<object>)bookSubscriptionType2parametersVariable)[0];
+        parameters = ((IList<object>)bookSubscriptionType2parametersVariable)[1];
+        ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType2;
         object bookUpdateFrequency = null;
-        var bookUpdateFrequencyparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", "watchOrderBookForSymbols", "bookUpdateFrequency");
+        object bookUpdateFrequency2 = null;
+        var bookUpdateFrequencyparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
         bookUpdateFrequency = ((IList<object>)bookUpdateFrequencyparametersVariable)[0];
         parameters = ((IList<object>)bookUpdateFrequencyparametersVariable)[1];
-        if (isTrue(!isEqual(bookUpdateFrequency, null)))
+        var bookUpdateFrequency2parametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        bookUpdateFrequency2 = ((IList<object>)bookUpdateFrequency2parametersVariable)[0];
+        parameters = ((IList<object>)bookUpdateFrequency2parametersVariable)[1];
+        if (isTrue(!isEqual(bookUpdateFrequency2, null)))
         {
-            ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType;
+            ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookUpdateFrequency2;
         }
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {

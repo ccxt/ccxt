@@ -636,7 +636,7 @@
             "fetchTrades": "datetime is not same as timestamp"
         }
     },
-    "coinbasepro": {
+    "coinbaseexchange": {
         "skipWs": "needs auth",
         "skipMethods": {
             "loadMarkets":{
@@ -1523,6 +1523,18 @@
                 "id": "undefined",
                 "marginRatio": "undefined",
                 "collateral": "undefined"
+            }
+        }
+	},
+    "woofipro": {
+        "skipMethods":{
+            "loadMarkets":{
+                "active": "undefined",
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies":{
+                "withdraw": "undefined",
+                "deposit": "undefined"
             }
         }
 	},

@@ -20,11 +20,12 @@ export default class woo extends wooRest {
     checkRequiredUid(error?: boolean): boolean;
     authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, message: any, params?: {}): Promise<any>;
+    watchPrivateMultiple(messageHashes: any, message: any, params?: {}): Promise<any>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseWsOrder(order: any, market?: any): Order;
     handleOrderUpdate(client: Client, message: any): void;
-    handleOrder(client: Client, message: any): void;
+    handleOrder(client: Client, message: any, topic: any): void;
     handleMyTrade(client: Client, message: any): void;
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;

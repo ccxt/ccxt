@@ -2137,7 +2137,7 @@ export default class bigone extends Exchange {
         //         "data": null
         //     }
         //
-        const code = this.safeNumber(transfer, 'code');
+        const code = this.safeString(transfer, 'code');
         return {
             'info': transfer,
             'id': undefined,

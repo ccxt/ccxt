@@ -137,7 +137,7 @@ class binance extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => true,
-                'fetchPremiumIndexOHLCV' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -786,6 +786,7 @@ class binance extends Exchange {
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'premiumIndexKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'fundingRate' => 1,
                         'fundingInfo' => 1,
                         'premiumIndex' => 1,
@@ -3400,13 +3401,13 @@ class binance extends Exchange {
                     $type = 'inverse';
                 }
                 $isPortfolioMargin = true;
-                $response = Async\await($this->papiGetBalance (array_merge($request, $query)));
+                $response = Async\await($this->papiGetBalance ($this->extend($request, $query)));
             } elseif ($this->is_linear($type, $subType)) {
                 $type = 'linear';
-                $response = Async\await($this->fapiPrivateV2GetAccount (array_merge($request, $query)));
+                $response = Async\await($this->fapiPrivateV2GetAccount ($this->extend($request, $query)));
             } elseif ($this->is_inverse($type, $subType)) {
                 $type = 'inverse';
-                $response = Async\await($this->dapiPrivateGetAccount (array_merge($request, $query)));
+                $response = Async\await($this->dapiPrivateGetAccount ($this->extend($request, $query)));
             } elseif ($marginMode === 'isolated') {
                 $paramSymbols = $this->safe_list($params, 'symbols');
                 $query = $this->omit($query, 'symbols');
@@ -3424,15 +3425,15 @@ class binance extends Exchange {
                     }
                     $request['symbols'] = $symbols;
                 }
-                $response = Async\await($this->sapiGetMarginIsolatedAccount (array_merge($request, $query)));
+                $response = Async\await($this->sapiGetMarginIsolatedAccount ($this->extend($request, $query)));
             } elseif (($type === 'margin') || ($marginMode === 'cross')) {
-                $response = Async\await($this->sapiGetMarginAccount (array_merge($request, $query)));
+                $response = Async\await($this->sapiGetMarginAccount ($this->extend($request, $query)));
             } elseif ($type === 'savings') {
-                $response = Async\await($this->sapiGetLendingUnionAccount (array_merge($request, $query)));
+                $response = Async\await($this->sapiGetLendingUnionAccount ($this->extend($request, $query)));
             } elseif ($type === 'funding') {
-                $response = Async\await($this->sapiPostAssetGetFundingAsset (array_merge($request, $query)));
+                $response = Async\await($this->sapiPostAssetGetFundingAsset ($this->extend($request, $query)));
             } else {
-                $response = Async\await($this->privateGetAccount (array_merge($request, $query)));
+                $response = Async\await($this->privateGetAccount ($this->extend($request, $query)));
             }
             //
             // spot
@@ -3666,13 +3667,13 @@ class binance extends Exchange {
             }
             $response = null;
             if ($market['option']) {
-                $response = Async\await($this->eapiPublicGetDepth (array_merge($request, $params)));
+                $response = Async\await($this->eapiPublicGetDepth ($this->extend($request, $params)));
             } elseif ($market['linear']) {
-                $response = Async\await($this->fapiPublicGetDepth (array_merge($request, $params)));
+                $response = Async\await($this->fapiPublicGetDepth ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPublicGetDepth (array_merge($request, $params)));
+                $response = Async\await($this->dapiPublicGetDepth ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetDepth (array_merge($request, $params)));
+                $response = Async\await($this->publicGetDepth ($this->extend($request, $params)));
             }
             //
             // future
@@ -3717,7 +3718,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -3913,18 +3914,18 @@ class binance extends Exchange {
             );
             $response = null;
             if ($market['option']) {
-                $response = Async\await($this->eapiPublicGetTicker (array_merge($request, $params)));
+                $response = Async\await($this->eapiPublicGetTicker ($this->extend($request, $params)));
             } elseif ($market['linear']) {
-                $response = Async\await($this->fapiPublicGetTicker24hr (array_merge($request, $params)));
+                $response = Async\await($this->fapiPublicGetTicker24hr ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPublicGetTicker24hr (array_merge($request, $params)));
+                $response = Async\await($this->dapiPublicGetTicker24hr ($this->extend($request, $params)));
             } else {
                 $rolling = $this->safe_bool($params, 'rolling', false);
                 $params = $this->omit($params, 'rolling');
                 if ($rolling) {
-                    $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+                    $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+                    $response = Async\await($this->publicGetTicker24hr ($this->extend($request, $params)));
                 }
             }
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
@@ -3964,7 +3965,7 @@ class binance extends Exchange {
                 if ($symbols !== null) {
                     $request['symbols'] = $this->json($this->market_ids($symbols));
                 }
-                $response = Async\await($this->publicGetTickerBookTicker (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTickerBookTicker ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchBidsAsks() does not support ' . $type . ' markets yet');
             }
@@ -4107,7 +4108,7 @@ class binance extends Exchange {
                 if ($symbols !== null) {
                     $request['symbols'] = $this->json($this->market_ids($symbols));
                 }
-                $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTicker24hr ($this->extend($request, $params)));
             } elseif ($type === 'option') {
                 $response = Async\await($this->eapiPublicGetTicker ($params));
             } else {
@@ -4251,25 +4252,31 @@ class binance extends Exchange {
             }
             $response = null;
             if ($market['option']) {
-                $response = Async\await($this->eapiPublicGetKlines (array_merge($request, $params)));
+                $response = Async\await($this->eapiPublicGetKlines ($this->extend($request, $params)));
             } elseif ($price === 'mark') {
                 if ($market['inverse']) {
-                    $response = Async\await($this->dapiPublicGetMarkPriceKlines (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPublicGetMarkPriceKlines ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPublicGetMarkPriceKlines (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPublicGetMarkPriceKlines ($this->extend($request, $params)));
                 }
             } elseif ($price === 'index') {
                 if ($market['inverse']) {
-                    $response = Async\await($this->dapiPublicGetIndexPriceKlines (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPublicGetIndexPriceKlines ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPublicGetIndexPriceKlines (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPublicGetIndexPriceKlines ($this->extend($request, $params)));
+                }
+            } elseif ($price === 'premiumIndex') {
+                if ($market['inverse']) {
+                    $response = Async\await($this->dapiPublicGetPremiumIndexKlines ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->fapiPublicGetPremiumIndexKlines ($this->extend($request, $params)));
                 }
             } elseif ($market['linear']) {
-                $response = Async\await($this->fapiPublicGetKlines (array_merge($request, $params)));
+                $response = Async\await($this->fapiPublicGetKlines ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPublicGetKlines (array_merge($request, $params)));
+                $response = Async\await($this->dapiPublicGetKlines ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetKlines (array_merge($request, $params)));
+                $response = Async\await($this->publicGetKlines ($this->extend($request, $params)));
             }
             //
             //     [
@@ -4634,13 +4641,13 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
             $response = null;
             if ($market['option'] || $method === 'eapiPublicGetTrades') {
-                $response = Async\await($this->eapiPublicGetTrades (array_merge($request, $params)));
+                $response = Async\await($this->eapiPublicGetTrades ($this->extend($request, $params)));
             } elseif ($market['linear'] || $method === 'fapiPublicGetAggTrades') {
-                $response = Async\await($this->fapiPublicGetAggTrades (array_merge($request, $params)));
+                $response = Async\await($this->fapiPublicGetAggTrades ($this->extend($request, $params)));
             } elseif ($market['inverse'] || $method === 'dapiPublicGetAggTrades') {
-                $response = Async\await($this->dapiPublicGetAggTrades (array_merge($request, $params)));
+                $response = Async\await($this->dapiPublicGetAggTrades ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetAggTrades (array_merge($request, $params)));
+                $response = Async\await($this->publicGetAggTrades ($this->extend($request, $params)));
             }
             //
             // Caveats:
@@ -4901,7 +4908,7 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'timeInForce' ));
         }
         $params = $this->omit($params, array( 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function edit_contract_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -4946,9 +4953,9 @@ class binance extends Exchange {
             $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['linear']) {
-                $response = Async\await($this->fapiPrivatePutOrder (array_merge($request, $params)));
+                $response = Async\await($this->fapiPrivatePutOrder ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPrivatePutOrder (array_merge($request, $params)));
+                $response = Async\await($this->dapiPrivatePutOrder ($this->extend($request, $params)));
             }
             //
             // swap and future
@@ -5623,7 +5630,7 @@ class binance extends Exchange {
             $request = array(
                 'batchOrders' => $ordersRequests,
             );
-            $request = array_merge($request, $params);
+            $request = $this->extend($request, $params);
             if ($market['linear']) {
                 $response = Async\await($this->fapiPrivatePostBatchOrders ($request));
             } elseif ($market['option']) {
@@ -5701,6 +5708,7 @@ class binance extends Exchange {
              * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+             * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -5813,8 +5821,8 @@ class binance extends Exchange {
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice); // fallback to stopLoss
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $trailingDelta = $this->safe_string($params, 'trailingDelta');
-        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice', $this->number_to_string($price));
-        $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRate');
+        $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activationPrice');
+        $trailingPercent = $this->safe_string_n($params, array( 'trailingPercent', 'callbackRate', 'trailingDelta' ));
         $priceMatch = $this->safe_string($params, 'priceMatch');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
@@ -5826,10 +5834,31 @@ class binance extends Exchange {
         $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
-            $uppercaseType = 'TRAILING_STOP_MARKET';
-            $request['callbackRate'] = $trailingPercent;
-            if ($trailingTriggerPrice !== null) {
-                $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+            if ($market['swap']) {
+                $uppercaseType = 'TRAILING_STOP_MARKET';
+                $request['callbackRate'] = $trailingPercent;
+                if ($trailingTriggerPrice !== null) {
+                    $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+                }
+            } else {
+                if ($isMarketOrder) {
+                    throw new InvalidOrder($this->id . ' $trailingPercent orders are not supported for ' . $symbol . ' ' . $type . ' orders');
+                }
+                $stopLossOrTakeProfit = $this->safe_string($params, 'stopLossOrTakeProfit');
+                $params = $this->omit($params, 'stopLossOrTakeProfit');
+                if ($stopLossOrTakeProfit !== 'stopLoss' && $stopLossOrTakeProfit !== 'takeProfit') {
+                    throw new InvalidOrder($this->id . $symbol . ' $trailingPercent orders require a $stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                }
+                if ($stopLossOrTakeProfit === 'stopLoss') {
+                    $uppercaseType = 'STOP_LOSS_LIMIT';
+                } elseif ($stopLossOrTakeProfit === 'takeProfit') {
+                    $uppercaseType = 'TAKE_PROFIT_LIMIT';
+                }
+                if ($trailingTriggerPrice !== null) {
+                    $stopPrice = $this->price_to_precision($symbol, $trailingTriggerPrice);
+                }
+                $trailingPercentConverted = Precise::string_mul($trailingPercent, '100');
+                $request['trailingDelta'] = $trailingPercentConverted;
             }
         } elseif ($isStopLoss) {
             $stopPrice = $stopLossPrice;
@@ -5995,8 +6024,8 @@ class binance extends Exchange {
                 }
             } else {
                 // check for delta $price
-                if ($trailingDelta === null && $stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice or $trailingDelta param for a ' . $type . ' order');
+                if ($trailingDelta === null && $stopPrice === null && $trailingPercent === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice, $trailingDelta or $trailingPercent param for a ' . $type . ' order');
                 }
             }
             if ($stopPrice !== null) {
@@ -6014,7 +6043,7 @@ class binance extends Exchange {
             $params = $this->omit($params, 'timeInForce');
         }
         $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test' ));
-        return array_merge($request, $requestParams);
+        return $this->extend($request, $requestParams);
     }
 
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
@@ -6124,30 +6153,30 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId' ));
             $response = null;
             if ($market['option']) {
-                $response = Async\await($this->eapiPrivateGetOrder (array_merge($request, $params)));
+                $response = Async\await($this->eapiPrivateGetOrder ($this->extend($request, $params)));
             } elseif ($market['linear']) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetUmOrder (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetUmOrder ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPrivateGetOrder (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateGetOrder ($this->extend($request, $params)));
                 }
             } elseif ($market['inverse']) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetCmOrder (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetCmOrder ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->dapiPrivateGetOrder (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetOrder ($this->extend($request, $params)));
                 }
             } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetMarginOrder (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetMarginOrder ($this->extend($request, $params)));
                 } else {
                     if ($marginMode === 'isolated') {
                         $request['isIsolated'] = true;
                     }
-                    $response = Async\await($this->sapiGetMarginOrder (array_merge($request, $params)));
+                    $response = Async\await($this->sapiGetMarginOrder ($this->extend($request, $params)));
                 }
             } else {
-                $response = Async\await($this->privateGetOrder (array_merge($request, $params)));
+                $response = Async\await($this->privateGetOrder ($this->extend($request, $params)));
             }
             return $this->parse_order($response, $market);
         }) ();
@@ -6208,37 +6237,37 @@ class binance extends Exchange {
             }
             $response = null;
             if ($market['option']) {
-                $response = Async\await($this->eapiPrivateGetHistoryOrders (array_merge($request, $params)));
+                $response = Async\await($this->eapiPrivateGetHistoryOrders ($this->extend($request, $params)));
             } elseif ($market['linear']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiGetUmConditionalAllOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetUmConditionalAllOrders ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiGetUmAllOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetUmAllOrders ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->fapiPrivateGetAllOrders (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateGetAllOrders ($this->extend($request, $params)));
                 }
             } elseif ($market['inverse']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiGetCmConditionalAllOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetCmConditionalAllOrders ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiGetCmAllOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetCmAllOrders ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateGetAllOrders (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetAllOrders ($this->extend($request, $params)));
                 }
             } else {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetMarginAllOrders (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetMarginAllOrders ($this->extend($request, $params)));
                 } elseif ($type === 'margin' || $marginMode !== null) {
                     if ($marginMode === 'isolated') {
                         $request['isIsolated'] = true;
                     }
-                    $response = Async\await($this->sapiGetMarginAllOrders (array_merge($request, $params)));
+                    $response = Async\await($this->sapiGetMarginAllOrders ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->privateGetAllOrders (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetAllOrders ($this->extend($request, $params)));
                 }
             }
             //
@@ -6488,30 +6517,30 @@ class binance extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $response = Async\await($this->eapiPrivateGetOpenOrders (array_merge($request, $params)));
+                $response = Async\await($this->eapiPrivateGetOpenOrders ($this->extend($request, $params)));
             } elseif ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiGetUmConditionalOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetUmConditionalOpenOrders ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiGetUmOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetUmOpenOrders ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->fapiPrivateGetOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateGetOpenOrders ($this->extend($request, $params)));
                 }
             } elseif ($this->is_inverse($type, $subType)) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiGetCmConditionalOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetCmConditionalOpenOrders ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiGetCmOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetCmOpenOrders ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateGetOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetOpenOrders ($this->extend($request, $params)));
                 }
             } elseif ($type === 'margin' || $marginMode !== null || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetMarginOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetMarginOpenOrders ($this->extend($request, $params)));
                 } else {
                     if ($marginMode === 'isolated') {
                         $request['isIsolated'] = true;
@@ -6519,10 +6548,10 @@ class binance extends Exchange {
                             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for isolated markets');
                         }
                     }
-                    $response = Async\await($this->sapiGetMarginOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->sapiGetMarginOpenOrders ($this->extend($request, $params)));
                 }
             } else {
-                $response = Async\await($this->privateGetOpenOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateGetOpenOrders ($this->extend($request, $params)));
             }
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
@@ -6563,22 +6592,22 @@ class binance extends Exchange {
             if ($market['linear']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiGetUmConditionalOpenOrder (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetUmConditionalOpenOrder ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiGetUmOpenOrder (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetUmOpenOrder ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->fapiPrivateGetOpenOrder (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateGetOpenOrder ($this->extend($request, $params)));
                 }
             } elseif ($market['inverse']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiGetCmConditionalOpenOrder (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetCmConditionalOpenOrder ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiGetCmOpenOrder (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetCmOpenOrder ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateGetOpenOrder (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetOpenOrder ($this->extend($request, $params)));
                 }
             } else {
                 if ($market['option']) {
@@ -6891,38 +6920,38 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional' ));
             $response = null;
             if ($market['option']) {
-                $response = Async\await($this->eapiPrivateDeleteOrder (array_merge($request, $params)));
+                $response = Async\await($this->eapiPrivateDeleteOrder ($this->extend($request, $params)));
             } elseif ($market['linear']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiDeleteUmConditionalOrder (array_merge($request, $params)));
+                        $response = Async\await($this->papiDeleteUmConditionalOrder ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiDeleteUmOrder (array_merge($request, $params)));
+                        $response = Async\await($this->papiDeleteUmOrder ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->fapiPrivateDeleteOrder (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateDeleteOrder ($this->extend($request, $params)));
                 }
             } elseif ($market['inverse']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiDeleteCmConditionalOrder (array_merge($request, $params)));
+                        $response = Async\await($this->papiDeleteCmConditionalOrder ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiDeleteCmOrder (array_merge($request, $params)));
+                        $response = Async\await($this->papiDeleteCmOrder ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateDeleteOrder (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateDeleteOrder ($this->extend($request, $params)));
                 }
             } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiDeleteMarginOrder (array_merge($request, $params)));
+                    $response = Async\await($this->papiDeleteMarginOrder ($this->extend($request, $params)));
                 } else {
                     if ($marginMode === 'isolated') {
                         $request['isIsolated'] = true;
                     }
-                    $response = Async\await($this->sapiDeleteMarginOrder (array_merge($request, $params)));
+                    $response = Async\await($this->sapiDeleteMarginOrder ($this->extend($request, $params)));
                 }
             } else {
-                $response = Async\await($this->privateDeleteOrder (array_merge($request, $params)));
+                $response = Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
             }
             return $this->parse_order($response, $market);
         }) ();
@@ -6966,38 +6995,38 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             $response = null;
             if ($market['option']) {
-                $response = Async\await($this->eapiPrivateDeleteAllOpenOrders (array_merge($request, $params)));
+                $response = Async\await($this->eapiPrivateDeleteAllOpenOrders ($this->extend($request, $params)));
             } elseif ($market['linear']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiDeleteUmConditionalAllOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiDeleteUmConditionalAllOpenOrders ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiDeleteUmAllOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiDeleteUmAllOpenOrders ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->fapiPrivateDeleteAllOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateDeleteAllOpenOrders ($this->extend($request, $params)));
                 }
             } elseif ($market['inverse']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
-                        $response = Async\await($this->papiDeleteCmConditionalAllOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiDeleteCmConditionalAllOpenOrders ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->papiDeleteCmAllOpenOrders (array_merge($request, $params)));
+                        $response = Async\await($this->papiDeleteCmAllOpenOrders ($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateDeleteAllOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateDeleteAllOpenOrders ($this->extend($request, $params)));
                 }
             } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiDeleteMarginAllOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->papiDeleteMarginAllOpenOrders ($this->extend($request, $params)));
                 } else {
                     if ($marginMode === 'isolated') {
                         $request['isIsolated'] = true;
                     }
-                    $response = Async\await($this->sapiDeleteMarginOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->sapiDeleteMarginOpenOrders ($this->extend($request, $params)));
                 }
             } else {
-                $response = Async\await($this->privateDeleteOpenOrders (array_merge($request, $params)));
+                $response = Async\await($this->privateDeleteOpenOrders ($this->extend($request, $params)));
             }
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
                 return $this->parse_orders($response, $market);
@@ -7036,9 +7065,9 @@ class binance extends Exchange {
             );
             $response = null;
             if ($market['linear']) {
-                $response = Async\await($this->fapiPrivateDeleteBatchOrders (array_merge($request, $params)));
+                $response = Async\await($this->fapiPrivateDeleteBatchOrders ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPrivateDeleteBatchOrders (array_merge($request, $params)));
+                $response = Async\await($this->dapiPrivateDeleteBatchOrders ($this->extend($request, $params)));
             }
             //
             //    array(
@@ -7107,7 +7136,7 @@ class binance extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            return Async\await($this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -7175,7 +7204,7 @@ class binance extends Exchange {
             }
             $response = null;
             if ($type === 'option') {
-                $response = Async\await($this->eapiPrivateGetUserTrades (array_merge($request, $params)));
+                $response = Async\await($this->eapiPrivateGetUserTrades ($this->extend($request, $params)));
             } else {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -7185,26 +7214,26 @@ class binance extends Exchange {
                 list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
                 if ($type === 'spot' || $type === 'margin') {
                     if ($isPortfolioMargin) {
-                        $response = Async\await($this->papiGetMarginMyTrades (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetMarginMyTrades ($this->extend($request, $params)));
                     } elseif (($type === 'margin') || ($marginMode !== null)) {
                         if ($marginMode === 'isolated') {
                             $request['isIsolated'] = true;
                         }
-                        $response = Async\await($this->sapiGetMarginMyTrades (array_merge($request, $params)));
+                        $response = Async\await($this->sapiGetMarginMyTrades ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->privateGetMyTrades (array_merge($request, $params)));
+                        $response = Async\await($this->privateGetMyTrades ($this->extend($request, $params)));
                     }
                 } elseif ($market['linear']) {
                     if ($isPortfolioMargin) {
-                        $response = Async\await($this->papiGetUmUserTrades (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetUmUserTrades ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->fapiPrivateGetUserTrades (array_merge($request, $params)));
+                        $response = Async\await($this->fapiPrivateGetUserTrades ($this->extend($request, $params)));
                     }
                 } elseif ($market['inverse']) {
                     if ($isPortfolioMargin) {
-                        $response = Async\await($this->papiGetCmUserTrades (array_merge($request, $params)));
+                        $response = Async\await($this->papiGetCmUserTrades ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->dapiPrivateGetUserTrades (array_merge($request, $params)));
+                        $response = Async\await($this->dapiPrivateGetUserTrades ($this->extend($request, $params)));
                     }
                 }
             }
@@ -7370,7 +7399,7 @@ class binance extends Exchange {
             if ($accountType !== null) {
                 $request['accountType'] = $accountType;
             }
-            $response = Async\await($this->sapiGetAssetDribblet (array_merge($request, $params)));
+            $response = Async\await($this->sapiGetAssetDribblet ($this->extend($request, $params)));
             //     {
             //       "total" => "4",
             //       "userAssetDribblets" => array(
@@ -7528,7 +7557,7 @@ class binance extends Exchange {
                 if ($until !== null) {
                     $request['endTime'] = $until;
                 }
-                $raw = Async\await($this->sapiGetFiatOrders (array_merge($request, $params)));
+                $raw = Async\await($this->sapiGetFiatOrders ($this->extend($request, $params)));
                 $response = $this->safe_list($raw, 'data', array());
                 //     {
                 //       "code" => "000000",
@@ -7566,7 +7595,7 @@ class binance extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $response = Async\await($this->sapiGetCapitalDepositHisrec (array_merge($request, $params)));
+                $response = Async\await($this->sapiGetCapitalDepositHisrec ($this->extend($request, $params)));
                 //     array(
                 //       array(
                 //         "amount" => "0.01844487",
@@ -7643,7 +7672,7 @@ class binance extends Exchange {
                 if ($since !== null) {
                     $request['beginTime'] = $since;
                 }
-                $raw = Async\await($this->sapiGetFiatOrders (array_merge($request, $params)));
+                $raw = Async\await($this->sapiGetFiatOrders ($this->extend($request, $params)));
                 $response = $this->safe_list($raw, 'data', array());
                 //     {
                 //       "code" => "000000",
@@ -7688,7 +7717,7 @@ class binance extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $response = Async\await($this->sapiGetCapitalWithdrawHistory (array_merge($request, $params)));
+                $response = Async\await($this->sapiGetCapitalWithdrawHistory ($this->extend($request, $params)));
                 //     array(
                 //       array(
                 //         "id" => "69e53ad305124b96b43668ceab158a18",
@@ -7904,14 +7933,14 @@ class binance extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'CONFIRMED' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -8079,7 +8108,7 @@ class binance extends Exchange {
                     $request['type'] = $fromId . '_' . $toId;
                 }
             }
-            $response = Async\await($this->sapiPostAssetTransfer (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostAssetTransfer ($this->extend($request, $params)));
             //
             //     {
             //         "tranId":13526853623
@@ -8089,7 +8118,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -8145,7 +8174,7 @@ class binance extends Exchange {
                 $params = $this->omit($params, 'until');
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->sapiGetAssetTransfer (array_merge($request, $params)));
+            $response = Async\await($this->sapiGetAssetTransfer ($this->extend($request, $params)));
             //
             //     {
             //         "total" => 3,
@@ -8190,7 +8219,7 @@ class binance extends Exchange {
             }
             // has support for the 'network' parameter
             // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
-            $response = Async\await($this->sapiGetCapitalDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->sapiGetCapitalDepositAddress ($this->extend($request, $params)));
             //
             //     {
             //         "currency" => "XRP",
@@ -8518,7 +8547,7 @@ class binance extends Exchange {
                 $request['network'] = $network;
                 $params = $this->omit($params, 'network');
             }
-            $response = Async\await($this->sapiPostCapitalWithdrawApply (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostCapitalWithdrawApply ($this->extend($request, $params)));
             //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
             return $this->parse_transaction($response, $currency);
         }) ();
@@ -8584,18 +8613,18 @@ class binance extends Exchange {
             $response = null;
             if ($isLinear) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetUmCommissionRate (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetUmCommissionRate ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPrivateGetCommissionRate (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateGetCommissionRate ($this->extend($request, $params)));
                 }
             } elseif ($isInverse) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetCmCommissionRate (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetCmCommissionRate ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->dapiPrivateGetCommissionRate (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetCommissionRate ($this->extend($request, $params)));
                 }
             } else {
-                $response = Async\await($this->sapiGetAssetTradeFee (array_merge($request, $params)));
+                $response = Async\await($this->sapiGetAssetTradeFee ($this->extend($request, $params)));
             }
             //
             // spot
@@ -8823,7 +8852,7 @@ class binance extends Exchange {
                 'amount' => $amount,
                 'type' => $type,
             );
-            $response = Async\await($this->sapiPostFuturesTransfer (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostFuturesTransfer ($this->extend($request, $params)));
             //
             //   {
             //       "tranId" => 100000001
@@ -8850,9 +8879,9 @@ class binance extends Exchange {
             );
             $response = null;
             if ($market['linear']) {
-                $response = Async\await($this->fapiPublicGetPremiumIndex (array_merge($request, $params)));
+                $response = Async\await($this->fapiPublicGetPremiumIndex ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPublicGetPremiumIndex (array_merge($request, $params)));
+                $response = Async\await($this->dapiPublicGetPremiumIndex ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchFundingRate() supports linear and inverse contracts only');
             }
@@ -8922,9 +8951,9 @@ class binance extends Exchange {
             }
             $response = null;
             if ($this->is_linear($type, $subType)) {
-                $response = Async\await($this->fapiPublicGetFundingRate (array_merge($request, $params)));
+                $response = Async\await($this->fapiPublicGetFundingRate ($this->extend($request, $params)));
             } elseif ($this->is_inverse($type, $subType)) {
-                $response = Async\await($this->dapiPublicGetFundingRate (array_merge($request, $params)));
+                $response = Async\await($this->dapiPublicGetFundingRate ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported for ' . $type . ' markets');
             }
@@ -9059,7 +9088,7 @@ class binance extends Exchange {
             if (!$filterClosed || $isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (is_array($balances) && array_key_exists($code, $balances)) {
-                    $parsed = $this->parse_account_position(array_merge($position, array(
+                    $parsed = $this->parse_account_position($this->extend($position, array(
                         'crossMargin' => $balances[$code]['crossMargin'],
                         'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
                     )), $market);
@@ -9521,7 +9550,7 @@ class binance extends Exchange {
             Async\await($this->load_markets());
             // by default cache the leverage $bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
-            $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets', array());
+            $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets');
             if (($leverageBrackets === null) || ($reload)) {
                 $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
                 $type = $this->safe_string($params, 'type', $defaultType);
@@ -9703,7 +9732,7 @@ class binance extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->eapiPrivateGetPosition (array_merge($request, $params)));
+            $response = Async\await($this->eapiPrivateGetPosition ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -9758,7 +9787,7 @@ class binance extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->eapiPrivateGetPosition (array_merge($request, $params)));
+            $response = Async\await($this->eapiPrivateGetPosition ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -9965,15 +9994,15 @@ class binance extends Exchange {
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetUmPositionRisk (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetUmPositionRisk ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPrivateV2GetPositionRisk (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateV2GetPositionRisk ($this->extend($request, $params)));
                 }
             } elseif ($this->is_inverse($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetCmPositionRisk (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetCmPositionRisk ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->dapiPrivateGetPositionRisk (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetPositionRisk ($this->extend($request, $params)));
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchPositionsRisk() supports linear and inverse contracts only');
@@ -10132,15 +10161,15 @@ class binance extends Exchange {
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetUmIncome (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetUmIncome ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPrivateGetIncome (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateGetIncome ($this->extend($request, $params)));
                 }
             } elseif ($this->is_inverse($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetCmIncome (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetCmIncome ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->dapiPrivateGetIncome (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetIncome ($this->extend($request, $params)));
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
@@ -10182,15 +10211,15 @@ class binance extends Exchange {
             $response = null;
             if ($market['linear']) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiPostUmLeverage (array_merge($request, $params)));
+                    $response = Async\await($this->papiPostUmLeverage ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPrivatePostLeverage (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivatePostLeverage ($this->extend($request, $params)));
                 }
             } elseif ($market['inverse']) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiPostCmLeverage (array_merge($request, $params)));
+                    $response = Async\await($this->papiPostCmLeverage ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->dapiPrivatePostLeverage (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivatePostLeverage ($this->extend($request, $params)));
                 }
             } else {
                 throw new NotSupported($this->id . ' setLeverage() supports linear and inverse contracts only');
@@ -10236,9 +10265,9 @@ class binance extends Exchange {
             $response = null;
             try {
                 if ($market['linear']) {
-                    $response = Async\await($this->fapiPrivatePostMarginType (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivatePostMarginType ($this->extend($request, $params)));
                 } elseif ($market['inverse']) {
-                    $response = Async\await($this->dapiPrivatePostMarginType (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivatePostMarginType ($this->extend($request, $params)));
                 } else {
                     throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
                 }
@@ -10297,15 +10326,15 @@ class binance extends Exchange {
             $response = null;
             if ($this->is_inverse($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiPostCmPositionSideDual (array_merge($request, $params)));
+                    $response = Async\await($this->papiPostCmPositionSideDual ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->dapiPrivatePostPositionSideDual (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivatePostPositionSideDual ($this->extend($request, $params)));
                 }
             } elseif ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiPostUmPositionSideDual (array_merge($request, $params)));
+                    $response = Async\await($this->papiPostUmPositionSideDual ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPrivatePostPositionSideDual (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivatePostPositionSideDual ($this->extend($request, $params)));
                 }
             } else {
                 throw new BadRequest($this->id . ' setPositionMode() supports linear and inverse contracts only');
@@ -10362,7 +10391,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $marginModeRaw = $this->safe_bool($leverage, 'isolated');
         $marginMode = null;
@@ -10419,7 +10448,7 @@ class binance extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->eapiPublicGetExerciseHistory (array_merge($request, $params)));
+            $response = Async\await($this->eapiPublicGetExerciseHistory ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -10465,7 +10494,7 @@ class binance extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->eapiPrivateGetExerciseRecord (array_merge($request, $params)));
+            $response = Async\await($this->eapiPrivateGetExerciseRecord ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -10588,7 +10617,7 @@ class binance extends Exchange {
             if ($type !== 'option') {
                 throw new BadRequest($this->id . ' fetchLedgerEntry () can only be used for $type option');
             }
-            return Async\await($this->fetch_ledger($code, null, null, array_merge($query, $params)));
+            return Async\await($this->fetch_ledger($code, null, null, $this->extend($query, $params)));
         }) ();
     }
 
@@ -10643,18 +10672,18 @@ class binance extends Exchange {
             if ($type === 'option') {
                 $this->check_required_argument('fetchLedger', $code, 'code');
                 $request['currency'] = $currency['id'];
-                $response = Async\await($this->eapiPrivateGetBill (array_merge($request, $params)));
+                $response = Async\await($this->eapiPrivateGetBill ($this->extend($request, $params)));
             } elseif ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetUmIncome (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetUmIncome ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPrivateGetIncome (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateGetIncome ($this->extend($request, $params)));
                 }
             } elseif ($this->is_inverse($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetCmIncome (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetCmIncome ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->dapiPrivateGetIncome (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetIncome ($this->extend($request, $params)));
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchLedger() supports contract wallets only');
@@ -10823,7 +10852,7 @@ class binance extends Exchange {
                 $params['batchOrders'] = $queryBatch;
             }
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-            $extendedParams = array_merge(array(
+            $extendedParams = $this->extend(array(
                 'timestamp' => $this->nonce(),
             ), $params);
             if ($defaultRecvWindow !== null) {
@@ -11048,10 +11077,10 @@ class binance extends Exchange {
             $code = null;
             if ($market['linear']) {
                 $code = $market['quote'];
-                $response = Async\await($this->fapiPrivatePostPositionMargin (array_merge($request, $params)));
+                $response = Async\await($this->fapiPrivatePostPositionMargin ($this->extend($request, $params)));
             } else {
                 $code = $market['base'];
-                $response = Async\await($this->dapiPrivatePostPositionMargin (array_merge($request, $params)));
+                $response = Async\await($this->dapiPrivatePostPositionMargin ($this->extend($request, $params)));
             }
             //
             //     {
@@ -11061,13 +11090,13 @@ class binance extends Exchange {
             //         "type" => 1
             //     }
             //
-            return array_merge($this->parse_margin_modification($response, $market), array(
+            return $this->extend($this->parse_margin_modification($response, $market), array(
                 'code' => $code,
             ));
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // add/reduce margin
         //
@@ -11157,7 +11186,7 @@ class binance extends Exchange {
                 'asset' => $currency['id'],
                 // 'vipLevel' => $this->safe_integer($params, 'vipLevel'),
             );
-            $response = Async\await($this->sapiGetMarginInterestRateHistory (array_merge($request, $params)));
+            $response = Async\await($this->sapiGetMarginInterestRateHistory ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -11188,7 +11217,7 @@ class binance extends Exchange {
             $request = array(
                 'symbol' => $symbol,
             );
-            $borrowRates = Async\await($this->fetch_isolated_borrow_rates(array_merge($request, $params)));
+            $borrowRates = Async\await($this->fetch_isolated_borrow_rates($this->extend($request, $params)));
             return $this->safe_dict($borrowRates, $symbol);
         }) ();
     }
@@ -11213,7 +11242,7 @@ class binance extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->sapiGetMarginIsolatedMarginData (array_merge($request, $params)));
+            $response = Async\await($this->sapiGetMarginIsolatedMarginData ($this->extend($request, $params)));
             //
             //    array(
             //        {
@@ -11268,7 +11297,7 @@ class binance extends Exchange {
                 $now = $this->milliseconds();
                 $request['endTime'] = min ($endTime, $now); // cannot have an $endTime later than current time
             }
-            $response = Async\await($this->sapiGetMarginInterestRateHistory (array_merge($request, $params)));
+            $response = Async\await($this->sapiGetMarginInterestRateHistory ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -11370,7 +11399,7 @@ class binance extends Exchange {
                 'token' => $currency['id'],
                 'amount' => $amount,
             );
-            $response = Async\await($this->sapiPostGiftcardCreateCode (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostGiftcardCreateCode ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "000000",
@@ -11404,7 +11433,7 @@ class binance extends Exchange {
             $request = array(
                 'code' => $giftcardCode,
             );
-            $response = Async\await($this->sapiPostGiftcardRedeemCode (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostGiftcardRedeemCode ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "000000",
@@ -11432,7 +11461,7 @@ class binance extends Exchange {
             $request = array(
                 'referenceNo' => $id,
             );
-            $response = Async\await($this->sapiGetGiftcardVerify (array_merge($request, $params)));
+            $response = Async\await($this->sapiGetGiftcardVerify ($this->extend($request, $params)));
             //
             //     {
             //         "code" => "000000",
@@ -11477,13 +11506,13 @@ class binance extends Exchange {
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             $response = null;
             if ($isPortfolioMargin) {
-                $response = Async\await($this->papiGetMarginMarginInterestHistory (array_merge($request, $params)));
+                $response = Async\await($this->papiGetMarginMarginInterestHistory ($this->extend($request, $params)));
             } else {
                 if ($symbol !== null) {
                     $market = $this->market($symbol);
                     $request['isolatedSymbol'] = $market['id'];
                 }
-                $response = Async\await($this->sapiGetMarginInterestHistory (array_merge($request, $params)));
+                $response = Async\await($this->sapiGetMarginInterestHistory ($this->extend($request, $params)));
             }
             //
             // spot margin
@@ -11567,11 +11596,11 @@ class binance extends Exchange {
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
             if ($isPortfolioMargin) {
-                $response = Async\await($this->papiPostRepayLoan (array_merge($request, $params)));
+                $response = Async\await($this->papiPostRepayLoan ($this->extend($request, $params)));
             } else {
                 $request['isIsolated'] = 'FALSE';
                 $request['type'] = 'REPAY';
-                $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
+                $response = Async\await($this->sapiPostMarginBorrowRepay ($this->extend($request, $params)));
             }
             //
             //     {
@@ -11604,7 +11633,7 @@ class binance extends Exchange {
                 'isIsolated' => 'TRUE',
                 'type' => 'REPAY',
             );
-            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay ($this->extend($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -11637,11 +11666,11 @@ class binance extends Exchange {
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'borrowCrossMargin', 'papi', 'portfolioMargin', false);
             if ($isPortfolioMargin) {
-                $response = Async\await($this->papiPostMarginLoan (array_merge($request, $params)));
+                $response = Async\await($this->papiPostMarginLoan ($this->extend($request, $params)));
             } else {
                 $request['isIsolated'] = 'FALSE';
                 $request['type'] = 'BORROW';
-                $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
+                $response = Async\await($this->sapiPostMarginBorrowRepay ($this->extend($request, $params)));
             }
             //
             //     {
@@ -11674,7 +11703,7 @@ class binance extends Exchange {
                 'isIsolated' => 'TRUE',
                 'type' => 'BORROW',
             );
-            $response = Async\await($this->sapiPostMarginBorrowRepay (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginBorrowRepay ($this->extend($request, $params)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -11756,9 +11785,9 @@ class binance extends Exchange {
             }
             $response = null;
             if ($market['inverse']) {
-                $response = Async\await($this->dapiDataGetOpenInterestHist (array_merge($request, $params)));
+                $response = Async\await($this->dapiDataGetOpenInterestHist ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->fapiDataGetOpenInterestHist (array_merge($request, $params)));
+                $response = Async\await($this->fapiDataGetOpenInterestHist ($this->extend($request, $params)));
             }
             //
             //  array(
@@ -11797,11 +11826,11 @@ class binance extends Exchange {
             }
             $response = null;
             if ($market['option']) {
-                $response = Async\await($this->eapiPublicGetOpenInterest (array_merge($request, $params)));
+                $response = Async\await($this->eapiPublicGetOpenInterest ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPublicGetOpenInterest (array_merge($request, $params)));
+                $response = Async\await($this->dapiPublicGetOpenInterest ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->fapiPublicGetOpenInterest (array_merge($request, $params)));
+                $response = Async\await($this->fapiPublicGetOpenInterest ($this->extend($request, $params)));
             }
             //
             // futures (fapi)
@@ -11928,21 +11957,21 @@ class binance extends Exchange {
             $response = null;
             if ($type === 'spot') {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetMarginForceOrders (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetMarginForceOrders ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->sapiGetMarginForceLiquidationRec (array_merge($request, $params)));
+                    $response = Async\await($this->sapiGetMarginForceLiquidationRec ($this->extend($request, $params)));
                 }
             } elseif ($subType === 'linear') {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetUmForceOrders (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetUmForceOrders ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->fapiPrivateGetForceOrders (array_merge($request, $params)));
+                    $response = Async\await($this->fapiPrivateGetForceOrders ($this->extend($request, $params)));
                 }
             } elseif ($subType === 'inverse') {
                 if ($isPortfolioMargin) {
-                    $response = Async\await($this->papiGetCmForceOrders (array_merge($request, $params)));
+                    $response = Async\await($this->papiGetCmForceOrders ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->dapiPrivateGetForceOrders (array_merge($request, $params)));
+                    $response = Async\await($this->dapiPrivateGetForceOrders ($this->extend($request, $params)));
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
@@ -12127,7 +12156,7 @@ class binance extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->eapiPublicGetMark (array_merge($request, $params)));
+            $response = Async\await($this->eapiPublicGetMark ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -12149,7 +12178,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-231229-40000-C",
@@ -12410,7 +12439,7 @@ class binance extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->eapiPublicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->eapiPublicGetTicker ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -12440,7 +12469,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
         //
         //     {
         //         "symbol" => "BTC-241227-80000-C",
@@ -12524,9 +12553,9 @@ class binance extends Exchange {
             }
             $response = null;
             if ($market['linear']) {
-                $response = Async\await($this->fapiPrivateGetPositionMarginHistory (array_merge($request, $params)));
+                $response = Async\await($this->fapiPrivateGetPositionMarginHistory ($this->extend($request, $params)));
             } elseif ($market['inverse']) {
-                $response = Async\await($this->dapiPrivateGetPositionMarginHistory (array_merge($request, $params)));
+                $response = Async\await($this->dapiPrivateGetPositionMarginHistory ($this->extend($request, $params)));
             } else {
                 throw new BadRequest($this->id . 'fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
             }
@@ -12627,7 +12656,7 @@ class binance extends Exchange {
                 'toAsset' => $toCode,
                 'fromAmount' => $amount,
             );
-            $response = Async\await($this->sapiPostConvertGetQuote (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostConvertGetQuote ($this->extend($request, $params)));
             //
             //     {
             //         "quoteId":"12415572564",
@@ -12668,7 +12697,7 @@ class binance extends Exchange {
                 $request['asset'] = $fromCode;
                 $request['targetAsset'] = $toCode;
                 $request['amount'] = $amount;
-                $response = Async\await($this->sapiPostAssetConvertTransfer (array_merge($request, $params)));
+                $response = Async\await($this->sapiPostAssetConvertTransfer ($this->extend($request, $params)));
                 //
                 //     {
                 //         "tranId" => 118263407119,
@@ -12677,7 +12706,7 @@ class binance extends Exchange {
                 //
             } else {
                 $request['quoteId'] = $id;
-                $response = Async\await($this->sapiPostConvertAcceptQuote (array_merge($request, $params)));
+                $response = Async\await($this->sapiPostConvertAcceptQuote ($this->extend($request, $params)));
                 //
                 //     {
                 //         "orderId":"933256278426274426",
@@ -12716,7 +12745,7 @@ class binance extends Exchange {
                 $request['tranId'] = $id;
                 $request['startTime'] = $now - $msInDay;
                 $request['endTime'] = $now;
-                $response = Async\await($this->sapiGetAssetConvertTransferQueryByPage (array_merge($request, $params)));
+                $response = Async\await($this->sapiGetAssetConvertTransferQueryByPage ($this->extend($request, $params)));
                 //
                 //     {
                 //         "total" => 3,
@@ -12737,7 +12766,7 @@ class binance extends Exchange {
                 //
             } else {
                 $request['orderId'] = $id;
-                $response = Async\await($this->sapiGetConvertOrderStatus (array_merge($request, $params)));
+                $response = Async\await($this->sapiGetConvertOrderStatus ($this->extend($request, $params)));
                 //
                 //     {
                 //         "orderId":933256278426274426,
@@ -12813,7 +12842,7 @@ class binance extends Exchange {
                 $fromCurrencyKey = 'deductedAsset';
                 $toCurrencyKey = 'targetAsset';
                 $responseQuery = 'rows';
-                $response = Async\await($this->sapiGetAssetConvertTransferQueryByPage (array_merge($request, $params)));
+                $response = Async\await($this->sapiGetAssetConvertTransferQueryByPage ($this->extend($request, $params)));
                 //
                 //     {
                 //         "total" => 3,
@@ -12839,7 +12868,7 @@ class binance extends Exchange {
                 $fromCurrencyKey = 'fromAsset';
                 $toCurrencyKey = 'toAsset';
                 $responseQuery = 'list';
-                $response = Async\await($this->sapiGetConvertTradeFlow (array_merge($request, $params)));
+                $response = Async\await($this->sapiGetConvertTradeFlow ($this->extend($request, $params)));
                 //
                 //     {
                 //         "list" => array(
@@ -12868,7 +12897,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
         //
         // fetchConvertQuote
         //

@@ -2128,7 +2128,7 @@ export default class binance extends binanceRest {
         const orders = this.parseOrders(result);
         client.resolve(orders, messageHash);
     }
-    async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name binance#editOrderWs

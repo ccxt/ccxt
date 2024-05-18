@@ -648,11 +648,11 @@ class coinsph extends Exchange {
             $method = $this->safe_string($options, 'method', $defaultMethod);
             $tickers = null;
             if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
-                $tickers = Async\await($this->publicGetOpenapiQuoteV1TickerPrice (array_merge($request, $params)));
+                $tickers = Async\await($this->publicGetOpenapiQuoteV1TickerPrice ($this->extend($request, $params)));
             } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
-                $tickers = Async\await($this->publicGetOpenapiQuoteV1TickerBookTicker (array_merge($request, $params)));
+                $tickers = Async\await($this->publicGetOpenapiQuoteV1TickerBookTicker ($this->extend($request, $params)));
             } else {
-                $tickers = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr (array_merge($request, $params)));
+                $tickers = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr ($this->extend($request, $params)));
             }
             return $this->parse_tickers($tickers, $symbols, $params);
         }) ();
@@ -679,17 +679,17 @@ class coinsph extends Exchange {
             $method = $this->safe_string($options, 'method', $defaultMethod);
             $ticker = null;
             if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
-                $ticker = Async\await($this->publicGetOpenapiQuoteV1TickerPrice (array_merge($request, $params)));
+                $ticker = Async\await($this->publicGetOpenapiQuoteV1TickerPrice ($this->extend($request, $params)));
             } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
-                $ticker = Async\await($this->publicGetOpenapiQuoteV1TickerBookTicker (array_merge($request, $params)));
+                $ticker = Async\await($this->publicGetOpenapiQuoteV1TickerBookTicker ($this->extend($request, $params)));
             } else {
-                $ticker = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr (array_merge($request, $params)));
+                $ticker = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr ($this->extend($request, $params)));
             }
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
@@ -786,7 +786,7 @@ class coinsph extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetOpenapiQuoteV1Depth (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOpenapiQuoteV1Depth ($this->extend($request, $params)));
             //
             //     {
             //         "lastUpdateId" => "1667022157000699400",
@@ -840,7 +840,7 @@ class coinsph extends Exchange {
                     $request['limit'] = $limit;
                 }
             }
-            $response = Async\await($this->publicGetOpenapiQuoteV1Klines (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOpenapiQuoteV1Klines ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -897,7 +897,7 @@ class coinsph extends Exchange {
                     $request['limit'] = $limit;
                 }
             }
-            $response = Async\await($this->publicGetOpenapiQuoteV1Trades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOpenapiQuoteV1Trades ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -941,7 +941,7 @@ class coinsph extends Exchange {
             } elseif ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenapiV1MyTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1MyTrades ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -964,7 +964,7 @@ class coinsph extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            return Async\await($this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1190,9 +1190,9 @@ class coinsph extends Exchange {
             $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
             $response = null;
             if ($testOrder) {
-                $response = Async\await($this->privatePostOpenapiV1OrderTest (array_merge($request, $params)));
+                $response = Async\await($this->privatePostOpenapiV1OrderTest ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostOpenapiV1Order (array_merge($request, $params)));
+                $response = Async\await($this->privatePostOpenapiV1Order ($this->extend($request, $params)));
             }
             //
             //     {
@@ -1244,7 +1244,7 @@ class coinsph extends Exchange {
                 $request['orderId'] = $id;
             }
             $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId' ));
-            $response = Async\await($this->privateGetOpenapiV1Order (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1Order ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -1267,7 +1267,7 @@ class coinsph extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetOpenapiV1OpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1OpenOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1298,7 +1298,7 @@ class coinsph extends Exchange {
             } elseif ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenapiV1HistoryOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1HistoryOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1322,7 +1322,7 @@ class coinsph extends Exchange {
                 $request['orderId'] = $id;
             }
             $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId' ));
-            $response = Async\await($this->privateDeleteOpenapiV1Order (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOpenapiV1Order ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -1346,7 +1346,7 @@ class coinsph extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateDeleteOpenapiV1OpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOpenapiV1OpenOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market);
         }) ();
     }
@@ -1532,7 +1532,7 @@ class coinsph extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetOpenapiV1AssetTradeFee (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1AssetTradeFee ($this->extend($request, $params)));
             //
             //     array(
             //       {
@@ -1636,7 +1636,7 @@ class coinsph extends Exchange {
                 $request['withdrawOrderId'] = $tag;
             }
             $params = $this->omit($params, 'network');
-            $response = Async\await($this->privatePostOpenapiWalletV1WithdrawApply (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOpenapiWalletV1WithdrawApply ($this->extend($request, $params)));
             return $this->parse_transaction($response, $currency);
         }) ();
     }
@@ -1666,7 +1666,7 @@ class coinsph extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenapiWalletV1DepositHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenapiWalletV1DepositHistory ($this->extend($request, $params)));
             //
             // array(
             //     array(
@@ -1724,7 +1724,7 @@ class coinsph extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenapiWalletV1WithdrawHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenapiWalletV1WithdrawHistory ($this->extend($request, $params)));
             //
             // array(
             //     array(
@@ -1887,7 +1887,7 @@ class coinsph extends Exchange {
                 'network' => $networkId,
             );
             $params = $this->omit($params, 'network');
-            $response = Async\await($this->privateGetOpenapiWalletV1DepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenapiWalletV1DepositAddress ($this->extend($request, $params)));
             //
             //     {
             //         "coin" => "ETH",

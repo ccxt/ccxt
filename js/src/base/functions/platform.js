@@ -15,6 +15,7 @@ const isElectron = typeof process !== 'undefined' &&
     typeof process.versions.electron !== 'undefined';
 const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof WorkerGlobalScope);
 const isWindows = typeof process !== 'undefined' && process.platform === "win32";
-const isNode = !(isBrowser || isWebWorker);
+const isDeno = typeof Deno !== 'undefined';
+const isNode = !(isBrowser || isWebWorker || isDeno);
 // ----------------------------------------------------------------------------
-export { isBrowser, isElectron, isWebWorker, isNode, isWindows, };
+export { isBrowser, isElectron, isWebWorker, isNode, isDeno, isWindows, };

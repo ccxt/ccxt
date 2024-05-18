@@ -190,7 +190,15 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribeMultiple("RISK", symbols, parameters);
+        object fundingRate = await this.subscribeMultiple("RISK", symbols, parameters);
+        object symbol = this.safeString(fundingRate, "symbol");
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, "symbol", symbols);
     }
 
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -650,6 +658,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //
         object channel = this.safeString(message, "channel");
         object fundingRate = this.parseFundingRate(message);
+        ((IDictionary<string,object>)this.fundingRates)[(string)getValue(fundingRate, "symbol")] = fundingRate;
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, add(add(channel, "::"), getValue(fundingRate, "symbol"))});
     }
 
