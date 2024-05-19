@@ -241,7 +241,7 @@ export default class oxfun extends Exchange {
                     'BNBSmartChain': 'BNB',
                 },
             },
-            'exceptions': {
+            'exceptions': { // todo: complete exceptions
                 'exact': {
                     '-20001': BadRequest, // {"success":false,"code":"20001","message":"marketCode is invalid"}
                     // {"success":false,"code":"20001","message":"timeframe is invalid"}
@@ -2476,7 +2476,7 @@ export default class oxfun extends Exchange {
         if (postOnly && (timeInForce !== 'MAKER_ONLY_REPRICE')) {
             request['timeInForce'] = 'MAKER_ONLY';
         }
-        return this.extend (request, params);
+        return this.extend (request, params); // todo YZH need your explanation
     }
 
     async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
