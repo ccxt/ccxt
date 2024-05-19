@@ -482,6 +482,7 @@ class Exchange {
         'tokocrypto',
         'tradeogre',
         'upbit',
+        'wallex',
         'wavesexchange',
         'wazirx',
         'whitebit',
