@@ -2489,9 +2489,6 @@ export default class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
-        if (limit === undefined) {
-            limit = 200;
-        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -2504,6 +2501,9 @@ export default class bybit extends Exchange {
             // 'endTime': 0, // The end timestamp (ms)
             'limit': limit, // Limit for data size per page. [1, 200]. Default: 200
         };
+        if (limit === undefined) {
+            limit = 200;
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         request['symbol'] = market['id'];
