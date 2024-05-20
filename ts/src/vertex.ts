@@ -68,7 +68,7 @@ export default class vertex extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -717,6 +717,63 @@ export default class vertex extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
+    parseFundingRate (ticker, market: Market = undefined) {
+        // {
+        //     "product_id": 4,
+        //     "funding_rate_x18": "2447900598160952",
+        //     "update_time": "1680116326"
+        // }
+        //
+        // {
+        //     "ETH-PERP_USDC": {
+        //         "ticker_id": "ETH-PERP_USDC",
+        //         "base_currency": "ETH-PERP",
+        //         "quote_currency": "USDC",
+        //         "last_price": 1620.3,
+        //         "base_volume": 1309.2,
+        //         "quote_volume": 2117828.093867611,
+        //         "product_type": "perpetual",
+        //         "contract_price": 1620.372642114429,
+        //         "contract_price_currency": "USD",
+        //         "open_interest": 1635.2,
+        //         "open_interest_usd": 2649633.3443855145,
+        //         "index_price": 1623.293496279935,
+        //         "mark_price": 1623.398589416731,
+        //         "funding_rate": 0.000068613217104332,
+        //         "next_funding_rate_timestamp": 1694379600,
+        //         "price_change_percent_24h": -0.6348599635253989
+        //     }
+        // }
+        //
+        let fundingRate = this.safeNumber (ticker, 'funding_rate');
+        if (fundingRate === undefined) {
+            const fundingRateX18 = this.safeString (ticker, 'funding_rate_x18');
+            fundingRate = this.parseNumber (this.convertFromX18 (fundingRateX18));
+        }
+        const fundingTimestamp = this.safeTimestamp2 (ticker, 'update_time', 'next_funding_rate_timestamp');
+        const markPrice = this.safeNumber (ticker, 'mark_price');
+        const indexPrice = this.safeNumber (ticker, 'index_price');
+        return {
+            'info': ticker,
+            'symbol': market['symbol'],
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
     async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
@@ -742,27 +799,60 @@ export default class vertex extends Exchange {
         //     "update_time": "1680116326"
         // }
         //
-        const timestamp = this.safeTimestamp (response, 'update_time');
-        const fundingRateX18 = this.safeString (response, 'funding_rate_x18');
-        return {
-            'info': response,
-            'symbol': market['symbol'],
-            'markPrice': undefined,
-            'indexPrice': undefined,
-            'interestRate': this.parseNumber ('0'),
-            'estimatedSettlePrice': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fundingRate': this.parseNumber (this.convertFromX18 (fundingRateX18)),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
-        };
+        return this.parseFundingRate (response, market);
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#fetchFundingRates
+         * @description fetches funding rates for multiple markets
+         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+         * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+        }
+        const response = await this.v2ArchiveGetContracts (this.extend (request, params));
+        //
+        // {
+        //     "ETH-PERP_USDC": {
+        //         "ticker_id": "ETH-PERP_USDC",
+        //         "base_currency": "ETH-PERP",
+        //         "quote_currency": "USDC",
+        //         "last_price": 1620.3,
+        //         "base_volume": 1309.2,
+        //         "quote_volume": 2117828.093867611,
+        //         "product_type": "perpetual",
+        //         "contract_price": 1620.372642114429,
+        //         "contract_price_currency": "USD",
+        //         "open_interest": 1635.2,
+        //         "open_interest_usd": 2649633.3443855145,
+        //         "index_price": 1623.293496279935,
+        //         "mark_price": 1623.398589416731,
+        //         "funding_rate": 0.000068613217104332,
+        //         "next_funding_rate_timestamp": 1694379600,
+        //         "price_change_percent_24h": -0.6348599635253989
+        //     }
+        // }
+        //
+        let keys = Object.keys (response);
+        const fundingRates = {};
+        for (let i = 0; i < keys.length; i++) {
+            const tickerId = keys[i];
+            const parsedTickerId = tickerId.split ('-');
+            const data = response[tickerId];
+            const marketId = parsedTickerId[0] + '/USDC:USDC';
+            const market = this.market (marketId);
+            const ticker = this.parseFundingRate (data, market);
+            const symbol = ticker['symbol'];
+            fundingRates[symbol] = ticker;
+        }
+        return this.filterByArray (fundingRates, 'symbol', symbols);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
