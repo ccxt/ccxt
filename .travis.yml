@@ -5,15 +5,18 @@ python:
 git:
   depth: 2
 cache:
+  npm: true
+  pip: true
   directories:
   - ".cache"
+  - "$HOME/.composer/cache/files"
+  - "$HOME/.nvm"
 before_install:
 - set -e
 - ". $HOME/.nvm/nvm.sh"
 - nvm ls
 - nvm ls-remote
 - nvm install v18.17.0
-- rm -rf node_modules
 # common commands
 - npm ci --include=dev
 - git checkout package.json package-lock.json
@@ -54,7 +57,7 @@ script:
       cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
     else
       echo "Not publishing";
-      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} GH_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
+      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
     fi;
   fi
 after_failure:
@@ -77,4 +80,4 @@ env:
   # new new GITHUB_TOKEN
   - secure: koZWVx9bBt1QZ43OUGH6DE0tQseqYxL+LGubjSndpCQfx1OLbUOjuxa4ka8S2mVTX61IQ+Pl7VambRahmXrSp/+cIYf2l/7BfE/vmaAxs+mM7+YbvAmIbmp3ohw2Ib+SnkCPUsQWBPdOedbuDXUkTvd6T22EwftFOBYrcBxmABpvNNRwaaK7fnNJQMnJo3yiaM0sCOjcyBJOzGhO2+aW7T7LaSa0CdmD/yBIAfqxmfFCf8gOTnRep8iCay/fMAhdDD/zzUNBJoKupMWHkwSik8BeKA/Ny4OO0zvR1ZF+t1PD4qXnK17bKf3kS+JKPCK8q7wGwJWTJFezKRG0JbIZRMxi4Dsawu+QvHs4+ekSCWLuPD0bnn6TMue+bOWaCnLVQAmzTbiykWF2tuHN0Zj/c8DJJKjA62EKPKJh/69OdEV6VIwy5m2o+ij6MWK0yaAcNNOfDRiM9sAJL8eUcncFVOOzyEkFTRuke/gerJEUknH/25tYCXbmRYRolSoFvSW8PaB2Q8RXizL9LtnyRcR02wxs12jpCTAJ9rpR0XIb3D4W8BWkWgJvHp9JZOAlzESz4moROv3C6EvPFX4uZAAx/RgdFicLB7tgP9EC6RAPs1yPJwjNcv7EPLsl5OPBsFkOa8Qq5guNbeX6XuBWsIRJL+XJBODw29kISxiWDh49Dlg=
   # NUGGET_TOKEN
-  - secure: Mnryg2kNRpl7qFGahaKeVkGQ0GeUQxcJAiS+IP1AnMOfzNomhd0ykTaeCWxxTjAPOLagOL5XyFwOj7k3VJ8wMvFozpUMZKx5NkF6cCu3M7y4sW4dMe/3Wjq0iskPv4t6wgtsAGNpzv+j6RF0aBy72xDcnuK437utVU5uukd3V6BzRxs1iQezLM4neIU1eG7SCfPjZbvJj0UdbUDwYhU80mHu5cscuEhZKSqi6aMY3jBZm6L8Pe17vRzHPBmMcNgoXOHEAfw8K9WgiMqMmG/caAllkJLNLU6pDPWQfe7u7csBpK8OPZRC+HejoUoLZN6IWizLrp+DodjskUqiTJLllT1UFBurtl4LzjfiSHd5a7yct07QKCT6hE6J0xLUCPEcPAUlbeWJKst3+WYepj/EB0jahGKi6npnSQK+o4I4yVSKp7Dmgbc+wQN0nF9alx/fT+Z/ENeoXhPdzyPOMaKq1ftyQPQTGAhCMScgmgqTKyVQdsF8x+BuZofK/WOBHLhJNEPxyQJ0j0v8JbYv0/JhvU1tRUHRtcb2rcQ/waxupUeicHhSbI0gQXrrQurznLFjLXK5nrxIE9xDMon4IkBIjAFeVf2XsGvJitSfIYvBAoOCFN/ldP398dkAw/3yUqVt62PXrVjoyWIaSfjBeB58wDV46lMK7qfmlaWygjtZbPc=
+  - secure: chdCyiT8Sc8aEdcqNgjjESyIUyI9hAsSVgtmbU2DId93brLUgkbOlkKjb8MlEfByvV3njVslN52OHfI8hiBg+3PonS6vzD0HDxJZjo9HZb3EMnfpupRwp14WDDrxhjX/tt4Y/rBhjQBV/DALdVcl9P20pqKGWloO8yfzw8Ytqd45kyMb7GG8xl8YH0xOiIH+yMklsIyoLAe73R47eqyDwy87AOLyR3+tZxNAqI7SwkOUXWKNoBacFkWOQsae2mBm9W5osJPMARo7HQ+0DYnpRhrRNKcxQIhdIhDAOZtGEE+n0ZeWUXeQbAEhwSLyB60kccZ0p19MTO2+61Od86gutKjNo8jSiEKvQNjedOpi3nybQOd2F18N6IrJKO/4VXMZVyl8va2rb9QRfwbfBZqGdC4VgkFBgfzI0CvkTte0BJKwzpSN3bN3MDgVWP2ttsujYVlw9RXgGF3dduekppUm+p3jUnQyZDe13VfQkT5+XtPYmZID9K+bunSYMMWwqol5ND0cCNulWDxFMKMfX5N+BpavIAwMotjH434FmB/0TyWg8lbjchgsgNsTYyxE69sW0MEAt0WeEh55yIXHPymFR7tS3EybiT0Wuj8kY3RxjM76jKMv8evk6Y6XEWArVoGeJQfWEAScorTWAA1q3JZUhhl0zTZwryhU3OwZESuwIzo=
