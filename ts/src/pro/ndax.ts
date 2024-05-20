@@ -174,7 +174,7 @@ export default class ndax extends ndaxRest {
             let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                tradesArray = new ArrayCache (limit);
+                tradesArray = new ArrayCache<Trade> (limit);
             }
             tradesArray.append (trade);
             this.trades[symbol] = tradesArray;

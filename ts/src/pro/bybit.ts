@@ -583,7 +583,7 @@ export default class bybit extends bybitRest {
         let stored = this.safeValue (ohlcvsByTimeframe, timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         for (let i = 0; i < data.length; i++) {
@@ -838,7 +838,7 @@ export default class bybit extends bybitRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         for (let j = 0; j < trades.length; j++) {
@@ -1036,7 +1036,7 @@ export default class bybit extends bybitRest {
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const trades = this.myTrades;
         const symbols = {};
@@ -1112,7 +1112,7 @@ export default class bybit extends bybitRest {
                 this.spawn (this.loadPositionsSnapshot, client, messageHash);
             }
         } else {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolBySide<Position> ();
         }
     }
 
@@ -1123,7 +1123,7 @@ export default class bybit extends bybitRest {
             this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'inverse' }),
         ];
         const promises = await Promise.all (fetchFunctions);
-        this.positions = new ArrayCacheBySymbolBySide ();
+        this.positions = new ArrayCacheBySymbolBySide<Position> ();
         const cache = this.positions;
         for (let i = 0; i < promises.length; i++) {
             const positions = promises[i];
@@ -1179,7 +1179,7 @@ export default class bybit extends bybitRest {
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolBySide<Position> ();
         }
         const cache = this.positions;
         const newPositions = [];
@@ -1365,7 +1365,7 @@ export default class bybit extends bybitRest {
         //
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         let rawOrders = this.safeValue (message, 'data', []);

@@ -316,7 +316,7 @@ export default class exmo extends exmoRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         for (let i = 0; i < trades.length; i++) {
@@ -430,7 +430,7 @@ export default class exmo extends exmoRest {
         let myTrades = undefined;
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            myTrades = new ArrayCacheBySymbolById (limit);
+            myTrades = new ArrayCacheBySymbolById<Trade> (limit);
             this.myTrades = myTrades;
         } else {
             myTrades = this.myTrades;

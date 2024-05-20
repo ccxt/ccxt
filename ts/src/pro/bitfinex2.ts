@@ -179,7 +179,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const ohlcvsLength = ohlcvs.length;
@@ -275,7 +275,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const messageHash = name + ':' + market['id'];
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const tradesArray = this.myTrades;
         tradesArray.append (trade);
@@ -325,7 +325,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
-            stored = new ArrayCache (tradesLimit);
+            stored = new ArrayCache<Trade> (tradesLimit);
             this.trades[symbol] = stored;
         }
         const messageLength = message.length;
@@ -968,7 +968,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const messageType = this.safeString (message, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         const symbolIds = {};

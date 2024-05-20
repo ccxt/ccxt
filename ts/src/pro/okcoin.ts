@@ -155,7 +155,7 @@ export default class okcoin extends okcoinRest {
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
-                this.orders = new ArrayCacheBySymbolById (limit);
+                this.orders = new ArrayCacheBySymbolById<Order> (limit);
             }
             const stored = this.orders;
             const marketIds = {};
@@ -213,7 +213,7 @@ export default class okcoin extends okcoinRest {
             const messageHash = table + ':' + marketId;
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
+                stored = new ArrayCache<Trade> (tradesLimit);
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
@@ -318,7 +318,7 @@ export default class okcoin extends okcoinRest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);

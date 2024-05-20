@@ -254,7 +254,7 @@ export default class htx extends htxRest {
         let tradesCache = this.safeValue (this.trades, symbol);
         if (tradesCache === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesCache = new ArrayCache (limit);
+            tradesCache = new ArrayCache<Trade> (limit);
             this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
@@ -318,7 +318,7 @@ export default class htx extends htxRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const tick = this.safeValue (message, 'tick');
@@ -980,7 +980,7 @@ export default class htx extends htxRest {
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const cachedOrders = this.orders;
         cachedOrders.append (parsedOrder);
@@ -1318,7 +1318,7 @@ export default class htx extends htxRest {
         }
         const clientMarginModePositions = this.safeValue (clientPositions, marginMode);
         if (clientMarginModePositions === undefined) {
-            this.positions[url][marginMode] = new ArrayCacheBySymbolBySide ();
+            this.positions[url][marginMode] = new ArrayCacheBySymbolBySide<Position> ();
         }
         const cache = this.positions[url][marginMode];
         const rawPositions = this.safeValue (message, 'data', []);
@@ -2128,7 +2128,7 @@ export default class htx extends htxRest {
         //
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const cachedTrades = this.myTrades;
         const messageHash = this.safeString (message, 'ch');

@@ -263,7 +263,7 @@ export default class bitstamp extends bitstampRest {
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (limit);
+            tradesArray = new ArrayCache<Trade> (limit);
             this.trades[symbol] = tradesArray;
         }
         tradesArray.append (trade);
@@ -323,7 +323,7 @@ export default class bitstamp extends bitstampRest {
         const order = this.safeValue (message, 'data', {});
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const stored = this.orders;
         const subscription = this.safeValue (client.subscriptions, channel);

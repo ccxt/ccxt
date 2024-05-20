@@ -336,7 +336,7 @@ export default class bingx extends bingxRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         for (let j = 0; j < trades.length; j++) {
@@ -541,7 +541,7 @@ export default class bingx extends bingxRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframeId);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframeId] = stored;
         }
         for (let i = 0; i < candles.length; i++) {
@@ -933,7 +933,7 @@ export default class bingx extends bingxRest {
         const data = this.safeValue2 (message, 'data', 'o', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const stored = this.orders;
         const parsedOrder = this.parseOrder (data);
@@ -1008,7 +1008,7 @@ export default class bingx extends bingxRest {
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            cachedTrades = new ArrayCacheBySymbolById (limit);
+            cachedTrades = new ArrayCacheBySymbolById<Trade> (limit);
             this.myTrades = cachedTrades;
         }
         const parsed = this.parseTrade (result);

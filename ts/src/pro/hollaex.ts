@@ -230,7 +230,7 @@ export default class hollaex extends hollaexRest {
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCache (limit);
+            this.myTrades = new ArrayCache<Trade> (limit);
         }
         const stored = this.myTrades;
         const marketIds = {};
@@ -346,7 +346,7 @@ export default class hollaex extends hollaexRest {
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const stored = this.orders;
         let rawOrders = undefined;

@@ -228,7 +228,7 @@ export default class p2b extends p2bRest {
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
@@ -265,7 +265,7 @@ export default class p2b extends p2bRest {
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (tradesLimit);
+            tradesArray = new ArrayCache<Trade> (tradesLimit);
             this.trades[symbol] = tradesArray;
         }
         for (let i = 0; i < trades.length; i++) {

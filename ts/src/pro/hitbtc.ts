@@ -575,7 +575,7 @@ export default class hitbtc extends hitbtcRest {
             const symbol = market['symbol'];
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
+                stored = new ArrayCache<Trade> (tradesLimit);
                 this.trades[symbol] = stored;
             }
             const trades = this.parseWsTrades (data[marketId], market);
@@ -707,7 +707,7 @@ export default class hitbtc extends hitbtcRest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             const ohlcvs = this.parseWsOHLCVs (data[marketId], market);
@@ -840,7 +840,7 @@ export default class hitbtc extends hitbtcRest {
         //
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const data = this.safeValue (message, 'params', []);
         if (Array.isArray (data)) {

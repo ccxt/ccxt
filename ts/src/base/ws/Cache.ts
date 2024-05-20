@@ -1,13 +1,13 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
 
-interface CustomArray extends Array {
+interface CustomArray<T> extends Array<T> {
     hashmap: object;
 }
 
-class BaseCache extends Array {
+class BaseCache<T> extends Array<T> {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: number | undefined = undefined) {
         super ()
         Object.defineProperty (this, 'maxSize', {
             __proto__: null, // make it invisible
@@ -21,11 +21,11 @@ class BaseCache extends Array {
     }
 }
 
-class ArrayCache extends BaseCache implements CustomArray {
+class ArrayCache<T> extends BaseCache<T> implements CustomArray<T> {
 
     hashmap: object = {};
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: number | undefined = undefined) {
         super (maxSize);
         Object.defineProperty (this, 'nestedNewUpdatesBySymbol', {
             __proto__: null, // make it invisible
@@ -83,7 +83,7 @@ class ArrayCache extends BaseCache implements CustomArray {
         }
     }
 
-    append (item) {
+    append (item: T) {
         // maxSize may be 0 when initialized by a .filter() copy-construction
         if (this.maxSize && (this.length === this.maxSize)) {
             this.shift ()
@@ -104,9 +104,9 @@ class ArrayCache extends BaseCache implements CustomArray {
     }
 }
 
-class ArrayCacheByTimestamp extends BaseCache {
+class ArrayCacheByTimestamp<T> extends BaseCache<T> {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: number | undefined = undefined) {
         super (maxSize)
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -138,7 +138,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         return Math.min (this.newUpdates, limit)
     }
 
-    append (item) {
+    append (item: T) {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]]
             if (reference !== item) {
@@ -164,9 +164,9 @@ class ArrayCacheByTimestamp extends BaseCache {
     }
 }
 
-class ArrayCacheBySymbolById extends ArrayCache {
+class ArrayCacheBySymbolById<T> extends ArrayCache<T> {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: number | undefined = undefined) {
         super (maxSize)
         this.nestedNewUpdatesBySymbol = true
         // Object.defineProperty (this, 'hashmap', {
@@ -176,7 +176,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
         // })
     }
 
-    append (item) {
+    append (item: T) {
         const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.id in byId) {
             const reference = byId[item.id]
@@ -219,10 +219,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
     }
 }
 
-class ArrayCacheBySymbolBySide extends ArrayCache {
+class ArrayCacheBySymbolBySide<T> extends ArrayCache<T> {
 
-    constructor () {
-        super ()
+    constructor (maxSize: number | undefined = undefined) {
+        super (maxSize)
         this.nestedNewUpdatesBySymbol = true
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -231,7 +231,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         })
     }
 
-    append (item) {
+    append (item: T) {
         const bySide = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.side in bySide) {
             const reference = bySide[item.side]

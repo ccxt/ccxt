@@ -413,7 +413,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channel = this.safeString (message, 'channel');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const tradesArrayCache = new ArrayCache (limit);
+            const tradesArrayCache = new ArrayCache<Trade> (limit);
             this.trades[symbol] = tradesArrayCache;
         }
         const tradesArray = this.trades[symbol];

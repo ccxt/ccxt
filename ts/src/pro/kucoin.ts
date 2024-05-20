@@ -457,7 +457,7 @@ export default class kucoin extends kucoinRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const ohlcv = this.parseOHLCV (candles, market);
@@ -543,7 +543,7 @@ export default class kucoin extends kucoinRest {
         let trades = this.safeValue (this.trades, symbol);
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCache (limit);
+            trades = new ArrayCache<Trade> (limit);
             this.trades[symbol] = trades;
         }
         trades.append (trade);
@@ -971,8 +971,8 @@ export default class kucoin extends kucoinRest {
         const isTriggerOrder = (triggerPrice !== undefined);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
-            this.triggerOrders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
+            this.triggerOrders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
         const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
@@ -1022,7 +1022,7 @@ export default class kucoin extends kucoinRest {
     handleMyTrade (client: Client, message) {
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const data = this.safeDict (message, 'data');
         const parsed = this.parseWsTrade (data);

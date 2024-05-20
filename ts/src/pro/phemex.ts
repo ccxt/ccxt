@@ -435,7 +435,7 @@ export default class phemex extends phemexRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const trades = this.safeValue2 (message, 'trades', 'trades_p', []);
@@ -492,7 +492,7 @@ export default class phemex extends phemexRest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             for (let i = 0; i < ohlcvs.length; i++) {
@@ -879,7 +879,7 @@ export default class phemex extends phemexRest {
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            cachedTrades = new ArrayCacheBySymbolById (limit);
+            cachedTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const marketIds = {};
         let type = undefined;
@@ -1133,7 +1133,7 @@ export default class phemex extends phemexRest {
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         const marketIds = {};
         if (this.orders === undefined) {
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         let type = undefined;
         const stored = this.orders;

@@ -193,7 +193,7 @@ export default class hyperliquid extends hyperliquidRest {
         const entry = this.safeDict (message, 'data', {});
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const trades = this.myTrades;
         const symbols = {};
@@ -275,7 +275,7 @@ export default class hyperliquid extends hyperliquidRest {
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const stored = new ArrayCache (limit);
+            const stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const trades = this.trades[symbol];
@@ -413,7 +413,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            const stored = new ArrayCacheByTimestamp (limit);
+            const stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const ohlcv = this.ohlcvs[symbol][timeframe];
@@ -485,7 +485,7 @@ export default class hyperliquid extends hyperliquidRest {
         const data = this.safeList (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const dataLength = data.length;
         if (dataLength === 0) {

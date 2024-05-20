@@ -572,7 +572,7 @@ export default class gate extends gateRest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
+                stored = new ArrayCacheByTimestamp<OHLCV> (limit);
                 this.ohlcvs[symbol][timeframeId] = stored;
             }
             stored.append (parsed);
@@ -664,7 +664,7 @@ export default class gate extends gateRest {
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            cachedTrades = new ArrayCacheBySymbolById (limit);
+            cachedTrades = new ArrayCacheBySymbolById<Trade> (limit);
             this.myTrades = cachedTrades;
         }
         const parsed = this.parseTrades (result);
@@ -869,13 +869,13 @@ export default class gate extends gateRest {
                 this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
             }
         } else {
-            this.positions[type] = new ArrayCacheBySymbolBySide ();
+            this.positions[type] = new ArrayCacheBySymbolBySide<Position> ();
         }
     }
 
     async loadPositionsSnapshot (client, messageHash, type) {
         const positions = await this.fetchPositions (undefined, { 'type': type });
-        this.positions[type] = new ArrayCacheBySymbolBySide ();
+        this.positions[type] = new ArrayCacheBySymbolBySide<Position> ();
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -1030,7 +1030,7 @@ export default class gate extends gateRest {
         const orders = this.safeValue (message, 'result', []);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const stored = this.orders;
         const marketIds = {};

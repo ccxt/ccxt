@@ -168,7 +168,7 @@ export default class gemini extends geminiRest {
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
-            stored = new ArrayCache (tradesLimit);
+            stored = new ArrayCache<Trade> (tradesLimit);
             this.trades[symbol] = stored;
         }
         stored.append (trade);
@@ -222,7 +222,7 @@ export default class gemini extends geminiRest {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
+                stored = new ArrayCache<Trade> (tradesLimit);
                 this.trades[symbol] = stored;
             }
             for (let i = 0; i < trades.length; i++) {
@@ -247,7 +247,7 @@ export default class gemini extends geminiRest {
                 trade['datetime'] = this.iso8601 (timestamp);
                 let stored = this.safeValue (this.trades, symbol);
                 if (stored === undefined) {
-                    stored = new ArrayCache (tradesLimit);
+                    stored = new ArrayCache<Trade> (tradesLimit);
                     this.trades[symbol] = stored;
                 }
                 stored.append (trade);
@@ -341,7 +341,7 @@ export default class gemini extends geminiRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const changesLength = changes.length;
@@ -704,7 +704,7 @@ export default class gemini extends geminiRest {
         const messageHash = 'orders';
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         for (let i = 0; i < message.length; i++) {

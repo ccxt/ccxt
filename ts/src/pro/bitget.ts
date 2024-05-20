@@ -396,7 +396,7 @@ export default class bitget extends bitgetRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const data = this.safeValue (message, 'data', []);
@@ -685,7 +685,7 @@ export default class bitget extends bitgetRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const data = this.safeList (message, 'data', []);
@@ -872,7 +872,7 @@ export default class bitget extends bitgetRest {
             this.positions = {};
         }
         if (!(instType in this.positions)) {
-            this.positions[instType] = new ArrayCacheBySymbolBySide ();
+            this.positions[instType] = new ArrayCacheBySymbolBySide<Position> ();
         }
         const cache = this.positions[instType];
         const rawPositions = this.safeValue (message, 'data', []);
@@ -1088,8 +1088,8 @@ export default class bitget extends bitgetRest {
         const data = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
-            this.triggerOrders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
+            this.triggerOrders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
         const stored = isTrigger ? this.triggerOrders : this.orders;
@@ -1440,7 +1440,7 @@ export default class bitget extends bitgetRest {
         //
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCache (limit);
+            this.myTrades = new ArrayCache<Trade> (limit);
         }
         const stored = this.myTrades;
         const data = this.safeList (message, 'data', []);

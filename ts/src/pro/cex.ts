@@ -176,7 +176,7 @@ export default class cex extends cexRest {
         //
         const data = this.safeList (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        const stored = new ArrayCache (limit);
+        const stored = new ArrayCache<Trade> (limit);
         const symbol = this.safeString (this.options, 'currentWatchTradeSymbol');
         if (symbol === undefined) {
             return;
@@ -589,7 +589,7 @@ export default class cex extends cexRest {
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCacheBySymbolById (limit);
+            stored = new ArrayCacheBySymbolById<Trade> (limit);
             this.myTrades = stored;
         }
         const trade = this.parseWsTrade (data);
@@ -748,7 +748,7 @@ export default class cex extends cexRest {
         remains = this.currencyFromPrecision (base, remains);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const storedOrders = this.orders;
         const ordersBySymbol = this.safeValue (storedOrders.hashmap, symbol, {});
@@ -924,7 +924,7 @@ export default class cex extends cexRest {
         let myOrders = this.orders;
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            myOrders = new ArrayCacheBySymbolById (limit);
+            myOrders = new ArrayCacheBySymbolById<Order> (limit);
         }
         for (let i = 0; i < rawOrders.length; i++) {
             const rawOrder = rawOrders[i];
@@ -1134,7 +1134,7 @@ export default class cex extends cexRest {
         const messageHash = 'ohlcv:' + symbol;
         const data = this.safeValue (message, 'data', []);
         const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-        const stored = new ArrayCacheByTimestamp (limit);
+        const stored = new ArrayCacheByTimestamp<OHLCV> (limit);
         const sorted = this.sortBy (data, 0);
         for (let i = 0; i < sorted.length; i++) {
             stored.append (this.parseOHLCV (sorted[i], market));
@@ -1214,7 +1214,7 @@ export default class cex extends cexRest {
                 this.safeNumber (data[i], 3),
                 this.safeNumber (data[i], 4),
                 this.safeNumber (data[i], 5),
-            ];
+            ] as OHLCV;
             stored.append (ohlcv);
         }
         const dataLength = data.length;

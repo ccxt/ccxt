@@ -218,7 +218,7 @@ export default class probit extends probitRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined || reset) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         for (let i = 0; i < trades.length; i++) {
@@ -293,7 +293,7 @@ export default class probit extends probitRest {
         let stored = this.myTrades;
         if ((stored === undefined) || reset) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCacheBySymbolById (limit);
+            stored = new ArrayCacheBySymbolById<Trade> (limit);
             this.myTrades = stored;
         }
         const trades = this.parseTrades (rawTrades);
@@ -382,7 +382,7 @@ export default class probit extends probitRest {
         let stored = this.orders;
         if (stored === undefined || reset) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            stored = new ArrayCacheBySymbolById (limit);
+            stored = new ArrayCacheBySymbolById<Order> (limit);
             this.orders = stored;
         }
         const orderSymbols = {};

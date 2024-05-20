@@ -176,7 +176,7 @@ export default class alpaca extends alpacaRest {
         let stored = this.safeValue (this.ohlcvs, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp<OHLCV> (limit);
             this.ohlcvs[symbol] = stored;
         }
         const parsed = this.parseOHLCV (message);
@@ -312,7 +312,7 @@ export default class alpaca extends alpacaRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCache<Trade> (limit);
             this.trades[symbol] = stored;
         }
         const parsed = this.parseTrade (message);
@@ -442,7 +442,7 @@ export default class alpaca extends alpacaRest {
         const rawOrder = this.safeValue (data, 'order', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const orders = this.orders;
         const order = this.parseOrder (rawOrder);
@@ -508,7 +508,7 @@ export default class alpaca extends alpacaRest {
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            myTrades = new ArrayCacheBySymbolById (limit);
+            myTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const trade = this.parseMyTrade (rawOrder);
         myTrades.append (trade);

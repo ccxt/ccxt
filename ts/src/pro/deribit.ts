@@ -309,7 +309,7 @@ export default class deribit extends deribitRest {
         const trades = this.safeList (params, 'data', []);
         if (this.safeValue (this.trades, symbol) === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.trades[symbol] = new ArrayCache (limit);
+            this.trades[symbol] = new ArrayCache<Trade> (limit);
         }
         const stored = this.trades[symbol];
         for (let i = 0; i < trades.length; i++) {
@@ -396,7 +396,7 @@ export default class deribit extends deribitRest {
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            cachedTrades = new ArrayCacheBySymbolById (limit);
+            cachedTrades = new ArrayCacheBySymbolById<Trade> (limit);
         }
         const parsed = this.parseTrades (trades);
         const marketIds = {};
@@ -647,7 +647,7 @@ export default class deribit extends deribitRest {
         //
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById<Order> (limit);
         }
         const params = this.safeValue (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
@@ -741,7 +741,7 @@ export default class deribit extends deribitRest {
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][unifiedTimeframe] = new ArrayCacheByTimestamp<OHLCV> (limit);
         }
         const stored = this.ohlcvs[symbol][unifiedTimeframe];
         const ohlcv = this.safeDict (params, 'data', {});

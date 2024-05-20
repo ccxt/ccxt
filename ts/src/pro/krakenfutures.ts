@@ -324,7 +324,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
+            this.positions = new ArrayCacheBySymbolById<Position> ();
         }
         const cache = this.positions;
         const rawPositions = this.safeValue (message, 'positions', []);
@@ -527,7 +527,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const messageHash = this.getMessageHash ('trade', undefined, symbol);
             if (this.safeList (this.trades, symbol) === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                this.trades[symbol] = new ArrayCache (tradesLimit);
+                this.trades[symbol] = new ArrayCache<Trade> (tradesLimit);
             }
             const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
@@ -709,7 +709,7 @@ export default class krakenfutures extends krakenfuturesRest {
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            orders = new ArrayCacheBySymbolById (limit);
+            orders = new ArrayCacheBySymbolById<Order> (limit);
             this.orders = orders;
         }
         const order = this.safeValue (message, 'order');
@@ -839,7 +839,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         const orders = this.safeValue (message, 'orders', []);
         const limit = this.safeInteger (this.options, 'ordersLimit');
-        this.orders = new ArrayCacheBySymbolById (limit);
+        this.orders = new ArrayCacheBySymbolById<Order> (limit);
         const symbols = {};
         const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
@@ -1431,7 +1431,7 @@ export default class krakenfutures extends krakenfuturesRest {
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCacheBySymbolById (limit);
+            stored = new ArrayCacheBySymbolById<Trade> (limit);
             this.myTrades = stored;
         }
         const tradeSymbols = {};
