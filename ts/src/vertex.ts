@@ -718,6 +718,7 @@ export default class vertex extends Exchange {
     }
 
     parseFundingRate (ticker, market: Market = undefined) {
+        //
         // {
         //     "product_id": 4,
         //     "funding_rate_x18": "2447900598160952",
