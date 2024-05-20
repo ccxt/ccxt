@@ -2458,7 +2458,7 @@ export default class bitmart extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const innderData = this.safeDict (data, 'data', {});
         const orderIds = this.safeList (innderData, 'orderIds', []);
-        const parsedOrders = [];
+        const parsedOrders = [] as Order[];
         for (let i = 0; i < orderIds.length; i++) {
             const orderId = orderIds[i];
             const order = this.safeOrder ({ 'id': orderId }, market);
