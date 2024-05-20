@@ -22,7 +22,7 @@ export default class oxfun extends oxfunRest {
                 'watchOHLCVForSymbols': true,
                 'watchOrders': false,
                 'watchMyTrades': false,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': true,
                 'watchBalance': false,
             },
