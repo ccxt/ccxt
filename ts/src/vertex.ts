@@ -83,7 +83,7 @@ export default class vertex extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -854,6 +854,84 @@ export default class vertex extends Exchange {
             fundingRates[symbol] = ticker;
         }
         return this.filterByArray (fundingRates, 'symbol', symbols);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        // {
+        //     "ETH-PERP_USDC": {
+        //         "ticker_id": "ETH-PERP_USDC",
+        //         "base_currency": "ETH-PERP",
+        //         "quote_currency": "USDC",
+        //         "last_price": 1620.3,
+        //         "base_volume": 1309.2,
+        //         "quote_volume": 2117828.093867611,
+        //         "product_type": "perpetual",
+        //         "contract_price": 1620.372642114429,
+        //         "contract_price_currency": "USD",
+        //         "open_interest": 1635.2,
+        //         "open_interest_usd": 2649633.3443855145,
+        //         "index_price": 1623.293496279935,
+        //         "mark_price": 1623.398589416731,
+        //         "funding_rate": 0.000068613217104332,
+        //         "next_funding_rate_timestamp": 1694379600,
+        //         "price_change_percent_24h": -0.6348599635253989
+        //     }
+        // }
+        //
+        const value = this.safeNumber (interest, 'open_interest_usd');
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': undefined,
+            'openInterestValue': value,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        }, market);
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name vertex#fetchOpenInterest
+         * @description Retrieves the open interest of a derivative trading pair
+         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         */
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request = {};
+        const response = await this.v2ArchiveGetContracts (this.extend (request, params));
+        //
+        // {
+        //     "ETH-PERP_USDC": {
+        //         "ticker_id": "ETH-PERP_USDC",
+        //         "base_currency": "ETH-PERP",
+        //         "quote_currency": "USDC",
+        //         "last_price": 1620.3,
+        //         "base_volume": 1309.2,
+        //         "quote_volume": 2117828.093867611,
+        //         "product_type": "perpetual",
+        //         "contract_price": 1620.372642114429,
+        //         "contract_price_currency": "USD",
+        //         "open_interest": 1635.2,
+        //         "open_interest_usd": 2649633.3443855145,
+        //         "index_price": 1623.293496279935,
+        //         "mark_price": 1623.398589416731,
+        //         "funding_rate": 0.000068613217104332,
+        //         "next_funding_rate_timestamp": 1694379600,
+        //         "price_change_percent_24h": -0.6348599635253989
+        //     }
+        // }
+        //
+        const tickerId = market['base'] + '_USDC';
+        const openInterest = this.safeDict (response, tickerId, {});
+        return this.parseOpenInterest (openInterest, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
