@@ -1829,6 +1829,11 @@ export default class coinbase extends Exchange {
         if (symbols !== undefined) {
             request['product_ids'] = this.marketIds (symbols);
         }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', this.getMarketFromSymbols (symbols), params, 'default');
+        if (marketType !== undefined && marketType !== 'default') {
+            request['product_type'] = (marketType === 'swap') ? 'FUTURE' : 'SPOT';
+        }
         const response = await this.v3PublicGetBrokerageMarketProducts (this.extend (request, params));
         //
         //     {
@@ -2988,7 +2993,7 @@ export default class coinbase extends Exchange {
         const marketId = this.safeString (order, 'product_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.safeMarket (symbol, market);
         }
         const orderConfiguration = this.safeDict (order, 'order_configuration', {});
         const limitGTC = this.safeDict (orderConfiguration, 'limit_limit_gtc');

@@ -2491,6 +2491,11 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateEarnGetV2EarnLoanReduces",parameters);
     }
 
+    public async Task<object> privateEarnGetV2EarnAccountAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetV2EarnAccountAssets",parameters);
+    }
+
     public async Task<object> privateEarnPostV2EarnSavingsSubscribe (object parameters = null)
     {
         return await this.callAsync ("privateEarnPostV2EarnSavingsSubscribe",parameters);

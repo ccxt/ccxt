@@ -132,7 +132,7 @@ public partial class kraken : ccxt.kraken
             { "pair", getValue(market, "wsId") },
             { "volume", this.amountToPrecision(symbol, amount) },
         };
-        var requestparametersVariable = this.orderRequest("createOrderWs", symbol, type, request, price, parameters);
+        var requestparametersVariable = this.orderRequest("createOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -164,7 +164,7 @@ public partial class kraken : ccxt.kraken
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
     }
 
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -193,9 +193,12 @@ public partial class kraken : ccxt.kraken
             { "reqid", requestId },
             { "orderid", id },
             { "pair", getValue(market, "wsId") },
-            { "volume", this.amountToPrecision(symbol, amount) },
         };
-        var requestparametersVariable = this.orderRequest("editOrderWs", symbol, type, request, price, parameters);
+        if (isTrue(!isEqual(amount, null)))
+        {
+            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+        }
+        var requestparametersVariable = this.orderRequest("editOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);

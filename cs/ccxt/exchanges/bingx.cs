@@ -2381,6 +2381,10 @@ public partial class bingx : Exchange
         object types = new Dictionary<string, object>() {
             { "trigger_market", "market" },
             { "trigger_limit", "limit" },
+            { "stop_limit", "limit" },
+            { "stop_market", "market" },
+            { "take_profit_market", "market" },
+            { "stop", "limit" },
         };
         return this.safeString(types, type, type);
     }
@@ -2586,6 +2590,25 @@ public partial class bingx : Exchange
         //            side: 'SELL'
         //        }
         //    }
+        // stop loss order
+        //    {
+        //        "symbol": "ETH-USDT",
+        //        "orderId": "1792461744476422144",
+        //        "price": "2775.65",
+        //        "StopPrice": "2778.42",
+        //        "origQty": "0.032359",
+        //        "executedQty": "0",
+        //        "cummulativeQuoteQty": "0",
+        //        "status": "NEW",
+        //        "type": "TAKE_STOP_LIMIT",
+        //        "side": "SELL",
+        //        "time": "1716191156868",
+        //        "updateTime": "1716191156868",
+        //        "origQuoteOrderQty": "0",
+        //        "fee": "0",
+        //        "feeAsset": "USDT",
+        //        "clientOrderID": ""
+        //    }
         //
         object info = order;
         object newOrder = this.safeDict2(order, "newOrderResponse", "orderOpenResponse");
@@ -2626,7 +2649,7 @@ public partial class bingx : Exchange
         object stopLossPrice = null;
         if (isTrue(isTrue((!isEqual(stopLoss, null))) && isTrue((!isEqual(stopLoss, "")))))
         {
-            stopLossPrice = this.safeNumber(stopLoss, "stopLoss");
+            stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopLoss"));
         }
         if (isTrue(isTrue(isTrue((!isEqual(stopLoss, null))) && isTrue((!(stopLoss is Int64 || stopLoss is int || stopLoss is float || stopLoss is double)))) && isTrue((!isEqual(stopLoss, "")))))
         {
@@ -2635,13 +2658,13 @@ public partial class bingx : Exchange
             {
                 stopLoss = this.parseJson(stopLoss);
             }
-            stopLossPrice = this.safeNumber(stopLoss, "stopPrice");
+            stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopPrice"));
         }
         object takeProfit = this.safeValue(order, "takeProfit");
         object takeProfitPrice = null;
         if (isTrue(isTrue(!isEqual(takeProfit, null)) && isTrue((!isEqual(takeProfit, "")))))
         {
-            takeProfitPrice = this.safeNumber(takeProfit, "takeProfit");
+            takeProfitPrice = this.omitZero(this.safeString(takeProfit, "takeProfit"));
         }
         if (isTrue(isTrue(isTrue((!isEqual(takeProfit, null))) && isTrue((!(takeProfit is Int64 || takeProfit is int || takeProfit is float || takeProfit is double)))) && isTrue((!isEqual(takeProfit, "")))))
         {
@@ -2650,7 +2673,23 @@ public partial class bingx : Exchange
             {
                 takeProfit = this.parseJson(takeProfit);
             }
-            takeProfitPrice = this.safeNumber(takeProfit, "stopPrice");
+            takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
+        }
+        object rawType = this.safeStringLower2(order, "type", "o");
+        object stopPrice = this.omitZero(this.safeString2(order, "StopPrice", "stopPrice"));
+        object triggerPrice = stopPrice;
+        if (isTrue(!isEqual(stopPrice, null)))
+        {
+            if (isTrue(isTrue((isGreaterThan(getIndexOf(rawType, "stop"), -1))) && isTrue((isEqual(stopLossPrice, null)))))
+            {
+                stopLossPrice = stopPrice;
+                triggerPrice = null;
+            }
+            if (isTrue(isTrue((isGreaterThan(getIndexOf(rawType, "take"), -1))) && isTrue((isEqual(takeProfitPrice, null)))))
+            {
+                takeProfitPrice = stopPrice;
+                triggerPrice = null;
+            }
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", info },
@@ -2661,13 +2700,13 @@ public partial class bingx : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
-            { "type", this.parseOrderType(this.safeStringLower2(order, "type", "o")) },
+            { "type", this.parseOrderType(rawType) },
             { "timeInForce", this.safeString(order, "timeInForce") },
             { "postOnly", null },
             { "side", this.parseOrderSide(side) },
             { "price", this.safeString2(order, "price", "p") },
-            { "stopPrice", this.safeNumber(order, "stopPrice") },
-            { "triggerPrice", this.safeNumber(order, "stopPrice") },
+            { "stopPrice", triggerPrice },
+            { "triggerPrice", triggerPrice },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", this.safeString2(order, "avgPrice", "ap") },

@@ -141,7 +141,7 @@ class kraken(ccxt.async_support.kraken):
         url = self.urls['api']['ws']['private']
         requestId = self.request_id()
         messageHash = requestId
-        request = {
+        request: dict = {
             'event': 'addOrder',
             'token': token,
             'reqid': requestId,
@@ -150,7 +150,7 @@ class kraken(ccxt.async_support.kraken):
             'pair': market['wsId'],
             'volume': self.amount_to_precision(symbol, amount),
         }
-        request, params = self.orderRequest('createOrderWs', symbol, type, request, price, params)
+        request, params = self.orderRequest('createOrderWs', symbol, type, request, amount, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     def handle_create_edit_order(self, client, message):
@@ -177,7 +177,7 @@ class kraken(ccxt.async_support.kraken):
         messageHash = self.safe_value(message, 'reqid')
         client.resolve(order, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://docs.kraken.com/websockets/#message-editOrder
@@ -196,15 +196,16 @@ class kraken(ccxt.async_support.kraken):
         url = self.urls['api']['ws']['private']
         requestId = self.request_id()
         messageHash = requestId
-        request = {
+        request: dict = {
             'event': 'editOrder',
             'token': token,
             'reqid': requestId,
             'orderid': id,
             'pair': market['wsId'],
-            'volume': self.amount_to_precision(symbol, amount),
         }
-        request, params = self.orderRequest('editOrderWs', symbol, type, request, price, params)
+        if amount is not None:
+            request['volume'] = self.amount_to_precision(symbol, amount)
+        request, params = self.orderRequest('editOrderWs', symbol, type, request, amount, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):

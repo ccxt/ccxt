@@ -907,10 +907,10 @@ public partial class coinex
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch the history of funding payments paid and received on this account
+    /// fetch the history of funding fee payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -944,7 +944,7 @@ public partial class coinex
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -964,7 +964,7 @@ public partial class coinex
     /// fetch the current funding rates
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1010,7 +1010,7 @@ public partial class coinex
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1033,7 +1033,7 @@ public partial class coinex
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// <item>
@@ -1056,13 +1056,18 @@ public partial class coinex
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/transfer/http/transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// string : unified ccxt symbol, required when either the fromAccount or toAccount is margin
     /// </description>
     /// </item>
     /// </list>
@@ -1077,8 +1082,7 @@ public partial class coinex
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1089,13 +1093,19 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of  transfers structures to retrieve
+    /// int : the maximum number of transfer structures to retrieve
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' for fetching transfers to and from your margin account
     /// </description>
     /// </item>
     /// </list>
@@ -1307,14 +1317,8 @@ public partial class coinex
     /// fetches the history of margin added or reduced from contract isolated positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbol
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>type</term>
     /// <description>
@@ -1330,7 +1334,7 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of changes to fetch, default=100, max=100
+    /// int : the maximum amount of changes to fetch, default is 10
     /// </description>
     /// </item>
     /// <item>
@@ -1340,9 +1344,9 @@ public partial class coinex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.offset</term>
+    /// <term>params.positionId</term>
     /// <description>
-    /// int : offset
+    /// int : the id of the position that you want to retrieve margin adjustment history for
     /// </description>
     /// </item>
     /// </list>

@@ -4,10 +4,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-public partial class coinbasepro
+public partial class coinbaseexchange
 {
     /// <summary>
-    /// retrieves data on all markets for coinbasepro
+    /// retrieves data on all markets for coinbaseexchange
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts"/>  <br/>

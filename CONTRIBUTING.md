@@ -923,6 +923,40 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 ### How To Build & Run Tests On Your Local Machine
 
+### Offline tests
+CCXT has various offline tests that help ensure we don't introduce regressions upon adding a new feature or patching a bug. They are effortless and fast to run (since they don't require access to the exchanges), so they should be part of our development flow at CCXT.
+
+
+They include the base tests (precision, crypto, orderbook, etc) and static (request/response) tests.
+
+These tests are located in the folder `ts/src/test/base/functions/`; most of their content is automatically transpilable to every language; therefore, the same code conventions apply.
+
+You can run them by doing: `npm run test-base` and `npm run-test-ws`
+
+Static tests are also offline but they work differently because they emulate a unified ccxt call (createOrder/fetchTickers/etc)  and they mock the server's response and/or assert the validity of the generated HTTP request.
+
+**Request-static**:
+- They emulate the HTTP request, stop it before it tries to connect and assert that the url/body are properly formed.
+
+Folder: `ts/src/test/static/request/`
+
+You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
+
+```Javascript
+node cli.js binance fetchTrades "BTC/USDT:USDT" --report
+````
+
+
+**Response-static**
+- Emulate a mocked response from the server and assert the CCXT parses the raw HTTP response correctly.
+
+Folder: `ts/src/test/static/response/binance.json`
+
+You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
+
+```Javascript
+node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
+````
 #### Adding Exchange Credentials
 
 CCXT has tests for both the public API and the private authenticated API. By default, CCXT's built-in tests will only test the public APIs, because the code repository does not include the [API keys](https://github.com/ccxt/ccxt/wiki/Manual#authentication) that are required for the private API tests. Also, the included private tests will not alter the balance of the account in any way, all tests are non-intrusive. In order to enable private API testing, one must configure the API keys. That can be done either in `keys.local.json` or with the `env` variables.

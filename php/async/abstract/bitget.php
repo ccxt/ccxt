@@ -1495,6 +1495,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_earn_get_v2_earn_loan_reduces($params = array()) {
         return $this->request('v2/earn/loan/reduces', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_earn_get_v2_earn_account_assets($params = array()) {
+        return $this->request('v2/earn/account/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_earn_post_v2_earn_savings_subscribe($params = array()) {
         return $this->request('v2/earn/savings/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -3003,6 +3006,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateEarnGetV2EarnLoanReduces($params = array()) {
         return $this->request('v2/earn/loan/reduces', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateEarnGetV2EarnAccountAssets($params = array()) {
+        return $this->request('v2/earn/account/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateEarnPostV2EarnSavingsSubscribe($params = array()) {
         return $this->request('v2/earn/savings/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));

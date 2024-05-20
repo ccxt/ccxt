@@ -1417,7 +1417,7 @@ export default class ascendex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const stopPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         let reduceOnly = undefined;
         const execInst = this.safeString (order, 'execInst');
         if (execInst === 'reduceOnly') {

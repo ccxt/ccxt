@@ -237,6 +237,15 @@ class whitebit extends Exchange {
                             'convert/estimate',
                             'convert/confirm',
                             'convert/history',
+                            'sub-account/create',
+                            'sub-account/delete',
+                            'sub-account/edit',
+                            'sub-account/list',
+                            'sub-account/transfer',
+                            'sub-account/block',
+                            'sub-account/unblock',
+                            'sub-account/balances',
+                            'sub-account/transfer/history',
                         ),
                     ),
                 ),
@@ -1472,7 +1481,7 @@ class whitebit extends Exchange {
             $balance = $response[$id];
             if (gettype($balance) === 'array' && $balance !== null) {
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
+                $account['free'] = $this->safe_string_2($balance, 'available', 'main_balance');
                 $account['used'] = $this->safe_string($balance, 'freeze');
                 $account['total'] = $this->safe_string($balance, 'main_balance');
                 $result[$code] = $account;

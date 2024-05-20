@@ -7,9 +7,9 @@
 
 namespace ccxt;
 
-public partial class coinbasepro : Exchange
+public partial class coinbaseexchange : Exchange
 {
-    public coinbasepro (object args = null): base(args) {}
+    public coinbaseexchange (object args = null): base(args) {}
 
     public async Task<object> publicGetCurrencies (object parameters = null)
     {

@@ -26,11 +26,12 @@ public partial class bitmart : Exchange
                 { "borrowIsolatedMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
-                { "cancelOrders", false },
+                { "cancelOrders", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createPostOnlyOrder", true },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
@@ -164,7 +165,7 @@ public partial class bitmart : Exchange
                         { "spot/v1/order_detail", 1 },
                         { "spot/v2/orders", 5 },
                         { "spot/v1/trades", 5 },
-                        { "spot/v2/trades", 5 },
+                        { "spot/v2/trades", 4 },
                         { "spot/v3/orders", 5 },
                         { "spot/v2/order_detail", 1 },
                         { "spot/v1/margin/isolated/borrow_record", 1 },
@@ -202,6 +203,8 @@ public partial class bitmart : Exchange
                         { "spot/v4/query/history-orders", 5 },
                         { "spot/v4/query/trades", 5 },
                         { "spot/v4/query/order-trades", 5 },
+                        { "spot/v4/cancel_orders", 3 },
+                        { "spot/v4/batch_orders", 3 },
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
                         { "spot/v2/submit_order", 1 },
@@ -2433,6 +2436,86 @@ public partial class bitmart : Exchange
         return order;
     }
 
+    public async override Task<object> createOrders(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#createOrders
+        * @description create a list of trade orders
+        * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        * @param {object} [params]  extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object symbol = null;
+        object market = null;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            market = this.market(marketId);
+            if (!isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrders() supports spot orders only")) ;
+            }
+            if (isTrue(isEqual(symbol, null)))
+            {
+                symbol = marketId;
+            } else
+            {
+                if (isTrue(!isEqual(symbol, marketId)))
+                {
+                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                }
+            }
+            object type = this.safeString(rawOrder, "type");
+            object side = this.safeString(rawOrder, "side");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, new List<object>() {"symbol"}); // not needed because it goes in the outter object
+            ((IList<object>)ordersRequests).Add(orderRequest);
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "orderParams", ordersRequests },
+        };
+        object response = await this.privatePostSpotV4BatchOrders(request);
+        //
+        // {
+        //     "message": "OK",
+        //     "code": 1000,
+        //     "trace": "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        //     "data": {
+        //       "code": 0,
+        //       "msg": "success",
+        //       "data": {
+        //         "orderIds": [
+        //           "212751308355553320"
+        //         ]
+        //       }
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object innderData = this.safeDict(data, "data", new Dictionary<string, object>() {});
+        object orderIds = this.safeList(innderData, "orderIds", new List<object>() {});
+        object parsedOrders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(orderIds, i);
+            object order = this.safeOrder(new Dictionary<string, object>() {
+                { "id", orderId },
+            }, market);
+            ((IList<object>)parsedOrders).Add(order);
+        }
+        return parsedOrders;
+    }
+
     public virtual object createSwapOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         /**
@@ -2759,6 +2842,82 @@ public partial class bitmart : Exchange
         return this.extend(order, new Dictionary<string, object>() {
             { "id", id },
         });
+    }
+
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#cancelOrders
+        * @description cancel multiple orders
+        * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " cancelOrders() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
+        }
+        object clientOrderIds = this.safeList(parameters, "clientOrderIds");
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(clientOrderIds, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOrderIds"] = clientOrderIds;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderIds"] = ids;
+        }
+        object response = await this.privatePostSpotV4CancelOrders(this.extend(request, parameters));
+        //
+        //  {
+        //      "message": "OK",
+        //      "code": 1000,
+        //      "trace": "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+        //      "data": {
+        //        "successIds": [
+        //          "213055379155243012"
+        //        ],
+        //        "failIds": [],
+        //        "totalCount": 1,
+        //        "successCount": 1,
+        //        "failedCount": 0
+        //      }
+        //  }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object allOrders = new List<object>() {};
+        object successIds = this.safeList(data, "successIds", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(successIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(successIds, i);
+            ((IList<object>)allOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+                { "status", "canceled" },
+            }, market));
+        }
+        object failIds = this.safeList(data, "failIds", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(failIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(failIds, i);
+            ((IList<object>)allOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+                { "status", "failed" },
+            }, market));
+        }
+        return allOrders;
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)

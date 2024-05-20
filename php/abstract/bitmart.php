@@ -134,7 +134,7 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/v1/trades', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_spot_v2_trades($params = array()) {
-        return $this->request('spot/v2/trades', 'private', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('spot/v2/trades', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_spot_v3_orders($params = array()) {
         return $this->request('spot/v3/orders', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -240,6 +240,12 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function private_post_spot_v4_query_order_trades($params = array()) {
         return $this->request('spot/v4/query/order-trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_spot_v4_cancel_orders($params = array()) {
+        return $this->request('spot/v4/cancel_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_spot_v4_batch_orders($params = array()) {
+        return $this->request('spot/v4/batch_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_spot_v3_cancel_order($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -413,7 +419,7 @@ abstract class bitmart extends \ccxt\Exchange {
         return $this->request('spot/v1/trades', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetSpotV2Trades($params = array()) {
-        return $this->request('spot/v2/trades', 'private', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('spot/v2/trades', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetSpotV3Orders($params = array()) {
         return $this->request('spot/v3/orders', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -519,6 +525,12 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privatePostSpotV4QueryOrderTrades($params = array()) {
         return $this->request('spot/v4/query/order-trades', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostSpotV4CancelOrders($params = array()) {
+        return $this->request('spot/v4/cancel_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostSpotV4BatchOrders($params = array()) {
+        return $this->request('spot/v4/batch_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostSpotV3CancelOrder($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));

@@ -2223,6 +2223,10 @@ class bingx extends Exchange {
         $types = array(
             'trigger_market' => 'market',
             'trigger_limit' => 'limit',
+            'stop_limit' => 'limit',
+            'stop_market' => 'market',
+            'take_profit_market' => 'market',
+            'stop' => 'limit',
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -2334,7 +2338,7 @@ class bingx extends Exchange {
         //        type => 'MARKET',
         //        price => 0,
         //        quantity => 1,
-        //        stopPrice => 0,
+        //        $stopPrice => 0,
         //        workingType => 'MARK_PRICE',
         //        clientOrderID => '',
         //        timeInForce => 'GTC',
@@ -2362,7 +2366,7 @@ class bingx extends Exchange {
         //            executedQty => '0',
         //            avgPrice => '0.000',
         //            cumQuote => '0',
-        //            stopPrice => '',
+        //            $stopPrice => '',
         //            profit => '0.0000',
         //            commission => '0.000000',
         //            status => 'PENDING',
@@ -2384,7 +2388,7 @@ class bingx extends Exchange {
         //            type => 'LIMIT',
         //            price => '99',
         //            quantity => '2',
-        //            stopPrice => '0',
+        //            $stopPrice => '0',
         //            workingType => 'MARK_PRICE',
         //            clientOrderID => '',
         //            timeInForce => 'GTC',
@@ -2405,7 +2409,7 @@ class bingx extends Exchange {
         //            orderId => '1755334007697866752',
         //            transactTime => '1707339214620',
         //            price => '99',
-        //            stopPrice => '0',
+        //            $stopPrice => '0',
         //            origQty => '0.2',
         //            executedQty => '0',
         //            cummulativeQuoteQty => '0',
@@ -2418,7 +2422,7 @@ class bingx extends Exchange {
         //            symbol => 'SOL-USDT',
         //            orderId => '1755117055251480576',
         //            price => '100',
-        //            stopPrice => '0',
+        //            $stopPrice => '0',
         //            origQty => '0.2',
         //            executedQty => '0',
         //            cummulativeQuoteQty => '0',
@@ -2426,6 +2430,25 @@ class bingx extends Exchange {
         //            type => 'LIMIT',
         //            $side => 'SELL'
         //        }
+        //    }
+        // stop loss $order
+        //    {
+        //        "symbol" => "ETH-USDT",
+        //        "orderId" => "1792461744476422144",
+        //        "price" => "2775.65",
+        //        "StopPrice" => "2778.42",
+        //        "origQty" => "0.032359",
+        //        "executedQty" => "0",
+        //        "cummulativeQuoteQty" => "0",
+        //        "status" => "NEW",
+        //        "type" => "TAKE_STOP_LIMIT",
+        //        "side" => "SELL",
+        //        "time" => "1716191156868",
+        //        "updateTime" => "1716191156868",
+        //        "origQuoteOrderQty" => "0",
+        //        "fee" => "0",
+        //        "feeAsset" => "USDT",
+        //        "clientOrderID" => ""
         //    }
         //
         $info = $order;
@@ -2459,26 +2482,39 @@ class bingx extends Exchange {
         $stopLoss = $this->safe_value($order, 'stopLoss');
         $stopLossPrice = null;
         if (($stopLoss !== null) && ($stopLoss !== '')) {
-            $stopLossPrice = $this->safe_number($stopLoss, 'stopLoss');
+            $stopLossPrice = $this->omit_zero($this->safe_string($stopLoss, 'stopLoss'));
         }
         if (($stopLoss !== null) && (!(is_float($stopLoss) || is_int($stopLoss))) && ($stopLoss !== '')) {
             //  $stopLoss => 'array("stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1)',
             if (gettype($stopLoss) === 'string') {
                 $stopLoss = $this->parse_json($stopLoss);
             }
-            $stopLossPrice = $this->safe_number($stopLoss, 'stopPrice');
+            $stopLossPrice = $this->omit_zero($this->safe_string($stopLoss, 'stopPrice'));
         }
         $takeProfit = $this->safe_value($order, 'takeProfit');
         $takeProfitPrice = null;
         if ($takeProfit !== null && ($takeProfit !== '')) {
-            $takeProfitPrice = $this->safe_number($takeProfit, 'takeProfit');
+            $takeProfitPrice = $this->omit_zero($this->safe_string($takeProfit, 'takeProfit'));
         }
         if (($takeProfit !== null) && (!(is_float($takeProfit) || is_int($takeProfit))) && ($takeProfit !== '')) {
             //  $takeProfit => 'array("stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1)',
             if (gettype($takeProfit) === 'string') {
                 $takeProfit = $this->parse_json($takeProfit);
             }
-            $takeProfitPrice = $this->safe_number($takeProfit, 'stopPrice');
+            $takeProfitPrice = $this->omit_zero($this->safe_string($takeProfit, 'stopPrice'));
+        }
+        $rawType = $this->safe_string_lower_2($order, 'type', 'o');
+        $stopPrice = $this->omit_zero($this->safe_string_2($order, 'StopPrice', 'stopPrice'));
+        $triggerPrice = $stopPrice;
+        if ($stopPrice !== null) {
+            if ((mb_strpos($rawType, 'stop') > -1) && ($stopLossPrice === null)) {
+                $stopLossPrice = $stopPrice;
+                $triggerPrice = null;
+            }
+            if ((mb_strpos($rawType, 'take') > -1) && ($takeProfitPrice === null)) {
+                $takeProfitPrice = $stopPrice;
+                $triggerPrice = null;
+            }
         }
         return $this->safe_order(array(
             'info' => $info,
@@ -2489,13 +2525,13 @@ class bingx extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
-            'type' => $this->parse_order_type($this->safe_string_lower_2($order, 'type', 'o')),
+            'type' => $this->parse_order_type($rawType),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
             'side' => $this->parse_order_side($side),
             'price' => $this->safe_string_2($order, 'price', 'p'),
-            'stopPrice' => $this->safe_number($order, 'stopPrice'),
-            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $this->safe_string_2($order, 'avgPrice', 'ap'),

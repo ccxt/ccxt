@@ -102,14 +102,16 @@ class cryptocom extends cryptocom$1 {
             params['params'] = {};
         }
         let bookSubscriptionType = undefined;
-        [bookSubscriptionType, params] = this.handleOptionAndParams2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        if (bookSubscriptionType !== undefined) {
-            params['params']['bookSubscriptionType'] = bookSubscriptionType;
-        }
+        let bookSubscriptionType2 = undefined;
+        [bookSubscriptionType, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        [bookSubscriptionType2, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
         let bookUpdateFrequency = undefined;
-        [bookUpdateFrequency, params] = this.handleOptionAndParams2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency');
-        if (bookUpdateFrequency !== undefined) {
-            params['params']['bookSubscriptionType'] = bookSubscriptionType;
+        let bookUpdateFrequency2 = undefined;
+        [bookUpdateFrequency, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'bookUpdateFrequency');
+        [bookUpdateFrequency2, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        if (bookUpdateFrequency2 !== undefined) {
+            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];

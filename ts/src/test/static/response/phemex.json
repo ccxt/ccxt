@@ -750,112 +750,111 @@
         ],
         "fetchClosedOrders": [
             {
-                "description": "Spot closed order",
+                "description": "spot closed order",
                 "method": "fetchClosedOrders",
-                "warning": "status does not seem correct",
                 "input": [
-                    "LTC/USDT",
-                    null,
-                    1
+                  "ETH/USDT",
+                  null,
+                  1
                 ],
                 "httpResponse": {
-                    "code": "0",
-                    "msg": "OK",
-                    "data": {
-                        "total": "9",
-                        "rows": [
-                            {
-                                "orderID": "a1db4e77-3255-4b7c-a2ca-d8f3da177b0c",
-                                "clOrdID": "ccxt2022d14f73a834c9a1f5",
-                                "stopPxEp": "0",
-                                "avgPriceEp": "0",
-                                "qtyType": "ByBase",
-                                "leavesBaseQtyEv": "11000000",
-                                "leavesQuoteQtyEv": "616000000",
-                                "baseQtyEv": "11000000",
-                                "feeCurrency": "LTC",
-                                "stopDirection": "UNSPECIFIED",
-                                "symbol": "sLTCUSDT",
-                                "side": "Buy",
-                                "quoteQtyEv": "616000000",
-                                "priceEp": "5600000000",
-                                "ordType": "Limit",
-                                "timeInForce": "GoodTillCancel",
-                                "ordStatus": "New",
-                                "execStatus": "ReAdded",
-                                "createTimeNs": "1700817998742000000",
-                                "cumFeeEv": "0",
-                                "cumBaseValueEv": "0",
-                                "cumQuoteValueEv": "0",
-                                "avgTransactPriceEp": "0",
-                                "spotOrderDetailsVos": null
-                            }
-                        ]
-                    }
+                  "code": "0",
+                  "msg": "OK",
+                  "data": {
+                    "total": "10",
+                    "rows": [
+                      {
+                        "orderID": "aedf8004-17db-4fe1-a542-c605d7913f1e",
+                        "clOrdID": "CCXT123456cd834798e481b601",
+                        "stopPxEp": "0",
+                        "avgPriceEp": "297891000000",
+                        "qtyType": "ByQuote",
+                        "leavesBaseQtyEv": "0",
+                        "leavesQuoteQtyEv": "0",
+                        "baseQtyEv": "0",
+                        "feeCurrency": "ETH",
+                        "stopDirection": "UNSPECIFIED",
+                        "symbol": "sETHUSDT",
+                        "side": "Buy",
+                        "quoteQtyEv": "2000000000",
+                        "priceEp": "325600000000",
+                        "ordType": "Market",
+                        "timeInForce": "ImmediateOrCancel",
+                        "ordStatus": "Filled",
+                        "execStatus": "TakerFill",
+                        "createTimeNs": "1715871268108003308",
+                        "cumFeeEv": "671",
+                        "cumBaseValueEv": "671000",
+                        "cumQuoteValueEv": "1998848610",
+                        "avgTransactPriceEp": "0",
+                        "spotOrderDetailsVos": null
+                      }
+                    ]
+                  }
                 },
                 "parsedResponse": [
-                    {
-                        "info": {
-                            "orderID": "a1db4e77-3255-4b7c-a2ca-d8f3da177b0c",
-                            "clOrdID": "ccxt2022d14f73a834c9a1f5",
-                            "stopPxEp": "0",
-                            "avgPriceEp": "0",
-                            "qtyType": "ByBase",
-                            "leavesBaseQtyEv": "11000000",
-                            "leavesQuoteQtyEv": "616000000",
-                            "baseQtyEv": "11000000",
-                            "feeCurrency": "LTC",
-                            "stopDirection": "UNSPECIFIED",
-                            "symbol": "sLTCUSDT",
-                            "side": "Buy",
-                            "quoteQtyEv": "616000000",
-                            "priceEp": "5600000000",
-                            "ordType": "Limit",
-                            "timeInForce": "GoodTillCancel",
-                            "ordStatus": "New",
-                            "execStatus": "ReAdded",
-                            "createTimeNs": "1700817998742000000",
-                            "cumFeeEv": "0",
-                            "cumBaseValueEv": "0",
-                            "cumQuoteValueEv": "0",
-                            "avgTransactPriceEp": "0",
-                            "spotOrderDetailsVos": null
-                        },
-                        "id": "a1db4e77-3255-4b7c-a2ca-d8f3da177b0c",
-                        "clientOrderId": "ccxt2022d14f73a834c9a1f5",
-                        "timestamp": 1700817998742,
-                        "datetime": "2023-11-24T09:26:38.742Z",
-                        "lastTradeTimestamp": null,
-                        "symbol": "LTC/USDT",
-                        "type": "limit",
-                        "timeInForce": "GTC",
-                        "postOnly": false,
-                        "side": "buy",
-                        "price": 56,
-                        "stopPrice": null,
-                        "triggerPrice": null,
-                        "amount": 0.11,
-                        "cost": 0,
-                        "average": null,
-                        "filled": 0,
-                        "remaining": 0.11,
-                        "status": "open",
-                        "fee": {
-                            "cost": "0",
-                            "currency": null
-                        },
-                        "trades": [],
-                        "fees": [
-                            {
-                                "cost": 0,
-                                "currency": null
-                            }
-                        ],
-                        "lastUpdateTimestamp": null,
-                        "reduceOnly": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
-                    }
+                  {
+                    "info": {
+                      "orderID": "aedf8004-17db-4fe1-a542-c605d7913f1e",
+                      "clOrdID": "CCXT123456cd834798e481b601",
+                      "stopPxEp": "0",
+                      "avgPriceEp": "297891000000",
+                      "qtyType": "ByQuote",
+                      "leavesBaseQtyEv": "0",
+                      "leavesQuoteQtyEv": "0",
+                      "baseQtyEv": "0",
+                      "feeCurrency": "ETH",
+                      "stopDirection": "UNSPECIFIED",
+                      "symbol": "sETHUSDT",
+                      "side": "Buy",
+                      "quoteQtyEv": "2000000000",
+                      "priceEp": "325600000000",
+                      "ordType": "Market",
+                      "timeInForce": "ImmediateOrCancel",
+                      "ordStatus": "Filled",
+                      "execStatus": "TakerFill",
+                      "createTimeNs": "1715871268108003308",
+                      "cumFeeEv": "671",
+                      "cumBaseValueEv": "671000",
+                      "cumQuoteValueEv": "1998848610",
+                      "avgTransactPriceEp": "0",
+                      "spotOrderDetailsVos": null
+                    },
+                    "id": "aedf8004-17db-4fe1-a542-c605d7913f1e",
+                    "clientOrderId": "CCXT123456cd834798e481b601",
+                    "timestamp": 1715871268108,
+                    "datetime": "2024-05-16T14:54:28.108Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 3256,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.00671,
+                    "cost": 19.9884861,
+                    "average": 2978.91,
+                    "filled": 0.00671,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                      "cost": "0.00000671",
+                      "currency": "ETH"
+                    },
+                    "trades": [],
+                    "fees": [
+                      {
+                        "cost": 0.00000671,
+                        "currency": "ETH"
+                      }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
                 ]
             },
             {
@@ -1503,6 +1502,117 @@
                     }
                 ]
             }
+        ],
+        "fetchOrders":[
+            {
+                "description": "swap order",
+                "method": "fetchOrders",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "OK",
+                  "data": [{
+                    "createdAt": "1715818144087",
+                    "symbol": "BTCUSDT",
+                    "orderQtyRq": "0.01",
+                    "side": "1",
+                    "posSide": "2",
+                    "priceRp": "75326.2",
+                    "execQtyRq": "0.01",
+                    "leavesQtyRq": "0",
+                    "execPriceRp": "66573.7",
+                    "orderValueRv": "665.737",
+                    "leavesValueRv": "0",
+                    "cumValueRv": "665.737",
+                    "stopDirection": "1",
+                    "stopPxRp": "66500",
+                    "trigger": "1",
+                    "actionBy": "4",
+                    "execFeeRv": "0.36615535",
+                    "ordType": "3",
+                    "ordStatus": "7",
+                    "clOrdId": "XXXXXXXXXXXXXXXXXXXXXX",
+                    "orderId": "XXXXXXXXXXXXXXXXXXXXXX",
+                    "execStatus": "7",
+                    "bizError": "0",
+                    "totalPnlRv": null,
+                    "avgTransactPriceRp": null,
+                    "orderDetailsVos": null,
+                    "tradeType": "1",
+                    "updatedAt": "1715818144091"
+                  }]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "createdAt": "1715818144087",
+                      "symbol": "BTCUSDT",
+                      "orderQtyRq": "0.01",
+                      "side": "1",
+                      "posSide": "2",
+                      "priceRp": "75326.2",
+                      "execQtyRq": "0.01",
+                      "leavesQtyRq": "0",
+                      "execPriceRp": "66573.7",
+                      "orderValueRv": "665.737",
+                      "leavesValueRv": "0",
+                      "cumValueRv": "665.737",
+                      "stopDirection": "1",
+                      "stopPxRp": "66500",
+                      "trigger": "1",
+                      "actionBy": "4",
+                      "execFeeRv": "0.36615535",
+                      "ordType": "3",
+                      "ordStatus": "7",
+                      "clOrdId": "XXXXXXXXXXXXXXXXXXXXXX",
+                      "orderId": "XXXXXXXXXXXXXXXXXXXXXX",
+                      "execStatus": "7",
+                      "bizError": "0",
+                      "totalPnlRv": null,
+                      "avgTransactPriceRp": null,
+                      "orderDetailsVos": null,
+                      "tradeType": "1",
+                      "updatedAt": "1715818144091"
+                    },
+                    "id": "XXXXXXXXXXXXXXXXXXXXXX",
+                    "clientOrderId": "XXXXXXXXXXXXXXXXXXXXXX",
+                    "datetime": "2024-05-16T00:09:04.087Z",
+                    "timestamp": 1715818144087,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 75326.2,
+                    "stopPrice": 66500,
+                    "triggerPrice": 66500,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": 0.01,
+                    "filled": 0.01,
+                    "remaining": 0,
+                    "cost": 665.737,
+                    "average": 66573.7,
+                    "status": "closed",
+                    "fee": {
+                      "cost": "0.36615535",
+                      "currency": "USDT"
+                    },
+                    "trades": [],
+                    "fees": [
+                      {
+                        "cost": 0.36615535,
+                        "currency": "USDT"
+                      }
+                    ],
+                    "lastUpdateTimestamp": null
+                  }
+                ]
+              }
         ],
         "fetchTrades": [
             {

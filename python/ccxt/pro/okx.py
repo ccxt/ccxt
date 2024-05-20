@@ -1336,7 +1336,7 @@ class okx(ccxt.async_support.okx):
         first = self.safe_dict(orders, 0, {})
         client.resolve(first, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-amend-order

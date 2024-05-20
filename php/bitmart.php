@@ -32,11 +32,12 @@ class bitmart extends Exchange {
                 'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => false,
+                'cancelOrders' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
@@ -176,7 +177,7 @@ class bitmart extends Exchange {
                         'spot/v2/orders' => 5,
                         'spot/v1/trades' => 5,
                         // newer order endpoint
-                        'spot/v2/trades' => 5,
+                        'spot/v2/trades' => 4,
                         'spot/v3/orders' => 5,
                         'spot/v2/order_detail' => 1,
                         // margin
@@ -220,6 +221,8 @@ class bitmart extends Exchange {
                         'spot/v4/query/history-orders' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/trades' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/order-trades' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/cancel_orders' => 3,
+                        'spot/v4/batch_orders' => 3,
                         // newer endpoint
                         'spot/v3/cancel_order' => 1,
                         'spot/v2/batch_orders' => 1,
@@ -2355,6 +2358,74 @@ class bitmart extends Exchange {
         return $order;
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         * @see https://developer-pro.bitmart.com/en/spot/#new-batch-$order-v4-signed
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $symbol = null;
+        $market = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            $market = $this->market($marketId);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createOrders() supports spot $orders only');
+            }
+            if ($symbol === null) {
+                $symbol = $marketId;
+            } else {
+                if ($symbol !== $marketId) {
+                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                }
+            }
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $orderRequest = $this->create_spot_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            $orderRequest = $this->omit($orderRequest, array( 'symbol' )); // not needed because it goes in the outter object
+            $ordersRequests[] = $orderRequest;
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'orderParams' => $ordersRequests,
+        );
+        $response = $this->privatePostSpotV4BatchOrders ($request);
+        //
+        // {
+        //     "message" => "OK",
+        //     "code" => 1000,
+        //     "trace" => "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        //     "data" => {
+        //       "code" => 0,
+        //       "msg" => "success",
+        //       "data" => {
+        //         "orderIds" => array(
+        //           "212751308355553320"
+        //         )
+        //       }
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $innderData = $this->safe_dict($data, 'data', array());
+        $orderIds = $this->safe_list($innderData, 'orderIds', array());
+        $parsedOrders = array();
+        for ($i = 0; $i < count($orderIds); $i++) {
+            $orderId = $orderIds[$i];
+            $order = $this->safe_order(array( 'id' => $orderId ), $market);
+            $parsedOrders[] = $order;
+        }
+        return $parsedOrders;
+    }
+
     public function create_swap_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
@@ -2615,6 +2686,66 @@ class bitmart extends Exchange {
         }
         $order = $this->parse_order($id, $market);
         return $this->extend($order, array( 'id' => $id ));
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] client order $ids
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' cancelOrders() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+        }
+        $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
+        $params = $this->omit($params, array( 'clientOrderIds' ));
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($clientOrderIds !== null) {
+            $request['clientOrderIds'] = $clientOrderIds;
+        } else {
+            $request['orderIds'] = $ids;
+        }
+        $response = $this->privatePostSpotV4CancelOrders ($this->extend($request, $params));
+        //
+        //  {
+        //      "message" => "OK",
+        //      "code" => 1000,
+        //      "trace" => "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+        //      "data" => {
+        //        "successIds" => array(
+        //          "213055379155243012"
+        //        ),
+        //        "failIds" => array(),
+        //        "totalCount" => 1,
+        //        "successCount" => 1,
+        //        "failedCount" => 0
+        //      }
+        //  }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $allOrders = array();
+        $successIds = $this->safe_list($data, 'successIds', array());
+        for ($i = 0; $i < count($successIds); $i++) {
+            $id = $successIds[$i];
+            $allOrders[] = $this->safe_order(array( 'id' => $id, 'status' => 'canceled' ), $market);
+        }
+        $failIds = $this->safe_list($data, 'failIds', array());
+        for ($i = 0; $i < count($failIds); $i++) {
+            $id = $failIds[$i];
+            $allOrders[] = $this->safe_order(array( 'id' => $id, 'status' => 'failed' ), $market);
+        }
+        return $allOrders;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
