@@ -103,7 +103,7 @@ export default class valr extends Exchange {
                 'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledAndClosedOrders': undefined,
                 'fetchCanceledOrders': undefined,
-                'fetchClosedOrder': undefined,
+                'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
                 'fetchConvertCurrencies': undefined,
                 'fetchConvertQuote': undefined,
@@ -271,8 +271,8 @@ export default class valr extends Exchange {
                         'orders/{pair}/customerorderid/{id}',
                         'orders/open', // fetchOpenOrders
                         'orders/history', // fetchClosedOrders
-                        'orders/history/summary/orderid/{id}',
-                        'orders/history/summary/customerorderid/{id}',
+                        'orders/history/summary/orderid/{id}', // fetchClosedOrder
+                        'orders/history/summary/customerorderid/{id}', // fetchClosedOrder
                         'orders/history/detail/orderid/{id}',
                         'orders/history/detail/customerorderid/{id}',
                         'staking/balances/{currency}',
@@ -982,6 +982,33 @@ export default class valr extends Exchange {
             market = this.safeValue (this.markets, symbol);
         }
         return this.parseOrders (response, market, since, limit, params);
+    }
+
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name valr#fetchClosedOrder
+         * @description fetches information on closed order based on the ID or CustomerID
+         * @see https://docs.valr.com/#7f42e4d5-c853-4da2-9c7d-adb4f3385ca2
+         * @see https://docs.valr.com/#112c551e-4ee3-46a3-8fcf-0db07d3f48f2
+         * @param {string} [symbol] unified symbol of the market the order was made in - Note used
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.customerId] ID is for customerOrderId field and associate API call (default is false)
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const useCustomerOrderId = this.safeBool (params, 'customerId', false);
+        const request = {
+            'id': id,
+        };
+        let response = undefined;
+        if (useCustomerOrderId) {
+            params = this.omit (params, 'customerId');
+            response = await this.privateGetOrdersHistorySummaryCustomerorderidId (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrdersHistorySummaryOrderidId (this.extend (request, params));
+        }
+        return this.parseOrder (response);
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
