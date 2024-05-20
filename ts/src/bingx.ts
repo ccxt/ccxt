@@ -2219,6 +2219,9 @@ export default class bingx extends Exchange {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
             'stop_limit': 'limit',
+            'stop_market': 'market',
+            'take_profit_market': 'market',
+            'stop': 'limit',
         };
         return this.safeString (types, type, type);
     }
