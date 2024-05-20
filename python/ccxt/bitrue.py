@@ -2932,6 +2932,10 @@ class bitrue(Exchange, ImplicitAPI):
                 signPath = signPath + '/' + version + '/' + path
                 signMessage = timestamp + method + signPath
                 if method == 'GET':
+                    keys = list(params.keys())
+                    keysLength = len(keys)
+                    if keysLength > 0:
+                        signMessage += '?' + self.urlencode(params)
                     signature = self.hmac(self.encode(signMessage), self.encode(self.secret), hashlib.sha256)
                     headers = {
                         'X-CH-APIKEY': self.apiKey,
@@ -2944,7 +2948,7 @@ class bitrue(Exchange, ImplicitAPI):
                         'recvWindow': recvWindow,
                     }, params)
                     body = self.json(query)
-                    signMessage = signMessage + json.dumps(body)
+                    signMessage += body
                     signature = self.hmac(self.encode(signMessage), self.encode(self.secret), hashlib.sha256)
                     headers = {
                         'Content-Type': 'application/json',

@@ -2203,7 +2203,7 @@ class krakenfutures extends Exchange {
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
-         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
          * Fetches current contract trading positions
          * @param {string[]} $symbols List of unified $symbols
          * @param {array} [$params] Not used by krakenfutures

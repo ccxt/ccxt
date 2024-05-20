@@ -6,14 +6,14 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\coinbasepro as Exchange;
+use ccxt\abstract\coinbaseexchange as Exchange;
 
-class coinbasepro extends Exchange {
+class coinbaseexchange extends Exchange {
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
-            'id' => 'coinbasepro',
-            'name' => 'Coinbase Pro(Deprecated)',
+            'id' => 'coinbaseexchange',
+            'name' => 'Coinbase Exchange',
             'countries' => array( 'US' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome'],
@@ -75,19 +75,19 @@ class coinbasepro extends Exchange {
                 '6h' => 21600,
                 '1d' => 86400,
             ),
-            'hostname' => 'pro.coinbase.com',
+            'hostname' => 'exchange.coinbase.com',
             'urls' => array(
                 'test' => array(
-                    'public' => 'https://api-public.sandbox.pro.coinbase.com',
-                    'private' => 'https://api-public.sandbox.pro.coinbase.com',
+                    'public' => 'https://api-public.sandbox.exchange.coinbase.com',
+                    'private' => 'https://api-public.sandbox.exchange.coinbase.com',
                 ),
-                'logo' => 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
+                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e',
                 'api' => array(
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
                 ),
-                'www' => 'https://pro.coinbase.com/',
-                'doc' => 'https://docs.pro.coinbase.com',
+                'www' => 'https://coinbase.com/',
+                'doc' => 'https://docs.cloud.coinbase.com/exchange/docs/',
                 'fees' => array(
                     'https://docs.pro.coinbase.com/#fees',
                     'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
@@ -304,7 +304,7 @@ class coinbasepro extends Exchange {
 
     public function fetch_markets($params = array ()): array {
         /**
-         * retrieves data on all markets for coinbasepro
+         * retrieves data on all markets for coinbaseexchange
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
@@ -1076,7 +1076,7 @@ class coinbasepro extends Exchange {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
          * fetches information on an order made by the user
-         * @param {string} $symbol not used by coinbasepro fetchOrder
+         * @param {string} $symbol not used by coinbaseexchange fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */

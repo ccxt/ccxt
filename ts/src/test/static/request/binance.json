@@ -3168,6 +3168,24 @@
                 "url": "https://api.binance.com/sapi/v1/margin/isolatedMarginData?timestamp=1714664627834&recvWindow=10000&signature=9b4fa07568a385ee7a642e31375bb1c6e0640d1491508b2f5bbd4e36ce31f117",
                 "input": []
             }
+        ],
+        "fetchPremiumIndexOHLCV": [
+            {
+                "description": "fetchPremiumIndexOHLCV linear",
+                "method": "fetchPremiumIndexOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/premiumIndexKlines?interval=1m&limit=500&symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetchPremiumIndexOHLCV inverse",
+                "method": "fetchPremiumIndexOHLCV",
+                "url": "https://dapi.binance.com/dapi/v1/premiumIndexKlines?interval=1m&limit=500&symbol=BTCUSD_PERP",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }

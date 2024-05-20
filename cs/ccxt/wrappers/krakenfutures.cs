@@ -562,7 +562,7 @@ public partial class krakenfutures
     /// Fetches current contract trading positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions"/>  <br/>
+    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

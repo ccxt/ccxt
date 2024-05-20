@@ -1755,6 +1755,26 @@ public partial class phemex : Exchange
         //         "execId": "8718cae",
         //         "execStatus": 6
         //     }
+        // spot with fees paid using PT token
+        //     "createdAt": "1714990724076",
+        //     "symbol": "BTCUSDT",
+        //     "currency": "USDT",
+        //     "action": "1",
+        //     "tradeType": "1",
+        //     "execQtyRq": "0.003",
+        //     "execPriceRp": "64935",
+        //     "side": "2",
+        //     "orderQtyRq": "0.003",
+        //     "priceRp": "51600",
+        //     "execValueRv": "194.805",
+        //     "feeRateRr": "0.000495",
+        //     "execFeeRv": "0",
+        //     "ordType": "3",
+        //     "execId": "XXXXXX",
+        //     "execStatus": "7",
+        //     "posSide": "1",
+        //     "ptFeeRv": "0.110012249248",
+        //     "ptPriceRp": "0.876524893"
         //
         object priceString = null;
         object amountString = null;
@@ -1818,10 +1838,21 @@ public partial class phemex : Exchange
                 priceString = this.safeString(trade, "execPriceRp");
                 amountString = this.safeString(trade, "execQtyRq");
                 costString = this.safeString(trade, "execValueRv");
-                feeCostString = this.safeString(trade, "execFeeRv");
+                feeCostString = this.omitZero(this.safeString(trade, "execFeeRv"));
                 feeRateString = this.safeString(trade, "feeRateRr");
-                object currencyId = this.safeString(trade, "currency");
-                feeCurrencyCode = this.safeCurrencyCode(currencyId);
+                if (isTrue(!isEqual(feeCostString, null)))
+                {
+                    object currencyId = this.safeString(trade, "currency");
+                    feeCurrencyCode = this.safeCurrencyCode(currencyId);
+                } else
+                {
+                    object ptFeeRv = this.omitZero(this.safeString(trade, "ptFeeRv"));
+                    if (isTrue(!isEqual(ptFeeRv, null)))
+                    {
+                        feeCostString = ptFeeRv;
+                        feeCurrencyCode = "PT";
+                    }
+                }
             } else
             {
                 side = this.safeStringLower(trade, "side");
@@ -1835,7 +1866,7 @@ public partial class phemex : Exchange
                 amountString = this.fromEv(this.safeString(trade, "execBaseQtyEv"), market);
                 amountString = this.safeString(trade, "execQty", amountString);
                 costString = this.fromEr(this.safeString2(trade, "execQuoteQtyEv", "execValueEv"), market);
-                feeCostString = this.fromEr(this.safeString(trade, "execFeeEv"), market);
+                feeCostString = this.fromEr(this.omitZero(this.safeString(trade, "execFeeEv")), market);
                 if (isTrue(!isEqual(feeCostString, null)))
                 {
                     feeRateString = this.fromEr(this.safeString(trade, "feeRateEr"), market);
@@ -1850,6 +1881,13 @@ public partial class phemex : Exchange
                             object settlementCurrencyId = this.safeString(info, "settlementCurrency");
                             feeCurrencyCode = this.safeCurrencyCode(settlementCurrencyId);
                         }
+                    }
+                } else
+                {
+                    feeCostString = this.safeString(trade, "ptFeeRv");
+                    if (isTrue(!isEqual(feeCostString, null)))
+                    {
+                        feeCurrencyCode = "PT";
                     }
                 }
             }
@@ -2308,7 +2346,7 @@ public partial class phemex : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", null },
+                { "currency", this.safeCurrencyCode(this.safeString(order, "feeCurrency")) },
             };
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
@@ -2460,6 +2498,7 @@ public partial class phemex : Exchange
         }
         object marketId = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
         object status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         object side = this.parseOrderSide(this.safeStringLower(order, "side"));
         object type = this.parseOrderType(this.safeString(order, "orderType"));
@@ -2493,6 +2532,22 @@ public partial class phemex : Exchange
         }
         object takeProfit = this.safeString(order, "takeProfitRp");
         object stopLoss = this.safeString(order, "stopLossRp");
+        object feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
+        object ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
+        object fee = null;
+        if (isTrue(!isEqual(feeValue, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", feeValue },
+                { "currency", getValue(market, "quote") },
+            };
+        } else if (isTrue(!isEqual(ptFeeRv, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", ptFeeRv },
+                { "currency", "PT" },
+            };
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2517,7 +2572,7 @@ public partial class phemex : Exchange
             { "cost", cost },
             { "average", null },
             { "status", status },
-            { "fee", null },
+            { "fee", fee },
             { "trades", null },
         });
     }
@@ -4106,7 +4161,8 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
+        object isUsdt = isEqual(getValue(market, "settle"), "USDT");
+        if (isTrue(isUsdt))
         {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, parameters));
         } else
@@ -4122,13 +4178,13 @@ public partial class phemex : Exchange
         //                 {
         //                     "symbol": "BTCUSD",
         //                     "currency": "BTC",
-        //                     "execQty": 18,
+        //                     "execQty": 18, // "execQty" regular, but "execQtyRq" in hedge
         //                     "side": "Buy",
-        //                     "execPriceEp": 360086455,
-        //                     "execValueEv": 49987,
-        //                     "fundingRateEr": 10000,
-        //                     "feeRateEr": 10000,
-        //                     "execFeeEv": 5,
+        //                     "execPriceEp": 360086455, // "execPriceEp" regular, but "execPriceRp" in hedge
+        //                     "execValueEv": 49987, // "execValueEv" regular, but "execValueRv" in hedge
+        //                     "fundingRateEr": 10000, // "fundingRateEr" regular, but "fundingRateRr" in hedge
+        //                     "feeRateEr": 10000, // "feeRateEr" regular, but "feeRateRr" in hedge
+        //                     "execFeeEv": 5, // "execFeeEv" regular, but "execFeeRv" in hedge
         //                     "createTime": 1651881600000
         //                 }
         //             ]
@@ -4142,17 +4198,37 @@ public partial class phemex : Exchange
         {
             object entry = getValue(rows, i);
             object timestamp = this.safeInteger(entry, "createTime");
+            object execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
+            object currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeString(entry, "symbol") },
-                { "code", this.safeCurrencyCode(this.safeString(entry, "currency")) },
+                { "code", currencyCode },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "id", null },
-                { "amount", this.fromEv(this.safeString(entry, "execFeeEv"), market) },
+                { "amount", this.parseFundingFeeToPrecision(execFee, market, currencyCode) },
             });
         }
         return result;
+    }
+
+    public virtual object parseFundingFeeToPrecision(object value, object market = null, object currencyCode = null)
+    {
+        if (isTrue(isTrue(isEqual(value, null)) || isTrue(isEqual(currencyCode, null))))
+        {
+            return value;
+        }
+        // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
+        object isUsdt = isEqual(getValue(market, "settle"), "USDT");
+        if (!isTrue(isUsdt))
+        {
+            object currency = this.safeCurrency(currencyCode);
+            object scale = this.safeString(getValue(currency, "info"), "valueScale");
+            object tickPrecision = this.parsePrecision(scale);
+            value = Precise.stringMul(value, tickPrecision);
+        }
+        return value;
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)

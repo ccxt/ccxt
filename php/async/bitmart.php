@@ -41,7 +41,7 @@ class bitmart extends Exchange {
                 'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => false,
+                'cancelOrders' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
@@ -185,7 +185,7 @@ class bitmart extends Exchange {
                         'spot/v2/orders' => 5,
                         'spot/v1/trades' => 5,
                         // newer order endpoint
-                        'spot/v2/trades' => 5,
+                        'spot/v2/trades' => 4,
                         'spot/v3/orders' => 5,
                         'spot/v2/order_detail' => 1,
                         // margin
@@ -229,6 +229,7 @@ class bitmart extends Exchange {
                         'spot/v4/query/history-orders' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/trades' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/order-trades' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/cancel_orders' => 3,
                         // newer endpoint
                         'spot/v3/cancel_order' => 1,
                         'spot/v2/batch_orders' => 1,
@@ -2663,6 +2664,68 @@ class bitmart extends Exchange {
             }
             $order = $this->parse_order($id, $market);
             return $this->extend($order, array( 'id' => $id ));
+        }) ();
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+             * @param {string[]} $ids order $ids
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$params->clientOrderIds] client order $ids
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' cancelOrders() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            }
+            $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
+            $params = $this->omit($params, array( 'clientOrderIds' ));
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($clientOrderIds !== null) {
+                $request['clientOrderIds'] = $clientOrderIds;
+            } else {
+                $request['orderIds'] = $ids;
+            }
+            $response = Async\await($this->privatePostSpotV4CancelOrders ($this->extend($request, $params)));
+            //
+            //  {
+            //      "message" => "OK",
+            //      "code" => 1000,
+            //      "trace" => "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+            //      "data" => {
+            //        "successIds" => array(
+            //          "213055379155243012"
+            //        ),
+            //        "failIds" => array(),
+            //        "totalCount" => 1,
+            //        "successCount" => 1,
+            //        "failedCount" => 0
+            //      }
+            //  }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $allOrders = array();
+            $successIds = $this->safe_list($data, 'successIds', array());
+            for ($i = 0; $i < count($successIds); $i++) {
+                $id = $successIds[$i];
+                $allOrders[] = $this->safe_order(array( 'id' => $id, 'status' => 'canceled' ), $market);
+            }
+            $failIds = $this->safe_list($data, 'failIds', array());
+            for ($i = 0; $i < count($failIds); $i++) {
+                $id = $failIds[$i];
+                $allOrders[] = $this->safe_order(array( 'id' => $id, 'status' => 'failed' ), $market);
+            }
+            return $allOrders;
         }) ();
     }
 

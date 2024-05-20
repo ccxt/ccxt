@@ -21,6 +21,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'watchTickers' => true,
                 'watchBidsAsks' => true,
                 'watchTrades' => true,
+                'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchBalance' => true,
@@ -31,6 +32,21 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'watchOrderBookForSymbols' => true,
             ),
             'options' => array(
+                'timeframes' => array(
+                    '1m' => '1min',
+                    '3m' => '1min',
+                    '5m' => '5min',
+                    '15m' => '15min',
+                    '30m' => '30min',
+                    '1h' => '1hour',
+                    '2h' => '2hour',
+                    '4h' => '4hour',
+                    '8h' => '8hour',
+                    '12h' => '12hour',
+                    '1d' => '1day',
+                    '1w' => '1week',
+                    '1M' => '1month',
+                ),
                 'accountsByType' => array(
                     'swap' => 'future',
                     'cross' => 'margin',
@@ -603,6 +619,83 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         return $message;
     }
 
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $url = Async\await($this->negotiate(false));
+            $marketId = $this->market_id($symbol);
+            $timeframes = $this->safe_dict($this->options, 'timeframes');
+            $timeframeId = $this->safe_string($timeframes, $timeframe, $timeframe);
+            $topic = '/contractMarket/limitCandle:' . $marketId . '_' . $timeframeId;
+            $messageHash = 'ohlcv::' . $symbol . '_' . $timeframe;
+            $ohlcv = Async\await($this->subscribe($url, $messageHash, $topic, null, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
+    }
+
+    public function handle_ohlcv(Client $client, $message) {
+        //
+        //    {
+        //        "topic":"/contractMarket/limitCandle:LTCUSDTM_1min",
+        //        "type":"message",
+        //        "data":array(
+        //            "symbol":"LTCUSDTM",
+        //            "candles":array(
+        //                "1715470980",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "61.0",
+        //                "61"
+        //            ),
+        //            "time":1715470994801
+        //        ),
+        //        "subject":"candle.stick"
+        //    }
+        //
+        $topic = $this->safe_string($message, 'topic');
+        $parts = explode('_', $topic);
+        $timeframeId = $this->safe_string($parts, 1);
+        $data = $this->safe_dict($message, 'data');
+        $timeframes = $this->safe_dict($this->options, 'timeframes');
+        $timeframe = $this->find_timeframe($timeframeId, $timeframes);
+        $marketId = $this->safe_string($data, 'symbol');
+        $symbol = $this->safe_symbol($marketId);
+        $messageHash = 'ohlcv::' . $symbol . '_' . $timeframe;
+        $ohlcv = $this->safe_list($data, 'candles');
+        $parsed = array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 6), // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        );
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp ($limit);
+        }
+        $stored = $this->ohlcvs[$symbol][$timeframe];
+        $stored->append ($parsed);
+        $client->resolve ($stored, $messageHash);
+    }
+
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
@@ -1034,6 +1127,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         $methods = array(
             'level2' => array($this, 'handle_order_book'),
             'ticker' => array($this, 'handle_ticker'),
+            'candle.stick' => array($this, 'handle_ohlcv'),
             'tickerV2' => array($this, 'handle_bid_ask'),
             'availableBalance.change' => array($this, 'handle_balance'),
             'match' => array($this, 'handle_trade'),

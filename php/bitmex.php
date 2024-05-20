@@ -238,6 +238,7 @@ class bitmex extends Exchange {
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
                     'Invalid price' => '\\ccxt\\InvalidOrder',
                     'Invalid stopPx for ordType' => '\\ccxt\\InvalidOrder',
+                    'Account is restricted' => '\\ccxt\\PermissionDenied', // array("error":array("message":"Account is restricted","name":"HTTPError"))
                 ),
                 'broad' => array(
                     'Signature not valid' => '\\ccxt\\AuthenticationError',

@@ -14,7 +14,7 @@ use ccxt\BadSymbol;
 use React\Async;
 use React\Promise\PromiseInterface;
 
-class coinbasepro extends \ccxt\async\coinbasepro {
+class coinbaseexchange extends \ccxt\async\coinbaseexchange {
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -36,7 +36,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ws-feed.pro.coinbase.com',
+                    'ws' => 'wss://ws-feed.exchange.coinbase.com',
                 ),
                 'test' => array(
                     'ws' => 'wss://ws-feed-public.sandbox.exchange.coinbase.com',

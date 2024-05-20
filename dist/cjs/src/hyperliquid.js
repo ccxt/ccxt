@@ -1628,14 +1628,17 @@ class hyperliquid extends hyperliquid$1 {
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+         * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchOpenOrders', params);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         await this.loadMarkets();
         const market = this.safeMarket(symbol);
         const request = {
-            'type': 'openOrders',
+            'type': method,
             'user': userAddress,
         };
         const response = await this.publicPostInfo(this.extend(request, params));
@@ -1813,6 +1816,25 @@ class hyperliquid extends hyperliquid$1 {
         //           "oid":6195281425
         //        }
         //     }
+        // frontendOrder
+        // {
+        //     "children": [],
+        //     "cloid": null,
+        //     "coin": "BLUR",
+        //     "isPositionTpsl": false,
+        //     "isTrigger": true,
+        //     "limitPx": "0.5",
+        //     "oid": 8670487141,
+        //     "orderType": "Stop Limit",
+        //     "origSz": "20.0",
+        //     "reduceOnly": false,
+        //     "side": "B",
+        //     "sz": "20.0",
+        //     "tif": null,
+        //     "timestamp": 1715523663687,
+        //     "triggerCondition": "Price above 0.6",
+        //     "triggerPx": "0.6"
+        // }
         //
         let entry = this.safeDictN(order, ['order', 'resting', 'filled']);
         if (entry === undefined) {
@@ -1850,7 +1872,7 @@ class hyperliquid extends hyperliquid$1 {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'symbol': symbol,
-            'type': this.safeStringLower(entry, 'orderType'),
+            'type': this.parseOrderType(this.safeStringLower(entry, 'orderType')),
             'timeInForce': this.safeStringUpper(entry, 'tif'),
             'postOnly': undefined,
             'reduceOnly': this.safeBool(entry, 'reduceOnly'),

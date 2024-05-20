@@ -296,13 +296,17 @@ const _decimalToPrecision = (
 };
 
 function omitZero (stringNumber: string) {
-    if (stringNumber === undefined || stringNumber === '') {
-        return undefined;
+    try {
+        if (stringNumber === undefined || stringNumber === '') {
+            return undefined;
+        }
+        if (parseFloat (stringNumber) === 0) {
+            return undefined;
+        }
+        return stringNumber;
+    } catch (e) {
+        return stringNumber;
     }
-    if (parseFloat (stringNumber) === 0) {
-        return undefined;
-    }
-    return stringNumber;
 }
 
 /*  ------------------------------------------------------------------------ */

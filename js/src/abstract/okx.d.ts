@@ -58,6 +58,9 @@ interface Exchange {
     publicGetSprdBooks(params?: {}): Promise<implicitReturnType>;
     publicGetSprdTicker(params?: {}): Promise<implicitReturnType>;
     publicGetSprdPublicTrades(params?: {}): Promise<implicitReturnType>;
+    publicGetMarketSprdTicker(params?: {}): Promise<implicitReturnType>;
+    publicGetMarketSprdCandles(params?: {}): Promise<implicitReturnType>;
+    publicGetMarketSprdHistoryCandles(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotGridAiParam(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotGridMinInvestment(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotPublicRsiBackTesting(params?: {}): Promise<implicitReturnType>;

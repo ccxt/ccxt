@@ -153,7 +153,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': True,
-                'fetchPremiumIndexOHLCV': False,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -802,6 +802,7 @@ class binance(Exchange, ImplicitAPI):
                         'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'premiumIndexKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'fundingRate': 1,
                         'fundingInfo': 1,
                         'premiumIndex': 1,
@@ -4155,6 +4156,11 @@ class binance(Exchange, ImplicitAPI):
                 response = self.dapiPublicGetIndexPriceKlines(self.extend(request, params))
             else:
                 response = self.fapiPublicGetIndexPriceKlines(self.extend(request, params))
+        elif price == 'premiumIndex':
+            if market['inverse']:
+                response = self.dapiPublicGetPremiumIndexKlines(self.extend(request, params))
+            else:
+                response = self.fapiPublicGetPremiumIndexKlines(self.extend(request, params))
         elif market['linear']:
             response = self.fapiPublicGetKlines(self.extend(request, params))
         elif market['inverse']:
@@ -8997,7 +9003,7 @@ class binance(Exchange, ImplicitAPI):
         self.load_markets()
         # by default cache the leverage bracket
         # it contains useful stuff like the maintenance margin and initial margin for positions
-        leverageBrackets = self.safe_dict(self.options, 'leverageBrackets', {})
+        leverageBrackets = self.safe_dict(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
             defaultType = self.safe_string(self.options, 'defaultType', 'future')
             type = self.safe_string(params, 'type', defaultType)
