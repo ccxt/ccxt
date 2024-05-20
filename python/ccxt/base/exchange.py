@@ -2655,6 +2655,7 @@ class Exchange(object):
         shouldParseFees = parseFee or parseFees
         fees = self.safe_list(order, 'fees', [])
         trades = []
+        isTriggerOrSLTpOrder = ((self.safe_string(order, 'triggerPrice') is not None or (self.safe_string(order, 'stopLossPrice') is not None)) or (self.safe_string(order, 'takeProfitPrice') is not None))
         if parseFilled or parseCost or shouldParseFees:
             rawTrades = self.safe_value(order, 'trades', trades)
             oldNumber = self.number
@@ -2805,7 +2806,7 @@ class Exchange(object):
         postOnly = self.safe_value(order, 'postOnly')
         # timeInForceHandling
         if timeInForce is None:
-            if self.safe_string(order, 'type') == 'market':
+            if not isTriggerOrSLTpOrder and (self.safe_string(order, 'type') == 'market'):
                 timeInForce = 'IOC'
             # allow postOnly override
             if postOnly:

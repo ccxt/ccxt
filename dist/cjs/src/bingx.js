@@ -2214,6 +2214,10 @@ class bingx extends bingx$1 {
         const types = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
+            'stop_limit': 'limit',
+            'stop_market': 'market',
+            'take_profit_market': 'market',
+            'stop': 'limit',
         };
         return this.safeString(types, type, type);
     }
@@ -2417,6 +2421,25 @@ class bingx extends bingx$1 {
         //            side: 'SELL'
         //        }
         //    }
+        // stop loss order
+        //    {
+        //        "symbol": "ETH-USDT",
+        //        "orderId": "1792461744476422144",
+        //        "price": "2775.65",
+        //        "StopPrice": "2778.42",
+        //        "origQty": "0.032359",
+        //        "executedQty": "0",
+        //        "cummulativeQuoteQty": "0",
+        //        "status": "NEW",
+        //        "type": "TAKE_STOP_LIMIT",
+        //        "side": "SELL",
+        //        "time": "1716191156868",
+        //        "updateTime": "1716191156868",
+        //        "origQuoteOrderQty": "0",
+        //        "fee": "0",
+        //        "feeAsset": "USDT",
+        //        "clientOrderID": ""
+        //    }
         //
         const info = order;
         const newOrder = this.safeDict2(order, 'newOrderResponse', 'orderOpenResponse');
@@ -2451,26 +2474,39 @@ class bingx extends bingx$1 {
         let stopLoss = this.safeValue(order, 'stopLoss');
         let stopLossPrice = undefined;
         if ((stopLoss !== undefined) && (stopLoss !== '')) {
-            stopLossPrice = this.safeNumber(stopLoss, 'stopLoss');
+            stopLossPrice = this.omitZero(this.safeString(stopLoss, 'stopLoss'));
         }
         if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if (typeof stopLoss === 'string') {
                 stopLoss = this.parseJson(stopLoss);
             }
-            stopLossPrice = this.safeNumber(stopLoss, 'stopPrice');
+            stopLossPrice = this.omitZero(this.safeString(stopLoss, 'stopPrice'));
         }
         let takeProfit = this.safeValue(order, 'takeProfit');
         let takeProfitPrice = undefined;
         if (takeProfit !== undefined && (takeProfit !== '')) {
-            takeProfitPrice = this.safeNumber(takeProfit, 'takeProfit');
+            takeProfitPrice = this.omitZero(this.safeString(takeProfit, 'takeProfit'));
         }
         if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if (typeof takeProfit === 'string') {
                 takeProfit = this.parseJson(takeProfit);
             }
-            takeProfitPrice = this.safeNumber(takeProfit, 'stopPrice');
+            takeProfitPrice = this.omitZero(this.safeString(takeProfit, 'stopPrice'));
+        }
+        const rawType = this.safeStringLower2(order, 'type', 'o');
+        const stopPrice = this.omitZero(this.safeString2(order, 'StopPrice', 'stopPrice'));
+        let triggerPrice = stopPrice;
+        if (stopPrice !== undefined) {
+            if ((rawType.indexOf('stop') > -1) && (stopLossPrice === undefined)) {
+                stopLossPrice = stopPrice;
+                triggerPrice = undefined;
+            }
+            if ((rawType.indexOf('take') > -1) && (takeProfitPrice === undefined)) {
+                takeProfitPrice = stopPrice;
+                triggerPrice = undefined;
+            }
         }
         return this.safeOrder({
             'info': info,
@@ -2481,13 +2517,13 @@ class bingx extends bingx$1 {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
-            'type': this.parseOrderType(this.safeStringLower2(order, 'type', 'o')),
+            'type': this.parseOrderType(rawType),
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': undefined,
             'side': this.parseOrderSide(side),
             'price': this.safeString2(order, 'price', 'p'),
-            'stopPrice': this.safeNumber(order, 'stopPrice'),
-            'triggerPrice': this.safeNumber(order, 'stopPrice'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': this.safeString2(order, 'avgPrice', 'ap'),

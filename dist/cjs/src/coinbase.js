@@ -2978,7 +2978,7 @@ class coinbase extends coinbase$1 {
         const marketId = this.safeString(order, 'product_id');
         const symbol = this.safeSymbol(marketId, market, '-');
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.safeMarket(symbol, market);
         }
         const orderConfiguration = this.safeDict(order, 'order_configuration', {});
         const limitGTC = this.safeDict(orderConfiguration, 'limit_limit_gtc');

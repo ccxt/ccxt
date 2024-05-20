@@ -2079,6 +2079,10 @@ class bingx(Exchange, ImplicitAPI):
         types = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
+            'stop_limit': 'limit',
+            'stop_market': 'market',
+            'take_profit_market': 'market',
+            'stop': 'limit',
         }
         return self.safe_string(types, type, type)
 
@@ -2282,6 +2286,25 @@ class bingx(Exchange, ImplicitAPI):
         #            side: 'SELL'
         #        }
         #    }
+        # stop loss order
+        #    {
+        #        "symbol": "ETH-USDT",
+        #        "orderId": "1792461744476422144",
+        #        "price": "2775.65",
+        #        "StopPrice": "2778.42",
+        #        "origQty": "0.032359",
+        #        "executedQty": "0",
+        #        "cummulativeQuoteQty": "0",
+        #        "status": "NEW",
+        #        "type": "TAKE_STOP_LIMIT",
+        #        "side": "SELL",
+        #        "time": "1716191156868",
+        #        "updateTime": "1716191156868",
+        #        "origQuoteOrderQty": "0",
+        #        "fee": "0",
+        #        "feeAsset": "USDT",
+        #        "clientOrderID": ""
+        #    }
         #
         info = order
         newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
@@ -2309,21 +2332,31 @@ class bingx(Exchange, ImplicitAPI):
         stopLoss = self.safe_value(order, 'stopLoss')
         stopLossPrice = None
         if (stopLoss is not None) and (stopLoss != ''):
-            stopLossPrice = self.safe_number(stopLoss, 'stopLoss')
+            stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopLoss'))
         if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))) and (stopLoss != ''):
             #  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
             if isinstance(stopLoss, str):
                 stopLoss = self.parse_json(stopLoss)
-            stopLossPrice = self.safe_number(stopLoss, 'stopPrice')
+            stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopPrice'))
         takeProfit = self.safe_value(order, 'takeProfit')
         takeProfitPrice = None
         if takeProfit is not None and (takeProfit != ''):
-            takeProfitPrice = self.safe_number(takeProfit, 'takeProfit')
+            takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'takeProfit'))
         if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))) and (takeProfit != ''):
             #  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
             if isinstance(takeProfit, str):
                 takeProfit = self.parse_json(takeProfit)
-            takeProfitPrice = self.safe_number(takeProfit, 'stopPrice')
+            takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'stopPrice'))
+        rawType = self.safe_string_lower_2(order, 'type', 'o')
+        stopPrice = self.omit_zero(self.safe_string_2(order, 'StopPrice', 'stopPrice'))
+        triggerPrice = stopPrice
+        if stopPrice is not None:
+            if (rawType.find('stop') > -1) and (stopLossPrice is None):
+                stopLossPrice = stopPrice
+                triggerPrice = None
+            if (rawType.find('take') > -1) and (takeProfitPrice is None):
+                takeProfitPrice = stopPrice
+                triggerPrice = None
         return self.safe_order({
             'info': info,
             'id': self.safe_string_2(order, 'orderId', 'i'),
@@ -2333,13 +2366,13 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
-            'type': self.parse_order_type(self.safe_string_lower_2(order, 'type', 'o')),
+            'type': self.parse_order_type(rawType),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
             'side': self.parse_order_side(side),
             'price': self.safe_string_2(order, 'price', 'p'),
-            'stopPrice': self.safe_number(order, 'stopPrice'),
-            'triggerPrice': self.safe_number(order, 'stopPrice'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': self.safe_string_2(order, 'avgPrice', 'ap'),

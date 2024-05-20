@@ -2552,10 +2552,6 @@ public partial class bybit : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 200;
-        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2563,6 +2559,10 @@ public partial class bybit : Exchange
         if (isTrue(paginate))
         {
             return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 200);
+        }
+        if (isTrue(isEqual(limit, null)))
+        {
+            limit = 200;
         }
         object request = new Dictionary<string, object>() {
             { "limit", limit },

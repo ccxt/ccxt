@@ -1310,6 +1310,7 @@ public partial class Exchange
         object shouldParseFees = isTrue(parseFee) || isTrue(parseFees);
         object fees = this.safeList(order, "fees", new List<object>() {});
         object trades = new List<object>() {};
+        object isTriggerOrSLTpOrder = (isTrue((isTrue(!isEqual(this.safeString(order, "triggerPrice"), null)) || isTrue((!isEqual(this.safeString(order, "stopLossPrice"), null))))) || isTrue((!isEqual(this.safeString(order, "takeProfitPrice"), null))));
         if (isTrue(isTrue(isTrue(parseFilled) || isTrue(parseCost)) || isTrue(shouldParseFees)))
         {
             object rawTrades = this.safeValue(order, "trades", trades);
@@ -1556,7 +1557,7 @@ public partial class Exchange
         // timeInForceHandling
         if (isTrue(isEqual(timeInForce, null)))
         {
-            if (isTrue(isEqual(this.safeString(order, "type"), "market")))
+            if (isTrue(!isTrue(isTriggerOrSLTpOrder) && isTrue((isEqual(this.safeString(order, "type"), "market")))))
             {
                 timeInForce = "IOC";
             }

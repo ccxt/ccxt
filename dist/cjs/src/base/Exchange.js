@@ -2506,6 +2506,7 @@ class Exchange {
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeList(order, 'fees', []);
         let trades = [];
+        const isTriggerOrSLTpOrder = ((this.safeString(order, 'triggerPrice') !== undefined || (this.safeString(order, 'stopLossPrice') !== undefined)) || (this.safeString(order, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue(order, 'trades', trades);
             const oldNumber = this.number;
@@ -2708,7 +2709,7 @@ class Exchange {
         let postOnly = this.safeValue(order, 'postOnly');
         // timeInForceHandling
         if (timeInForce === undefined) {
-            if (this.safeString(order, 'type') === 'market') {
+            if (!isTriggerOrSLTpOrder && (this.safeString(order, 'type') === 'market')) {
                 timeInForce = 'IOC';
             }
             // allow postOnly override

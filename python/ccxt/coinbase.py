@@ -2844,7 +2844,7 @@ class coinbase(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'product_id')
         symbol = self.safe_symbol(marketId, market, '-')
         if symbol is not None:
-            market = self.market(symbol)
+            market = self.safe_market(symbol, market)
         orderConfiguration = self.safe_dict(order, 'order_configuration', {})
         limitGTC = self.safe_dict(orderConfiguration, 'limit_limit_gtc')
         limitGTD = self.safe_dict(orderConfiguration, 'limit_limit_gtd')
