@@ -3,7 +3,7 @@
 
 import oxfunRest from '../oxfun.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Dictionary, Int, Market, OHLCV, OrderBook, Trade } from '../base/types.js';
+import type { Int, Market, OHLCV, OrderBook, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -16,7 +16,8 @@ export default class oxfun extends oxfunRest {
                 'ws': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrders': false,
@@ -212,7 +213,7 @@ export default class oxfun extends oxfunRest {
         return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
     }
 
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name oxfun#watchOHLCVForSymbols
