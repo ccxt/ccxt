@@ -2,7 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import oxfunRest from '../oxfun.js';
-import type { Int, Market, OHLCV, Trade } from '../base/types.js';
+import { ArgumentsRequired } from '../base/errors.js';
+import type { Dictionary, Int, Market, OHLCV, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -13,32 +14,26 @@ export default class oxfun extends oxfunRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTrades': false,
+                'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchOrderBook': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrders': false,
                 'watchMyTrades': false,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchBalance': false,
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://api.ox.fun/v2/websocket',
-                        'private': 'wss://api.ox.fun/v2/websocket',
-                    },
-                    'test': {
-                        'public': 'wss://stgapi.ox.fun/v2/websocket',
-                        'private': 'wss://stgapi.ox.fun/v2/websocket',
-                    },
+                    'ws': 'wss://api.ox.fun/v2/websocket',
+                    'test': 'wss://stgapi.ox.fun/v2/websocket',
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3600000,
                 'watchOrderBook': {
-                    'snapshotDelay': 25,
-                    'snapshotMaxRetries': 3,
+                    'channel': 'depth', // depth, depthL5, depthL10 or depthL25
                 },
                 'listenKey': undefined,
                 'timeframes': {
@@ -61,6 +56,15 @@ export default class oxfun extends oxfunRest {
         });
     }
 
+    async subscribeMultiple (messageHashes, argsArray, params = {}) {
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': argsArray,
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -74,18 +78,39 @@ export default class oxfun extends oxfunRest {
          * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name oxfun#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.ox.fun/?json#trade
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const subscribeHash = 'trade:' + market['id'];
-        const messageHash = 'trades:' + symbol;
-        const request = {
-            'op': 'subscribe',
-            'args': [ subscribeHash ],
-        };
-        const url = this.urls['api']['ws']['public'];
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const args = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = 'trades' + ':' + symbol;
+            messageHashes.push (messageHash);
+            const marketId = this.marketId (symbol);
+            const arg = 'trade:' + marketId;
+            args.push (arg);
+        }
+        const trades = await this.subscribeMultiple (messageHashes, args, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            const first = this.safeDict (trades, 0, {});
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -166,24 +191,65 @@ export default class oxfun extends oxfunRest {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe, timeframe);
-        const subscribeHash = 'candles' + interval + ':' + market['id'];
+        const args = 'candles' + interval + ':' + market['id'];
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
-            'args': [ subscribeHash ],
+            'args': [ args ],
         };
-        const url = this.urls['api']['ws']['public'];
         const ohlcvs = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = ohlcvs.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
+    }
+
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
+        /**
+         * @method
+         * @name oxfun#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.ox.fun/?json#candles
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT:OX', '1m'], ['OX/USDT', '5m']]");
+        }
+        await this.loadMarkets ();
+        const args = [];
+        const messageHashes = [];
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const sym = symbolAndTimeframe[0];
+            const tf = symbolAndTimeframe[1];
+            const marketId = this.marketId (sym);
+            const interval = this.safeString (timeframes, tf, tf);
+            const arg = 'candles' + interval + ':' + marketId;
+            args.push (arg);
+            const messageHash = 'multi:ohlcv:' + sym + ':' + tf;
+            messageHashes.push (messageHash);
+        }
+        const [ symbol, timeframe, candles ] = await this.subscribeMultiple (messageHashes, args, params);
+        if (this.newUpdates) {
+            limit = candles.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
     handleOHLCV (client: Client, message) {
@@ -203,7 +269,7 @@ export default class oxfun extends oxfunRest {
         //                     "5.3"            //volume in Contracts
         //                 ]
         //             }
-        //         ]```
+        //         ]
         //     }
         //
         const table = this.safeString (message, 'table');
@@ -228,6 +294,11 @@ export default class oxfun extends oxfunRest {
         stored.append (parsed);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         client.resolve (stored, messageHash);
+        // for multiOHLCV we need special object, as opposed to other "multi"
+        // methods, because OHLCV response item does not contain symbol
+        // or timeframe, thus otherwise it would be unrecognizable
+        const messageHashForMulti = 'multi:' + messageHash;
+        client.resolve ([ symbol, timeframe, stored ], messageHashForMulti);
     }
 
     parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -255,7 +326,7 @@ export default class oxfun extends oxfunRest {
     handleMessage (client: Client, message) {
         const table = this.safeString (message, 'table');
         const data = this.safeList (message, 'data', []);
-        if ((table !== undefined) && (data !== undefined)) { // for public methods
+        if ((table !== undefined) && (data !== undefined)) {
             if (table === 'trade') {
                 this.handleTrades (client, message);
             }
