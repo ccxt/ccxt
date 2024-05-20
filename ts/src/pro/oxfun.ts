@@ -3,7 +3,7 @@
 
 import oxfunRest from '../oxfun.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Dictionary, Int, Market, OHLCV, Trade } from '../base/types.js';
+import type { Dictionary, Int, Market, OHLCV, OrderBook, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -32,9 +32,6 @@ export default class oxfun extends oxfunRest {
                 },
             },
             'options': {
-                'watchOrderBook': {
-                    'channel': 'depth', // depth, depthL5, depthL10 or depthL25
-                },
                 'listenKey': undefined,
                 'timeframes': {
                     '1m': '60s',
@@ -48,6 +45,9 @@ export default class oxfun extends oxfunRest {
                     '6h': '21600s',
                     '12h': '43200s',
                     '1d': '86400s',
+                },
+                'watchOrderBook': {
+                    'channel': 'depth', // depth, depthL5, depthL10, depthL25
                 },
             },
             'streaming': {
@@ -323,6 +323,101 @@ export default class oxfun extends oxfunRest {
         ];
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name oxfun#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.ox.fun/?json#fixed-size-order-book
+         * @see https://docs.ox.fun/?json#full-order-book
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name oxfun#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.ox.fun/?json#fixed-size-order-book
+         * @see https://docs.ox.fun/?json#full-order-book
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let channel = 'depth';
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        const defaultChannel = this.safeString (options, 'channel');
+        if (defaultChannel !== undefined) {
+            channel = defaultChannel;
+        } else if (limit !== undefined) {
+            if (limit <= 5) {
+                channel = 'depthL5';
+            } else if (limit <= 10) {
+                channel = 'depthL10';
+            } else if (limit <= 25) {
+                channel = 'depthL25';
+            }
+        }
+        const args = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const messageHash = 'orderbook:' + symbol;
+            messageHashes.push (messageHash);
+            const marketId = this.marketId (symbol);
+            const arg = channel + ':' + marketId;
+            args.push (arg);
+        }
+        const orderbook = await this.subscribeMultiple (messageHashes, args, params);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "table": "depth",
+        //         "data": {
+        //             "seqNum": "100170478917895032",
+        //             "asks": [
+        //                 [ 0.01, 100500 ],
+        //                 ...
+        //             ],
+        //             "bids": [
+        //                 [ 69.69696, 69 ],
+        //                 ...
+        //             ],
+        //             "checksum": 261021645,
+        //             "marketCode": "OX-USDT",
+        //             "timestamp": 1716204786184
+        //         },
+        //         "action": "partial"
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 'marketCode');
+        const symbol = this.safeSymbol (marketId);
+        const timestamp = this.safeInteger (data, 'timestamp');
+        const messageHash = 'orderbook:' + symbol;
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
+        }
+        const orderbook = this.orderbooks[symbol];
+        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'asks', 'bids');
+        orderbook.reset (snapshot);
+        orderbook['nonce'] = this.safeInteger (data, 'seqNum'); // todo
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const table = this.safeString (message, 'table');
         const data = this.safeList (message, 'data', []);
@@ -332,6 +427,9 @@ export default class oxfun extends oxfunRest {
             }
             if (table.includes ('candles')) {
                 this.handleOHLCV (client, message);
+            }
+            if (table.includes ('depth')) {
+                this.handleOrderBook (client, message);
             }
         }
     }
