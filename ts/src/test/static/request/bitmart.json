@@ -247,6 +247,32 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"limit\",\"size\":1,\"price\":\"30000\",\"executive_price\":\"30000\",\"trigger_price\":\"31000\",\"price_type\":1,\"price_way\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
             }
         ],
+        "createOrders": [
+            {
+                "description": "spot orders",
+                "method": "createOrders",
+                "url": "https://api-cloud.bitmart.com/spot/v4/batch_orders",
+                "input": [
+                  [
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.1,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 60
+                    },
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.11,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 61
+                    }
+                  ]
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"orderParams\":[{\"side\":\"buy\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"60\"},{\"side\":\"buy\",\"type\":\"limit\",\"size\":\"0.11\",\"price\":\"61\"}]}"
+            }
+        ],
         "createMarketBuyOrderWithCost": [
             {
                 "description": "Spot create market buy order with the quote amount as the cost",
