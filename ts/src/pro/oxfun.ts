@@ -426,10 +426,10 @@ export default class oxfun extends oxfunRest {
             if (table === 'trade') {
                 this.handleTrades (client, message);
             }
-            if (table.includes ('candles')) {
+            if (table.indexOf ('candles') > -1) {
                 this.handleOHLCV (client, message);
             }
-            if (table.includes ('depth')) {
+            if (table.indexOf ('depth') > -1) {
                 this.handleOrderBook (client, message);
             }
         }
