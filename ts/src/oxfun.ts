@@ -379,7 +379,7 @@ export default class oxfun extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const marketId = this.safeString (market, 'marketCode');
-            if (!this.inArray (marketId, marketIds)) {
+            if (!(this.inArray (marketId, marketIds))) {
                 marketIds.push (marketId);
                 result.push (this.parseMarket (market));
             }
