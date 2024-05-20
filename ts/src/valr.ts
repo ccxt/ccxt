@@ -1224,22 +1224,28 @@ export default class valr extends Exchange {
          * @name valr#cancelOrder
          * @see https://docs.valr.com/#3d9ba169-7222-4c0f-ab08-87c22162c0c4
          * @description cancels an open order
-         * @param {string} id order id
+         * @param {string} id order id or customer order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.customerId] ID is for customerOrderId field and associate API call (default is false)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with only the id and symbol added
          */
         await this.loadMarkets ();
         this.checkRequiredSymbolArgument ('cancelOrder', symbol);
+        const useCustomerOrderId = this.safeBool (params, 'customerId', false);
         const marketId = this.marketId (symbol);
-        const orderFormat = {
-            'orderId': id,
-            'pair': marketId,
-        };
+        const orderFormat = { 'pair': marketId };
+        if (useCustomerOrderId) {
+            params = this.omit (params, 'customerId');
+            orderFormat['customerOrderId'] = id;
+        } else {
+            orderFormat['orderId'] = id;
+        }
         await this.privateDeleteOrdersOrder (this.extend (orderFormat, params));
         return this.parseOrder ({
             'orderUpdatedAt': this.iso8601 (this.parseDate (this.safeString (this.last_response_headers, 'Date'))),
-            'orderId': id,
+            'orderId': (!useCustomerOrderId) ? id : undefined,
+            'customerOrderId': (useCustomerOrderId) ? id : undefined,
             'currencyPair': marketId,
         });
     }
