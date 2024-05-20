@@ -2499,7 +2499,7 @@ export default class bingx extends Exchange {
             takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'stopPrice'));
         }
         const rawType = this.safeStringLower2 (order, 'type', 'o');
-        const stopPrice = this.safeString2 (order, 'StopPrice', 'stopPrice');
+        const stopPrice = this.omitZero (this.safeString2 (order, 'StopPrice', 'stopPrice'));
         let triggerPrice = stopPrice;
         if (stopPrice !== undefined) {
             if ((rawType.indexOf ('stop') > -1) && (stopLossPrice === undefined)) {
