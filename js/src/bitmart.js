@@ -43,6 +43,7 @@ export default class bitmart extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
@@ -227,6 +228,7 @@ export default class bitmart extends Exchange {
                         'spot/v4/query/trades': 5,
                         'spot/v4/query/order-trades': 5,
                         'spot/v4/cancel_orders': 3,
+                        'spot/v4/batch_orders': 3,
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
@@ -2393,6 +2395,76 @@ export default class bitmart extends Exchange {
         order['amount'] = amount;
         order['price'] = price;
         return order;
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createOrders
+         * @description create a list of trade orders
+         * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params]  extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        let market = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            market = this.market(marketId);
+            if (!market['spot']) {
+                throw new NotSupported(this.id + ' createOrders() supports spot orders only');
+            }
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
+            let orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, ['symbol']); // not needed because it goes in the outter object
+            ordersRequests.push(orderRequest);
+        }
+        const request = {
+            'symbol': market['id'],
+            'orderParams': ordersRequests,
+        };
+        const response = await this.privatePostSpotV4BatchOrders(request);
+        //
+        // {
+        //     "message": "OK",
+        //     "code": 1000,
+        //     "trace": "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        //     "data": {
+        //       "code": 0,
+        //       "msg": "success",
+        //       "data": {
+        //         "orderIds": [
+        //           "212751308355553320"
+        //         ]
+        //       }
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const innderData = this.safeDict(data, 'data', {});
+        const orderIds = this.safeList(innderData, 'orderIds', []);
+        const parsedOrders = [];
+        for (let i = 0; i < orderIds.length; i++) {
+            const orderId = orderIds[i];
+            const order = this.safeOrder({ 'id': orderId }, market);
+            parsedOrders.push(order);
+        }
+        return parsedOrders;
     }
     createSwapOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**

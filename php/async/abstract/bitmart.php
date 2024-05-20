@@ -244,6 +244,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function private_post_spot_v4_cancel_orders($params = array()) {
         return $this->request('spot/v4/cancel_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_spot_v4_batch_orders($params = array()) {
+        return $this->request('spot/v4/batch_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function private_post_spot_v3_cancel_order($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -525,6 +528,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     }
     public function privatePostSpotV4CancelOrders($params = array()) {
         return $this->request('spot/v4/cancel_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostSpotV4BatchOrders($params = array()) {
+        return $this->request('spot/v4/batch_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostSpotV3CancelOrder($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));

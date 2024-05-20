@@ -88,6 +88,7 @@ interface Exchange {
     privatePostSpotV4QueryTrades (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4QueryOrderTrades (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4CancelOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4BatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3CancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2BatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2SubmitOrder (params?: {}): Promise<implicitReturnType>;

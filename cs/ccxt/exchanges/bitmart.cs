@@ -31,6 +31,7 @@ public partial class bitmart : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createPostOnlyOrder", true },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
@@ -203,6 +204,7 @@ public partial class bitmart : Exchange
                         { "spot/v4/query/trades", 5 },
                         { "spot/v4/query/order-trades", 5 },
                         { "spot/v4/cancel_orders", 3 },
+                        { "spot/v4/batch_orders", 3 },
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
                         { "spot/v2/submit_order", 1 },
@@ -2432,6 +2434,86 @@ public partial class bitmart : Exchange
         ((IDictionary<string,object>)order)["amount"] = amount;
         ((IDictionary<string,object>)order)["price"] = price;
         return order;
+    }
+
+    public async override Task<object> createOrders(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#createOrders
+        * @description create a list of trade orders
+        * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        * @param {object} [params]  extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object symbol = null;
+        object market = null;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            market = this.market(marketId);
+            if (!isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrders() supports spot orders only")) ;
+            }
+            if (isTrue(isEqual(symbol, null)))
+            {
+                symbol = marketId;
+            } else
+            {
+                if (isTrue(!isEqual(symbol, marketId)))
+                {
+                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                }
+            }
+            object type = this.safeString(rawOrder, "type");
+            object side = this.safeString(rawOrder, "side");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, new List<object>() {"symbol"}); // not needed because it goes in the outter object
+            ((IList<object>)ordersRequests).Add(orderRequest);
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "orderParams", ordersRequests },
+        };
+        object response = await this.privatePostSpotV4BatchOrders(request);
+        //
+        // {
+        //     "message": "OK",
+        //     "code": 1000,
+        //     "trace": "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        //     "data": {
+        //       "code": 0,
+        //       "msg": "success",
+        //       "data": {
+        //         "orderIds": [
+        //           "212751308355553320"
+        //         ]
+        //       }
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object innderData = this.safeDict(data, "data", new Dictionary<string, object>() {});
+        object orderIds = this.safeList(innderData, "orderIds", new List<object>() {});
+        object parsedOrders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(orderIds, i);
+            object order = this.safeOrder(new Dictionary<string, object>() {
+                { "id", orderId },
+            }, market);
+            ((IList<object>)parsedOrders).Add(order);
+        }
+        return parsedOrders;
     }
 
     public virtual object createSwapOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)

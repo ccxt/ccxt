@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, IsolatedBorrowRates, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, IsolatedBorrowRates, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -59,6 +59,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
@@ -243,6 +244,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v4/query/trades': 5,  # 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/order-trades': 5,  # 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/cancel_orders': 3,
+                        'spot/v4/batch_orders': 3,
                         # newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
@@ -2291,6 +2293,68 @@ class bitmart(Exchange, ImplicitAPI):
         order['amount'] = amount
         order['price'] = price
         return order
+
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        symbol = None
+        market = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            market = self.market(marketId)
+            if not market['spot']:
+                raise NotSupported(self.id + ' createOrders() supports spot orders only')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderRequest = self.create_spot_order_request(marketId, type, side, amount, price, orderParams)
+            orderRequest = self.omit(orderRequest, ['symbol'])  # not needed because it goes in the outter object
+            ordersRequests.append(orderRequest)
+        request = {
+            'symbol': market['id'],
+            'orderParams': ordersRequests,
+        }
+        response = await self.privatePostSpotV4BatchOrders(request)
+        #
+        # {
+        #     "message": "OK",
+        #     "code": 1000,
+        #     "trace": "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        #     "data": {
+        #       "code": 0,
+        #       "msg": "success",
+        #       "data": {
+        #         "orderIds": [
+        #           "212751308355553320"
+        #         ]
+        #       }
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        innderData = self.safe_dict(data, 'data', {})
+        orderIds = self.safe_list(innderData, 'orderIds', [])
+        parsedOrders = []
+        for i in range(0, len(orderIds)):
+            orderId = orderIds[i]
+            order = self.safe_order({'id': orderId}, market)
+            parsedOrders.append(order)
+        return parsedOrders
 
     def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """

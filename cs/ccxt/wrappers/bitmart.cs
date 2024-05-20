@@ -498,6 +498,26 @@ public partial class bitmart
         return new Order(res);
     }
     /// <summary>
+    /// create a list of trade orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
