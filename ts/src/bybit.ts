@@ -2494,6 +2494,9 @@ export default class bybit extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200) as FundingRateHistory[];
         }
+        if (limit === undefined) {
+            limit = 200;
+        }
         const request = {
             // 'category': '', // Product type. linear,inverse
             // 'symbol': '', // Symbol name
@@ -2501,9 +2504,6 @@ export default class bybit extends Exchange {
             // 'endTime': 0, // The end timestamp (ms)
             'limit': limit, // Limit for data size per page. [1, 200]. Default: 200
         };
-        if (limit === undefined) {
-            limit = 200;
-        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         request['symbol'] = market['id'];
