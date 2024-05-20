@@ -1470,7 +1470,7 @@ class whitebit extends whitebit$1 {
             const balance = response[id];
             if (typeof balance === 'object' && balance !== undefined) {
                 const account = this.account();
-                account['free'] = this.safeString(balance, 'available');
+                account['free'] = this.safeString2(balance, 'available', 'main_balance');
                 account['used'] = this.safeString(balance, 'freeze');
                 account['total'] = this.safeString(balance, 'main_balance');
                 result[code] = account;

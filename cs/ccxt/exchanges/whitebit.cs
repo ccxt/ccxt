@@ -1472,7 +1472,7 @@ public partial class whitebit : Exchange
             if (isTrue(isTrue((balance is IDictionary<string, object>)) && isTrue(!isEqual(balance, null))))
             {
                 object account = this.account();
-                ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
+                ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "main_balance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "freeze");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "main_balance");
                 ((IDictionary<string,object>)result)[(string)code] = account;
