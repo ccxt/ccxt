@@ -42,6 +42,7 @@ export default class bitmart extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
@@ -2437,7 +2438,7 @@ export default class bitmart extends Exchange {
             'symbol': market['id'],
             'orderParams': ordersRequests,
         };
-        const response = this.privatePostSpotV4BatchOrders (request);
+        const response = await this.privatePostSpotV4BatchOrders (request);
         //
         // {
         //     "message": "OK",
