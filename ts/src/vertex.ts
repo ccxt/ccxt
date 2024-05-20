@@ -1018,6 +1018,21 @@ export default class vertex extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
+    async queryContracts (params = {}): Promise<Currencies> {
+        // query contract addresses for sending order
+        const cachedContracts = this.safeDict (this.options, 'v1contracts');
+        if (cachedContracts !== undefined) {
+            return cachedContracts;
+        }
+        const request = {
+            'type': 'contracts',
+        }; 
+        const response = await this.v1GatewayGetQuery (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        this.options['v1contracts'] = data;
+        return data;
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
