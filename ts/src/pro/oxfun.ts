@@ -33,7 +33,6 @@ export default class oxfun extends oxfunRest {
                 },
             },
             'options': {
-                'listenKey': undefined,
                 'timeframes': {
                     '1m': '60s',
                     '3m': '180s',
@@ -52,7 +51,7 @@ export default class oxfun extends oxfunRest {
                 },
             },
             'streaming': {
-                'keepAlive': 10000,
+                'keepAlive': 60000,
             },
         });
     }
@@ -517,10 +516,10 @@ export default class oxfun extends oxfunRest {
             if (table === 'ticker') {
                 this.handleTicker (client, message);
             }
-            if (table.includes ('candles')) {
+            if (table.indexOf ('candles') > -1) {
                 this.handleOHLCV (client, message);
             }
-            if (table.includes ('depth')) {
+            if (table.indexOf ('depth') > -1) {
                 this.handleOrderBook (client, message);
             }
         }
