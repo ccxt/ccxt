@@ -2400,7 +2400,7 @@ export default class bitmart extends Exchange {
     async createOrders (orders: OrderRequest[], params = {}) {
         /**
          * @method
-         * @name kucoin#createOrders
+         * @name bitmart#createOrders
          * @description create a list of trade orders
          * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
