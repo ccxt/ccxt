@@ -70,7 +70,7 @@ class wallex extends Exchange {
                 'fetchOrderTrades' => 'emulated',
                 'fetchPositions' => false,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchTicker' => false,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => false,

@@ -408,6 +408,7 @@ class Exchange {
         'bitmex',
         'bitopro',
         'bitpanda',
+        'bitpin',
         'bitrue',
         'bitso',
         'bitstamp',

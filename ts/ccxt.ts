@@ -70,6 +70,7 @@ import bitmart from  './src/bitmart.js'
 import bitmex from  './src/bitmex.js'
 import bitopro from  './src/bitopro.js'
 import bitpanda from  './src/bitpanda.js'
+import bitpin from  './src/bitpin.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
@@ -247,6 +248,7 @@ const exchanges = {
     'bitmex':                 bitmex,
     'bitopro':                bitopro,
     'bitpanda':               bitpanda,
+    'bitpin':                 bitpin,
     'bitrue':                 bitrue,
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
@@ -513,6 +515,7 @@ export {
     bitmex,
     bitopro,
     bitpanda,
+    bitpin,
     bitrue,
     bitso,
     bitstamp,

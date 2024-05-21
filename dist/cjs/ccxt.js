@@ -36,6 +36,7 @@ var bitmart = require('./src/bitmart.js');
 var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
 var bitpanda = require('./src/bitpanda.js');
+var bitpin = require('./src/bitpin.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
@@ -214,6 +215,7 @@ const exchanges = {
     'bitmex': bitmex,
     'bitopro': bitopro,
     'bitpanda': bitpanda,
+    'bitpin': bitpin,
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
@@ -436,6 +438,7 @@ exports.bitmart = bitmart;
 exports.bitmex = bitmex;
 exports.bitopro = bitopro;
 exports.bitpanda = bitpanda;
+exports.bitpin = bitpin;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;
