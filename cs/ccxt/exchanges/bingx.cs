@@ -11,7 +11,7 @@ public partial class bingx : Exchange
             { "id", "bingx" },
             { "name", "BingX" },
             { "countries", new List<object>() {"US"} },
-            { "rateLimit", 1000 },
+            { "rateLimit", 100 },
             { "version", "v1" },
             { "certified", true },
             { "pro", true },
@@ -124,44 +124,54 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "server/time", 3 },
-                                { "common/symbols", 3 },
-                                { "market/trades", 3 },
-                                { "market/depth", 3 },
-                                { "market/kline", 3 },
+                                { "server/time", 1 },
+                                { "common/symbols", 1 },
+                                { "market/trades", 1 },
+                                { "market/depth", 1 },
+                                { "market/kline", 1 },
                                 { "ticker/24hr", 1 },
+                                { "ticker/price", 1 },
+                                { "ticker/bookTicker", 1 },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "trade/query", 3 },
-                                { "trade/openOrders", 3 },
-                                { "trade/historyOrders", 3 },
-                                { "trade/myTrades", 3 },
-                                { "user/commissionRate", 3 },
-                                { "account/balance", 3 },
+                                { "trade/query", 1 },
+                                { "trade/openOrders", 1 },
+                                { "trade/historyOrders", 1 },
+                                { "trade/myTrades", 2 },
+                                { "user/commissionRate", 5 },
+                                { "account/balance", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "trade/order", 3 },
-                                { "trade/cancel", 3 },
-                                { "trade/batchOrders", 3 },
-                                { "trade/order/cancelReplace", 3 },
-                                { "trade/cancelOrders", 3 },
-                                { "trade/cancelOpenOrders", 3 },
-                                { "trade/cancelAllAfter", 1 },
+                                { "trade/order", 2 },
+                                { "trade/cancel", 2 },
+                                { "trade/batchOrders", 5 },
+                                { "trade/order/cancelReplace", 5 },
+                                { "trade/cancelOrders", 5 },
+                                { "trade/cancelOpenOrders", 5 },
+                                { "trade/cancelAllAfter", 5 },
+                            } },
+                        } },
+                    } },
+                    { "v2", new Dictionary<string, object>() {
+                        { "public", new Dictionary<string, object>() {
+                            { "get", new Dictionary<string, object>() {
+                                { "market/depth", 1 },
+                                { "market/kline", 1 },
                             } },
                         } },
                     } },
                     { "v3", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "get/asset/transfer", 3 },
-                                { "asset/transfer", 3 },
-                                { "capital/deposit/hisrec", 3 },
-                                { "capital/withdraw/history", 3 },
+                                { "get/asset/transfer", 1 },
+                                { "asset/transfer", 1 },
+                                { "capital/deposit/hisrec", 1 },
+                                { "capital/withdraw/history", 1 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "post/asset/transfer", 3 },
+                                { "post/asset/transfer", 5 },
                             } },
                         } },
                     } },
@@ -171,26 +181,27 @@ public partial class bingx : Exchange
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "ticker/price", 1 },
+                                { "market/historicalTrades", 1 },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "positionSide/dual", 1 },
+                                { "positionSide/dual", 5 },
                                 { "market/markPriceKlines", 1 },
-                                { "trade/batchCancelReplace", 1 },
-                                { "trade/fullOrder", 1 },
+                                { "trade/batchCancelReplace", 5 },
+                                { "trade/fullOrder", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "trade/cancelReplace", 1 },
-                                { "positionSide/dual", 1 },
-                                { "trade/closePosition", 1 },
+                                { "trade/cancelReplace", 2 },
+                                { "positionSide/dual", 5 },
+                                { "trade/closePosition", 2 },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "server/time", 3 },
+                                { "server/time", 1 },
                                 { "quote/contracts", 1 },
                                 { "quote/price", 1 },
                                 { "quote/depth", 1 },
@@ -205,35 +216,35 @@ public partial class bingx : Exchange
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "user/balance", 3 },
-                                { "user/positions", 3 },
-                                { "user/income", 3 },
-                                { "trade/openOrders", 3 },
-                                { "trade/openOrder", 3 },
-                                { "trade/order", 3 },
-                                { "trade/marginType", 3 },
-                                { "trade/leverage", 3 },
-                                { "trade/forceOrders", 3 },
-                                { "trade/allOrders", 3 },
-                                { "trade/allFillOrders", 3 },
-                                { "user/income/export", 3 },
-                                { "user/commissionRate", 3 },
-                                { "quote/bookTicker", 3 },
+                                { "user/balance", 2 },
+                                { "user/positions", 2 },
+                                { "user/income", 2 },
+                                { "trade/openOrders", 2 },
+                                { "trade/openOrder", 2 },
+                                { "trade/order", 2 },
+                                { "trade/marginType", 5 },
+                                { "trade/leverage", 2 },
+                                { "trade/forceOrders", 1 },
+                                { "trade/allOrders", 2 },
+                                { "trade/allFillOrders", 2 },
+                                { "user/income/export", 2 },
+                                { "user/commissionRate", 2 },
+                                { "quote/bookTicker", 1 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "trade/order", 3 },
-                                { "trade/batchOrders", 3 },
-                                { "trade/closeAllPositions", 3 },
-                                { "trade/cancelAllAfter", 3 },
-                                { "trade/marginType", 3 },
-                                { "trade/leverage", 3 },
-                                { "trade/positionMargin", 3 },
-                                { "trade/order/test", 3 },
+                                { "trade/order", 2 },
+                                { "trade/batchOrders", 2 },
+                                { "trade/closeAllPositions", 2 },
+                                { "trade/cancelAllAfter", 5 },
+                                { "trade/marginType", 5 },
+                                { "trade/leverage", 5 },
+                                { "trade/positionMargin", 5 },
+                                { "trade/order/test", 2 },
                             } },
                             { "delete", new Dictionary<string, object>() {
-                                { "trade/order", 3 },
-                                { "trade/batchOrders", 3 },
-                                { "trade/allOpenOrders", 3 },
+                                { "trade/order", 2 },
+                                { "trade/batchOrders", 2 },
+                                { "trade/allOpenOrders", 2 },
                             } },
                         } },
                     } },
@@ -249,9 +260,9 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "allPosition", 3 },
-                                { "allOrders", 3 },
-                                { "balance", 3 },
+                                { "allPosition", 2 },
+                                { "allOrders", 2 },
+                                { "balance", 2 },
                             } },
                         } },
                     } },
@@ -260,18 +271,19 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "capital/config/getall", 3 },
-                                { "capital/deposit/address", 1 },
+                                { "capital/config/getall", 5 },
+                                { "capital/deposit/address", 5 },
                                 { "capital/innerTransfer/records", 1 },
-                                { "capital/subAccount/deposit/address", 1 },
-                                { "capital/deposit/subHisrec", 1 },
+                                { "capital/subAccount/deposit/address", 5 },
+                                { "capital/deposit/subHisrec", 2 },
                                 { "capital/subAccount/innerTransfer/records", 1 },
+                                { "capital/deposit/riskRecords", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "capital/withdraw/apply", 3 },
-                                { "capital/innerTransfer/apply", 3 },
-                                { "capital/subAccountInnerTransfer/apply", 3 },
-                                { "capital/deposit/createSubAddress", 1 },
+                                { "capital/withdraw/apply", 5 },
+                                { "capital/innerTransfer/apply", 5 },
+                                { "capital/subAccountInnerTransfer/apply", 2 },
+                                { "capital/deposit/createSubAddress", 2 },
                             } },
                         } },
                     } },
@@ -280,15 +292,15 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "list", 3 },
-                                { "assets", 3 },
+                                { "list", 10 },
+                                { "assets", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "create", 3 },
-                                { "apiKey/create", 3 },
-                                { "apiKey/edit", 3 },
-                                { "apiKey/del", 3 },
-                                { "updateStatus", 3 },
+                                { "create", 10 },
+                                { "apiKey/create", 2 },
+                                { "apiKey/edit", 2 },
+                                { "apiKey/del", 2 },
+                                { "updateStatus", 10 },
                             } },
                         } },
                     } },
@@ -298,10 +310,10 @@ public partial class bingx : Exchange
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "uid", 1 },
-                                { "apiKey/query", 1 },
+                                { "apiKey/query", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "innerTransfer/authorizeSubAccount", 3 },
+                                { "innerTransfer/authorizeSubAccount", 1 },
                             } },
                         } },
                     } },
@@ -310,10 +322,13 @@ public partial class bingx : Exchange
                     { "auth", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "post", new Dictionary<string, object>() {
-                                { "userDataStream", 1 },
+                                { "userDataStream", 2 },
                             } },
                             { "put", new Dictionary<string, object>() {
-                                { "userDataStream", 1 },
+                                { "userDataStream", 2 },
+                            } },
+                            { "delete", new Dictionary<string, object>() {
+                                { "userDataStream", 2 },
                             } },
                         } },
                     } },
@@ -322,12 +337,12 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "swap/trace/currentTrack", 1 },
+                                { "swap/trace/currentTrack", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "swap/trace/closeTrackOrder", 1 },
-                                { "swap/trace/setTPSL", 1 },
-                                { "spot/trader/sellOrder", 1 },
+                                { "swap/trace/closeTrackOrder", 2 },
+                                { "swap/trace/setTPSL", 2 },
+                                { "spot/trader/sellOrder", 10 },
                             } },
                         } },
                     } },
