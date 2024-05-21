@@ -1287,7 +1287,7 @@ class NewTranspiler {
 
     transpileExchangeTests(){
         this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.exchange.ts',
+            'tsFile': './ts/src/test/tests.ts',
             'csharpFile': BASE_TESTS_FILE,
         });
 

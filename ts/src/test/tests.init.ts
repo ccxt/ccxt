@@ -7,7 +7,7 @@ import { Exchange } from '../../ccxt.js';
 import { Str } from '../base/types.js';
 import { DIR_NAME, AuthenticationError, NotSupported, ExchangeError, ProxyError, ExchangeNotAvailable, OperationFailed, OnMaintenance, getCliArgValue, proxyTestFileName, baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, getTestName, ioFileExists, ioFileRead, ioDirRead, callMethod, callExchangeMethodDynamically, callOverridenMethod, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, importTestFile, getTestFiles, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, } from './helpers_for_tests.js';
 
-import testMainClass from './tests.exchange.js';
+import testMainClass from './tests.js';
 
 import baseTestsInit from './base/tests.init.js';
 
