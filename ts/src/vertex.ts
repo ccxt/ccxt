@@ -1033,6 +1033,146 @@ export default class vertex extends Exchange {
         return data;
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
+    hashMessage (message) {
+        return '0x' + this.hash (message, keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + signature['r'].padStart (64, '0') + signature['s'].padStart (64, '0') + v;
+    }
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    buildSig (chainId, messageTypes, message, verifyingContractAddress = '') {
+        const domain = {
+            'chainId': chainId,
+            'name': 'Vertex',
+            'verifyingContract': verifyingContractAddress,
+            'version': '0.0.1',
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        const signature = this.signMessage (msg, this.privateKey);
+        return signature;
+    }
+
+    buildCreateOrderSig (message, chainId, verifyingContractAddress) {
+        const messageTypes = {
+            'Order': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'priceX18', 'type': 'int128' },
+                { 'name': 'amount', 'type': 'int128' },
+                { 'name': 'expiration', 'type': 'uint64' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#createOrder
+         * @description create a trade order
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/place-order
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] ioc, fok
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeNumber (contracts, 'chain_id');
+        const bookAddresses = this.safeList (contracts, 'book_addrs', []);
+        const verifyingContractAddress = this.safeString (bookAddresses, marketId);
+        let timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.safeBool (params, 'postOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        let sigBit = 0n;
+        if (timeInForce === 'ioc') {
+            sigBit = 1n;
+        } else if (timeInForce === 'fok') {
+            sigBit = 2n;
+        } else if (postOnly) {
+            sigBit = 3n;
+            if (reduceOnly) {
+                throw new NotSupported (this.id + ' reduceOnly not supported when postOnly is enabled' );
+            }
+        }
+        const now = this.nonce ();
+        const nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
+        let expiration = (BigInt (now) + 86400n);
+        if (sigBit > 0) {
+            expiration = expiration | (sigBit << 62n);
+        }
+        if (reduceOnly) {
+            expiration = expiration | (1n << 61n);
+        }
+        const order = {
+            'sender': this.walletAddress.padEnd (66, '0'),
+            'nonce': nonce,
+            'expiration': expiration,
+            'priceX18': this.convertToX18 (this.priceToPrecision (symbol, price)),
+        };
+        if (side === 'sell') {
+            if (amount > 0) {
+                amount *= -1;
+            }
+        } else {
+            if (amount < 0) {
+                amount *= -1;
+            }
+        }
+        order['amount'] = this.convertToX18 (this.amountToPrecision (symbol, amount));
+        const request = {
+            'place_order': {
+                'product_id': this.parseToNumeric (marketId),
+                'order': {
+                    'sender': order['sender'],
+                    'nonce': this.numberToString (order['nonce']),
+                    'expiration': this.numberToString (order['expiration']),
+                    'priceX18': order['priceX18'],
+                    'amount': order['amount'],
+                },
+                'signature': this.buildCreateOrderSig (order, chainId, verifyingContractAddress),
+            }
+        };
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'postOnly' ]);
+        const response = await this.v1GatewayPostExecute (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "signature": {signature},
+        //     "data": { 
+        //       "digest": {order digest} 
+        //     },
+        //     "request_type": "execute_place_order"
+        //     "id": 100
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.safeOrder ({
+            'id': this.safeString (data, 'digest'),
+        });
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
