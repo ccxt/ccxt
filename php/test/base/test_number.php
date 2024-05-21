@@ -8,7 +8,7 @@ include_once (__DIR__.'/../../../ccxt.php');
 
 // -----------------------------------------------------------------------------
 
-include_once (__DIR__.'/../fail_on_all_errors.php');
+include_once (__DIR__.'/../custom/fail_on_all_errors.php');
 
 // testDecimalToPrecisionErrorHandling
 //
