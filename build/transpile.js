@@ -92,6 +92,7 @@ class Transpiler {
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
             [ /\.buildOHLCVC/g, '.build_ohlcv'],
             [ /\.intToBase16/g, '.int_to_base16'],
+            [ /\.parseDate/g, '.parse_date'],
             [ /\.binaryToBase16/g, '.binary_to_base16'],
             [ /\.binaryToBase64/g, '.binary_to_base64'],
             [ /\.stringToBase64/g, '.string_to_base64'],
