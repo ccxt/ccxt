@@ -17,6 +17,6 @@ js/src/test/**/*
 js/src/pro/test/**/*
 
 #Ignore browser bundle
-dist/ccxt.browser.js
+# dist/ccxt.browser.js
 dist/ccxt.browser.min.js
 dist/ccxt.browser.min.js.LICENSE.txt
