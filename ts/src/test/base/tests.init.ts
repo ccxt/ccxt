@@ -11,6 +11,9 @@ import './functions/test.number.js'
 import './functions/test.datetime.js'
 import './functions/test.crypto.js'
 
+
+import testBaseFunctionsExtend from './functions/test.extend.js';
+
 const { Exchange, index, aggregate, unCamelCase } = functions
 
 const equal = strictEqual
@@ -209,6 +212,12 @@ function testBase () {
     testLegacyHasSomething ()
 }
 
-testUnCamelCase ()
 
-export default {};
+function baseTestsInit (exchange) {
+    testBaseFunctionsExtend (exchange);
+    testUnCamelCase ();
+    testBase ();
+    console.log ('base tests passed!');
+}
+
+export default baseTestsInit;

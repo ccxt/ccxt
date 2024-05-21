@@ -7,16 +7,9 @@ import { Exchange } from '../../ccxt.js';
 import { Str } from '../base/types.js';
 import { DIR_NAME, AuthenticationError, NotSupported, ExchangeError, ProxyError, ExchangeNotAvailable, OperationFailed, OnMaintenance, getCliArgValue, proxyTestFileName, baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, getTestName, ioFileExists, ioFileRead, ioDirRead, callMethod, callExchangeMethodDynamically, callOverridenMethod, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, importTestFile, getTestFiles, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, } from './helpers_for_tests.js';
 
-
-import testBaseFunctionsExtend from './base/functions/test.extend.js';
-
 import testMainClass from './tests.exchange.js';
 
-import base from './base/test.base.js';
-
-var _ = base; // eslint-disable-line
-
-
+import baseTestsInit from './base/tests.init.js';
 
 
 // ########### args ###########
@@ -32,8 +25,7 @@ if (isBaseTests || isAllTest) {
         'id': 'xyzexchange',
     });
 
-    testBaseFunctionsExtend (exchange);
-    console.log ('base tests passed!');
+    baseTestsInit (exchange);
 }
 
 // ####### exchange tests #######
