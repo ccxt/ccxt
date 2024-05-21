@@ -81,7 +81,7 @@ parser.parse_args(namespace=argv)
 
 path = os.path.dirname(ccxt.__file__)
 if 'site-packages' in os.path.dirname(ccxt.__file__):
-    raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
+    raise Exception("You are running tests_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
 
 # ------------------------------------------------------------------------------
 

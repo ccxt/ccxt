@@ -2249,10 +2249,10 @@ class Transpiler {
 
         this.transpileMainTests ({
             'tsFile': './ts/src/test/test.ts',
-            'pyFileAsync': './python/ccxt/test/test_async.py',
-            'phpFileAsync': './php/test/test_async.php',
-            'pyFileSync': './python/ccxt/test/test_sync.py',
-            'phpFileSync': './php/test/test_sync.php',
+            'pyFileAsync': './python/ccxt/test/tests_async.py',
+            'phpFileAsync': './php/test/tests_async.php',
+            'pyFileSync': './python/ccxt/test/tests_sync.py',
+            'phpFileSync': './php/test/tests_sync.php',
             'jsFile': './js/test/test.js',
         });
 
