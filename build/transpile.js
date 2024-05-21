@@ -2290,10 +2290,10 @@ class Transpiler {
                 base: false,
                 name: testName,
                 tsFile: baseFolders.ts + testName + '.ts',
-                pyFileSync: baseFolders.py + 'sync/' + unCamelCasedFileName + '.py',
-                pyFileAsync: baseFolders.py + 'async/' + unCamelCasedFileName + '.py',
-                phpFileSync: baseFolders.php + 'sync/' + unCamelCasedFileName + '.php',
-                phpFileAsync: baseFolders.php + 'async/' + unCamelCasedFileName + '.php',
+                pyFileSync: baseFolders.py + 'exchange/sync/' + unCamelCasedFileName + '.py',
+                pyFileAsync: baseFolders.py + 'exchange/async/' + unCamelCasedFileName + '.py',
+                phpFileSync: baseFolders.php + 'exchange/sync/' + unCamelCasedFileName + '.php',
+                phpFileAsync: baseFolders.php + 'exchange/async/' + unCamelCasedFileName + '.php',
             };
             tests.push(test);
         }
