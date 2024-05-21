@@ -1238,8 +1238,16 @@ export default class whitebit extends Exchange {
         const request = {
             'market': market['id'],
             'side': side,
-            'amount': this.amountToPrecision (symbol, amount),
         };
+        let cost = undefined;
+        [ cost, params ] = this.handleParamString (params, 'cost');
+        if (amount === undefined && cost === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a "amount" argument or a "cost" parameter');
+        } else if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        } else {
+            request['amount'] = this.costToPrecision (symbol, cost);
+        }
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
@@ -1294,7 +1302,11 @@ export default class whitebit extends Exchange {
                 if (useCollateralEndpoint) {
                     response = await this.v4PrivatePostOrderCollateralMarket (this.extend (request, params));
                 } else {
-                    response = await this.v4PrivatePostOrderStockMarket (this.extend (request, params));
+                    if (cost !== undefined) {
+                        response = await this.v4PrivatePostOrderMarket (this.extend (request, params));
+                    } else {
+                        response = await this.v4PrivatePostOrderStockMarket (this.extend (request, params));
+                    }
                 }
             }
         }
@@ -1705,7 +1717,7 @@ export default class whitebit extends Exchange {
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
-        const remaining = this.safeString (order, 'left');
+        let remaining = this.safeString (order, 'left');
         let clientOrderId = this.safeString (order, 'clientOrderId');
         if (clientOrderId === '') {
             clientOrderId = undefined;
@@ -1714,6 +1726,10 @@ export default class whitebit extends Exchange {
         const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
+        const orderType = this.parseOrderType (type);
+        if (orderType === 'market') {
+            remaining = undefined;
+        }
         let amount = this.safeString (order, 'amount');
         const cost = this.safeString (order, 'dealMoney');
         if ((side === 'buy') && ((type === 'market') || (type === 'stop market'))) {
@@ -1742,7 +1758,7 @@ export default class whitebit extends Exchange {
             'status': undefined,
             'side': side,
             'price': price,
-            'type': this.parseOrderType (type),
+            'type': orderType,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,
