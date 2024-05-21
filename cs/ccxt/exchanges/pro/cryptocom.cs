@@ -149,7 +149,7 @@ public partial class cryptocom : ccxt.cryptocom
         object price = this.safeFloat(delta, 0);
         object amount = this.safeFloat(delta, 1);
         object count = this.safeInteger(delta, 2);
-        (bookside as IOrderBookSide).store(price, amount, count);
+        (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, count});
     }
 
     public override void handleDeltas(object bookside, object deltas)
@@ -223,12 +223,12 @@ public partial class cryptocom : ccxt.cryptocom
         object data = this.safeValue(message, "data");
         data = this.safeValue(data, 0);
         object timestamp = this.safeInteger(data, "t");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object limit = this.safeInteger(message, "depth");
-            orderbook = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object channel = this.safeString(message, "channel");
         object nonce = this.safeInteger2(data, "u", "s");
         object books = data;

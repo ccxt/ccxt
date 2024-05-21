@@ -1323,9 +1323,6 @@ class kraken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         # only buy orders are supported by the endpoint
-        market = self.market(symbol)
-        if market['quote'] != 'USD':
-            raise NotSupported(self.id + ' createMarketOrderWithCost() supports symbols with quote currency USD only')
         params['cost'] = cost
         return await self.create_order(symbol, 'market', side, cost, None, params)
 
@@ -2853,6 +2850,8 @@ class kraken(Exchange, ImplicitAPI):
         if body.find('Cancel pending') >= 0:
             raise CancelPending(self.id + ' ' + body)
         if body.find('Invalid arguments:volume') >= 0:
+            raise InvalidOrder(self.id + ' ' + body)
+        if body.find('Invalid arguments:viqc') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
         if body.find('Rate limit exceeded') >= 0:
             raise RateLimitExceeded(self.id + ' ' + body)

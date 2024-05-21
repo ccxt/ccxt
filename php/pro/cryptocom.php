@@ -140,7 +140,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $count = $this->safe_integer($delta, 2);
-        $bookside->store ($price, $amount, $count);
+        $bookside->storeArray (array( $price, $amount, $count ));
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -211,11 +211,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         $data = $this->safe_value($message, 'data');
         $data = $this->safe_value($data, 0);
         $timestamp = $this->safe_integer($data, 't');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $limit = $this->safe_integer($message, 'depth');
-            $orderbook = $this->counted_order_book(array(), $limit);
+            $this->orderbooks[$symbol] = $this->counted_order_book(array(), $limit);
         }
+        $orderbook = $this->orderbooks[$symbol];
         $channel = $this->safe_string($message, 'channel');
         $nonce = $this->safe_integer_2($data, 'u', 's');
         $books = $data;

@@ -1389,9 +1389,9 @@ class kraken extends Exchange {
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $cost, $params) {
             /**
-             * create a $market order by providing the $symbol, $side and $cost
+             * create a market order by providing the $symbol, $side and $cost
              * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
-             * @param {string} $symbol unified $symbol of the $market to create an order in (only USD markets are supported)
+             * @param {string} $symbol unified $symbol of the market to create an order in (only USD markets are supported)
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1399,10 +1399,6 @@ class kraken extends Exchange {
              */
             Async\await($this->load_markets());
             // only buy orders are supported by the endpoint
-            $market = $this->market($symbol);
-            if ($market['quote'] !== 'USD') {
-                throw new NotSupported($this->id . ' createMarketOrderWithCost() supports symbols with quote currency USD only');
-            }
             $params['cost'] = $cost;
             return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
         }) ();
@@ -3107,6 +3103,9 @@ class kraken extends Exchange {
             throw new CancelPending($this->id . ' ' . $body);
         }
         if (mb_strpos($body, 'Invalid arguments:volume') !== false) {
+            throw new InvalidOrder($this->id . ' ' . $body);
+        }
+        if (mb_strpos($body, 'Invalid arguments:viqc') !== false) {
             throw new InvalidOrder($this->id . ' ' . $body);
         }
         if (mb_strpos($body, 'Rate limit exceeded') !== false) {

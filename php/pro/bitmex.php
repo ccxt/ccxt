@@ -1459,7 +1459,7 @@ class bitmex extends \ccxt\async\bitmex {
         $data = $this->safe_value($message, 'data', array());
         // if it's an initial snapshot
         if ($action === 'partial') {
-            $filter = $this->safe_value($message, 'filter', array());
+            $filter = $this->safe_dict($message, 'filter', array());
             $marketId = $this->safe_value($filter, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
@@ -1479,7 +1479,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $bookside->store ($price, $size, $id);
+                $bookside->storeArray (array( $price, $size, $id ));
                 $datetime = $this->safe_string($data[$i], 'timestamp');
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['datetime'] = $datetime;
@@ -1503,7 +1503,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $bookside->store ($price, $size, $id);
+                $bookside->storeArray (array( $price, $size, $id ));
                 $datetime = $this->safe_string($data[$i], 'timestamp');
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['datetime'] = $datetime;

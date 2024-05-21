@@ -424,6 +424,7 @@ class kucoin extends Exchange {
                     'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
                     'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
                     'The amount increment is invalid.' => '\\ccxt\\BadRequest',
+                    'The quantity is below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("msg":"The quantity is below the minimum requirement.","code":"400100")
                     '400' => '\\ccxt\\BadRequest',
                     '401' => '\\ccxt\\AuthenticationError',
                     '403' => '\\ccxt\\NotSupported',

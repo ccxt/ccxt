@@ -1388,7 +1388,7 @@ class whitebit(Exchange, ImplicitAPI):
             balance = response[id]
             if isinstance(balance, dict) and balance is not None:
                 account = self.account()
-                account['free'] = self.safe_string(balance, 'available')
+                account['free'] = self.safe_string_2(balance, 'available', 'main_balance')
                 account['used'] = self.safe_string(balance, 'freeze')
                 account['total'] = self.safe_string(balance, 'main_balance')
                 result[code] = account

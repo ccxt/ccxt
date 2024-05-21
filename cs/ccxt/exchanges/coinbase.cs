@@ -3094,7 +3094,7 @@ public partial class coinbase : Exchange
         object symbol = this.safeSymbol(marketId, market, "-");
         if (isTrue(!isEqual(symbol, null)))
         {
-            market = this.market(symbol);
+            market = this.safeMarket(symbol, market);
         }
         object orderConfiguration = this.safeDict(order, "order_configuration", new Dictionary<string, object>() {});
         object limitGTC = this.safeDict(orderConfiguration, "limit_limit_gtc");

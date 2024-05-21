@@ -1437,7 +1437,7 @@ class whitebit extends Exchange {
             $balance = $response[$id];
             if (gettype($balance) === 'array' && $balance !== null) {
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
+                $account['free'] = $this->safe_string_2($balance, 'available', 'main_balance');
                 $account['used'] = $this->safe_string($balance, 'freeze');
                 $account['total'] = $this->safe_string($balance, 'main_balance');
                 $result[$code] = $account;

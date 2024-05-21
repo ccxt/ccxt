@@ -135,7 +135,7 @@ export default class cryptocom extends cryptocomRest {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         const count = this.safeInteger (delta, 2);
-        bookside.store (price, amount, count);
+        bookside.storeArray ([ price, amount, count ]);
     }
 
     handleDeltas (bookside, deltas) {
@@ -206,11 +206,11 @@ export default class cryptocom extends cryptocomRest {
         let data = this.safeValue (message, 'data');
         data = this.safeValue (data, 0);
         const timestamp = this.safeInteger (data, 't');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger (message, 'depth');
-            orderbook = this.countedOrderBook ({}, limit);
+            this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
         const channel = this.safeString (message, 'channel');
         const nonce = this.safeInteger2 (data, 'u', 's');
         let books = data;

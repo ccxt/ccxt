@@ -177,7 +177,7 @@ class kraken(ccxt.async_support.kraken):
         messageHash = self.safe_value(message, 'reqid')
         client.resolve(order, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://docs.kraken.com/websockets/#message-editOrder
@@ -202,8 +202,9 @@ class kraken(ccxt.async_support.kraken):
             'reqid': requestId,
             'orderid': id,
             'pair': market['wsId'],
-            'volume': self.amount_to_precision(symbol, amount),
         }
+        if amount is not None:
+            request['volume'] = self.amount_to_precision(symbol, amount)
         request, params = self.orderRequest('editOrderWs', symbol, type, request, amount, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 

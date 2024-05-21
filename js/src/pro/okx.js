@@ -1436,7 +1436,7 @@ export default class okx extends okxRest {
         const first = this.safeDict(orders, 0, {});
         client.resolve(first, messageHash);
     }
-    async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrderWs
