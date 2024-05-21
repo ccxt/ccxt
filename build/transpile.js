@@ -2303,9 +2303,9 @@ class Transpiler {
     baseFunctionalitiesTests () {
 
         const baseFolders = {
-            ts: './ts/src/test/base/functions_auto/',
-            py: './python/ccxt/test/base/functions_auto/',
-            php: './php/test/base/functions_auto/',
+            ts: './ts/src/test/base/functions/',
+            py: './python/ccxt/test/base/functions/',
+            php: './php/test/base/functions/',
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2314,10 +2314,15 @@ class Transpiler {
 
         for (const testName of baseFunctionTests) {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
+            const tsFile = baseFolders.ts + testName + '.ts';
+            const tsContent = fs.readFileSync(tsFile).toString();
+            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+                continue;
+            }
             const test = {
                 base: true,
                 name: testName,
-                tsFile: baseFolders.ts + testName + '.ts',
+                tsFile: tsFile,
                 pyFileAsync: baseFolders.py + unCamelCasedFileName + '.py',
                 phpFileAsync: baseFolders.php + unCamelCasedFileName + '.php',
             };

@@ -9,7 +9,7 @@ try:
 except ImportError:
     asyncio = None
 
-from base.functions_auto.test_extend import test_base_functions_extend
+from base.functions.test_extend import test_base_functions_extend
 # tested inside imports itself
 import base.test_number  # noqa: F401
 import base.test_crypto  # noqa: F401

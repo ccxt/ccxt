@@ -22,7 +22,7 @@ if ($isBaseTests || $isAllTest) {
     // test base things
     require_once (__DIR__ . '/base/test_number.php');
     require_once (__DIR__ . '/base/test_crypto.php');
-    require_once (__DIR__ . '/base/functions_auto/test_extend.php');
+    require_once (__DIR__ . '/base/functions/test_extend.php');
 
     $exchange = new Exchange ([
         'id'=> 'xyzexchange',
