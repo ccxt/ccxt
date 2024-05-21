@@ -338,7 +338,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                     $size = ($delta2Value < 0) ? -$delta2Value : $delta2Value;
                     $side = ($delta2Value < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
-                    $bookside->store ($price, $size, $id);
+                    $bookside->storeArray (array( $price, $size, $id ));
                 }
             } else {
                 $deltas = $message[1];
@@ -348,7 +348,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                     $size = ($delta2 < 0) ? -$delta2 : $delta2;
                     $side = ($delta2 < 0) ? 'asks' : 'bids';
                     $countedBookSide = $orderbook[$side];
-                    $countedBookSide->store ($delta[0], $size, $delta[1]);
+                    $countedBookSide->storeArray ([ $delta[0], $size, $delta[1] ]);
                 }
             }
             $client->resolve ($orderbook, $messageHash);
@@ -363,13 +363,13 @@ class bitfinex extends \ccxt\async\bitfinex {
                 $bookside = $orderbook[$side];
                 // $price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
-                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $id);
+                $bookside->storeArray (array( $this->parse_number($price), $this->parse_number($amount), $id ));
             } else {
                 $message3Value = $message[3];
                 $size = ($message3Value < 0) ? -$message3Value : $message3Value;
                 $side = ($message3Value < 0) ? 'asks' : 'bids';
                 $countedBookSide = $orderbook[$side];
-                $countedBookSide->store ($message[1], $size, $message[2]);
+                $countedBookSide->storeArray ([ $message[1], $size, $message[2] ]);
             }
             $client->resolve ($orderbook, $messageHash);
         }

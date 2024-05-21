@@ -1505,7 +1505,7 @@ public partial class bitmex : ccxt.bitmex
         // if it's an initial snapshot
         if (isTrue(isEqual(action, "partial")))
         {
-            object filter = this.safeValue(message, "filter", new Dictionary<string, object>() {});
+            object filter = this.safeDict(message, "filter", new Dictionary<string, object>() {});
             object marketId = this.safeValue(filter, "symbol");
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
@@ -1529,7 +1529,7 @@ public partial class bitmex : ccxt.bitmex
                 object side = this.safeString(getValue(data, i), "side");
                 side = ((bool) isTrue((isEqual(side, "Buy")))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
-                (bookside as IOrderBookSide).store(price, size, id);
+                (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 object datetime = this.safeString(getValue(data, i), "timestamp");
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
@@ -1556,7 +1556,7 @@ public partial class bitmex : ccxt.bitmex
                 object side = this.safeString(getValue(data, i), "side");
                 side = ((bool) isTrue((isEqual(side, "Buy")))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
-                (bookside as IOrderBookSide).store(price, size, id);
+                (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 object datetime = this.safeString(getValue(data, i), "timestamp");
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;

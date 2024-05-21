@@ -597,7 +597,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
                 idString = self.safe_string(deltas, 0)
-                bookside.store(self.parse_number(price), self.parse_number(amount), idString)
+                bookside.storeArray([self.parse_number(price), self.parse_number(amount), idString])
             else:
                 amount = self.safe_string(deltas, 2)
                 counter = self.safe_string(deltas, 1)
@@ -605,7 +605,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 size = Precise.string_neg(amount) if Precise.string_lt(amount, '0') else amount
                 side = 'asks' if Precise.string_lt(amount, '0') else 'bids'
                 bookside = orderbookItem[side]
-                bookside.store(self.parse_number(price), self.parse_number(size), self.parse_number(counter))
+                bookside.storeArray([self.parse_number(price), self.parse_number(size), self.parse_number(counter)])
             client.resolve(orderbook, messageHash)
 
     def handle_checksum(self, client: Client, message, subscription):

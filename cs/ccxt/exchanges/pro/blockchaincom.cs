@@ -756,8 +756,8 @@ public partial class blockchaincom : ccxt.blockchaincom
             (orderbook as IOrderBook).reset(snapshot);
         } else if (isTrue(isEqual(eventVar, "updated")))
         {
-            object asks = this.safeValue(message, "asks", new List<object>() {});
-            object bids = this.safeValue(message, "bids", new List<object>() {});
+            object asks = this.safeList(message, "asks", new List<object>() {});
+            object bids = this.safeList(message, "bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;

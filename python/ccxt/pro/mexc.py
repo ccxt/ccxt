@@ -487,8 +487,8 @@ class mexc(ccxt.async_support.mexc):
             # so, we just skip old updates
             return
         orderbook['nonce'] = deltaNonce
-        asks = self.safe_value(delta, 'asks', [])
-        bids = self.safe_value(delta, 'bids', [])
+        asks = self.safe_list(delta, 'asks', [])
+        bids = self.safe_list(delta, 'bids', [])
         asksOrderSide = orderbook['asks']
         bidsOrderSide = orderbook['bids']
         self.handle_bookside_delta(asksOrderSide, asks)

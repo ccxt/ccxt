@@ -241,20 +241,20 @@ public partial class BaseTest
         indexedOrderBook.limit();
         Assert(equals(indexedOrderBook, indexedOrderBookTarget));
         var indexedBids = indexedOrderBook.bids;
-        indexedBids.store(1000, 0, "12345");
+        indexedBids.storeArray(new List<object>() {1000, 0, "12345"});
         Assert(equals(indexedOrderBook, indexedOrderBookTarget));
-        indexedBids.store(10, 0, "1234");
-        indexedBids.store(10, 2, "1231");
-        indexedBids.store(10, 1, "1232");
-        indexedBids.store(4, 2, "12399");
-        indexedBids.store(9, 2, "1231");
-        indexedBids.store(9, 3, "1231");
-        indexedBids.store(9, 1, "1232");
+        indexedBids.storeArray(new List<object>() {10, 0, "1234"});
+        indexedBids.storeArray(new List<object>() {10, 2, "1231"});
+        indexedBids.storeArray(new List<object>() {10, 1, "1232"});
+        indexedBids.storeArray(new List<object>() {4, 2, "12399"});
+        indexedBids.storeArray(new List<object>() {9, 2, "1231"});
+        indexedBids.storeArray(new List<object>() {9, 3, "1231"});
+        indexedBids.storeArray(new List<object>() {9, 1, "1232"});
         indexedOrderBook.limit();
         Assert(equals(indexedOrderBook, overwrite1234));
         indexedOrderBook = new IndexedOrderBook(indexedOrderBookInput);
         var indexedAsks = indexedOrderBook.asks;
-        indexedAsks.store(13.5, 13, "1244");
+        indexedAsks.storeArray(new List<object>() {13.5, 13, "1244"});
         indexedOrderBook.limit();
         Assert(equals(indexedOrderBook, overwrite1244));
         
@@ -269,10 +269,10 @@ public partial class BaseTest
         countedOrderBook.limit();
         Assert(equals(countedOrderBook, countedOrderBookTarget));
         var countedBids = countedOrderBook.bids;
-        countedBids.store(5, 0, 6);
+        countedBids.storeArray(new List<object>() {5, 0, 6});
         countedOrderBook.limit();
         Assert(equals(countedOrderBook, countedOrderBookTarget));
-        countedBids.store(1, 1, 6);
+        countedBids.storeArray(new List<object>() {1, 1, 6});
         countedOrderBook.limit();
         Assert(equals(countedOrderBook, storedCountedOrderbookTarget));
         

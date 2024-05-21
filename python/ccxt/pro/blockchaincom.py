@@ -669,8 +669,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             snapshot = self.parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num')
             orderbook.reset(snapshot)
         elif event == 'updated':
-            asks = self.safe_value(message, 'asks', [])
-            bids = self.safe_value(message, 'bids', [])
+            asks = self.safe_list(message, 'asks', [])
+            bids = self.safe_list(message, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp

@@ -456,7 +456,7 @@ class idex(ccxt.async_support.idex):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         count = self.safe_integer(delta, 2)
-        bookside.store(price, amount, count)
+        bookside.storeArray([price, amount, count])
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):

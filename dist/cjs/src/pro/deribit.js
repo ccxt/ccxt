@@ -505,12 +505,12 @@ class deribit extends deribit$1 {
         const marketId = this.safeString(data, 'instrument_name');
         const symbol = this.safeSymbol(marketId);
         const timestamp = this.safeInteger(data, 'timestamp');
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.countedOrderBook();
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.countedOrderBook();
         }
-        const asks = this.safeValue(data, 'asks', []);
-        const bids = this.safeValue(data, 'bids', []);
+        const storedOrderBook = this.orderbooks[symbol];
+        const asks = this.safeList(data, 'asks', []);
+        const bids = this.safeList(data, 'bids', []);
         this.handleDeltas(storedOrderBook['asks'], asks);
         this.handleDeltas(storedOrderBook['bids'], bids);
         storedOrderBook['nonce'] = timestamp;
@@ -522,8 +522,8 @@ class deribit extends deribit$1 {
         client.resolve(storedOrderBook, messageHash);
     }
     cleanOrderBook(data) {
-        const bids = this.safeValue(data, 'bids', []);
-        const asks = this.safeValue(data, 'asks', []);
+        const bids = this.safeList(data, 'bids', []);
+        const asks = this.safeList(data, 'asks', []);
         const cleanedBids = [];
         for (let i = 0; i < bids.length; i++) {
             cleanedBids.push([bids[i][1], bids[i][2]]);
@@ -540,10 +540,10 @@ class deribit extends deribit$1 {
         const price = delta[1];
         const amount = delta[2];
         if (delta[0] === 'new' || delta[0] === 'change') {
-            bookside.store(price, amount, 1);
+            bookside.storeArray([price, amount, 1]);
         }
         else if (delta[0] === 'delete') {
-            bookside.store(price, amount, 0);
+            bookside.storeArray([price, amount, 0]);
         }
     }
     handleDeltas(bookside, deltas) {

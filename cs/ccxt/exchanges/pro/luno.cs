@@ -211,13 +211,12 @@ public partial class luno : ccxt.luno
         //
         object symbol = getValue(subscription, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object timestamp = this.safeString(message, "timestamp");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        object timestamp = this.safeInteger(message, "timestamp");
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.indexedOrderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object asks = this.safeValue(message, "asks");
         if (isTrue(!isEqual(asks, null)))
         {

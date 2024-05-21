@@ -1,4 +1,4 @@
-interface CustomArray extends Array {
+interface CustomArray extends Array<any> {
     hashmap: object;
 }
 declare class BaseCache extends Array {

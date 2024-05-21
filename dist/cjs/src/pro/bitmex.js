@@ -1430,7 +1430,7 @@ class bitmex extends bitmex$1 {
         const data = this.safeValue(message, 'data', []);
         // if it's an initial snapshot
         if (action === 'partial') {
-            const filter = this.safeValue(message, 'filter', {});
+            const filter = this.safeDict(message, 'filter', {});
             const marketId = this.safeValue(filter, 'symbol');
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
@@ -1452,7 +1452,7 @@ class bitmex extends bitmex$1 {
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
                 const bookside = orderbook[side];
-                bookside.store(price, size, id);
+                bookside.storeArray([price, size, id]);
                 const datetime = this.safeString(data[i], 'timestamp');
                 orderbook['timestamp'] = this.parse8601(datetime);
                 orderbook['datetime'] = datetime;
@@ -1477,7 +1477,7 @@ class bitmex extends bitmex$1 {
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
                 const bookside = orderbook[side];
-                bookside.store(price, size, id);
+                bookside.storeArray([price, size, id]);
                 const datetime = this.safeString(data[i], 'timestamp');
                 orderbook['timestamp'] = this.parse8601(datetime);
                 orderbook['datetime'] = datetime;

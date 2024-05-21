@@ -560,13 +560,13 @@ public partial class deribit : ccxt.deribit
         object marketId = this.safeString(data, "instrument_name");
         object symbol = this.safeSymbol(marketId);
         object timestamp = this.safeInteger(data, "timestamp");
-        object storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(storedOrderBook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            storedOrderBook = this.countedOrderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook();
         }
-        object asks = this.safeValue(data, "asks", new List<object>() {});
-        object bids = this.safeValue(data, "bids", new List<object>() {});
+        object storedOrderBook = getValue(this.orderbooks, symbol);
+        object asks = this.safeList(data, "asks", new List<object>() {});
+        object bids = this.safeList(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
         this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
         ((IDictionary<string,object>)storedOrderBook)["nonce"] = timestamp;
@@ -580,8 +580,8 @@ public partial class deribit : ccxt.deribit
 
     public virtual object cleanOrderBook(object data)
     {
-        object bids = this.safeValue(data, "bids", new List<object>() {});
-        object asks = this.safeValue(data, "asks", new List<object>() {});
+        object bids = this.safeList(data, "bids", new List<object>() {});
+        object asks = this.safeList(data, "asks", new List<object>() {});
         object cleanedBids = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
         {
@@ -603,10 +603,10 @@ public partial class deribit : ccxt.deribit
         object amount = getValue(delta, 2);
         if (isTrue(isTrue(isEqual(getValue(delta, 0), "new")) || isTrue(isEqual(getValue(delta, 0), "change"))))
         {
-            (bookside as IOrderBookSide).store(price, amount, 1);
+            (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, 1});
         } else if (isTrue(isEqual(getValue(delta, 0), "delete")))
         {
-            (bookside as IOrderBookSide).store(price, amount, 0);
+            (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, 0});
         }
     }
 
