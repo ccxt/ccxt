@@ -386,6 +386,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
+                    '429000': RateLimitExceeded,
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
                     '260220': InvalidAddress,  # {"code": "260220", "msg": "deposit.address.not.exists"}
                     '900014': BadRequest,  # {"code":"900014","msg":"Invalid chainId"}
