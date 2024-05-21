@@ -71,7 +71,7 @@ class wallex(Exchange, ImplicitAPI):
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': False,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchTicker': False,
+                'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': False,
