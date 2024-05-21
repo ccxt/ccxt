@@ -427,6 +427,7 @@ class kucoin extends kucoin$1 {
                     'The withdrawal amount is below the minimum requirement.': errors.ExchangeError,
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': errors.InsufficientFunds,
                     'The amount increment is invalid.': errors.BadRequest,
+                    'The quantity is below the minimum requirement.': errors.InvalidOrder,
                     '400': errors.BadRequest,
                     '401': errors.AuthenticationError,
                     '403': errors.NotSupported,
