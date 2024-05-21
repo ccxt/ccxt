@@ -270,11 +270,11 @@ const testExchange = async (exchange) => {
         args.push ('--info')
     }
     let allTests = [
-        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests_init.js',                     ...args] },
+        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests.init.js',                     ...args] },
         { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
         { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/tests_init.php',                 ...args] },
         { key: '--csharp',       language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
-        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests_init.ts',      ...args] },
+        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php',  '--sync',  ...args] },
     ];
