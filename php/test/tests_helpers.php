@@ -275,7 +275,7 @@ function get_test_files ($properties, $ws = false) {
         for ($i = 0; $i < count($finalPropList); $i++) {
             $methodName = $finalPropList[$i];
             $name_snake_case = convert_to_snake_case($methodName);
-            $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async') .'/';
+            $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/exchange/' . (is_synchronous ? 'sync' : 'async') .'/';
             $test_method_name = 'test_'. $name_snake_case;
             $test_file = $dir_to_test . $test_method_name . '.' . ext;
             if (io_file_exists ($test_file)) {
