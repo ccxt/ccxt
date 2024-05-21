@@ -39,9 +39,9 @@ if (isBaseTests or isAllTest):
 # ###### exchange tests #######
 if (isExchangeTests or reqResTests or isAllTest):
     if (is_synchronous):
-        from tests_sync import testMainClass as testMainClassSync
+        from tests_exchange_sync import testMainClass as testMainClassSync
         testMainClassSync().init(argv.exchange, argvSymbol, argvMethod)
     else:
-        from tests_async import testMainClass as testMainClassAsync
+        from tests_exchange_async import testMainClass as testMainClassAsync
         asyncio.run(testMainClassAsync().init(argv.exchange, argvSymbol, argvMethod))
     print('exchange tests passed!')

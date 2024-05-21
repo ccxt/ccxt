@@ -10,7 +10,7 @@ import { DIR_NAME, AuthenticationError, NotSupported, ExchangeError, ProxyError,
 
 import testBaseFunctionsExtend from './base/functions/test.extend.js';
 
-import testMainClass from './test.js';
+import testMainClass from './tests.exchange.js';
 
 import base from './base/test.base.js';
 

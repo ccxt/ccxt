@@ -38,7 +38,7 @@ let files = [
     'python/ccxt/test/test_exchange_datetime_functions.py',
     'php/test/test_exchange_datetime_functions.php',
 
-    'python/ccxt/test/tests_sync.py',
+    'python/ccxt/test/tests_exchange_sync.py',
 
     'wiki/Exchange-Markets-By-Country.md',
     'wiki/Exchange-Markets.md',

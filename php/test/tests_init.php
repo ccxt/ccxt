@@ -5,9 +5,9 @@ namespace ccxt;
 use Exception; // a common import
 require_once (__DIR__ . '/helpers_for_tests.php');
 if (is_synchronous) {
-    require_once __DIR__ . '/tests_sync.php';
+    require_once __DIR__ . '/tests_exchange_sync.php';
 } else {
-    require_once __DIR__ . '/tests_async.php';
+    require_once __DIR__ . '/tests_exchange_async.php';
 }
 
 

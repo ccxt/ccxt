@@ -2248,12 +2248,12 @@ class Transpiler {
         this.baseFunctionalitiesTests ();
 
         this.transpileMainTests ({
-            'tsFile': './ts/src/test/test.ts',
-            'pyFileAsync': './python/ccxt/test/tests_async.py',
-            'phpFileAsync': './php/test/tests_async.php',
-            'pyFileSync': './python/ccxt/test/tests_sync.py',
-            'phpFileSync': './php/test/tests_sync.php',
-            'jsFile': './js/test/test.js',
+            'tsFile': './ts/src/test/tests.exchange.ts',
+            'pyFileAsync': './python/ccxt/test/tests_exchange_async.py',
+            'phpFileAsync': './php/test/tests_exchange_async.php',
+            'pyFileSync': './python/ccxt/test/tests_exchange_sync.py',
+            'phpFileSync': './php/test/tests_exchange_sync.php',
+            'jsFile': './js/test/tests.exchange.js',
         });
 
         const baseFolders = {
