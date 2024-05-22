@@ -34,6 +34,9 @@ export default class whitebit extends Exchange {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -1215,6 +1218,47 @@ export default class whitebit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
+        /**
+         * @method
+         * @name createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', side, 0, undefined, params);
+    }
+
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.createMarketOrderWithCost (symbol, 'buy', cost, params);
+    }
+
+    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.createMarketOrderWithCost (symbol, 'sell', cost, params);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
@@ -1231,6 +1275,7 @@ export default class whitebit extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1241,12 +1286,10 @@ export default class whitebit extends Exchange {
         };
         let cost = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
-        if (amount === undefined && cost === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a "amount" argument or a "cost" parameter');
-        } else if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
-        } else {
+        if (cost !== undefined) {
             request['amount'] = this.costToPrecision (symbol, cost);
+        } else {
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
