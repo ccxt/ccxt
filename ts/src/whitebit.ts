@@ -1694,7 +1694,7 @@ export default class whitebit extends Exchange {
         return results as Order[];
     }
 
-    parseOrderType (type) {
+    parseOrderType (type: Str) {
         const types = {
             'limit': 'limit',
             'market': 'market',

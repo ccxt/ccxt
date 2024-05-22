@@ -2228,7 +2228,7 @@ export default class bingx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseOrderType (type) {
+    parseOrderType (type: Str) {
         const types = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',

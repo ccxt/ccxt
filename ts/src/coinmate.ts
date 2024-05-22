@@ -897,7 +897,7 @@ export default class coinmate extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type) {
+    parseOrderType (type: Str) {
         const types = {
             'LIMIT': 'limit',
             'MARKET': 'market',

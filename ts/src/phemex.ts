@@ -2146,7 +2146,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type) {
+    parseOrderType (type: Str) {
         const types = {
             '1': 'market',
             '2': 'limit',

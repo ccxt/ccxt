@@ -1235,7 +1235,7 @@ export default class woofipro extends Exchange {
         return status;
     }
 
-    parseOrderType (type) {
+    parseOrderType (type: Str) {
         const types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
