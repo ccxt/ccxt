@@ -495,7 +495,7 @@ export default class ace extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '0': 'open',
             '1': 'open',

@@ -828,7 +828,7 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'live': 'open',
             'partially_filled': 'open',

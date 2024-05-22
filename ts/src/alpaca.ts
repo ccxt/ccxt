@@ -1040,7 +1040,7 @@ export default class alpaca extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'pending_new': 'open',
             'accepted': 'open',

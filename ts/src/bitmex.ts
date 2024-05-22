@@ -1678,7 +1678,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'New': 'open',
             'PartiallyFilled': 'open',

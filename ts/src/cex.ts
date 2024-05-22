@@ -1562,7 +1562,7 @@ export default class cex extends Exchange {
         return results as Order[];
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         return this.safeString (this.options['order']['status'], status, status);
     }
 

@@ -1240,7 +1240,7 @@ export default class ndax extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Accepted': 'open',
             'Rejected': 'rejected',

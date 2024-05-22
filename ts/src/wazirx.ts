@@ -933,7 +933,7 @@ export default class wazirx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'wait': 'open',
             'done': 'closed',

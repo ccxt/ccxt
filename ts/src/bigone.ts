@@ -1758,7 +1758,7 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'PENDING': 'open',
             'FILLED': 'closed',

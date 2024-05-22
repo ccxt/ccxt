@@ -1652,7 +1652,7 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         if (status !== undefined) {
             const statuses = {
                 'NEW': 'open',

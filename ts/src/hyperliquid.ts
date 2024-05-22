@@ -1919,7 +1919,7 @@ export default class hyperliquid extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'triggered': 'open',
             'filled': 'closed',

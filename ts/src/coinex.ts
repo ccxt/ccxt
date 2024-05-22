@@ -1702,7 +1702,7 @@ export default class coinex extends Exchange {
         }
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'rejected': 'rejected',
             'open': 'open',

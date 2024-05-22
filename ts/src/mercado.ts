@@ -531,7 +531,7 @@ export default class mercado extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '2': 'open',
             '3': 'canceled',

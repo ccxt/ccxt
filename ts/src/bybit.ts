@@ -3186,7 +3186,7 @@ export default class bybit extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             // v3 spot
             'NEW': 'open',

@@ -1498,7 +1498,7 @@ export default class kraken extends Exchange {
         return market;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'pending': 'open', // order pending book entry
             'open': 'open',

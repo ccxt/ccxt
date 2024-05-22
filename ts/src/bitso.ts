@@ -1084,7 +1084,7 @@ export default class bitso extends Exchange {
         return canceledOrders;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'partial-fill': 'open', // this is a common substitution in ccxt
             'partially filled': 'open',

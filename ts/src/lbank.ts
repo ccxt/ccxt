@@ -1413,7 +1413,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '-1': 'canceled', // canceled
             '0': 'open', // not traded

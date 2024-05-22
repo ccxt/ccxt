@@ -972,7 +972,7 @@ export default class btcmarkets extends Exchange {
         };
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Accepted': 'open',
             'Placed': 'open',

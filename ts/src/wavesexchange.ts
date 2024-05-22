@@ -1695,7 +1695,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Cancelled': 'canceled',
             'Accepted': 'open',

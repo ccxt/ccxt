@@ -976,7 +976,7 @@ export default class latoken extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'ORDER_STATUS_PLACED': 'open',
             'ORDER_STATUS_CLOSED': 'closed',

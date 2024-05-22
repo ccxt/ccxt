@@ -2123,7 +2123,7 @@ export default class phemex extends Exchange {
         return result;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Created': 'open',
             'Untriggered': 'open',

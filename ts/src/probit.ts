@@ -1114,7 +1114,7 @@ export default class probit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'open': 'open',
             'cancelled': 'canceled',

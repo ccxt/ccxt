@@ -3424,7 +3424,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',

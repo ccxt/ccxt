@@ -3665,7 +3665,7 @@ export default class bitget extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'new': 'open',
             'init': 'open',

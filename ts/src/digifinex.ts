@@ -1955,7 +1955,7 @@ export default class digifinex extends Exchange {
         return response;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '0': 'open',
             '1': 'open', // partially filled

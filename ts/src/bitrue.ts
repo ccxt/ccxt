@@ -1737,7 +1737,7 @@ export default class bitrue extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'INIT': 'open',
             'PENDING_CREATE': 'open',

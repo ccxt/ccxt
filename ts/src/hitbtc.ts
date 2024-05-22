@@ -2371,7 +2371,7 @@ export default class hitbtc extends Exchange {
         return [ request, params ];
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'new': 'open',
             'suspended': 'open',

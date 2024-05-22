@@ -879,7 +879,7 @@ export default class oceanex extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'wait': 'open',
             'done': 'closed',

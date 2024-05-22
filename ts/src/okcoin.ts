@@ -1757,7 +1757,7 @@ export default class okcoin extends Exchange {
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'canceled': 'canceled',
             'live': 'open',

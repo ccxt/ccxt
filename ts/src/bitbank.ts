@@ -605,7 +605,7 @@ export default class bitbank extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'UNFILLED': 'open',
             'PARTIALLY_FILLED': 'open',

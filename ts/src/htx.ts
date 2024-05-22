@@ -4545,7 +4545,7 @@ export default class htx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             // spot
             'partial-filled': 'open',

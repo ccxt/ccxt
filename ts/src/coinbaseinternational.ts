@@ -1553,7 +1553,7 @@ export default class coinbaseinternational extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'PARTIAL_FILLED': 'open',

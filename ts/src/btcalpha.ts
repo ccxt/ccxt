@@ -670,7 +670,7 @@ export default class btcalpha extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '1': 'open',
             '2': 'canceled',

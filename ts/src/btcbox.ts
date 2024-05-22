@@ -362,7 +362,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             // TODO: complete list
             'part': 'open', // partially or not at all executed

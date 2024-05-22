@@ -3064,7 +3064,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'OPEN': 'open',
             'FILLED': 'closed',

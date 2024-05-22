@@ -881,7 +881,7 @@ export default class yobit extends Exchange {
         return this.parseOrder (result);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '0': 'open',
             '1': 'closed',

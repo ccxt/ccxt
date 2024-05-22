@@ -1260,7 +1260,7 @@ export default class ascendex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'PendingNew': 'open',
             'New': 'open',

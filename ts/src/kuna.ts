@@ -1075,7 +1075,7 @@ export default class kuna extends Exchange {
         return this.parseOrders (data);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Canceled': 'canceled',
             'Closed': 'filled',

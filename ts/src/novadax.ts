@@ -1059,7 +1059,7 @@ export default class novadax extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'SUBMITTED': 'open',
             'PROCESSING': 'open',

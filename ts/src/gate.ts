@@ -4269,7 +4269,7 @@ export default class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'open': 'open',
             '_new': 'open',

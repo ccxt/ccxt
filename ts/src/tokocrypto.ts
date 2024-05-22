@@ -1414,7 +1414,7 @@ export default class tokocrypto extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '-2': 'open',
             '0': 'open', // NEW

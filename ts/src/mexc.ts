@@ -3436,7 +3436,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'FILLED': 'closed',

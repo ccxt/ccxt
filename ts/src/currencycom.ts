@@ -1237,7 +1237,7 @@ export default class currencycom extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'CREATED': 'open',

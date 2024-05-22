@@ -1716,7 +1716,7 @@ export default class coinlist extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'pending': 'open',
             'accepted': 'open',

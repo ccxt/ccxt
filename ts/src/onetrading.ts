@@ -1386,7 +1386,7 @@ export default class onetrading extends Exchange {
         };
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'FILLED': 'open',
             'FILLED_FULLY': 'closed',

@@ -1448,7 +1448,7 @@ export default class bitfinex2 extends Exchange {
         ];
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         if (status === undefined) {
             return status;
         }

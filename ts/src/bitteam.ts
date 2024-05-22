@@ -1248,7 +1248,7 @@ export default class bitteam extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'accepted': 'open',
             'executed': 'closed',

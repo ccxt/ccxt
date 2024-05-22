@@ -1487,7 +1487,7 @@ export default class bitstamp extends Exchange {
         return response;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'In Queue': 'open',
             'Open': 'open',

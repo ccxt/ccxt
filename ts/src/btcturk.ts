@@ -803,7 +803,7 @@ export default class btcturk extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Untouched': 'open',
             'Partial': 'open',

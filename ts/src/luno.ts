@@ -384,7 +384,7 @@ export default class luno extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             // todo add other statuses
             'PENDING': 'open',

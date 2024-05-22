@@ -798,7 +798,7 @@ export default class bithumb extends Exchange {
         return this.parseOrder (this.extend (data, { 'order_id': id }), market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Pending': 'open',
             'Completed': 'closed',

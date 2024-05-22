@@ -1063,7 +1063,7 @@ export default class idex extends Exchange {
         }
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         // https://docs.idex.io/#order-states-amp-lifecycle
         const statuses = {
             'active': 'open',

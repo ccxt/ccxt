@@ -459,7 +459,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Open': 'open',
             'PartiallyFilled': 'open',

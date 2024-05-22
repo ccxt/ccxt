@@ -1423,7 +1423,7 @@ export default class upbit extends Exchange {
         };
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'wait': 'open',
             'done': 'closed',

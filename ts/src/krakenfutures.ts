@@ -1460,7 +1460,7 @@ export default class krakenfutures extends Exchange {
         }
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'placed': 'open', // the order was placed successfully
             'cancelled': 'canceled', // the order was cancelled successfully

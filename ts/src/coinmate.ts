@@ -887,7 +887,7 @@ export default class coinmate extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',

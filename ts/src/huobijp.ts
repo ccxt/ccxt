@@ -1294,7 +1294,7 @@ export default class huobijp extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'partial-filled': 'open',
             'partial-canceled': 'canceled',

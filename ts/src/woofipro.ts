@@ -1217,7 +1217,7 @@ export default class woofipro extends Exchange {
         return this.safeString (timeInForces, timeInForce, undefined);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         if (status !== undefined) {
             const statuses = {
                 'NEW': 'open',

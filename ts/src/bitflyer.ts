@@ -608,7 +608,7 @@ export default class bitflyer extends Exchange {
         return await this.privatePostCancelchildorder (this.extend (request, params));
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',

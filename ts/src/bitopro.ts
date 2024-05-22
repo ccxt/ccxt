@@ -902,7 +902,7 @@ export default class bitopro extends Exchange {
         return this.parseBalance (balances);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '-1': 'open',
             '0': 'open',

@@ -726,7 +726,7 @@ export default class lykke extends Exchange {
         return this.parseBalance (payload);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'Open': 'open',
             'Pending': 'open',

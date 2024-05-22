@@ -5014,7 +5014,7 @@ export default class binance extends Exchange {
         }
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',

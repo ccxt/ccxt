@@ -1697,7 +1697,7 @@ export default class deribit extends Exchange {
         return orderbook;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'open': 'open',
             'cancelled': 'canceled',

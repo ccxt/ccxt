@@ -1713,7 +1713,7 @@ export default class delta extends Exchange {
         });
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'open': 'open',
             'pending': 'open',

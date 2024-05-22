@@ -2558,7 +2558,7 @@ export default class bingx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'PENDING': 'open',

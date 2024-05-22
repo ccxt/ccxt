@@ -1050,7 +1050,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',

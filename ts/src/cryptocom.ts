@@ -2040,7 +2040,7 @@ export default class cryptocom extends Exchange {
         ];
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',

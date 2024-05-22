@@ -1042,7 +1042,7 @@ export default class blofin extends Exchange {
         return this.extend (request, params);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
