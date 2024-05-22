@@ -280,10 +280,14 @@
         ],
         "fetchWithdrawals": [
             {
-                "description": "Fetch withdrawals",
+                "description": "Fetch withdrawals with the code and limit arguments",
                 "method": "fetchWithdrawals",
-                "url": "https://api.coinex.com/v1/balance/coin/withdraw?access_id=53DD577FFFD741D4B53A5424ECD33196&tonce=1699460471647",
-                "input": []
+                "url": "https://api.coinex.com/v2/assets/withdraw?ccy=USDT&limit=3",
+                "input": [
+                  "USDT",
+                  null,
+                  3
+                ]
             }
         ],
         "transfer": [
