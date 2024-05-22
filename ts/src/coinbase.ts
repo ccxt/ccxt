@@ -3561,7 +3561,12 @@ export default class coinbase extends Exchange {
             // 300 candles max
             request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
-        const response = await this.v3PublicGetBrokerageMarketProductsProductIdCandles (this.extend (request, params));
+        let response = undefined;
+        if (this.usePrivate ('fetchTicker')) {
+            response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
+        } else {
+            response = await this.v3PublicGetBrokerageMarketProductsProductIdCandles (this.extend (request, params));
+        }
         //
         //     {
         //         "candles": [
@@ -3633,7 +3638,12 @@ export default class coinbase extends Exchange {
         } else if (since !== undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
-        const response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
+        let response = undefined;
+        if (this.usePrivate ('fetchTicker')) {
+            response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        } else {
+            response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker (this.extend (request, params));
+        }
         //
         //     {
         //         "trades": [
@@ -3746,7 +3756,12 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v3PublicGetBrokerageMarketProductBook (this.extend (request, params));
+        let response = undefined;
+        if (this.usePrivate ('fetchTicker')) {
+            response = await this.v3PrivateGetBrokerageProductBook (this.extend (request, params));
+        } else {
+            response = await this.v3PublicGetBrokerageMarketProductBook (this.extend (request, params));
+        }
         //
         //     {
         //         "pricebook": {
