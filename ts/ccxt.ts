@@ -129,6 +129,7 @@ import lykke from  './src/lykke.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import ndax from  './src/ndax.js'
+import nobitex from  './src/nobitex.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
@@ -307,6 +308,7 @@ const exchanges = {
     'mercado':                mercado,
     'mexc':                   mexc,
     'ndax':                   ndax,
+    'nobitex':                nobitex,
     'novadax':                novadax,
     'oceanex':                oceanex,
     'okcoin':                 okcoin,
@@ -574,6 +576,7 @@ export {
     mercado,
     mexc,
     ndax,
+    nobitex,
     novadax,
     oceanex,
     okcoin,

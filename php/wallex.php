@@ -399,7 +399,7 @@ class wallex extends Exchange {
             // 'limit' => 500,
         );
         if ($since !== null) {
-            $request['from'] = $since;
+            $request['from'] = $since / 1000;
         }
         $request['from'] = $this->safe_integer($request, 'from');
         $request['to'] = $this->safe_integer($request, 'to');

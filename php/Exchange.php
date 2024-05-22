@@ -467,6 +467,7 @@ class Exchange {
         'mercado',
         'mexc',
         'ndax',
+        'nobitex',
         'novadax',
         'oceanex',
         'okcoin',

@@ -163,6 +163,7 @@ from ccxt.lykke import lykke                                          # noqa: F4
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
+from ccxt.nobitex import nobitex                                      # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okcoin import okcoin                                        # noqa: F401
@@ -273,6 +274,7 @@ exchanges = [
     'mercado',
     'mexc',
     'ndax',
+    'nobitex',
     'novadax',
     'oceanex',
     'okcoin',
