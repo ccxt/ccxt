@@ -799,7 +799,7 @@ export default class poloniexfutures extends Exchange {
          */
         await this.loadMarkets ();
         const currencyId = this.safeString (params, 'currency');
-        let request = {};
+        let request: Dict = {};
         if (currencyId !== undefined) {
             const currency = this.currency (currencyId);
             request = {

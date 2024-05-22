@@ -2910,7 +2910,7 @@ export default class gate extends Exchange {
             return await this.fetchOptionOHLCV (symbol, timeframe, since, limit, params);
         }
         const price = this.safeString (params, 'price');
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.prepareRequest (market, undefined, params);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         let maxLimit = market['contract'] ? 1999 : 1000;
@@ -2962,7 +2962,7 @@ export default class gate extends Exchange {
         // separated option logic because the from, to and limit parameters weren't functioning
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.prepareRequest (market, undefined, params);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         const response = await this.publicOptionsGetCandlesticks (this.extend (request, params));
@@ -3251,7 +3251,7 @@ export default class gate extends Exchange {
         }
         let type = undefined;
         let marginMode = undefined;
-        let request = {};
+        let request: Dict = {};
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
@@ -3524,7 +3524,7 @@ export default class gate extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
-        let request = {};
+        let request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -3563,7 +3563,7 @@ export default class gate extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
-        let request = {};
+        let request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -5384,7 +5384,7 @@ export default class gate extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchPosition() supports contract markets only');
         }
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.prepareRequest (market, market['type'], params);
         const extendedRequest = this.extend (request, params);
         let response = undefined;
@@ -5478,7 +5478,7 @@ export default class gate extends Exchange {
             }
         }
         let type = undefined;
-        let request = {};
+        let request: Dict = {};
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         if ((type === undefined) || (type === 'spot')) {
             type = 'swap'; // default to swap
@@ -6450,7 +6450,7 @@ export default class gate extends Exchange {
         let type = undefined;
         let currency = undefined;
         let response = undefined;
-        let request = {};
+        let request: Dict = {};
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         if ((type === 'spot') || (type === 'margin')) {
             if (code !== undefined) {
@@ -6741,7 +6741,7 @@ export default class gate extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchLiquidations() supports swap markets only');
         }
-        let request = {
+        let request: Dict = {
             'settle': market['settleId'],
             'contract': market['id'],
         };
@@ -7419,7 +7419,7 @@ export default class gate extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionsHistory', market, params, 'swap');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.prepareRequest (market, marketType, params);
         if (limit !== undefined) {
             request['limit'] = limit;

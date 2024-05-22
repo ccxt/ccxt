@@ -699,7 +699,7 @@ export default class bitvavo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
-        let request = {
+        let request: Dict = {
             'market': market['id'],
             // "limit": 500, // default 500, max 1000
             // "start": since,
@@ -941,7 +941,7 @@ export default class bitvavo extends Exchange {
 
     fetchOHLCVRequest (symbol: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             // "limit": 1440, // default 1440, max 1440
@@ -1210,7 +1210,7 @@ export default class bitvavo extends Exchange {
     }
 
     editOrderRequest (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        let request = {};
+        let request: Dict = {};
         const market = this.market (symbol);
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
@@ -1390,7 +1390,7 @@ export default class bitvavo extends Exchange {
 
     fetchOrdersRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
             // "limit": 500,
             // "start": since,
@@ -1659,7 +1659,7 @@ export default class bitvavo extends Exchange {
 
     fetchMyTradesRequest (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
             // "limit": 500,
             // "start": since,

@@ -2887,7 +2887,7 @@ export default class kucoin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        let request = {};
+        let request: Dict = {};
         const hf = this.safeBool (params, 'hf', false);
         if (hf && symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol parameter for hf orders');
@@ -3435,7 +3435,7 @@ export default class kucoin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
-        let request = {};
+        let request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -3519,7 +3519,7 @@ export default class kucoin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
-        let request = {};
+        let request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -4083,7 +4083,7 @@ export default class kucoin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
             // 'currency': currency['id'], // can choose up to 10, if not provided returns for all currencies by default
             // 'direction': 'in', // 'out'
             // 'bizType': 'DEPOSIT', // DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS (optional)
@@ -4411,7 +4411,7 @@ export default class kucoin extends Exchange {
         const marginResult = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params);
         const marginMode = this.safeString (marginResult, 0, 'cross');
         const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
-        let request = {
+        let request: Dict = {
             'isIsolated': isIsolated,
         };
         if (since !== undefined) {
@@ -4466,7 +4466,7 @@ export default class kucoin extends Exchange {
         const marginMode = this.safeString (marginResult, 0, 'cross');
         const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
         const currency = this.currency (code);
-        let request = {
+        let request: Dict = {
             'isIsolated': isIsolated,
             'currency': currency['id'],
         };

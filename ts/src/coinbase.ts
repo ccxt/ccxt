@@ -2719,7 +2719,7 @@ export default class coinbase extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = this.safeString (this.options, 'brokerId', 'ccxt');
-        let request = {
+        let request: Dict = {
             'client_order_id': id + '-' + this.uuid (),
             'product_id': market['id'],
             'side': side.toUpperCase (),

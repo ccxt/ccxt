@@ -1352,7 +1352,7 @@ export default class bitfinex2 extends Exchange {
         }
         const market = this.market (symbol);
         let sort = '-1';
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1406,7 +1406,7 @@ export default class bitfinex2 extends Exchange {
         } else {
             limit = Math.min (limit, 10000);
         }
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
             'sort': 1,
@@ -2062,7 +2062,7 @@ export default class bitfinex2 extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }
-        let request = {};
+        let request: Dict = {};
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -2954,7 +2954,7 @@ export default class bitfinex2 extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 2500);
         }
         let currency = undefined;
-        let request = {};
+        let request: Dict = {};
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -3077,7 +3077,7 @@ export default class bitfinex2 extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -3308,7 +3308,7 @@ export default class bitfinex2 extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000) as OpenInterest[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -3445,7 +3445,7 @@ export default class bitfinex2 extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchLiquidations', symbol, since, limit, '8h', params, 500) as Liquidation[];
         }
         const market = this.market (symbol);
-        let request = {};
+        let request: Dict = {};
         if (since !== undefined) {
             request['start'] = since;
         }

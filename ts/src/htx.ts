@@ -2665,7 +2665,7 @@ export default class htx extends Exchange {
         }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        let request = {
+        let request: Dict = {
             // spot -----------------------------------------------------------
             // 'symbol': market['id'],
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-limit-maker,sell-limit-maker,buy-stop-limit,sell-stop-limit',
@@ -3850,7 +3850,7 @@ export default class htx extends Exchange {
         }
         await this.loadMarkets ();
         let market = undefined;
-        let request = {
+        let request: Dict = {
             // spot_private_get_v1_order_orders GET /v1/order/orders ----------
             // 'symbol': market['id'], // required
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-stop-limit,sell-stop-limit,buy-limit-fok,sell-limit-fok,buy-stop-limit-fok,sell-stop-limit-fok',
@@ -3929,7 +3929,7 @@ export default class htx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             // POST /api/v1/contract_hisorders inverse futures ----------------
             // 'symbol': market['settleId'], // BTC, ETH, ...
             // 'order_type': '1', // 1 limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
@@ -6989,7 +6989,7 @@ export default class htx extends Exchange {
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials ();
                 const timestamp = this.ymdhms (this.milliseconds (), 'T');
-                let request = {
+                let request: Dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': this.apiKey,
@@ -7064,7 +7064,7 @@ export default class htx extends Exchange {
                     }
                 }
                 const timestamp = this.ymdhms (this.milliseconds (), 'T');
-                let request = {
+                let request: Dict = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': this.apiKey,
@@ -7888,7 +7888,7 @@ export default class htx extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 500);
         }
         const accountId = await this.fetchAccountIdByType ('spot', undefined, undefined, params);
-        let request = {
+        let request: Dict = {
             'accountId': accountId,
             // 'currency': code,
             // 'transactTypes': 'all', // default all
@@ -8887,7 +8887,7 @@ export default class htx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradeType = this.safeInteger (params, 'trade_type', 0);
-        let request = {
+        let request: Dict = {
             'trade_type': tradeType,
         };
         if (since !== undefined) {

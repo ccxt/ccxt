@@ -1686,7 +1686,7 @@ export default class bitmart extends Exchange {
         const market = this.market (symbol);
         const duration = this.parseTimeframe (timeframe);
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (parsedTimeframe !== undefined) {
@@ -4492,7 +4492,7 @@ export default class bitmart extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() supports swap markets only');
         }
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {

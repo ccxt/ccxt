@@ -884,7 +884,7 @@ export default class woofipro extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
         }
-        let request = {};
+        let request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
@@ -1804,7 +1804,7 @@ export default class woofipro extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
         }
-        let request = {};
+        let request: Dict = {};
         let market: Market = undefined;
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (symbol !== undefined) {
@@ -1982,7 +1982,7 @@ export default class woofipro extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        let request = {};
+        let request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);

@@ -1103,7 +1103,7 @@ export default class kraken extends Exchange {
          */
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets ();
-        let request = {};
+        let request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2284,7 +2284,7 @@ export default class kraken extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let request = {};
+        let request: Dict = {};
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }

@@ -1399,7 +1399,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        let request = {
+        let request: Dict = {
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -1435,7 +1435,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -1474,7 +1474,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -1514,7 +1514,7 @@ export default class blofin extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
         }
-        let request = {
+        let request: Dict = {
         };
         if (limit !== undefined) {
             request['limit'] = limit;

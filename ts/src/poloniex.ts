@@ -433,7 +433,7 @@ export default class poloniex extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 500) as OHLCV[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1013,7 +1013,7 @@ export default class poloniex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let request = {
+        let request: Dict = {
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
@@ -1285,7 +1285,7 @@ export default class poloniex extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
             'side': side,
             // 'timeInForce': timeInForce,
@@ -1385,7 +1385,7 @@ export default class poloniex extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        let request = {
+        let request: Dict = {
             'id': id,
             // 'timeInForce': timeInForce,
         };

@@ -2166,7 +2166,7 @@ export default class bitget extends Exchange {
         if (since === undefined) {
             since = this.milliseconds () - 7776000000; // 90 days
         }
-        let request = {
+        let request: Dict = {
             'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds (),
@@ -2313,7 +2313,7 @@ export default class bitget extends Exchange {
         if (since === undefined) {
             since = this.milliseconds () - 7776000000; // 90 days
         }
-        let request = {
+        let request: Dict = {
             'coin': currency['id'],
             'startTime': since,
             'endTime': this.milliseconds (),
@@ -3026,7 +3026,7 @@ export default class bitget extends Exchange {
         } else {
             market = this.market (symbol);
         }
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -5153,7 +5153,7 @@ export default class bitget extends Exchange {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         let type = undefined;
-        let request = {};
+        let request: Dict = {};
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         if (symbol !== undefined) {
@@ -5508,7 +5508,7 @@ export default class bitget extends Exchange {
                 symbol = sandboxSymbol;
             }
         }
-        let request = {};
+        let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -5830,7 +5830,7 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchLedger', symbol, since, limit, params, cursorReceived, 'idLessThan');
         }
         let currency = undefined;
-        let request = {};
+        let request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -6055,7 +6055,7 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, cursorReceived, 'idLessThan') as Trade[];
         }
         let response = undefined;
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
@@ -6764,7 +6764,7 @@ export default class bitget extends Exchange {
         }
         let productType = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'businessType': 'contract_settle_fee',
@@ -7267,7 +7267,7 @@ export default class bitget extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         type = this.safeString (accountsByType, fromAccount);
         const currency = this.currency (code);
-        let request = {
+        let request: Dict = {
             'coin': currency['id'],
             'fromType': type,
         };
@@ -7738,7 +7738,7 @@ export default class bitget extends Exchange {
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchMyLiquidations() supports spot margin markets only');
         }
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;

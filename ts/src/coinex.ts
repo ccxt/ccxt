@@ -3808,7 +3808,7 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -4446,7 +4446,7 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
         };
@@ -4720,7 +4720,7 @@ export default class coinex extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
         };
         if (since !== undefined) {
@@ -4974,7 +4974,7 @@ export default class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
         const currency = this.currency (code);
-        let request = {
+        let request: Dict = {
             'ccy': currency['id'],
         };
         let marginMode = undefined;
@@ -5605,7 +5605,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market_type': 'FUTURES',
             'market': market['id'],
         };
@@ -5835,7 +5835,7 @@ export default class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory() requires a positionId parameter');
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
             'position_id': positionId,

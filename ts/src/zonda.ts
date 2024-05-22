@@ -829,7 +829,7 @@ export default class zonda extends Exchange {
             const currency = this.currency (code);
             balanceCurrencies.push (currency['id']);
         }
-        let request = {
+        let request: Dict = {
             'balanceCurrencies': balanceCurrencies,
         };
         if (since !== undefined) {

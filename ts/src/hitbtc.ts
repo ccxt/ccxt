@@ -1738,7 +1738,7 @@ export default class hitbtc extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -2792,7 +2792,7 @@ export default class hitbtc extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000) as FundingRateHistory[];
         }
         let market = undefined;
-        let request = {
+        let request: Dict = {
             // all arguments are optional
             // 'symbols': Comma separated list of symbol codes,
             // 'sort': 'DESC' or 'ASC'

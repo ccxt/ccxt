@@ -5625,7 +5625,7 @@ export default class binance extends Exchange {
             throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
         let response = undefined;
-        let request = {
+        let request: Dict = {
             'batchOrders': ordersRequests,
         };
         request = this.extend (request, params);
@@ -6225,7 +6225,7 @@ export default class binance extends Exchange {
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBool2 (params, 'stop', 'conditional');
         params = this.omit (params, [ 'stop', 'conditional', 'type' ]);
-        let request = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
@@ -10133,7 +10133,7 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        let request = {
+        let request: Dict = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
         };
         if (symbol !== undefined) {
@@ -11484,7 +11484,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
-        let request = {};
+        let request: Dict = {};
         let market = undefined;
         if (code !== undefined) {
             const currency = this.currency (code);
@@ -11926,7 +11926,7 @@ export default class binance extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params, 'linear');
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', false);
-        let request = {};
+        let request: Dict = {};
         if (type !== 'spot') {
             request['autoCloseType'] = 'LIQUIDATION';
         }

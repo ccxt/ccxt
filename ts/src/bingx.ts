@@ -4099,7 +4099,7 @@ export default class bingx extends Exchange {
          * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
-        let request = {
+        let request: Dict = {
             'autoCloseType': 'LIQUIDATION',
         };
         [ request, params ] = this.handleUntilOption ('endTime', request, params);

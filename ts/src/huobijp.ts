@@ -1886,7 +1886,7 @@ export default class huobijp extends Exchange {
         if (api === 'private' || api === 'v2Private') {
             this.checkRequiredCredentials ();
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
-            let request = {
+            let request: Dict = {
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',
                 'AccessKeyId': this.apiKey,

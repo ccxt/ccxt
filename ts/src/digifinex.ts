@@ -4123,7 +4123,7 @@ export default class digifinex extends Exchange {
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('end_timestamp', request, params);
         let market = undefined;
         if (symbol !== undefined) {

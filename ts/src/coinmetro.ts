@@ -1228,7 +1228,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
         };
         request['orderType'] = type;
         let precisedAmount = undefined;

@@ -4661,7 +4661,7 @@ export default class phemex extends Exchange {
         } else {
             customSymbol = '.' + market['baseId'] + 'FR8H';
         }
-        let request = {
+        let request: Dict = {
             'symbol': customSymbol,
         };
         if (since !== undefined) {

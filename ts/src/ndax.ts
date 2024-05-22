@@ -295,7 +295,7 @@ export default class ndax extends Exchange {
         if (this.login === undefined || this.password === undefined) {
             throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password');
         }
-        let request = {
+        let request: Dict = {
             'grant_type': 'client_credentials', // the only supported value
         };
         const response = await this.publicGetAuthenticate (this.extend (request, params));
