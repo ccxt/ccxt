@@ -4771,29 +4771,23 @@ export default class coinex extends Exchange {
         //
         // fetchDeposits
         //
-        //    {
-        //        "coin_deposit_id": 32555985,
-        //        "create_time": 1673325495,
-        //        "amount": "12.71",
-        //        "amount_display": "12.71",
-        //        "diff_amount": "0",
-        //        "min_amount": "0",
-        //        "actual_amount": "12.71",
-        //        "actual_amount_display": "12.71",
-        //        "confirmations": 35,
-        //        "tx_id": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
-        //        "tx_id_display": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
-        //        "coin_address": "0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
-        //        "coin_address_display": "0xe7a3****f4b738",
-        //        "add_explorer": "https://bscscan.com/address/0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
-        //        "coin_type": "USDT",
-        //        "smart_contract_name": "BSC",
-        //        "transfer_method": "onchain",
-        //        "status": "finish",
-        //        "status_display": "finish",
-        //        "remark": "",
-        //        "explorer": "https://bscscan.com/tx/0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56"
-        //    }
+        //     {
+        //         "deposit_id": 5173806,
+        //         "created_at": 1714021652557,
+        //         "tx_id": "d9f47d2550397c635cb89a8963118f8fe78ef048bc8b6f0caaeaa7dc6",
+        //         "tx_id_display": "",
+        //         "ccy": "USDT",
+        //         "chain": "TRC20",
+        //         "deposit_method": "ON_CHAIN",
+        //         "amount": "30",
+        //         "actual_amount": "",
+        //         "to_address": "TYewD2pVWDUwfNr9A",
+        //         "confirmations": 20,
+        //         "status": "FINISHED",
+        //         "tx_explorer_url": "https://tronscan.org/#/transaction",
+        //         "to_addr_explorer_url": "https://tronscan.org/#/address",
+        //         "remark": ""
+        //     }
         //
         // fetchWithdrawals
         //
@@ -4818,7 +4812,7 @@ export default class coinex extends Exchange {
         //         "status": "finished"
         //     }
         //
-        const address = this.safeString2 (transaction, 'coin_address', 'to_address');
+        const address = this.safeString (transaction, 'to_address');
         let tag = this.safeString (transaction, 'memo');
         if (tag !== undefined) {
             if (tag.length < 1) {
@@ -4837,14 +4831,18 @@ export default class coinex extends Exchange {
                 txid = undefined;
             }
         }
-        const currencyId = this.safeString2 (transaction, 'ccy', 'coin_type');
+        const currencyId = this.safeString (transaction, 'ccy');
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (transaction, 'created_at');
         const type = ('withdraw_id' in transaction) ? 'withdrawal' : 'deposit';
         const networkId = this.safeString (transaction, 'chain');
         let feeCost = this.safeString (transaction, 'tx_fee');
-        const transferMethod = this.safeStringLower2 (transaction, 'withdraw_method', 'transfer_method');
+        const transferMethod = this.safeStringLower2 (transaction, 'withdraw_method', 'deposit_method');
         const internal = transferMethod === 'local';
+        let amount = this.safeNumber (transaction, 'actual_amount');
+        if (amount === undefined) {
+            amount = this.safeNumber (transaction, 'amount');
+        }
         if (type === 'deposit') {
             feeCost = '0';
         }
@@ -4855,19 +4853,19 @@ export default class coinex extends Exchange {
         };
         return {
             'info': transaction,
-            'id': this.safeString2 (transaction, 'withdraw_id', 'coin_deposit_id'),
+            'id': this.safeString2 (transaction, 'withdraw_id', 'deposit_id'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': this.networkIdToCode (networkId),
             'address': address,
-            'addressTo': this.safeString (transaction, 'to_address'),
+            'addressTo': address,
             'addressFrom': undefined,
             'tag': tag,
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': this.safeNumber (transaction, 'actual_amount'),
+            'amount': amount,
             'currency': code,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'updated': undefined,
@@ -5082,66 +5080,54 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchDeposits
          * @description fetch all deposits made to an account
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account009_deposit_list
-         * @param {string} code unified currency code
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-deposit-history
+         * @param {string} [code] unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {int} [limit] the maximum number of deposit structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
+        await this.loadMarkets ();
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            await this.loadMarkets ();
             currency = this.currency (code);
-            request['coin_type'] = currency['id'];
+            request['ccy'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['Limit'] = limit;
+            request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetBalanceCoinDeposit (this.extend (request, params));
+        const response = await this.v2PrivateGetAssetsDepositHistory (this.extend (request, params));
         //
-        //    {
-        //        "code": 0,
-        //        "data": {
-        //            "has_next": false,
-        //            "curr_page": 1,
-        //            "count": 1,
-        //            "data": [
-        //                {
-        //                    "coin_deposit_id": 32555985,
-        //                    "create_time": 1673325495,
-        //                    "amount": "12.71",
-        //                    "amount_display": "12.71",
-        //                    "diff_amount": "0",
-        //                    "min_amount": "0",
-        //                    "actual_amount": "12.71",
-        //                    "actual_amount_display": "12.71",
-        //                    "confirmations": 35,
-        //                    "tx_id": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
-        //                    "tx_id_display": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
-        //                    "coin_address": "0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
-        //                    "coin_address_display": "0xe7a3****f4b738",
-        //                    "add_explorer": "https://bscscan.com/address/0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
-        //                    "coin_type": "USDT",
-        //                    "smart_contract_name": "BSC",
-        //                    "transfer_method": "onchain",
-        //                    "status": "finish",
-        //                    "status_display": "finish",
-        //                    "remark": "",
-        //                    "explorer": "https://bscscan.com/tx/0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56"
-        //                }
-        //            ],
-        //            "total": 1,
-        //            "total_page": 1
-        //        },
-        //        "message": "Success"
-        //    }
+        //     {
+        //         "data": [
+        //             {
+        //                 "deposit_id": 5173806,
+        //                 "created_at": 1714021652557,
+        //                 "tx_id": "d9f47d2550397c635cb89a8963118f8fe78ef048bc8b6f0caaeaa7dc6",
+        //                 "tx_id_display": "",
+        //                 "ccy": "USDT",
+        //                 "chain": "TRC20",
+        //                 "deposit_method": "ON_CHAIN",
+        //                 "amount": "30",
+        //                 "actual_amount": "",
+        //                 "to_address": "TYewD2pVWDUwfNr9A",
+        //                 "confirmations": 20,
+        //                 "status": "FINISHED",
+        //                 "tx_explorer_url": "https://tronscan.org/#/transaction",
+        //                 "to_addr_explorer_url": "https://tronscan.org/#/address",
+        //                 "remark": ""
+        //             },
+        //         ],
+        //         "paginatation": {
+        //             "total": 8,
+        //             "has_next": true
+        //         },
+        //         "code": 0,
+        //         "message": "OK"
+        //     }
         //
-        let data = this.safeValue (response, 'data');
-        if (!Array.isArray (data)) {
-            data = this.safeValue (data, 'data', []);
-        }
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
