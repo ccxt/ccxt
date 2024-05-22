@@ -1077,6 +1077,16 @@ export default class vertex extends Exchange {
         return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
     }
 
+    buildListTxSig (message, chainId, verifyingContractAddress) {
+        const messageTypes = {
+            'ListTriggerOrders ': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'recvTime', 'type': 'uint64' },
+            ],
+        };
+        return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
+    }
+
     convertAddressToSender (address: string) {
         const sender = address + '64656661756c74';
         return sender.padEnd (66, '0');
@@ -1331,10 +1341,23 @@ export default class vertex extends Exchange {
         }
         let response = undefined;
         if (stop) {
-            request['tx'] = {
+            this.checkRequiredArgument ('fetchOrders', symbol, 'symbol');
+            const contracts = await this.queryContracts ();
+            const chainId = this.safeNumber (contracts, 'chain_id');
+            const bookAddresses = this.safeList (contracts, 'book_addrs', []);
+            const marketId = this.parseToNumeric (market['id']);
+            const verifyingContractAddress = this.safeString (bookAddresses, marketId);
+            const tx = {
                 'sender': this.convertAddressToSender (this.walletAddress),
+                'recvTime': this.nonce () + 90000,
+            };
+            request['signature'] = this.buildListTxSig (tx, chainId, verifyingContractAddress);
+            request['tx'] = {
+                'sender': tx['sender'],
+                'recvTime': this.numberToString (tx['recvTime']),
             };
             request['type'] = 'list_trigger_orders';
+            request['pending'] = true;
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
