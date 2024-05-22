@@ -1076,6 +1076,11 @@ export default class vertex extends Exchange {
         return this.buildSig (chainId, messageTypes, message, verifyingContractAddress);
     }
 
+    convertAddressToSender (address: string) {
+        const sender = address + '64656661756c74';
+        return sender.padEnd (66, '0');
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
@@ -1130,7 +1135,7 @@ export default class vertex extends Exchange {
             expiration = expiration | (1n << 61n);
         }
         const order = {
-            'sender': this.walletAddress.padEnd (66, '0'),
+            'sender': this.convertAddressToSender (this.walletAddress),
             'nonce': nonce,
             'expiration': expiration,
             'priceX18': this.convertToX18 (this.priceToPrecision (symbol, price)),
