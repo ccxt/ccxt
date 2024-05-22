@@ -113,6 +113,7 @@ export default class latoken extends Exchange {
                         'auth/account': 1,
                         'auth/account/currency/{currency}/{type}': 1,
                         'auth/order': 1,
+                        'auth/order/active': 1,
                         'auth/order/getOrder/{id}': 1,
                         'auth/order/pair/{currency}/{quote}': 1,
                         'auth/order/pair/{currency}/{quote}/active': 1,
@@ -1123,46 +1124,76 @@ export default class latoken extends Exchange {
          * @param {boolean} [params.trigger] true if fetching trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        let response = undefined;
+        let market = undefined;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
-        params = this.omit (params, 'stop');
-        // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
-        const market = this.market (symbol);
-        const request = {
-            'currency': market['baseId'],
-            'quote': market['quoteId'],
-        };
-        if (isTrigger) {
-            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive (this.extend (request, params));
-        } else {
-            response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        //
-        //     [
-        //         {
-        //             "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
-        //             "status":"ORDER_STATUS_PLACED",
-        //             "side":"ORDER_SIDE_BUY",
-        //             "condition":"ORDER_CONDITION_GOOD_TILL_CANCELLED",
-        //             "type":"ORDER_TYPE_LIMIT",
-        //             "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        //             "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             "clientOrderId":"web-macos_chrome_1a6a6659-6f7c-4fac-be0b-d1d7ac06d",
-        //             "price":"4000.00",
-        //             "quantity":"0.01000",
-        //             "cost":"40.00",
-        //             "filled":"0.00000",
-        //             "trader":"7244bb3a-b6b2-446a-ac78-fa4bce5b59a9",
-        //             "creator":"USER",
-        //             "creatorId":"",
-        //             "timestamp":1635920767648
-        //         }
-        //     ]
-        //
+        const request = {};
+        let response = undefined;
+        if (symbol !== undefined) {
+            request['currency'] = market['baseId'];
+            request['quote'] = market['quoteId'];
+            if (isTrigger) {
+                response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive (this.extend (request, params));
+            } else {
+                response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
+            }
+            //
+            //     [
+            //         {
+            //             "id": "a76bd262-3560-4bfb-98ac-1cedd394f4fc",
+            //             "status": "ORDER_STATUS_PLACED",
+            //             "side": "ORDER_SIDE_BUY",
+            //             "condition": "ORDER_CONDITION_GOOD_TILL_CANCELLED",
+            //             "type": "ORDER_TYPE_LIMIT",
+            //             "baseCurrency": "620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+            //             "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //             "clientOrderId": "web-macos_chrome_1a6a6659-6f7c-4fac-be0b-d1d7ac06d",
+            //             "price": "4000.00",
+            //             "quantity": "0.01000",
+            //             "cost": "40.00",
+            //             "filled": "0.00000",
+            //             "trader": "7244bb3a-b6b2-446a-ac78-fa4bce5b59a9",
+            //             "creator": "USER",
+            //             "creatorId": "",
+            //             "timestamp": 1635920767648
+            //         }
+            //     ]
+            //
+        } else {
+            if (isTrigger) {
+                response = await this.privateGetAuthStopOrderActive (this.extend (request, params));
+            } else {
+                response = await this.privateGetAuthOrderActive (this.extend (request, params));
+            }
+            response = await this.privateGetAuthOrderActive (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "id": "8315128e-0038-42b1-bc7e-b22c214ed7e3",
+            //            "status": "ORDER_STATUS_CLOSED",
+            //            "side": "ORDER_SIDE_SELL",
+            //            "condition": "ORDER_CONDITION_FILL_OR_KILL",
+            //            "type": "ORDER_TYPE_LIMIT",
+            //            "baseCurrency": "b0b81e12-80f9-4612-bad6-625757b60fcd",
+            //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            //            "clientOrderId": "",
+            //            "price": "1.000",
+            //            "quantity": "0.956",
+            //            "cost": "0.956000000",
+            //            "filled": "0.956",
+            //            "trader": "34935dfd-1653-4327-94d7-ab9400602592",
+            //            "creator": "USER",
+            //            "creatorId": "",
+            //            "timestamp": 1658305183008
+            //        },
+            //        ...
+            //    ]
+            //
+        }
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1322,6 +1353,11 @@ export default class latoken extends Exchange {
         if (uppercaseType === 'LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
+<<<<<<< HEAD
+        request['quantity'] = this.amountToPrecision (symbol, amount);
+        request['timestamp'] = this.seconds ();
+        const response = await this.privateGetAuthOrderActive (this.extend (request, params));
+=======
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         let response = undefined;
@@ -1331,6 +1367,7 @@ export default class latoken extends Exchange {
         } else {
             response = await this.privatePostAuthOrderPlace (this.extend (request, params));
         }
+>>>>>>> master
         //
         //    {
         //        "baseCurrency": "f7dac554-8139-4ff6-841f-0e586a5984a0",
