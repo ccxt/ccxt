@@ -5135,29 +5135,30 @@ export default class coinex extends Exchange {
         //
         //     {
         //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
         //         "leverage": 10,
-        //         "BTC": {
-        //             "min_amount": "0.002",
-        //             "max_amount": "200",
-        //             "day_rate": "0.001"
-        //         },
-        //         "USDT": {
-        //             "min_amount": "60",
-        //             "max_amount": "5000000",
-        //             "day_rate": "0.001"
-        //         }
-        //     },
+        //         "min_amount": "60",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
+        //     }
         //
         const marketId = this.safeString (info, 'market');
         market = this.safeMarket (marketId, market, undefined, 'spot');
-        const baseInfo = this.safeValue (info, market['baseId']);
-        const quoteInfo = this.safeValue (info, market['quoteId']);
+        const currency = this.safeString (info, 'ccy');
+        const rate = this.safeNumber (info, 'daily_interest_rate');
+        let baseRate = undefined;
+        let quoteRate = undefined;
+        if (currency === market['baseId']) {
+            baseRate = rate;
+        } else if (currency === market['quoteId']) {
+            quoteRate = rate;
+        }
         return {
             'symbol': market['symbol'],
             'base': market['base'],
-            'baseRate': this.safeNumber (baseInfo, 'day_rate'),
+            'baseRate': baseRate,
             'quote': market['quote'],
-            'quoteRate': this.safeNumber (quoteInfo, 'day_rate'),
+            'quoteRate': quoteRate,
             'period': 86400000,
             'timestamp': undefined,
             'datetime': undefined,
@@ -5170,38 +5171,40 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchIsolatedBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+         * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
          * @param {string} symbol unified symbol of the market to fetch the borrow rate for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.code unified currency code
          * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
          */
         await this.loadMarkets ();
+        const code = this.safeString (params, 'code');
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchIsolatedBorrowRate() requires a code parameter');
+        }
+        params = this.omit (params, 'code');
+        const currency = this.currency (code);
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
+            'ccy': currency['id'],
         };
-        const response = await this.v1PrivateGetMarginConfig (this.extend (request, params));
+        const response = await this.v2PrivateGetAssetsMarginInterestLimit (this.extend (request, params));
         //
         //     {
         //         "code": 0,
         //         "data": {
         //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
         //             "leverage": 10,
-        //             "BTC": {
-        //                 "min_amount": "0.002",
-        //                 "max_amount": "200",
-        //                 "day_rate": "0.001"
-        //             },
-        //             "USDT": {
-        //                 "min_amount": "60",
-        //                 "max_amount": "5000000",
-        //                 "day_rate": "0.001"
-        //             }
+        //             "min_amount": "60",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
         //         },
-        //         "message": "Success"
+        //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseIsolatedBorrowRate (data, market);
     }
 
