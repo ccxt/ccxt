@@ -1464,11 +1464,18 @@ export default class gemini extends Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
+         * @param {object} [params] extra parameters specific to the gemini api endpoint
+         * @param {float} [params.triggerPrice] for buy orders the triggerPrice must be < price, for sell orders the triggerPrice must be > price.
+         * @param {string} [params.timeInForce] "IOC", "FOK", "PO"
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.clientOrderId] a client-specified order id
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.account] required for master api keys as described in private api invocation, the name of the account within the subaccount group, specifies the account on which you intend to place the order, only available for exchange accounts,
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+        */
         await this.loadMarkets ();
-        if (type !== 'limit') {
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
@@ -1477,51 +1484,35 @@ export default class gemini extends Exchange {
             clientOrderId = this.milliseconds ().toString ();
         }
         const market = this.market (symbol);
-        const amountString = this.amountToPrecision (symbol, amount);
-        const priceString = this.priceToPrecision (symbol, price);
         const request = {
             'client_order_id': clientOrderId,
             'symbol': market['id'],
-            'amount': amountString,
-            'price': priceString,
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
             'side': side,
             'type': 'exchange limit', // gemini allows limit orders only
-            // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
+            // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill
         };
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
-        const rawStopPrice = this.safeString2 (params, 'stop_price', 'stopPrice');
-        params = this.omit (params, [ 'stop_price', 'stopPrice', 'type' ]);
-        if (type === 'stopLimit') {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders');
-        }
-        if (rawStopPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision (symbol, rawStopPrice);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price', 'stopPrice' ]);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['type'] = 'exchange stop limit';
         } else {
             // No options can be applied to stop-limit orders at this time.
             const timeInForce = this.safeString (params, 'timeInForce');
-            params = this.omit (params, 'timeInForce');
-            if (timeInForce !== undefined) {
-                if ((timeInForce === 'IOC') || (timeInForce === 'immediate-or-cancel')) {
-                    request['options'] = [ 'immediate-or-cancel' ];
-                } else if ((timeInForce === 'FOK') || (timeInForce === 'fill-or-kill')) {
-                    request['options'] = [ 'fill-or-kill' ];
-                } else if (timeInForce === 'PO') {
-                    request['options'] = [ 'maker-or-cancel' ];
-                }
+            if ((timeInForce === 'IOC') || (timeInForce === 'immediate-or-cancel')) {
+                request['options'] = [ 'immediate-or-cancel' ];
+            } else if ((timeInForce === 'FOK') || (timeInForce === 'fill-or-kill')) {
+                request['options'] = [ 'fill-or-kill' ];
+            } else if (timeInForce === 'PO') {
+                request['options'] = [ 'maker-or-cancel' ];
             }
-            const postOnly = this.safeBool (params, 'postOnly', false);
-            params = this.omit (params, 'postOnly');
+            const postOnly = this.isPostOnly (false, undefined, params);
             if (postOnly) {
                 request['options'] = [ 'maker-or-cancel' ];
             }
-            // allowing override for auction-only and indication-of-interest order options
-            const options = this.safeString (params, 'options');
-            if (options !== undefined) {
-                request['options'] = [ options ];
-            }
         }
+        params = this.omit (params, [ 'postOnly', 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce' ]);
         const response = await this.privatePostV1OrderNew (this.extend (request, params));
         //
         //      {
