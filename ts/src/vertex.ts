@@ -177,6 +177,7 @@ export default class vertex extends Exchange {
                     'trigger': {
                         'post': {
                             'execute': 1,
+                            'query': 1,
                         },
                     },
                 },
@@ -1302,6 +1303,105 @@ export default class vertex extends Exchange {
         //
         const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name vertex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market: Market = undefined;
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['product_id'] = this.parseToNumeric (market['id']);
+        }
+        let response = undefined;
+        if (stop) {
+            request['tx'] = {
+                'sender': this.convertAddressToSender (this.walletAddress),
+            };
+            request['type'] = 'list_trigger_orders';
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.v1TriggerPostQuery (this.extend (request, params));
+            //
+            // {
+            //     "status": "success",
+            //     "data": {
+            //       "orders": [
+            //         {
+            //           "order": {
+            //             "order": {
+            //               "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+            //               "priceX18": "1000000000000000000",
+            //               "amount": "1000000000000000000",
+            //               "expiration": "2000000000",
+            //               "nonce": "1",
+            //             },
+            //             "signature": "0x...",
+            //             "product_id": 1,
+            //             "spot_leverage": true,
+            //             "trigger": {
+            //               "price_above": "1000000000000000000"
+            //             },
+            //             "digest": "0x..."
+            //           },
+            //           "status": "pending",
+            //           "updated_at": 1688768157050
+            //         }
+            //       ]
+            //     },
+            //     "request_type": "query_list_trigger_orders"
+            // }
+            //
+        } else {
+            request['type'] = 'subaccount_orders';
+            request['sender'] = this.convertAddressToSender (this.walletAddress);
+            response = await this.v1GatewayPostQuery (this.extend (request, params));
+            //
+            // {
+            //     "status": "success",
+            //     "data": {
+            //       "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+            //       "product_id": 1,
+            //       "orders": [
+            //         {
+            //           "product_id": 1,
+            //           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+            //           "price_x18": "1000000000000000000",
+            //           "amount": "1000000000000000000",
+            //           "expiration": "2000000000",
+            //           "nonce": "1",
+            //           "order_type": "default",
+            //           "unfilled_amount": "1000000000000000000",
+            //           "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            //           "placed_at": 1682437739,
+            //           "order_type": "ioc"
+            //         }
+            //       ]
+            //     },
+            //     "request_type": "query_subaccount_orders"
+            // }
+            //
+        }
+        const data = this.safeDict (response, 'data', {});
+        const orders = this.safeList (data, 'orders');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

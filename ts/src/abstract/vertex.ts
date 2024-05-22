@@ -15,6 +15,7 @@ interface Exchange {
     v1GatewayPostQuery (params?: {}): Promise<implicitReturnType>;
     v1GatewayPostExecute (params?: {}): Promise<implicitReturnType>;
     v1TriggerPostExecute (params?: {}): Promise<implicitReturnType>;
+    v1TriggerPostQuery (params?: {}): Promise<implicitReturnType>;
     v2ArchiveGetTickers (params?: {}): Promise<implicitReturnType>;
     v2ArchiveGetContracts (params?: {}): Promise<implicitReturnType>;
     v2ArchiveGetTrades (params?: {}): Promise<implicitReturnType>;
