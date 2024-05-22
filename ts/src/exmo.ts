@@ -2284,7 +2284,7 @@ export default class exmo extends Exchange {
                 }
             }
         }
-        const fee: Dict = {
+        const fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

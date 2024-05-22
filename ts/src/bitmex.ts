@@ -1167,7 +1167,7 @@ export default class bitmex extends Exchange {
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
         }
-        const fee: Dict = {
+        const fee = {
             'cost': this.parseNumber (feeCost),
             'currency': code,
         };

@@ -1058,7 +1058,7 @@ export default class hyperliquid extends Exchange {
         const vaultAddress = this.safeString (params, 'vaultAddress');
         params = this.omit (params, 'vaultAddress');
         symbol = market['symbol'];
-        const order: Dict = {
+        const order = {
             'symbol': symbol as string,
             'type': type as OrderType,
             'side': side as OrderSide,

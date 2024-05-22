@@ -1911,7 +1911,7 @@ export default class bitmart extends Exchange {
         } else {
             wallet = this.safeValue (data, 'wallet', []);
         }
-        const result: Dict = { 'info': response };
+        const result = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];

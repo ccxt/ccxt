@@ -2311,7 +2311,7 @@ export default class tokocrypto extends Exchange {
             }
         }
         const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
-        const fee: Dict = {
+        const fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

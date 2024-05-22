@@ -218,7 +218,7 @@ export default class idex extends idexRest {
         const cost = this.safeString (trade, 'Q');
         const timestamp = this.safeInteger (trade, 't');
         const side = this.safeString (trade, 's');
-        const fee: Dict = {
+        const fee = {
             'currency': this.safeString (trade, 'a'),
             'cost': this.safeString (trade, 'f'),
         };
@@ -606,7 +606,7 @@ export default class idex extends idexRest {
         const price = this.safeString (order, 'price', average);  // for market orders
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
-        const fee: Dict = {
+        const fee = {
             'currency': undefined,
             'cost': undefined,
         };

@@ -4847,7 +4847,7 @@ export default class coinex extends Exchange {
             feeCost = '0';
         }
         const feeCurrencyId = this.safeString (transaction, 'fee_asset');
-        const fee: Dict = {
+        const fee = {
             'cost': this.parseNumber (feeCost),
             'currency': this.safeCurrencyCode (feeCurrencyId),
         };

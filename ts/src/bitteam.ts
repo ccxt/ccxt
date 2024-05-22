@@ -1955,7 +1955,7 @@ export default class bitteam extends Exchange {
         }
         const feeCurrencyId = this.safeString (feeInfo, 'symbol');
         const feeCost = this.safeString (feeInfo, 'amount');
-        const fee: Dict = {
+        const fee = {
             'currency': this.safeCurrencyCode (feeCurrencyId),
             'cost': feeCost,
             'rate': undefined,

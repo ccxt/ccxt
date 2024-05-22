@@ -576,7 +576,7 @@ export default class mercado extends Exchange {
         const marketId = this.safeString (order, 'coin_pair');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'created_timestamp');
-        const fee: Dict = {
+        const fee = {
             'cost': this.safeString (order, 'fee'),
             'currency': market['quote'],
         };

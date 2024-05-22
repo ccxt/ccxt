@@ -1142,7 +1142,7 @@ export default class coinmetro extends Exchange {
         const [ type, referenceId ] = this.parseLedgerEntryDescription (description);
         const JSONdata = this.safeValue (item, 'JSONdata', {});
         const feeCost = this.safeString (JSONdata, 'fees');
-        const fee: Dict = {
+        const fee = {
             'cost': feeCost,
             'currency': undefined,
         };

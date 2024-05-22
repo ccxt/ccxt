@@ -1511,7 +1511,7 @@ export default class latoken extends Exchange {
         const addressTo = this.safeString (transaction, 'recipientAddress');
         const txid = this.safeString (transaction, 'transactionHash');
         const tagTo = this.safeString (transaction, 'memo');
-        const fee: Dict = {
+        const fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

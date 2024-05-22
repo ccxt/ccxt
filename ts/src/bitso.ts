@@ -403,7 +403,7 @@ export default class bitso extends Exchange {
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             const feeTiers = this.safeValue (fees, 'structure', []);
-            const fee: Dict = {
+            const fee = {
                 'taker': taker,
                 'maker': maker,
                 'percentage': true,

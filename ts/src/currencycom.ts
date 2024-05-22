@@ -1667,7 +1667,7 @@ export default class currencycom extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeString (transaction, 'commission');
-        const fee: Dict = {
+        const fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

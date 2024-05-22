@@ -766,7 +766,7 @@ export default class coinbaseexchange extends Exchange {
             }
         }
         const feeCost = this.safeString2 (trade, 'fill_fees', 'fee');
-        const fee: Dict = {
+        const fee = {
             'cost': feeCost,
             'currency': market['quote'],
             'rate': feeRate,
@@ -1753,7 +1753,7 @@ export default class coinbaseexchange extends Exchange {
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
         address = this.safeString (transaction, 'crypto_address', address);
-        const fee: Dict = {
+        const fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

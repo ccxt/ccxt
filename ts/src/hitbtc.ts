@@ -1484,7 +1484,7 @@ export default class hitbtc extends Exchange {
         const subType = this.safeString (transaction, 'subtype');
         const internal = subType === 'OFFCHAIN';
         // https://api.hitbtc.com/#check-if-offchain-is-available
-        const fee: Dict = {
+        const fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

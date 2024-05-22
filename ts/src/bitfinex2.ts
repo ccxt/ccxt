@@ -2509,7 +2509,7 @@ export default class bitfinex2 extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee: Dict = {
+            const fee = {
                 'info': response,
                 'symbol': symbol,
                 'percentage': true,

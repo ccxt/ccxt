@@ -732,7 +732,7 @@ export default class woofipro extends woofiproRest {
         market = this.market (marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
-        const fee: Dict = {
+        const fee = {
             'cost': this.safeString (order, 'totalFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };

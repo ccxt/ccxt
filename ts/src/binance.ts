@@ -3146,7 +3146,7 @@ export default class binance extends Exchange {
         if (strike !== undefined) {
             parsedStrike = this.parseToNumeric (strike);
         }
-        const entry: Dict = {
+        const entry = {
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -3247,7 +3247,7 @@ export default class binance extends Exchange {
     }
 
     parseBalanceCustom (response, type = undefined, marginMode = undefined, isPortfolioMargin = false): Balances {
-        const result: Dict = {
+        const result = {
             'info': response,
         };
         let timestamp = undefined;
@@ -7467,7 +7467,7 @@ export default class binance extends Exchange {
             tradedCurrencyIsQuote = true;
         }
         const feeCostString = this.safeString (trade, 'serviceChargeAmount');
-        const fee: Dict = {
+        const fee = {
             'currency': earnedCurrency,
             'cost': this.parseNumber (feeCostString),
         };

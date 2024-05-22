@@ -1062,7 +1062,7 @@ export default class kucoin extends kucoinRest {
         const feeCurrency = market['quote'];
         const feeRate = this.safeString (trade, 'feeRate');
         const feeCost = this.safeString (trade, 'fee');
-        const fee: Dict = {
+        const fee = {
             'cost': feeCost,
             'rate': feeRate,
             'currency': feeCurrency,

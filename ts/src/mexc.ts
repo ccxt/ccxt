@@ -3644,7 +3644,7 @@ export default class mexc extends Exchange {
         } else {
             wallet = this.safeValue (response, 'balances', []);
         }
-        const result: Dict = { 'info': response };
+        const result = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];

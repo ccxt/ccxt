@@ -226,7 +226,7 @@ export default class bitfinex extends bitfinexRest {
         if ((last !== undefined) && (change !== undefined)) {
             open = Precise.stringSub (last, change);
         }
-        const result: Dict = {
+        const result = {
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
