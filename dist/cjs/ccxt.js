@@ -95,6 +95,7 @@ var lykke = require('./src/lykke.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
 var ndax = require('./src/ndax.js');
+var nobitex = require('./src/nobitex.js');
 var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
@@ -274,6 +275,7 @@ const exchanges = {
     'mercado': mercado,
     'mexc': mexc,
     'ndax': ndax,
+    'nobitex': nobitex,
     'novadax': novadax,
     'oceanex': oceanex,
     'okcoin': okcoin,
@@ -497,6 +499,7 @@ exports.lykke = lykke;
 exports.mercado = mercado;
 exports.mexc = mexc;
 exports.ndax = ndax;
+exports.nobitex = nobitex;
 exports.novadax = novadax;
 exports.oceanex = oceanex;
 exports.okcoin = okcoin;

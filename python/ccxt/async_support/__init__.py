@@ -143,6 +143,7 @@ from ccxt.async_support.lykke import lykke                                      
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
 from ccxt.async_support.ndax import ndax                                        # noqa: F401
+from ccxt.async_support.nobitex import nobitex                                  # noqa: F401
 from ccxt.async_support.novadax import novadax                                  # noqa: F401
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
@@ -253,6 +254,7 @@ exchanges = [
     'mercado',
     'mexc',
     'ndax',
+    'nobitex',
     'novadax',
     'oceanex',
     'okcoin',

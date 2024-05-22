@@ -391,7 +391,7 @@ class wallex(Exchange, ImplicitAPI):
             # 'limit': 500,
         }
         if since is not None:
-            request['from'] = since
+            request['from'] = since / 1000
         request['from'] = self.safe_integer(request, 'from')
         request['to'] = self.safe_integer(request, 'to')
         if timeframe is not None:

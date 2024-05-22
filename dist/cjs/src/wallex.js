@@ -401,7 +401,7 @@ class wallex extends wallex$1 {
             // 'limit': 500,
         };
         if (since !== undefined) {
-            request['from'] = since;
+            request['from'] = since / 1000;
         }
         request['from'] = this.safeInteger(request, 'from');
         request['to'] = this.safeInteger(request, 'to');
