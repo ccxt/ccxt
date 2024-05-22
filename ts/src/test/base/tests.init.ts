@@ -2,7 +2,7 @@
 /* eslint-disable */
 import ololog from 'ololog'
 import { strictEqual, deepEqual } from 'assert' // for easier debugging
-import { functions } from '../../../ccxt.js'
+import { Exchange, functions } from '../../../ccxt.js'
 
 import './functions/test.generic.js'
 import './functions/test.time.js'
@@ -14,7 +14,7 @@ import './functions/test.crypto.js'
 
 import testBaseFunctionsExtend from './functions/test.extend.js';
 
-const { Exchange, index, aggregate, unCamelCase } = functions
+const { index, aggregate, unCamelCase } = functions
 
 const equal = strictEqual
 
