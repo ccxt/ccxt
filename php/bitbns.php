@@ -294,7 +294,7 @@ class bitbns extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        $response = $this->wwwGetOrderFetchOrderbook (array_merge($request, $params));
+        $response = $this->wwwGetOrderFetchOrderbook ($this->extend($request, $params));
         //
         //     {
         //         "bids":[
@@ -619,7 +619,7 @@ class bitbns extends Exchange {
         if ($trailRate !== null) {
             $request['trail_rate'] = $this->price_to_precision($symbol, $trailRate);
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -659,7 +659,7 @@ class bitbns extends Exchange {
         $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         $quoteSide .= $tail;
         $request['side'] = $quoteSide;
-        $response = $this->v2PostCancel (array_merge($request, $params));
+        $response = $this->v2PostCancel ($this->extend($request, $params));
         return $this->parse_order($response, $market);
     }
 
@@ -685,7 +685,7 @@ class bitbns extends Exchange {
         if ($trigger) {
             throw new BadRequest($this->id . ' fetchOrder cannot fetch stop orders');
         }
-        $response = $this->v1PostOrderStatusSymbol (array_merge($request, $params));
+        $response = $this->v1PostOrderStatusSymbol ($this->extend($request, $params));
         //
         //     {
         //         "data":array(
@@ -741,7 +741,7 @@ class bitbns extends Exchange {
             'page' => 0,
             'side' => $isTrigger ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
         );
-        $response = $this->v2PostGetordersnew (array_merge($request, $params));
+        $response = $this->v2PostGetordersnew ($this->extend($request, $params));
         //
         //     {
         //         "data":array(
@@ -868,7 +868,7 @@ class bitbns extends Exchange {
         if ($since !== null) {
             $request['since'] = $this->iso8601($since);
         }
-        $response = $this->v1PostListExecutedOrdersSymbol (array_merge($request, $params));
+        $response = $this->v1PostListExecutedOrdersSymbol ($this->extend($request, $params));
         //
         //     {
         //         "data" => array(
@@ -932,7 +932,7 @@ class bitbns extends Exchange {
             'coin' => $market['baseId'],
             'market' => $market['quoteId'],
         );
-        $response = $this->wwwGetExchangeDataTradedetails (array_merge($request, $params));
+        $response = $this->wwwGetExchangeDataTradedetails ($this->extend($request, $params));
         //
         //     [
         //         array("tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"),
@@ -961,7 +961,7 @@ class bitbns extends Exchange {
             'symbol' => $currency['id'],
             'page' => 0,
         );
-        $response = $this->v1PostDepositHistorySymbol (array_merge($request, $params));
+        $response = $this->v1PostDepositHistorySymbol ($this->extend($request, $params));
         //
         //     {
         //         "data":array(
@@ -1007,7 +1007,7 @@ class bitbns extends Exchange {
             'symbol' => $currency['id'],
             'page' => 0,
         );
-        $response = $this->v1PostWithdrawHistorySymbol (array_merge($request, $params));
+        $response = $this->v1PostWithdrawHistorySymbol ($this->extend($request, $params));
         //
         //     ...
         //
@@ -1115,7 +1115,7 @@ class bitbns extends Exchange {
         $request = array(
             'symbol' => $currency['id'],
         );
-        $response = $this->v1PostGetCoinAddressSymbol (array_merge($request, $params));
+        $response = $this->v1PostGetCoinAddressSymbol ($this->extend($request, $params));
         //
         //     {
         //         "data":array(

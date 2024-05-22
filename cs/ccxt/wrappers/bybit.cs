@@ -1513,7 +1513,7 @@ public partial class bybit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/withdraw"/>  <br/>
+    /// See <see href="https://www.tokocrypto.com/apidocs/#withdraw-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2205,6 +2205,12 @@ public partial class bybit
     /// <term>params.subType</term>
     /// <description>
     /// string : market subType, ['linear', 'inverse'], default is 'linear'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>

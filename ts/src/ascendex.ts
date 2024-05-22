@@ -1417,7 +1417,7 @@ export default class ascendex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const stopPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         let reduceOnly = undefined;
         const execInst = this.safeString (order, 'execInst');
         if (execInst === 'reduceOnly') {
@@ -2893,7 +2893,7 @@ export default class ascendex extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // addMargin/reduceMargin
         //
@@ -3458,7 +3458,7 @@ export default class ascendex extends Exchange {
         return this.parseLeverages (leverages, symbols, 'symbol');
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         const marginType = this.safeString (leverage, 'marginType');

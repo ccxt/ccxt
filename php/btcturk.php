@@ -337,7 +337,7 @@ class btcturk extends Exchange {
         $request = array(
             'pairSymbol' => $market['id'],
         );
-        $response = $this->publicGetOrderbook (array_merge($request, $params));
+        $response = $this->publicGetOrderbook ($this->extend($request, $params));
         //     {
         //       "data" => {
         //         "timestamp" => 1618827901241,
@@ -513,7 +513,7 @@ class btcturk extends Exchange {
         if ($limit !== null) {
             $request['last'] = $limit;
         }
-        $response = $this->publicGetTrades (array_merge($request, $params));
+        $response = $this->publicGetTrades ($this->extend($request, $params));
         //
         //     {
         //       "data" => array(
@@ -595,7 +595,7 @@ class btcturk extends Exchange {
                 $request['from'] = $this->parse_to_int(0 / 1000) - $limitSeconds;
             }
         }
-        $response = $this->graphGetKlinesHistory (array_merge($request, $params));
+        $response = $this->graphGetKlinesHistory ($this->extend($request, $params));
         //
         //    {
         //        "s" => "ok",
@@ -685,7 +685,7 @@ class btcturk extends Exchange {
         } elseif (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
             $request['newClientOrderId'] = $this->uuid();
         }
-        $response = $this->privatePostOrder (array_merge($request, $params));
+        $response = $this->privatePostOrder ($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
@@ -702,7 +702,7 @@ class btcturk extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privateDeleteOrder (array_merge($request, $params));
+        return $this->privateDeleteOrder ($this->extend($request, $params));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -722,7 +722,7 @@ class btcturk extends Exchange {
             $market = $this->market($symbol);
             $request['pairSymbol'] = $market['id'];
         }
-        $response = $this->privateGetOpenOrders (array_merge($request, $params));
+        $response = $this->privateGetOpenOrders ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data');
         $bids = $this->safe_value($data, 'bids', array());
         $asks = $this->safe_list($data, 'asks', array());
@@ -751,7 +751,7 @@ class btcturk extends Exchange {
         if ($since !== null) {
             $request['startTime'] = (int) floor($since / 1000);
         }
-        $response = $this->privateGetAllOrders (array_merge($request, $params));
+        $response = $this->privateGetAllOrders ($this->extend($request, $params));
         // {
         //   "data" => array(
         //     {

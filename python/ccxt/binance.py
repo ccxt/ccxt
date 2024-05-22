@@ -153,7 +153,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': True,
-                'fetchPremiumIndexOHLCV': False,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -802,6 +802,7 @@ class binance(Exchange, ImplicitAPI):
                         'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'premiumIndexKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'fundingRate': 1,
                         'fundingInfo': 1,
                         'premiumIndex': 1,
@@ -4155,6 +4156,11 @@ class binance(Exchange, ImplicitAPI):
                 response = self.dapiPublicGetIndexPriceKlines(self.extend(request, params))
             else:
                 response = self.fapiPublicGetIndexPriceKlines(self.extend(request, params))
+        elif price == 'premiumIndex':
+            if market['inverse']:
+                response = self.dapiPublicGetPremiumIndexKlines(self.extend(request, params))
+            else:
+                response = self.fapiPublicGetPremiumIndexKlines(self.extend(request, params))
         elif market['linear']:
             response = self.fapiPublicGetKlines(self.extend(request, params))
         elif market['inverse']:
@@ -8997,7 +9003,7 @@ class binance(Exchange, ImplicitAPI):
         self.load_markets()
         # by default cache the leverage bracket
         # it contains useful stuff like the maintenance margin and initial margin for positions
-        leverageBrackets = self.safe_dict(self.options, 'leverageBrackets', {})
+        leverageBrackets = self.safe_dict(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
             defaultType = self.safe_string(self.options, 'defaultType', 'future')
             type = self.safe_string(params, 'type', defaultType)
@@ -9746,7 +9752,7 @@ class binance(Exchange, ImplicitAPI):
         leverages = self.safe_list(response, 'positions', [])
         return self.parse_leverages(leverages, symbols, 'symbol')
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         marginModeRaw = self.safe_bool(leverage, 'isolated')
         marginMode = None
@@ -10356,7 +10362,7 @@ class binance(Exchange, ImplicitAPI):
             'code': code,
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # add/reduce margin
         #
@@ -11340,7 +11346,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_greeks(response[0], market)
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "symbol": "BTC-231229-40000-C",
@@ -11611,7 +11617,7 @@ class binance(Exchange, ImplicitAPI):
         chain = self.safe_dict(response, 0, {})
         return self.parse_option(chain, None, market)
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "symbol": "BTC-241227-80000-C",
@@ -12000,7 +12006,7 @@ class binance(Exchange, ImplicitAPI):
         rows = self.safe_list(response, responseQuery, [])
         return self.parse_conversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
 
-    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
         # fetchConvertQuote
         #

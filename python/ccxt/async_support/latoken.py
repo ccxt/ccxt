@@ -608,7 +608,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         last = self.safe_string(ticker, 'lastPrice')
-        timestamp = self.safe_integer(ticker, 'updateTimestamp')
+        timestamp = self.safe_integer_omit_zero(ticker, 'updateTimestamp')  # sometimes latoken provided '0' ts from /ticker endpoint
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market),
             'timestamp': timestamp,

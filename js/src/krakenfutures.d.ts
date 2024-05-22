@@ -87,7 +87,7 @@ export default class krakenfutures extends Exchange {
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

@@ -220,7 +220,7 @@ class hyperliquid extends Exchange {
             $request = array(
                 'type' => 'meta',
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -291,7 +291,7 @@ class hyperliquid extends Exchange {
             $request = array(
                 'type' => 'metaAndAssetCtxs',
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -328,7 +328,7 @@ class hyperliquid extends Exchange {
             $assetCtxs = $this->safe_dict($response, 1, array());
             $result = array();
             for ($i = 0; $i < count($meta); $i++) {
-                $data = array_merge(
+                $data = $this->extend(
                     $this->safe_dict($meta, $i, array()),
                     $this->safe_dict($assetCtxs, $i, array())
                 );
@@ -350,7 +350,7 @@ class hyperliquid extends Exchange {
             $request = array(
                 'type' => 'spotMetaAndAssetCtxs',
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             // array(
             //     array(
@@ -644,7 +644,7 @@ class hyperliquid extends Exchange {
                 'type' => $reqType,
                 'user' => $userAddress,
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     {
             //         "assetPositions" => array(),
@@ -726,7 +726,7 @@ class hyperliquid extends Exchange {
                 'type' => 'l2Book',
                 'coin' => $market['swap'] ? $market['base'] : $market['id'],
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     {
             //         "coin" => "ETH",
@@ -791,7 +791,7 @@ class hyperliquid extends Exchange {
                     'endTime' => $until,
                 ),
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -870,7 +870,7 @@ class hyperliquid extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1179,7 +1179,7 @@ class hyperliquid extends Exchange {
                 if ($clientOrderId !== null) {
                     $orderObj['c'] = $clientOrderId;
                 }
-                $orderReq[] = array_merge($orderObj, $orderParams);
+                $orderReq[] = $this->extend($orderObj, $orderParams);
             }
             $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
             $orderAction = array(
@@ -1202,7 +1202,7 @@ class hyperliquid extends Exchange {
                 $params = $this->omit($params, 'vaultAddress');
                 $request['vaultAddress'] = $vaultAddress;
             }
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "ok",
@@ -1305,7 +1305,7 @@ class hyperliquid extends Exchange {
                 $params = $this->omit($params, 'vaultAddress');
                 $request['vaultAddress'] = $vaultAddress;
             }
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             //
             //     {
             //         "status":"ok",
@@ -1379,7 +1379,7 @@ class hyperliquid extends Exchange {
                 $params = $this->omit($params, 'vaultAddress');
                 $request['vaultAddress'] = $vaultAddress;
             }
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             //
             //     {
             //         "status":"ok",
@@ -1426,7 +1426,7 @@ class hyperliquid extends Exchange {
                 $params = $this->omit($params, 'vaultAddress');
                 $request['vaultAddress'] = $vaultAddress;
             }
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             //
             //     {
             //         "status":"err",
@@ -1546,7 +1546,7 @@ class hyperliquid extends Exchange {
                 $params = $this->omit($params, 'vaultAddress');
                 $request['vaultAddress'] = $vaultAddress;
             }
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "ok",
@@ -1618,7 +1618,7 @@ class hyperliquid extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1656,17 +1656,20 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+             * @param {string} [$params->method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchOpenOrders', $params);
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
             Async\await($this->load_markets());
             $market = $this->safe_market($symbol);
             $request = array(
-                'type' => 'openOrders',
+                'type' => $method,
                 'user' => $userAddress,
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1703,7 +1706,7 @@ class hyperliquid extends Exchange {
                 'type' => 'historicalOrders',
                 'user' => $userAddress,
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1740,7 +1743,7 @@ class hyperliquid extends Exchange {
                 'oid' => $this->parse_to_numeric($id),
                 'user' => $userAddress,
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     {
             //         "order" => array(
@@ -1845,6 +1848,25 @@ class hyperliquid extends Exchange {
         //           "oid":6195281425
         //        }
         //     }
+        // frontendOrder
+        // {
+        //     "children" => array(),
+        //     "cloid" => null,
+        //     "coin" => "BLUR",
+        //     "isPositionTpsl" => false,
+        //     "isTrigger" => true,
+        //     "limitPx" => "0.5",
+        //     "oid" => 8670487141,
+        //     "orderType" => "Stop Limit",
+        //     "origSz" => "20.0",
+        //     "reduceOnly" => false,
+        //     "side" => "B",
+        //     "sz" => "20.0",
+        //     "tif" => null,
+        //     "timestamp" => 1715523663687,
+        //     "triggerCondition" => "Price above 0.6",
+        //     "triggerPx" => "0.6"
+        // }
         //
         $entry = $this->safe_dict_n($order, array( 'order', 'resting', 'filled' ));
         if ($entry === null) {
@@ -1880,7 +1902,7 @@ class hyperliquid extends Exchange {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => null,
             'symbol' => $symbol,
-            'type' => $this->safe_string_lower($entry, 'orderType'),
+            'type' => $this->parse_order_type($this->safe_string_lower($entry, 'orderType')),
             'timeInForce' => $this->safe_string_upper($entry, 'tif'),
             'postOnly' => null,
             'reduceOnly' => $this->safe_bool($entry, 'reduceOnly'),
@@ -1945,7 +1967,7 @@ class hyperliquid extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -2052,7 +2074,7 @@ class hyperliquid extends Exchange {
                 'type' => 'clearinghouseState',
                 'user' => $userAddress,
             );
-            $response = Async\await($this->publicPostInfo (array_merge($request, $params)));
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     {
             //         "assetPositions" => array(
@@ -2212,7 +2234,7 @@ class hyperliquid extends Exchange {
                     $vaultAddress = str_replace('0x', '', $vaultAddress);
                 }
             }
-            $extendedAction = array_merge($updateAction, $params);
+            $extendedAction = $this->extend($updateAction, $params);
             $signature = $this->sign_l1_action($extendedAction, $nonce, $vaultAddress);
             $request = array(
                 'action' => $extendedAction,
@@ -2274,7 +2296,7 @@ class hyperliquid extends Exchange {
                 $params = $this->omit($params, 'vaultAddress');
                 $request['vaultAddress'] = $vaultAddress;
             }
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             //
             //     {
             //         'response' => array(
@@ -2343,7 +2365,7 @@ class hyperliquid extends Exchange {
                 $params = $this->omit($params, 'vaultAddress');
                 $request['vaultAddress'] = $vaultAddress;
             }
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             //
             //     {
             //         'response' => array(
@@ -2352,13 +2374,13 @@ class hyperliquid extends Exchange {
             //         'status' => 'ok'
             //     }
             //
-            return array_merge($this->parse_margin_modification($response, $market), array(
+            return $this->extend($this->parse_margin_modification($response, $market), array(
                 'code' => $this->safe_string($response, 'status'),
             ));
         }) ();
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         //    {
         //        'type' => 'default'
@@ -2412,7 +2434,7 @@ class hyperliquid extends Exchange {
                 );
                 $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
                 $innerRequest = array(
-                    'action' => array_merge($action, $params),
+                    'action' => $this->extend($action, $params),
                     'nonce' => $nonce,
                     'signature' => $signature,
                 );
@@ -2445,7 +2467,7 @@ class hyperliquid extends Exchange {
                 'nonce' => $nonce,
                 'signature' => $sig,
             );
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             return $response;
         }) ();
     }
@@ -2488,7 +2510,7 @@ class hyperliquid extends Exchange {
                 'nonce' => $nonce,
                 'signature' => $sig,
             );
-            $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
             return $response;
         }) ();
     }

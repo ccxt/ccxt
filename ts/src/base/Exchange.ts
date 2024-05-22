@@ -94,6 +94,7 @@ const {
     , safeStringLowerN
     , safeStringUpperN
     , urlencodeNested
+    , urlencodeBase64
     , parseDate
     , ymd
     , base64ToString
@@ -146,7 +147,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries } from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, TransferEntries, FundingRates } from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
@@ -237,6 +238,7 @@ export default class Exchange {
     apiKey: string;
     secret: string;
     uid: string;
+    accountId: string;
     login:string;
     password: string;
     privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
@@ -245,8 +247,9 @@ export default class Exchange {
 
     balance      = {}
     orderbooks: Dictionary<Ob>   = {}
-    tickers: Dictionary<Ticker>      = {}
-    bidsasks: Dictionary<Ticker>     = {}
+    tickers: Dictionary<Ticker>  = {}
+    fundingRates: Dictionary<FundingRate> = {}
+    bidsasks: Dictionary<Ticker>  = {}
     orders: ArrayCache       = undefined
     triggerOrders: ArrayCache = undefined
     trades: Dictionary<ArrayCache>
@@ -294,6 +297,7 @@ export default class Exchange {
         apiKey: boolean;
         secret: boolean;
         uid: boolean;
+        accountId: boolean;
         login: boolean;
         password: boolean;
         twofa: boolean;
@@ -457,6 +461,7 @@ export default class Exchange {
     base64ToString = base64ToString
     crc32 = crc32
     packb = packb
+    urlencodeBase64 = urlencodeBase64
 
     describe () {
         return {
@@ -692,6 +697,7 @@ export default class Exchange {
                 'apiKey':     true,
                 'secret':     true,
                 'uid':        false,
+                'accountId':  false,
                 'login':      false,
                 'password':   false,
                 'twofa':      false, // 2-factor authentication (one-time password key)
@@ -778,7 +784,7 @@ export default class Exchange {
         //         }
         //     }
         //
-        this.options = this.getDefaultOptions(); // exchange-specific options, if any
+        this.options = this.getDefaultOptions(); // exchange-specific options if any
         // fetch implementation options (JS only)
         // http properties
         this.headers = {}
@@ -2400,11 +2406,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async watchFundingRate (symbol: string, params = {}): Promise<{}> {
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         throw new NotSupported (this.id + ' watchFundingRate() is not supported yet');
     }
 
-    async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
+    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
         throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
     }
 
@@ -2872,6 +2878,7 @@ export default class Exchange {
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeList (order, 'fees', []);
         let trades = [];
+        const isTriggerOrSLTpOrder = ((this.safeString (order, 'triggerPrice') !== undefined || (this.safeString (order, 'stopLossPrice') !== undefined)) || (this.safeString (order, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue (order, 'trades', trades);
             const oldNumber = this.number;
@@ -3065,7 +3072,7 @@ export default class Exchange {
         let postOnly = this.safeValue (order, 'postOnly');
         // timeInForceHandling
         if (timeInForce === undefined) {
-            if (this.safeString (order, 'type') === 'market') {
+            if (!isTriggerOrSLTpOrder && (this.safeString (order, 'type') === 'market')) {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
@@ -4063,10 +4070,26 @@ export default class Exchange {
         return [ value, params ];
     }
 
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [string, object] {
+        const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
+        }
+        return [ value, params ];
+    }
+
     handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, object] {
         const value = this.safeInteger (params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, object] {
+        const value = this.safeInteger2 (params, paramName1, paramName2, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, [ paramName1, paramName2 ]);
         }
         return [ value, params ];
     }
@@ -4224,7 +4247,7 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrderWs (id, symbol);
         return await this.createOrderWs (symbol, type, side, amount, price, params);
     }
@@ -4530,28 +4553,13 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleOptionAndParams2 (params: object, methodName: string, methodName2: string, optionName: string, defaultValue = undefined) {
-        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
-        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
-        // check if params contain the key
-        let value = this.safeValue2 (params, optionName, defaultOptionName);
-        if (value !== undefined) {
-            params = this.omit (params, [ optionName, defaultOptionName ]);
-        } else {
-            // check if exchange has properties for this method
-            const exchangeWideMethodOptions = this.safeValue2 (this.options, methodName, methodName2);
-            if (exchangeWideMethodOptions !== undefined) {
-                // check if the option is defined inside this method's props
-                value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
-            }
-            if (value === undefined) {
-                // if it's still undefined, check if global exchange-wide option exists
-                value = this.safeValue2 (this.options, optionName, defaultOptionName);
-            }
-            // if it's still undefined, use the default value
-            value = (value !== undefined) ? value : defaultValue;
-        }
-        return [ value, params ];
+    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined) {
+        let value = undefined;
+        [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1, defaultValue);
+        // if still undefined, try optionName2
+        let value2 = undefined;
+        [ value2, params ] = this.handleOptionAndParams (params, methodName1, optionName2, value);
+        return [ value2, params ];
     }
 
     handleOption (methodName: string, optionName: string, defaultValue = undefined) {
@@ -6510,14 +6518,17 @@ export default class Exchange {
                 let response = undefined;
                 if (method === 'fetchAccounts') {
                     response = await this[method] (params);
+                } else if (method === 'getLeverageTiersPaginated') {
+                    response = await this[method] (symbol, params);
                 } else {
                     response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 }
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const iteration = (i + 1).toString ();
-                    const cursorMessage = 'Cursor pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorValue;
+                    const cursorString = (cursorValue === undefined) ? '' : cursorValue;
+                    const iteration = (i + 1);
+                    const cursorMessage = 'Cursor pagination call ' + iteration.toString () + ' method ' + method + ' response length ' + responseLength.toString () + ' cursor ' + cursorString;
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
@@ -6670,11 +6681,11 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseGreeks (greeks, market: Market = undefined): Greeks {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined): Option {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         throw new NotSupported (this.id + ' parseOption () is not supported yet');
     }
 
@@ -6721,7 +6732,7 @@ export default class Exchange {
         return leverageStructures;
     }
 
-    parseLeverage (leverage, market: Market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         throw new NotSupported (this.id + ' parseLeverage () is not supported yet');
     }
 
@@ -6758,7 +6769,7 @@ export default class Exchange {
         return this.filterBySinceLimit (both, since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         throw new NotSupported (this.id + ' parseConversion () is not supported yet');
     }
 
@@ -6867,7 +6878,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
     }
 

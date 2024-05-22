@@ -339,7 +339,7 @@ class cex extends \ccxt\async\cex {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'e' => 'ticker',
                 'oid' => $messageHash,
                 'data' => [ $market['base'], $market['quote'] ],
@@ -453,7 +453,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $request = array_merge(array(
+            $request = $this->extend(array(
                 'e' => 'get-balance',
                 'oid' => $messageHash,
             ), $params);
@@ -1101,7 +1101,7 @@ class cex extends \ccxt\async\cex {
                     'pair-' . $market['baseId'] . '-' . $market['quoteId'],
                 ],
             );
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -1242,7 +1242,7 @@ class cex extends \ccxt\async\cex {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'order_id' => (string) $id,
             ), $params);
             $url = $this->urls['api']['ws'];
@@ -1276,7 +1276,7 @@ class cex extends \ccxt\async\cex {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
             ), $params);
             $request = array(
@@ -1311,7 +1311,7 @@ class cex extends \ccxt\async\cex {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
                 'amount' => $amount,
                 'price' => $price,
@@ -1350,7 +1350,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'pair' => [ $market['baseId'], $market['quoteId'] ],
                 'type' => $side,
                 'amount' => $amount,
@@ -1385,7 +1385,7 @@ class cex extends \ccxt\async\cex {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'order_id' => $id,
             ), $params);
             $messageHash = $this->request_id();
@@ -1416,7 +1416,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $messageHash = $this->request_id();
-            $data = array_merge(array(
+            $data = $this->extend(array(
                 'cancel-orders' => $ids,
             ), $params);
             $url = $this->urls['api']['ws'];
@@ -1574,7 +1574,7 @@ class cex extends \ccxt\async\cex {
                         'timestamp' => $nonce,
                     ),
                 );
-                Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+                Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             }
             return Async\await($future);
         }) ();

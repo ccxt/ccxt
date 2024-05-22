@@ -377,7 +377,7 @@ abstract class coinex extends \ccxt\async\Exchange {
         return $this->request('market/preference', array('v1', 'perpetualPrivate'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function v2_public_get_maintain_info($params = array()) {
-        return $this->request('maintain-info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('maintain/info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2_public_get_ping($params = array()) {
         return $this->request('ping', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -1073,7 +1073,7 @@ abstract class coinex extends \ccxt\async\Exchange {
         return $this->request('market/preference', array('v1', 'perpetualPrivate'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function v2PublicGetMaintainInfo($params = array()) {
-        return $this->request('maintain-info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('maintain/info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2PublicGetPing($params = array()) {
         return $this->request('ping', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));

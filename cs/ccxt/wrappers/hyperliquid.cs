@@ -524,6 +524,12 @@ public partial class hyperliquid
     /// string : user address, will default to this.walletAddress if not provided
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>

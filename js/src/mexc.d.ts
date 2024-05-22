@@ -153,7 +153,7 @@ export default class mexc extends Exchange {
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

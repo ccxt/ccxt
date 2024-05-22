@@ -16,6 +16,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
                 { "watchTickers", true },
                 { "watchBidsAsks", true },
                 { "watchTrades", true },
+                { "watchOHLCV", true },
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchBalance", true },
@@ -26,6 +27,21 @@ public partial class kucoinfutures : ccxt.kucoinfutures
                 { "watchOrderBookForSymbols", true },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeframes", new Dictionary<string, object>() {
+                    { "1m", "1min" },
+                    { "3m", "1min" },
+                    { "5m", "5min" },
+                    { "15m", "15min" },
+                    { "30m", "30min" },
+                    { "1h", "1hour" },
+                    { "2h", "2hour" },
+                    { "4h", "4hour" },
+                    { "8h", "8hour" },
+                    { "12h", "12hour" },
+                    { "1d", "1day" },
+                    { "1w", "1week" },
+                    { "1M", "1month" },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "swap", "future" },
                     { "cross", "margin" },
@@ -612,6 +628,82 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return message;
     }
 
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#watchOHLCV
+        * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
+        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+        * @param {string} timeframe the length of time each candle represents
+        * @param {int} [since] timestamp in ms of the earliest candle to fetch
+        * @param {int} [limit] the maximum amount of candles to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        object url = await this.negotiate(false);
+        object marketId = this.marketId(symbol);
+        object timeframes = this.safeDict(this.options, "timeframes");
+        object timeframeId = this.safeString(timeframes, timeframe, timeframe);
+        object topic = add(add(add("/contractMarket/limitCandle:", marketId), "_"), timeframeId);
+        object messageHash = add(add(add("ohlcv::", symbol), "_"), timeframe);
+        object ohlcv = await this.subscribe(url, messageHash, topic, null, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+
+    public virtual void handleOHLCV(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "topic":"/contractMarket/limitCandle:LTCUSDTM_1min",
+        //        "type":"message",
+        //        "data":{
+        //            "symbol":"LTCUSDTM",
+        //            "candles":[
+        //                "1715470980",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "61.0",
+        //                "61"
+        //            ],
+        //            "time":1715470994801
+        //        },
+        //        "subject":"candle.stick"
+        //    }
+        //
+        object topic = this.safeString(message, "topic");
+        object parts = ((string)topic).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object timeframeId = this.safeString(parts, 1);
+        object data = this.safeDict(message, "data");
+        object timeframes = this.safeDict(this.options, "timeframes");
+        object timeframe = this.findTimeframe(timeframeId, timeframes);
+        object marketId = this.safeString(data, "symbol");
+        object symbol = this.safeSymbol(marketId);
+        object messageHash = add(add(add("ohlcv::", symbol), "_"), timeframe);
+        object ohlcv = this.safeList(data, "candles");
+        object parsed = new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)};
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
+        {
+            object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);
+        }
+        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        callDynamically(stored, "append", new object[] {parsed});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+    }
+
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         /**
@@ -1086,6 +1178,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object methods = new Dictionary<string, object>() {
             { "level2", this.handleOrderBook },
             { "ticker", this.handleTicker },
+            { "candle.stick", this.handleOHLCV },
             { "tickerV2", this.handleBidAsk },
             { "availableBalance.change", this.handleBalance },
             { "match", this.handleTrade },

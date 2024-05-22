@@ -547,7 +547,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $stored = $this->orders;
         $status = $this->safe_integer($params, 0);
-        $parsed = $this->parse_ws_order(array_merge($data, array( 'status' => $status )));
+        $parsed = $this->parse_ws_order($this->extend($data, array( 'status' => $status )));
         $stored->append ($parsed);
         $symbol = $parsed['symbol'];
         $messageHash = 'orders:' . $symbol;
@@ -732,7 +732,7 @@ class whitebit extends \ccxt\async\whitebit {
                 'method' => $method,
                 'params' => $reqParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -759,7 +759,7 @@ class whitebit extends \ccxt\async\whitebit {
                     'method' => $method,
                     'params' => $marketIds,
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 return Async\await($this->watch($url, $messageHash, $message, $method, $subscription));
             } else {
                 $subscription = $this->safe_value($client->subscriptions, $method, array());
@@ -806,7 +806,7 @@ class whitebit extends \ccxt\async\whitebit {
                 'method' => $method,
                 'params' => $reqParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }

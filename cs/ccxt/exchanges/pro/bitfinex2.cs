@@ -694,7 +694,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 // price = 0 means that you have to remove the order from your book
                 object amount = ((bool) isTrue(Precise.stringGt(price, "0"))) ? size : "0";
                 object idString = this.safeString(deltas, 0);
-                (bookside as IOrderBookSide).store(this.parseNumber(price), this.parseNumber(amount), idString);
+                (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(amount), idString});
             } else
             {
                 object amount = this.safeString(deltas, 2);
@@ -703,7 +703,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 object size = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
                 object side = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
-                (bookside as IOrderBookSide).store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
+                (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)});
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         }

@@ -2248,7 +2248,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchPositions
-         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
          * @description Fetches current contract trading positions
          * @param {string[]} symbols List of unified symbols
          * @param {object} [params] Not used by krakenfutures
@@ -2663,7 +2663,7 @@ export default class krakenfutures extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         const leverageValue = this.safeInteger (leverage, 'maxLeverage');
         return {

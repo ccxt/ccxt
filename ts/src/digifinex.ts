@@ -4084,7 +4084,7 @@ export default class digifinex extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",

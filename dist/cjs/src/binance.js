@@ -130,7 +130,7 @@ class binance extends binance$1 {
                 'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
-                'fetchPremiumIndexOHLCV': false,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -779,6 +779,7 @@ class binance extends binance$1 {
                         'continuousKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'markPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
+                        'premiumIndexKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'fundingRate': 1,
                         'fundingInfo': 1,
                         'premiumIndex': 1,
@@ -4294,6 +4295,14 @@ class binance extends binance$1 {
             }
             else {
                 response = await this.fapiPublicGetIndexPriceKlines(this.extend(request, params));
+            }
+        }
+        else if (price === 'premiumIndex') {
+            if (market['inverse']) {
+                response = await this.dapiPublicGetPremiumIndexKlines(this.extend(request, params));
+            }
+            else {
+                response = await this.fapiPublicGetPremiumIndexKlines(this.extend(request, params));
             }
         }
         else if (market['linear']) {
@@ -9680,7 +9689,7 @@ class binance extends binance$1 {
         await this.loadMarkets();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets', {});
+        const leverageBrackets = this.safeDict(this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
             const defaultType = this.safeString(this.options, 'defaultType', 'future');
             const type = this.safeString(params, 'type', defaultType);

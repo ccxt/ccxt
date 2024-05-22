@@ -987,6 +987,45 @@ public struct FundingRate
     }
 }
 
+public struct FundingRates
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, Ticker> fundingRates;
+
+    public FundingRates(object fr2)
+    {
+        var rates = (Dictionary<string, object>)fr2;
+
+        info = rates.ContainsKey("info") ? (Dictionary<string, object>)rates["info"] : null;
+        this.fundingRates = new Dictionary<string, Ticker>();
+        foreach (var rate in rates)
+        {
+            if (rate.Key != "info")
+                this.fundingRates.Add(rate.Key, new Ticker(rate.Value));
+        }
+    }
+
+    // Indexer
+    public Ticker this[string key]
+    {
+        get
+        {
+            if (fundingRates.ContainsKey(key))
+            {
+                return fundingRates[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the fundingRates.");
+            }
+        }
+        set
+        {
+            fundingRates[key] = value;
+        }
+    }
+}
+
 public struct FundingRateHistory
 {
     public string? symbol;

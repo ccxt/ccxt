@@ -935,7 +935,7 @@ class gemini extends \ccxt\async\gemini {
                 ),
             ),
         );
-        // $this->options = array_merge($defaultOptions, $this->options);
+        // $this->options = $this->extend($defaultOptions, $this->options);
         $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(

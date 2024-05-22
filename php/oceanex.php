@@ -155,7 +155,7 @@ class oceanex extends Exchange {
          * @return {array[]} an array of objects representing market data
          */
         $request = array( 'show_details' => true );
-        $response = $this->publicGetMarkets (array_merge($request, $params));
+        $response = $this->publicGetMarkets ($this->extend($request, $params));
         //
         //    array(
         //        "id" => "xtzusdt",
@@ -246,7 +246,7 @@ class oceanex extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTickersPair (array_merge($request, $params));
+        $response = $this->publicGetTickersPair ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -283,7 +283,7 @@ class oceanex extends Exchange {
         }
         $marketIds = $this->market_ids($symbols);
         $request = array( 'markets' => $marketIds );
-        $response = $this->publicGetTickersMulti (array_merge($request, $params));
+        $response = $this->publicGetTickersMulti ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -371,7 +371,7 @@ class oceanex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderBook (array_merge($request, $params));
+        $response = $this->publicGetOrderBook ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -416,7 +416,7 @@ class oceanex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderBookMulti (array_merge($request, $params));
+        $response = $this->publicGetOrderBookMulti ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -470,7 +470,7 @@ class oceanex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1000);
         }
-        $response = $this->publicGetTrades (array_merge($request, $params));
+        $response = $this->publicGetTrades ($this->extend($request, $params));
         //
         //      {
         //          "code":0,
@@ -636,7 +636,7 @@ class oceanex extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        $response = $this->privatePostOrders ($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
@@ -656,7 +656,7 @@ class oceanex extends Exchange {
         }
         $ids = array( $id );
         $request = array( 'ids' => $ids );
-        $response = $this->privateGetOrders (array_merge($request, $params));
+        $response = $this->privateGetOrders ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data');
         $dataLength = count($data);
         if ($data === null) {
@@ -685,7 +685,7 @@ class oceanex extends Exchange {
         $request = array(
             'states' => array( 'wait' ),
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -701,7 +701,7 @@ class oceanex extends Exchange {
         $request = array(
             'states' => array( 'done', 'cancel' ),
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -729,7 +729,7 @@ class oceanex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrdersFilter (array_merge($request, $query));
+        $response = $this->privateGetOrdersFilter ($this->extend($request, $query));
         $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -783,7 +783,7 @@ class oceanex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 10000);
         }
-        $response = $this->publicPostK (array_merge($request, $params));
+        $response = $this->publicPostK ($this->extend($request, $params));
         $ohlcvs = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
@@ -863,7 +863,7 @@ class oceanex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
-        $response = $this->privatePostOrderDelete (array_merge(array( 'id' => $id ), $params));
+        $response = $this->privatePostOrderDelete ($this->extend(array( 'id' => $id ), $params));
         $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data);
     }
@@ -878,7 +878,7 @@ class oceanex extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        $response = $this->privatePostOrderDeleteMulti (array_merge(array( 'ids' => $ids ), $params));
+        $response = $this->privatePostOrderDeleteMulti ($this->extend(array( 'ids' => $ids ), $params));
         $data = $this->safe_list($response, 'data');
         return $this->parse_orders($data);
     }

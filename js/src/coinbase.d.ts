@@ -107,7 +107,7 @@ export default class coinbase extends Exchange {
     fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
-    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;

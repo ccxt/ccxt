@@ -172,7 +172,14 @@ class coinbaseinternational extends coinbaseinternational$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
-        return await this.subscribeMultiple('RISK', symbols, params);
+        const fundingRate = await this.subscribeMultiple('RISK', symbols, params);
+        const symbol = this.safeString(fundingRate, 'symbol');
+        if (this.newUpdates) {
+            const result = {};
+            result[symbol] = fundingRate;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, 'symbol', symbols);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -588,6 +595,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         //
         const channel = this.safeString(message, 'channel');
         const fundingRate = this.parseFundingRate(message);
+        this.fundingRates[fundingRate['symbol']] = fundingRate;
         client.resolve(fundingRate, channel + '::' + fundingRate['symbol']);
     }
     handleErrorMessage(client, message) {

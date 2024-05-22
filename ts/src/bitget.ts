@@ -312,6 +312,9 @@ export default class bitget extends Exchange {
                             'v2/spot/account/subaccount-assets': 2,
                             'v2/spot/account/bills': 2,
                             'v2/spot/account/transferRecords': 1,
+                            'v2/account/funding-assets': 2,
+                            'v2/account/bot-assets': 2,
+                            'v2/account/all-account-balance': 20,
                             'v2/spot/wallet/deposit-address': 2,
                             'v2/spot/wallet/deposit-records': 2,
                             'v2/spot/wallet/withdrawal-records': 2,
@@ -756,6 +759,7 @@ export default class bitget extends Exchange {
                             'v2/earn/loan/borrow-history': 2,
                             'v2/earn/loan/debts': 2,
                             'v2/earn/loan/reduces': 2,
+                            'v2/earn/account/assets': 2,
                         },
                         'post': {
                             'v2/earn/savings/subscribe': 2,
@@ -6878,7 +6882,7 @@ export default class bitget extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // addMargin/reduceMargin
         //
@@ -7003,7 +7007,7 @@ export default class bitget extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         return {
             'info': leverage,
             'symbol': market['symbol'],
@@ -8601,7 +8605,7 @@ export default class bitget extends Exchange {
         return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //

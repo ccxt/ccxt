@@ -811,10 +811,10 @@ class tokocrypto extends Exchange {
             $response = null;
             if ($market['quote'] === 'USDT') {
                 $request['symbol'] = $market['baseId'] . $market['quoteId'];
-                $response = Async\await($this->binanceGetDepth (array_merge($request, $params)));
+                $response = Async\await($this->binanceGetDepth ($this->extend($request, $params)));
             } else {
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->publicGetOpenV1MarketDepth (array_merge($request, $params)));
+                $response = Async\await($this->publicGetOpenV1MarketDepth ($this->extend($request, $params)));
             }
             //
             // future
@@ -1024,7 +1024,7 @@ class tokocrypto extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $responseInner = $this->publicGetOpenV1MarketTrades (array_merge($request, $params));
+                $responseInner = $this->publicGetOpenV1MarketTrades ($this->extend($request, $params));
                 //
                 //    {
                 //       "code" => 0,
@@ -1059,9 +1059,9 @@ class tokocrypto extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/6400
                 // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-$list
                 $request['endTime'] = $this->sum($since, 3600000);
-                $response = Async\await($this->binanceGetAggTrades (array_merge($request, $params)));
+                $response = Async\await($this->binanceGetAggTrades ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->binanceGetTrades (array_merge($request, $params)));
+                $response = Async\await($this->binanceGetTrades ($this->extend($request, $params)));
             }
             //
             // Caveats:
@@ -1226,7 +1226,7 @@ class tokocrypto extends Exchange {
             $request = array(
                 'symbol' => $market['baseId'] . $market['quoteId'],
             );
-            $response = Async\await($this->binanceGetTicker24hr (array_merge($request, $params)));
+            $response = Async\await($this->binanceGetTicker24hr ($this->extend($request, $params)));
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
                 $firstTicker = $this->safe_dict($response, 0, array());
                 return $this->parse_ticker($firstTicker, $market);
@@ -1337,9 +1337,9 @@ class tokocrypto extends Exchange {
             }
             $response = null;
             if ($market['quote'] === 'USDT') {
-                $response = Async\await($this->binanceGetKlines (array_merge($request, $params)));
+                $response = Async\await($this->binanceGetKlines ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetOpenV1MarketKlines (array_merge($request, $params)));
+                $response = Async\await($this->publicGetOpenV1MarketKlines ($this->extend($request, $params)));
             }
             //
             //     [
@@ -1370,7 +1370,7 @@ class tokocrypto extends Exchange {
             $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
             $marginMode = $this->safe_string_lower($params, 'marginMode', $defaultMarginMode);
             $request = array();
-            $response = Async\await($this->privateGetOpenV1AccountSpot (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1AccountSpot ($this->extend($request, $params)));
             //
             // spot
             //
@@ -1752,7 +1752,7 @@ class tokocrypto extends Exchange {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 }
             }
-            $response = Async\await($this->privatePostOpenV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOpenV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1798,7 +1798,7 @@ class tokocrypto extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateGetOpenV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1868,7 +1868,7 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenV1Orders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1Orders ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1920,7 +1920,7 @@ class tokocrypto extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array( 'type' => 1 ); // -1 = all, 1 = open, 2 = closed
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1936,7 +1936,7 @@ class tokocrypto extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $request = array( 'type' => 2 ); // -1 = all, 1 = open, 2 = closed
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1953,7 +1953,7 @@ class tokocrypto extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privatePostOpenV1OrdersCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOpenV1OrdersCancel ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2016,7 +2016,7 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenV1OrdersTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1OrdersTrades ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2072,7 +2072,7 @@ class tokocrypto extends Exchange {
             }
             // has support for the 'network' parameter
             // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
-            $response = Async\await($this->privateGetOpenV1DepositsAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1DepositsAddress ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -2137,7 +2137,7 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenV1Deposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1Deposits ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -2193,7 +2193,7 @@ class tokocrypto extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenV1Withdraws (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenV1Withdraws ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -2393,7 +2393,7 @@ class tokocrypto extends Exchange {
             if ($networkId !== null) {
                 $request['network'] = strtoupper($networkId);
             }
-            $response = Async\await($this->privatePostOpenV1Withdraws (array_merge($request, $query)));
+            $response = Async\await($this->privatePostOpenV1Withdraws ($this->extend($request, $query)));
             //
             //     {
             //         "code" => 0,
@@ -2435,7 +2435,7 @@ class tokocrypto extends Exchange {
             $this->check_required_credentials();
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-            $extendedParams = array_merge(array(
+            $extendedParams = $this->extend(array(
                 'timestamp' => $this->nonce(),
             ), $params);
             if ($defaultRecvWindow !== null) {

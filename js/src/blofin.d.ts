@@ -97,7 +97,7 @@ export default class blofin extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

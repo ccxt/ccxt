@@ -446,7 +446,7 @@ class lbank extends Exchange {
             $request = array(
                 'productGroup' => 'SwapU',
             );
-            $response = Async\await($this->contractPublicGetCfdOpenApiV1PubInstrument (array_merge($request, $params)));
+            $response = Async\await($this->contractPublicGetCfdOpenApiV1PubInstrument ($this->extend($request, $params)));
             //
             //     {
             //         "data" => array(
@@ -620,7 +620,7 @@ class lbank extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->spotPublicGetTicker24hr (array_merge($request, $params)));
+            $response = Async\await($this->spotPublicGetTicker24hr ($this->extend($request, $params)));
             //
             //     {
             //         "result" => "true",
@@ -673,10 +673,10 @@ class lbank extends Exchange {
             $response = null;
             if ($type === 'swap') {
                 $request['productGroup'] = 'SwapU';
-                $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketData (array_merge($request, $params)));
+                $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketData ($this->extend($request, $params)));
             } else {
                 $request['symbol'] = 'all';
-                $response = Async\await($this->spotPublicGetTicker24hr (array_merge($request, $params)));
+                $response = Async\await($this->spotPublicGetTicker24hr ($this->extend($request, $params)));
             }
             //
             // spot
@@ -752,10 +752,10 @@ class lbank extends Exchange {
             $response = null;
             if ($type === 'swap') {
                 $request['depth'] = $limit;
-                $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketOrder (array_merge($request, $params)));
+                $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketOrder ($this->extend($request, $params)));
             } else {
                 $request['size'] = $limit;
-                $response = Async\await($this->spotPublicGetDepth (array_merge($request, $params)));
+                $response = Async\await($this->spotPublicGetDepth ($this->extend($request, $params)));
             }
             //
             // spot
@@ -948,9 +948,9 @@ class lbank extends Exchange {
             $params = $this->omit($params, 'method');
             $response = null;
             if ($method === 'spotPublicGetSupplementTrades') {
-                $response = Async\await($this->spotPublicGetSupplementTrades (array_merge($request, $params)));
+                $response = Async\await($this->spotPublicGetSupplementTrades ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->spotPublicGetTrades (array_merge($request, $params)));
+                $response = Async\await($this->spotPublicGetTrades ($this->extend($request, $params)));
             }
             //
             //      {
@@ -1024,7 +1024,7 @@ class lbank extends Exchange {
                 'time' => $this->parse_to_int($since / 1000),
                 'size' => $limit, // max 2000
             );
-            $response = Async\await($this->spotPublicGetKline (array_merge($request, $params)));
+            $response = Async\await($this->spotPublicGetKline ($this->extend($request, $params)));
             $ohlcvs = $this->safe_value($response, 'data', array());
             //
             //
@@ -1269,7 +1269,7 @@ class lbank extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             $market = $this->market($symbol);
-            $result = Async\await($this->fetch_trading_fees(array_merge($params, array( 'category' => $market['id'] ))));
+            $result = Async\await($this->fetch_trading_fees($this->extend($params, array( 'category' => $market['id'] ))));
             return $this->safe_dict($result, $symbol);
         }) ();
     }
@@ -1284,7 +1284,7 @@ class lbank extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $response = Async\await($this->spotPrivatePostSupplementCustomerTradeFee (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementCustomerTradeFee ($this->extend($request, $params)));
             $fees = $this->safe_value($response, 'data', array());
             $result = array();
             for ($i = 0; $i < count($fees); $i++) {
@@ -1395,9 +1395,9 @@ class lbank extends Exchange {
             $params = $this->omit($params, 'method');
             $response = null;
             if ($method === 'spotPrivatePostCreateOrder') {
-                $response = Async\await($this->spotPrivatePostCreateOrder (array_merge($request, $params)));
+                $response = Async\await($this->spotPrivatePostCreateOrder ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->spotPrivatePostSupplementCreateOrder (array_merge($request, $params)));
+                $response = Async\await($this->spotPrivatePostSupplementCreateOrder ($this->extend($request, $params)));
             }
             //
             //      {
@@ -1590,7 +1590,7 @@ class lbank extends Exchange {
                 'symbol' => $market['id'],
                 'orderId' => $id,
             );
-            $response = Async\await($this->spotPrivatePostSupplementOrdersInfo (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementOrdersInfo ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -1629,7 +1629,7 @@ class lbank extends Exchange {
                 'symbol' => $market['id'],
                 'order_id' => $id,
             );
-            $response = Async\await($this->spotPrivatePostOrdersInfo (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostOrdersInfo ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -1700,7 +1700,7 @@ class lbank extends Exchange {
                 $request['start_date'] = $this->ymd($since, '-'); // max query 2 days ago
                 $request['end_date'] = $this->ymd($since + 86400000, '-'); // will cover 2 days
             }
-            $response = Async\await($this->spotPrivatePostTransactionHistory (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostTransactionHistory ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -1753,7 +1753,7 @@ class lbank extends Exchange {
                 'page_length' => $limit,
                 // 'status'  -1 => Cancelled, 0 => Unfilled, 1 => Partially filled, 2 => Completely filled, 3 => Partially filled and cancelled, 4 => Cancellation is being processed
             );
-            $response = Async\await($this->spotPrivatePostSupplementOrdersInfoHistory (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementOrdersInfoHistory ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -1811,7 +1811,7 @@ class lbank extends Exchange {
                 'current_page' => 1,
                 'page_length' => $limit,
             );
-            $response = Async\await($this->spotPrivatePostSupplementOrdersInfoNoDeal (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementOrdersInfoNoDeal ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -1869,7 +1869,7 @@ class lbank extends Exchange {
             if ($clientOrderId !== null) {
                 $request['origClientOrderId'] = $clientOrderId;
             }
-            $response = Async\await($this->spotPrivatePostSupplementCancelOrder (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementCancelOrder ($this->extend($request, $params)));
             //
             //   {
             //      "result":true,
@@ -1905,7 +1905,7 @@ class lbank extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->spotPrivatePostSupplementCancelOrderBySymbol (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementCancelOrderBySymbol ($this->extend($request, $params)));
             //
             //      {
             //          "result":"true",
@@ -1974,7 +1974,7 @@ class lbank extends Exchange {
                 $request['netWork'] = $network; // ... yes, really lol
                 $params = $this->omit($params, 'network');
             }
-            $response = Async\await($this->spotPrivatePostGetDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostGetDepositAddress ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -2019,7 +2019,7 @@ class lbank extends Exchange {
                 $request['networkName'] = $network;
                 $params = $this->omit($params, 'network');
             }
-            $response = Async\await($this->spotPrivatePostSupplementGetDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementGetDepositAddress ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -2089,7 +2089,7 @@ class lbank extends Exchange {
             if ($networkId !== null) {
                 $request['networkName'] = $networkId;
             }
-            $response = Async\await($this->spotPrivatePostSupplementWithdraw (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementWithdraw ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -2238,7 +2238,7 @@ class lbank extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $response = Async\await($this->spotPrivatePostSupplementDepositHistory (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementDepositHistory ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -2293,7 +2293,7 @@ class lbank extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $response = Async\await($this->spotPrivatePostSupplementWithdraws (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostSupplementWithdraws ($this->extend($request, $params)));
             //
             //      {
             //          "result":true,
@@ -2430,7 +2430,7 @@ class lbank extends Exchange {
                 $currency = $this->currency($code);
                 $request['assetCode'] = $currency['id'];
             }
-            $response = Async\await($this->spotPublicGetWithdrawConfigs (array_merge($request, $params)));
+            $response = Async\await($this->spotPublicGetWithdrawConfigs ($this->extend($request, $params)));
             //
             //    {
             //        "result" => "true",
@@ -2557,7 +2557,7 @@ class lbank extends Exchange {
             // vast majority fees null
             Async\await($this->load_markets());
             $request = array();
-            $response = Async\await($this->spotPublicGetWithdrawConfigs (array_merge($request, $params)));
+            $response = Async\await($this->spotPublicGetWithdrawConfigs ($this->extend($request, $params)));
             //
             //    {
             //        "result" => "true",
@@ -2717,7 +2717,7 @@ class lbank extends Exchange {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $echostr = $this->uuid22() . $this->uuid16();
-            $query = array_merge(array(
+            $query = $this->extend(array(
                 'api_key' => $this->apiKey,
             ), $query);
             $signatureMethod = null;
@@ -2726,7 +2726,7 @@ class lbank extends Exchange {
             } else {
                 $signatureMethod = 'HmacSHA256';
             }
-            $auth = $this->rawencode($this->keysort(array_merge(array(
+            $auth = $this->rawencode($this->keysort($this->extend(array(
                 'echostr' => $echostr,
                 'signature_method' => $signatureMethod,
                 'timestamp' => $timestamp,

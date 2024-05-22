@@ -104,7 +104,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
         }) ();
     }
 
@@ -255,7 +255,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -587,7 +587,7 @@ class bingx extends \ccxt\async\bingx {
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -752,7 +752,7 @@ class bingx extends \ccxt\async\bingx {
     public function load_balance_snapshot($client, $messageHash, $type) {
         return Async\async(function () use ($client, $messageHash, $type) {
             $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-            $this->balance[$type] = array_merge($response, $this->safe_value($this->balance, $type, array()));
+            $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
             $future = $client->futures[$messageHash];
             $future->resolve ();

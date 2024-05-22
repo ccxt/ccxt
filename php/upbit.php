@@ -203,7 +203,7 @@ class upbit extends Exchange {
         $request = array(
             'currency' => $id,
         );
-        $response = $this->privateGetWithdrawsChance (array_merge($request, $params));
+        $response = $this->privateGetWithdrawsChance ($this->extend($request, $params));
         //
         //     {
         //         "member_level" => array(
@@ -301,7 +301,7 @@ class upbit extends Exchange {
         $request = array(
             'market' => $id,
         );
-        $response = $this->privateGetOrdersChance (array_merge($request, $params));
+        $response = $this->privateGetOrdersChance ($this->extend($request, $params));
         //
         //     {
         //         "bid_fee" => "0.0015",
@@ -544,7 +544,7 @@ class upbit extends Exchange {
         $request = array(
             'markets' => $ids,
         );
-        $response = $this->publicGetOrderbook (array_merge($request, $params));
+        $response = $this->publicGetOrderbook ($this->extend($request, $params));
         //
         //     array( {          market =>   "BTC-ETH",
         //               "timestamp" =>    1542899030043,
@@ -686,7 +686,7 @@ class upbit extends Exchange {
         $request = array(
             'markets' => $ids,
         );
-        $response = $this->publicGetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker ($this->extend($request, $params));
         //
         //     array( {                market => "BTC-ETH",
         //                    "trade_date" => "20181122",
@@ -827,7 +827,7 @@ class upbit extends Exchange {
             'market' => $market['id'],
             'count' => $limit,
         );
-        $response = $this->publicGetTradesTicks (array_merge($request, $params));
+        $response = $this->publicGetTradesTicks ($this->extend($request, $params));
         //
         //     array( array(             $market => "BTC-ETH",
         //             "trade_date_utc" => "2018-11-22",
@@ -866,7 +866,7 @@ class upbit extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->privateGetOrdersChance (array_merge($request, $params));
+        $response = $this->privateGetOrdersChance ($this->extend($request, $params));
         //
         //     {
         //         "bid_fee" => "0.0005",
@@ -974,9 +974,9 @@ class upbit extends Exchange {
         if ($timeframeValue === 'minutes') {
             $numMinutes = (int) round($timeframePeriod / 60);
             $request['unit'] = $numMinutes;
-            $response = $this->publicGetCandlesTimeframeUnit (array_merge($request, $params));
+            $response = $this->publicGetCandlesTimeframeUnit ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetCandlesTimeframe (array_merge($request, $params));
+            $response = $this->publicGetCandlesTimeframe ($this->extend($request, $params));
         }
         //
         //     array(
@@ -1082,7 +1082,7 @@ class upbit extends Exchange {
             }
         }
         $params = $this->omit($params, array( 'clientOrderId', 'identifier' ));
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        $response = $this->privatePostOrders ($this->extend($request, $params));
         //
         //     {
         //         "uuid" => "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1119,7 +1119,7 @@ class upbit extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privateDeleteOrder (array_merge($request, $params));
+        $response = $this->privateDeleteOrder ($this->extend($request, $params));
         //
         //     {
         //         "uuid" => "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1165,7 +1165,7 @@ class upbit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default is 100
         }
-        $response = $this->privateGetDeposits (array_merge($request, $params));
+        $response = $this->privateGetDeposits ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1204,7 +1204,7 @@ class upbit extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privateGetDeposit (array_merge($request, $params));
+        $response = $this->privateGetDeposit ($this->extend($request, $params));
         //
         //     {
         //         "type" => "deposit",
@@ -1245,7 +1245,7 @@ class upbit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default is 100
         }
-        $response = $this->privateGetWithdraws (array_merge($request, $params));
+        $response = $this->privateGetWithdraws ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1285,7 +1285,7 @@ class upbit extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privateGetWithdraw (array_merge($request, $params));
+        $response = $this->privateGetWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "type" => "withdraw",
@@ -1538,7 +1538,7 @@ class upbit extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->privateGetOrders (array_merge($request, $params));
+        $response = $this->privateGetOrders ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1614,7 +1614,7 @@ class upbit extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privateGetOrder (array_merge($request, $params));
+        $response = $this->privateGetOrder ($this->extend($request, $params));
         //
         //     {
         //         "uuid" => "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1733,7 +1733,7 @@ class upbit extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
         }
-        $response = $this->privateGetDepositsCoinAddress (array_merge(array(
+        $response = $this->privateGetDepositsCoinAddress ($this->extend(array(
             'currency' => $currency['id'],
             'net_type' => $this->network_code_to_id($networkCode, $currency['code']),
         ), $params));
@@ -1762,7 +1762,7 @@ class upbit extends Exchange {
             'currency' => $currency['id'],
         );
         // https://github.com/ccxt/ccxt/issues/6452
-        $response = $this->privatePostDepositsGenerateCoinAddress (array_merge($request, $params));
+        $response = $this->privatePostDepositsGenerateCoinAddress ($this->extend($request, $params));
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
@@ -1819,9 +1819,9 @@ class upbit extends Exchange {
                 $request['secondary_address'] = $tag;
             }
             $params = $this->omit($params, 'network');
-            $response = $this->privatePostWithdrawsCoin (array_merge($request, $params));
+            $response = $this->privatePostWithdrawsCoin ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostWithdrawsKrw (array_merge($request, $params));
+            $response = $this->privatePostWithdrawsKrw ($this->extend($request, $params));
         }
         //
         //     {

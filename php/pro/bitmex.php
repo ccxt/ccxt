@@ -103,7 +103,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'op' => 'subscribe',
                 'args' => $rawSubscriptions,
             );
-            $ticker = Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $rawSubscriptions));
+            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $rawSubscriptions));
             if ($this->newUpdates) {
                 $result = array();
                 $result[$ticker['symbol']] = $ticker;
@@ -377,7 +377,7 @@ class bitmex extends \ccxt\async\bitmex {
                     $messageHash,
                 ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -482,7 +482,7 @@ class bitmex extends \ccxt\async\bitmex {
         //
         $data = $this->safe_value($message, 'data');
         $balance = $this->parse_balance($data);
-        $this->balance = array_merge($this->balance, $balance);
+        $this->balance = $this->extend($this->balance, $balance);
         $messageHash = $this->safe_string($message, 'table');
         $client->resolve ($this->balance, $messageHash);
     }
@@ -604,7 +604,7 @@ class bitmex extends \ccxt\async\bitmex {
                         $signature,
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);
@@ -1034,7 +1034,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $previousOrder = $this->safe_value($stored->hashmap, $orderId);
                 $rawOrder = $currentOrder;
                 if ($previousOrder !== null) {
-                    $rawOrder = array_merge($previousOrder['info'], $currentOrder);
+                    $rawOrder = $this->extend($previousOrder['info'], $currentOrder);
                 }
                 $order = $this->parse_order($rawOrder);
                 $stored->append ($order);
@@ -1284,7 +1284,7 @@ class bitmex extends \ccxt\async\bitmex {
                     $messageHash,
                 ),
             );
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -1459,7 +1459,7 @@ class bitmex extends \ccxt\async\bitmex {
         $data = $this->safe_value($message, 'data', array());
         // if it's an initial snapshot
         if ($action === 'partial') {
-            $filter = $this->safe_value($message, 'filter', array());
+            $filter = $this->safe_dict($message, 'filter', array());
             $marketId = $this->safe_value($filter, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
@@ -1479,7 +1479,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $bookside->store ($price, $size, $id);
+                $bookside->storeArray (array( $price, $size, $id ));
                 $datetime = $this->safe_string($data[$i], 'timestamp');
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['datetime'] = $datetime;
@@ -1503,7 +1503,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $bookside->store ($price, $size, $id);
+                $bookside->storeArray (array( $price, $size, $id ));
                 $datetime = $this->safe_string($data[$i], 'timestamp');
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['datetime'] = $datetime;

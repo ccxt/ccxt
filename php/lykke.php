@@ -440,9 +440,9 @@ class lykke extends Exchange {
         $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
         $response = null;
         if ($method === 'publicGetPrices') {
-            $response = $this->publicGetPrices (array_merge($request, $params));
+            $response = $this->publicGetPrices ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetTickers (array_merge($request, $params));
+            $response = $this->publicGetTickers ($this->extend($request, $params));
         }
         $ticker = $this->safe_value($response, 'payload', array());
         //
@@ -529,7 +529,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit; // default 0
         }
-        $response = $this->publicGetOrderbooks (array_merge($request, $params));
+        $response = $this->publicGetOrderbooks ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload', array());
         //
         //     {
@@ -636,7 +636,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['take'] = $limit;
         }
-        $response = $this->publicGetTradesPublicAssetPairId (array_merge($request, $params));
+        $response = $this->publicGetTradesPublicAssetPairId ($this->extend($request, $params));
         $result = $this->safe_value($response, 'payload', array());
         //
         //     {
@@ -804,9 +804,9 @@ class lykke extends Exchange {
         }
         $result = null;
         if ($this->capitalize($type) === 'Market') {
-            $result = $this->privatePostOrdersMarket (array_merge($query, $params));
+            $result = $this->privatePostOrdersMarket ($this->extend($query, $params));
         } else {
-            $result = $this->privatePostOrdersLimit (array_merge($query, $params));
+            $result = $this->privatePostOrdersLimit ($this->extend($query, $params));
         }
         //
         // $market
@@ -873,7 +873,7 @@ class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return $this->privateDeleteOrdersOrderId (array_merge($request, $params));
+        return $this->privateDeleteOrdersOrderId ($this->extend($request, $params));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -899,7 +899,7 @@ class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return $this->privateDeleteOrders (array_merge($request, $params));
+        return $this->privateDeleteOrders ($this->extend($request, $params));
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -914,7 +914,7 @@ class lykke extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
+        $response = $this->privateGetOrdersOrderId ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload');
         //
         //     {
@@ -960,7 +960,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['take'] = $limit;
         }
-        $response = $this->privateGetOrdersActive (array_merge($request, $params));
+        $response = $this->privateGetOrdersActive ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload');
         //
         //     {
@@ -1008,7 +1008,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['take'] = $limit;
         }
-        $response = $this->privateGetOrdersClosed (array_merge($request, $params));
+        $response = $this->privateGetOrdersClosed ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload');
         //
         //     {
@@ -1062,7 +1062,7 @@ class lykke extends Exchange {
         if ($since !== null) {
             $request['from'] = $since;
         }
-        $response = $this->privateGetTrades (array_merge($request, $params));
+        $response = $this->privateGetTrades ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload');
         //
         //     {
@@ -1107,7 +1107,7 @@ class lykke extends Exchange {
         $request = array(
             'assetId' => $this->safe_string($currency, 'id'),
         );
-        $response = $this->privateGetOperationsDepositsAddressesAssetId (array_merge($request, $params));
+        $response = $this->privateGetOperationsDepositsAddressesAssetId ($this->extend($request, $params));
         //
         //     {
         //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
@@ -1209,7 +1209,7 @@ class lykke extends Exchange {
         if ($limit !== null) {
             $request['take'] = $limit;
         }
-        $response = $this->privateGetOperations (array_merge($request, $params));
+        $response = $this->privateGetOperations ($this->extend($request, $params));
         $payload = $this->safe_value($response, 'payload', array());
         //
         //     {
@@ -1256,7 +1256,7 @@ class lykke extends Exchange {
         if ($tag !== null) {
             $request['destinationAddressExtension'] = $tag;
         }
-        $response = $this->privatePostOperationsWithdrawals (array_merge($request, $params));
+        $response = $this->privatePostOperationsWithdrawals ($this->extend($request, $params));
         //
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
         //

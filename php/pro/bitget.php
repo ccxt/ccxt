@@ -1141,7 +1141,7 @@ class bitget extends \ccxt\async\bitget {
         //         "executePrice" => "35123", // this is limit $price
         //         "triggerType" => "fill_price",
         //         "planType" => "amount",
-        //                   #### in case $order had fill => ####
+        //                   #### in case $order had a partial fill => ####
         //         fillPrice => '35123',
         //         tradeId => '1171775539946528779',
         //         baseVolume => '7', // field present in $market $order
@@ -1260,13 +1260,20 @@ class bitget extends \ccxt\async\bitget {
         $totalAmount = null;
         $filledAmount = null;
         $cost = null;
+        $remaining = null;
+        $totalFilled = $this->safe_string($order, 'accBaseVolume');
         if ($isSpot) {
             if ($isMargin) {
                 $filledAmount = $this->omit_zero($this->safe_string($order, 'fillTotalAmount'));
                 $totalAmount = $this->omit_zero($this->safe_string($order, 'baseSize')); // for margin trading
                 $cost = $this->safe_string($order, 'quoteSize');
             } else {
-                $filledAmount = $this->omit_zero($this->safe_string_2($order, 'accBaseVolume', 'baseVolume'));
+                $partialFillAmount = $this->safe_string($order, 'baseVolume');
+                if ($partialFillAmount !== null) {
+                    $filledAmount = $partialFillAmount;
+                } else {
+                    $filledAmount = $totalFilled;
+                }
                 if ($isMarketOrder) {
                     if ($isBuy) {
                         $totalAmount = $accBaseVolume;
@@ -1286,6 +1293,7 @@ class bitget extends \ccxt\async\bitget {
             $totalAmount = $this->safe_string($order, 'size');
             $cost = $this->safe_string($order, 'fillNotionalUsd');
         }
+        $remaining = $this->omit_zero(Precise::string_sub($totalAmount, $totalFilled));
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -1304,7 +1312,7 @@ class bitget extends \ccxt\async\bitget {
             'cost' => $cost,
             'average' => $avgPrice,
             'filled' => $filledAmount,
-            'remaining' => null,
+            'remaining' => $remaining,
             'status' => $this->parse_ws_order_status($rawStatus),
             'fee' => $feeObject,
             'trades' => null,
@@ -1581,7 +1589,7 @@ class bitget extends \ccxt\async\bitget {
                 'op' => 'subscribe',
                 'args' => array( $args ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -1593,7 +1601,7 @@ class bitget extends \ccxt\async\bitget {
                 'op' => 'subscribe',
                 'args' => $argsArray,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
     }
@@ -1622,7 +1630,7 @@ class bitget extends \ccxt\async\bitget {
                         ),
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $this->watch($url, $messageHash, $message, $messageHash);
             }
             return Async\await($future);
@@ -1637,7 +1645,7 @@ class bitget extends \ccxt\async\bitget {
                 'op' => 'subscribe',
                 'args' => array( $args ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash));
         }) ();
     }

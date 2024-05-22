@@ -132,7 +132,7 @@ export default class binance extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
-                'fetchPremiumIndexOHLCV': false,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -781,6 +781,7 @@ export default class binance extends Exchange {
                         'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
                         'markPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
+                        'premiumIndexKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
                         'fundingRate': 1,
                         'fundingInfo': 1,
                         'premiumIndex': 1,
@@ -4259,6 +4260,12 @@ export default class binance extends Exchange {
                 response = await this.dapiPublicGetIndexPriceKlines (this.extend (request, params));
             } else {
                 response = await this.fapiPublicGetIndexPriceKlines (this.extend (request, params));
+            }
+        } else if (price === 'premiumIndex') {
+            if (market['inverse']) {
+                response = await this.dapiPublicGetPremiumIndexKlines (this.extend (request, params));
+            } else {
+                response = await this.fapiPublicGetPremiumIndexKlines (this.extend (request, params));
             }
         } else if (market['linear']) {
             response = await this.fapiPublicGetKlines (this.extend (request, params));
@@ -9541,7 +9548,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
+        const leverageBrackets = this.safeDict (this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
             const defaultType = this.safeString (this.options, 'defaultType', 'future');
             const type = this.safeString (params, 'type', defaultType);
@@ -10382,7 +10389,7 @@ export default class binance extends Exchange {
         return this.parseLeverages (leverages, symbols, 'symbol');
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         const marginModeRaw = this.safeBool (leverage, 'isolated');
         let marginMode = undefined;
@@ -11081,7 +11088,7 @@ export default class binance extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // add/reduce margin
         //
@@ -12163,7 +12170,7 @@ export default class binance extends Exchange {
         return this.parseGreeks (response[0], market);
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "symbol": "BTC-231229-40000-C",
@@ -12452,7 +12459,7 @@ export default class binance extends Exchange {
         return this.parseOption (chain, undefined, market);
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "symbol": "BTC-241227-80000-C",
@@ -12879,7 +12886,7 @@ export default class binance extends Exchange {
         return this.parseConversions (rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //

@@ -265,6 +265,8 @@ export interface FundingRate {
     previousFundingDatetime?: string;
     previousFundingRate?: number;
 }
+export interface FundingRates extends Dictionary<FundingRate> {
+}
 export interface Position {
     symbol: string;
     id?: Str;

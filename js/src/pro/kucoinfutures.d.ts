@@ -1,5 +1,5 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoinfutures extends kucoinfuturesRest {
     describe(): any;
@@ -23,6 +23,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrade(client: Client, message: any): any;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     handleDelta(orderbook: any, delta: any): void;

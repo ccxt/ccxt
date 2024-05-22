@@ -459,7 +459,26 @@ class IsolatedBorrowRate(TypedDict):
     timestamp: Int
     datetime: Str
 
+class FundingRate(TypedDict):
+    symbol: Str
+    timestamp: Int
+    fundingRate: Num
+    datetime: Str
+    markPrice: Num
+    indexPrice: Num
+    interestRate: Num
+    estimatedSettlePrice: Num
+    fundingTimestamp: Int
+    fundingDatetime: Str
+    nextFundingTimestamp: Int
+    nextFundingDatetime: Str
+    nextFundingRate: Num
+    previousFundingTimestamp: Int
+    previousFundingDatetime: Str
+    previousFundingRate: Num
+    info: Dict[str, Any]
 
+FundingRates = Dict[Str, FundingRate]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]

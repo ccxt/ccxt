@@ -3172,7 +3172,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_greeks(result, market)
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "estimated_delivery_price": 36552.72,
@@ -3338,7 +3338,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_option_chain(result, 'base_currency', 'instrument_name')
 
-    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
         #
         #     {
         #         "mid_price": 0.04025,

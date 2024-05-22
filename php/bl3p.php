@@ -175,7 +175,7 @@ class bl3p extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetMarketOrderbook (array_merge($request, $params));
+        $response = $this->publicGetMarketOrderbook ($this->extend($request, $params));
         $orderbook = $this->safe_dict($response, 'data');
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price_int', 'amount_int');
     }
@@ -236,7 +236,7 @@ class bl3p extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $ticker = $this->publicGetMarketTicker (array_merge($request, $params));
+        $ticker = $this->publicGetMarketTicker ($this->extend($request, $params));
         //
         // {
         //     "currency":"BTC",
@@ -299,7 +299,7 @@ class bl3p extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $market = $this->market($symbol);
-        $response = $this->publicGetMarketTrades (array_merge(array(
+        $response = $this->publicGetMarketTrades ($this->extend(array(
             'market' => $market['id'],
         ), $params));
         //
@@ -403,7 +403,7 @@ class bl3p extends Exchange {
         if ($type === 'limit') {
             $order['price_int'] = intval(Precise::string_mul($priceString, '100000.0'));
         }
-        $response = $this->privatePostMarketMoneyOrderAdd (array_merge($order, $params));
+        $response = $this->privatePostMarketMoneyOrderAdd ($this->extend($order, $params));
         $orderId = $this->safe_string($response['data'], 'order_id');
         return $this->safe_order(array(
             'info' => $response,
@@ -423,7 +423,7 @@ class bl3p extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        return $this->privatePostMarketMoneyOrderCancel (array_merge($request, $params));
+        return $this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params));
     }
 
     public function create_deposit_address(string $code, $params = array ()) {
@@ -439,7 +439,7 @@ class bl3p extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privatePostGENMKTMoneyNewDepositAddress (array_merge($request, $params));
+        $response = $this->privatePostGENMKTMoneyNewDepositAddress ($this->extend($request, $params));
         //
         //    {
         //        "result" => "success",
@@ -480,7 +480,7 @@ class bl3p extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
+            $body = $this->urlencode($this->extend(array( 'nonce' => $nonce ), $query));
             $secret = base64_decode($this->secret);
             // eslint-disable-next-line quotes
             $auth = $request . "\0" . $body;

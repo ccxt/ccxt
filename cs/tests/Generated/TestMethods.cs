@@ -1263,6 +1263,7 @@ public partial class testMainClass : BaseTest
             { "privateKey", "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771" },
             { "uid", "uid" },
             { "token", "token" },
+            { "accountId", "accountId" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
     { "code", "USDT" },
@@ -1287,6 +1288,19 @@ public partial class testMainClass : BaseTest
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         Exchange exchange = this.initOfflineExchange(exchangeName);
         object globalOptions = exchange.safeDict(exchangeData, "options", new Dictionary<string, object>() {});
+        // read apiKey/secret from the test file
+        object apiKey = exchange.safeString(exchangeData, "apiKey");
+        if (isTrue(apiKey))
+        {
+            // c# to string requirement
+            exchange.apiKey = ((object)apiKey).ToString();
+        }
+        object secret = exchange.safeString(exchangeData, "secret");
+        if (isTrue(secret))
+        {
+            // c# to string requirement
+            exchange.secret = ((object)secret).ToString();
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);
         object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
@@ -1327,6 +1341,19 @@ public partial class testMainClass : BaseTest
     public async virtual Task<object> testExchangeResponseStatically(object exchangeName, object exchangeData, object testName = null)
     {
         Exchange exchange = this.initOfflineExchange(exchangeName);
+        // read apiKey/secret from the test file
+        object apiKey = exchange.safeString(exchangeData, "apiKey");
+        if (isTrue(apiKey))
+        {
+            // c# to string requirement
+            exchange.apiKey = ((object)apiKey).ToString();
+        }
+        object secret = exchange.safeString(exchangeData, "secret");
+        if (isTrue(secret))
+        {
+            // c# to string requirement
+            exchange.secret = ((object)secret).ToString();
+        }
         object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
         object options = exchange.safeValue(exchangeData, "options", new Dictionary<string, object>() {});
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
@@ -1456,7 +1483,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1874,6 +1901,26 @@ public partial class testMainClass : BaseTest
         }
         object clientOrderId = getValue(request, "client_order_id");
         assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testWoofiPro()
+    {
+        Exchange exchange = this.initOfflineExchange("woofipro");
+        exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
+        object id = "CCXT";
+        await exchange.loadMarkets();
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object brokerId = getValue(request, "order_tag");
+        assert(isEqual(brokerId, id), add(add(add("woofipro - id: ", id), " different from  broker_id: "), brokerId));
         await close(exchange);
         return true;
     }

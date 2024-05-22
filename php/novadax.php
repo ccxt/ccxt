@@ -377,7 +377,7 @@ class novadax extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetMarketTicker (array_merge($request, $params));
+        $response = $this->publicGetMarketTicker ($this->extend($request, $params));
         //
         //     {
         //         "code":"A10000",
@@ -458,7 +458,7 @@ class novadax extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 20
         }
-        $response = $this->publicGetMarketDepth (array_merge($request, $params));
+        $response = $this->publicGetMarketDepth ($this->extend($request, $params));
         //
         //     {
         //         "code":"A10000",
@@ -580,7 +580,7 @@ class novadax extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
-        $response = $this->publicGetMarketTrades (array_merge($request, $params));
+        $response = $this->publicGetMarketTrades ($this->extend($request, $params));
         //
         //     {
         //         "code":"A10000",
@@ -626,7 +626,7 @@ class novadax extends Exchange {
             $request['from'] = $startFrom;
             $request['to'] = $this->sum($startFrom, $limit * $duration);
         }
-        $response = $this->publicGetMarketKlineHistory (array_merge($request, $params));
+        $response = $this->publicGetMarketKlineHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "A10000",
@@ -794,7 +794,7 @@ class novadax extends Exchange {
             }
         }
         $request['type'] = $uppercaseType;
-        $response = $this->privatePostOrdersCreate (array_merge($request, $params));
+        $response = $this->privatePostOrdersCreate ($this->extend($request, $params));
         //
         //     {
         //         "code" => "A10000",
@@ -835,7 +835,7 @@ class novadax extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privatePostOrdersCancel (array_merge($request, $params));
+        $response = $this->privatePostOrdersCancel ($this->extend($request, $params));
         //
         //     {
         //         "code" => "A10000",
@@ -861,7 +861,7 @@ class novadax extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrdersGet (array_merge($request, $params));
+        $response = $this->privateGetOrdersGet ($this->extend($request, $params));
         //
         //     {
         //         "code" => "A10000",
@@ -918,7 +918,7 @@ class novadax extends Exchange {
         if ($since !== null) {
             $request['fromTimestamp'] = $since;
         }
-        $response = $this->privateGetOrdersList (array_merge($request, $params));
+        $response = $this->privateGetOrdersList ($this->extend($request, $params));
         //
         //     {
         //         "code" => "A10000",
@@ -959,7 +959,7 @@ class novadax extends Exchange {
         $request = array(
             'status' => 'SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -975,7 +975,7 @@ class novadax extends Exchange {
         $request = array(
             'status' => 'FILLED,CANCELED,REJECTED',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -993,7 +993,7 @@ class novadax extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrdersFill (array_merge($request, $params));
+        $response = $this->privateGetOrdersFill ($this->extend($request, $params));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1136,7 +1136,7 @@ class novadax extends Exchange {
             'subId' => ($type === 'master-$transfer-in') ? $toAccount : $fromAccount,
             'transferType' => $type,
         );
-        $response = $this->privatePostAccountSubsTransfer (array_merge($request, $params));
+        $response = $this->privatePostAccountSubsTransfer ($this->extend($request, $params));
         //
         //    {
         //        "code":"A10000",
@@ -1208,7 +1208,7 @@ class novadax extends Exchange {
         if ($tag !== null) {
             $request['tag'] = $tag;
         }
-        $response = $this->privatePostAccountWithdrawCoin (array_merge($request, $params));
+        $response = $this->privatePostAccountWithdrawCoin ($this->extend($request, $params));
         //
         //     {
         //         "code":"A10000",
@@ -1270,7 +1270,7 @@ class novadax extends Exchange {
         $request = array(
             'type' => 'coin_in',
         );
-        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1286,7 +1286,7 @@ class novadax extends Exchange {
         $request = array(
             'type' => 'coin_out',
         );
-        return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1315,7 +1315,7 @@ class novadax extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->privateGetWalletQueryDepositWithdraw (array_merge($request, $params));
+        $response = $this->privateGetWalletQueryDepositWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "code" => "A10000",
@@ -1460,7 +1460,7 @@ class novadax extends Exchange {
         if ($since !== null) {
             $request['fromTimestamp'] = $since;
         }
-        $response = $this->privateGetOrdersFills (array_merge($request, $params));
+        $response = $this->privateGetOrdersFills ($this->extend($request, $params));
         //
         //      {
         //          "code" => "A10000",

@@ -1236,7 +1236,7 @@ public partial class bitget : ccxt.bitget
         //         "executePrice": "35123", // this is limit price
         //         "triggerType": "fill_price",
         //         "planType": "amount",
-        //                   #### in case order had fill: ####
+        //                   #### in case order had a partial fill: ####
         //         fillPrice: '35123',
         //         tradeId: '1171775539946528779',
         //         baseVolume: '7', // field present in market order
@@ -1358,6 +1358,8 @@ public partial class bitget : ccxt.bitget
         object totalAmount = null;
         object filledAmount = null;
         object cost = null;
+        object remaining = null;
+        object totalFilled = this.safeString(order, "accBaseVolume");
         if (isTrue(isSpot))
         {
             if (isTrue(isMargin))
@@ -1367,7 +1369,14 @@ public partial class bitget : ccxt.bitget
                 cost = this.safeString(order, "quoteSize");
             } else
             {
-                filledAmount = this.omitZero(this.safeString2(order, "accBaseVolume", "baseVolume"));
+                object partialFillAmount = this.safeString(order, "baseVolume");
+                if (isTrue(!isEqual(partialFillAmount, null)))
+                {
+                    filledAmount = partialFillAmount;
+                } else
+                {
+                    filledAmount = totalFilled;
+                }
                 if (isTrue(isMarketOrder))
                 {
                     if (isTrue(isBuy))
@@ -1390,6 +1399,7 @@ public partial class bitget : ccxt.bitget
             totalAmount = this.safeString(order, "size");
             cost = this.safeString(order, "fillNotionalUsd");
         }
+        remaining = this.omitZero(Precise.stringSub(totalAmount, totalFilled));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -1408,7 +1418,7 @@ public partial class bitget : ccxt.bitget
             { "cost", cost },
             { "average", avgPrice },
             { "filled", filledAmount },
-            { "remaining", null },
+            { "remaining", remaining },
             { "status", this.parseWsOrderStatus(rawStatus) },
             { "fee", feeObject },
             { "trades", null },

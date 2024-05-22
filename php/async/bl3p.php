@@ -181,7 +181,7 @@ class bl3p extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketOrderbook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketOrderbook ($this->extend($request, $params)));
             $orderbook = $this->safe_dict($response, 'data');
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price_int', 'amount_int');
         }) ();
@@ -244,7 +244,7 @@ class bl3p extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetMarketTicker (array_merge($request, $params)));
+            $ticker = Async\await($this->publicGetMarketTicker ($this->extend($request, $params)));
             //
             // {
             //     "currency":"BTC",
@@ -309,7 +309,7 @@ class bl3p extends Exchange {
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             $market = $this->market($symbol);
-            $response = Async\await($this->publicGetMarketTrades (array_merge(array(
+            $response = Async\await($this->publicGetMarketTrades ($this->extend(array(
                 'market' => $market['id'],
             ), $params)));
             //
@@ -417,7 +417,7 @@ class bl3p extends Exchange {
             if ($type === 'limit') {
                 $order['price_int'] = intval(Precise::string_mul($priceString, '100000.0'));
             }
-            $response = Async\await($this->privatePostMarketMoneyOrderAdd (array_merge($order, $params)));
+            $response = Async\await($this->privatePostMarketMoneyOrderAdd ($this->extend($order, $params)));
             $orderId = $this->safe_string($response['data'], 'order_id');
             return $this->safe_order(array(
                 'info' => $response,
@@ -439,7 +439,7 @@ class bl3p extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            return Async\await($this->privatePostMarketMoneyOrderCancel (array_merge($request, $params)));
+            return Async\await($this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params)));
         }) ();
     }
 
@@ -457,7 +457,7 @@ class bl3p extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostGENMKTMoneyNewDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGENMKTMoneyNewDepositAddress ($this->extend($request, $params)));
             //
             //    {
             //        "result" => "success",
@@ -499,7 +499,7 @@ class bl3p extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
+            $body = $this->urlencode($this->extend(array( 'nonce' => $nonce ), $query));
             $secret = base64_decode($this->secret);
             // eslint-disable-next-line quotes
             $auth = $request . "\0" . $body;

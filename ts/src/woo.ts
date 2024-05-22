@@ -2925,7 +2925,7 @@ export default class woo extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
             'info': leverage,
@@ -3235,7 +3235,7 @@ export default class woo extends Exchange {
         return this.parseConversions (rows, code, 'sellAsset', 'buyAsset', since, limit);
     }
 
-    parseConversion (conversion, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
         //

@@ -241,6 +241,7 @@ class bitmex extends bitmex$1 {
                     'orderQty is invalid': errors.InvalidOrder,
                     'Invalid price': errors.InvalidOrder,
                     'Invalid stopPx for ordType': errors.InvalidOrder,
+                    'Account is restricted': errors.PermissionDenied, // {"error":{"message":"Account is restricted","name":"HTTPError"}}
                 },
                 'broad': {
                     'Signature not valid': errors.AuthenticationError,

@@ -1,6 +1,7 @@
 namespace ccxt;
 using System.Security.Cryptography;
 using System.Text;
+using Cryptography.ECDSA;
 
 using MiniMessagePack;
 
@@ -61,9 +62,11 @@ public partial class Exchange
         return base64EncodedBytes;
     }
 
-    public string base58ToBinary(object str)
+    public byte[] base58ToBinary(object pt) => Base58ToBinary(pt);
+
+    public static byte[] Base58ToBinary(object pt)
     {
-        return (string)str; // stub
+        return Base58.Decode(pt as string);
     }
 
     public object binaryConcat(object a, object b)
@@ -125,12 +128,13 @@ public partial class Exchange
         return binaryToHex(buff);
     }
 
-    public static string binaryToBase64(byte[] buff)
-    {
-        return Convert.ToBase64String(buff);
-    }
+    public string binaryToBase64(byte[] buff) => BinaryToBase64(buff);
 
-    public byte[] stringToBinary(string buff)
+    public static string BinaryToBase64(byte[] buff) => Convert.ToBase64String(buff);
+
+    public byte[] stringToBinary(string buff) => StringToBinary(buff);
+
+    public static byte[] StringToBinary(string buff)
     {
         return Encoding.UTF8.GetBytes(buff);
     }
@@ -268,12 +272,13 @@ public partial class Exchange
         return result.ToString();
     }
 
-    public static string Base64urlEncode(string s)
+    public string urlencodeBase64(object s) => Base64urlEncode(s);
+
+    public static string Base64urlEncode(object s)
     {
         char[] padding = { '=' };
-        // var toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(s);
-        // string returnValue = System.Convert.ToBase64String(toEncodeAsBytes)
-        string returnValue = s.TrimEnd(padding).Replace('+', '-').Replace('/', '_');
+        string str = (s is string) ? Exchange.StringToBase64(s as string) : Exchange.BinaryToBase64(s as byte[]);
+        string returnValue = str.TrimEnd(padding).Replace('+', '-').Replace('/', '_');
         return returnValue;
     }
 
