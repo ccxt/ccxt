@@ -1196,6 +1196,114 @@ export default class vertex extends Exchange {
         });
     }
 
+    parseOrder (order, market: Market = undefined): Order {
+        //
+        // {
+        //     "product_id": 1,
+        //     "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //     "price_x18": "1000000000000000000",
+        //     "amount": "1000000000000000000",
+        //     "expiration": "2000000000",
+        //     "nonce": "1",
+        //     "unfilled_amount": "1000000000000000000",
+        //     "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //     "placed_at": 1681951347,
+        //     "order_type": "ioc"
+        // },
+        //
+        const marketId = this.safeString (order, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeTimestamp (order, 'placed_at');
+        let price = this.safeString (order, 'price_X18');
+        let priceNum = undefined;
+        if (price !== undefined) {
+            price = this.convertFromX18 (price);
+            priceNum = this.parseToNumeric (price);
+        }
+        let amount = this.safeString (order, 'amount');
+        let amountNum = undefined;
+        if (amount !== undefined) {
+            amount = this.convertFromX18 (amount);
+            amountNum = this.parseToNumeric (amount);
+        }
+        let remaining = this.safeString (order, 'unfilled_amount');
+        let remainingNum = undefined;
+        if (remaining !== undefined) {
+            remaining = this.convertFromX18 (remaining);
+            remainingNum = this.parseToNumeric (remaining);
+        }
+        let side = undefined;
+        if (amountNum !== undefined) {
+            side = (amountNum < 0) ? 'sell' : 'buy';
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'digest'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'timeInForce': this.safeStringUpper (order, 'order_type'),
+            'postOnly': undefined,
+            'reduceOnly': undefined,
+            'side': side,
+            'price': priceNum,
+            'triggerPrice': undefined,
+            'amount': amountNum,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': remainingNum,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name vertex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'type': 'order',
+            'product_id': this.parseToNumeric (market['id']),
+            'digest': id,
+        };
+        const response = await this.v1GatewayGetQuery (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "data": {
+        //       "product_id": 1,
+        //       "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //       "price_x18": "1000000000000000000",
+        //       "amount": "1000000000000000000",
+        //       "expiration": "2000000000",
+        //       "nonce": "1",
+        //       "unfilled_amount": "1000000000000000000",
+        //       "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //       "placed_at": 1681951347,
+        //       "order_type": "ioc"
+        //     },
+        //     "request_type": "query_order",
+        // }
+        //
+        const data = this.safeDict (response, 'data');
+        return this.parseOrder (data, market);
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
