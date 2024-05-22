@@ -25,6 +25,9 @@ public partial class whitebit : Exchange
                 { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", false },
+                { "createMarketBuyOrderWithCost", true },
+                { "createMarketOrderWithCost", false },
+                { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
@@ -1153,6 +1156,39 @@ public partial class whitebit : Exchange
         return this.safeInteger(response, "time");
     }
 
+    public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createMarketOrderWithCost
+        * @description create a market order by providing the symbol, side and cost
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} cost how much you want to trade in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        // only buy side is supported
+        return await this.createOrder(symbol, "market", side, 0, null, parameters);
+    }
+
+    public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createMarketBuyOrderWithCost
+        * @description create a market buy order by providing the symbol and cost
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {float} cost how much you want to trade in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.createMarketOrderWithCost(symbol, "buy", cost, parameters);
+    }
+
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         /**
@@ -1170,6 +1206,7 @@ public partial class whitebit : Exchange
         * @param {float} amount how much of currency you want to trade in units of base currency
         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1178,8 +1215,22 @@ public partial class whitebit : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", side },
-            { "amount", this.amountToPrecision(symbol, amount) },
         };
+        object cost = null;
+        var costparametersVariable = this.handleParamString(parameters, "cost");
+        cost = ((IList<object>)costparametersVariable)[0];
+        parameters = ((IList<object>)costparametersVariable)[1];
+        if (isTrue(!isEqual(cost, null)))
+        {
+            if (isTrue(isTrue((!isEqual(side, "buy"))) || isTrue((!isEqual(type, "market")))))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrder() cost is only supported for market buy orders")) ;
+            }
+            ((IDictionary<string,object>)request)["amount"] = this.costToPrecision(symbol, cost);
+        } else
+        {
+            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+        }
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
         {
@@ -1253,7 +1304,13 @@ public partial class whitebit : Exchange
                     response = await this.v4PrivatePostOrderCollateralMarket(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.v4PrivatePostOrderStockMarket(this.extend(request, parameters));
+                    if (isTrue(!isEqual(cost, null)))
+                    {
+                        response = await this.v4PrivatePostOrderMarket(this.extend(request, parameters));
+                    } else
+                    {
+                        response = await this.v4PrivatePostOrderStockMarket(this.extend(request, parameters));
+                    }
                 }
             }
         }
@@ -1733,6 +1790,11 @@ public partial class whitebit : Exchange
         object stopPrice = this.safeNumber(order, "activation_price");
         object orderId = this.safeString2(order, "orderId", "id");
         object type = this.safeString(order, "type");
+        object orderType = this.parseOrderType(type);
+        if (isTrue(isEqual(orderType, "market")))
+        {
+            remaining = null;
+        }
         object amount = this.safeString(order, "amount");
         object cost = this.safeString(order, "dealMoney");
         if (isTrue(isTrue((isEqual(side, "buy"))) && isTrue((isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stop market")))))))
@@ -1763,7 +1825,7 @@ public partial class whitebit : Exchange
             { "status", null },
             { "side", side },
             { "price", price },
-            { "type", this.parseOrderType(type) },
+            { "type", orderType },
             { "stopPrice", stopPrice },
             { "triggerPrice", stopPrice },
             { "amount", amount },

@@ -2725,7 +2725,7 @@ public partial class bingx : Exchange
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", this.safeString2(order, "avgPrice", "ap") },
-            { "cost", null },
+            { "cost", this.safeString(order, "cummulativeQuoteQty") },
             { "amount", this.safeStringN(order, new List<object>() {"origQty", "q", "quantity"}) },
             { "filled", this.safeString2(order, "executedQty", "z") },
             { "remaining", null },
