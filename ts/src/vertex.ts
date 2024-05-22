@@ -1105,6 +1105,10 @@ export default class vertex extends Exchange {
         let timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.safeBool (params, 'postOnly', false);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isTrigger = (stopLossPrice || takeProfitPrice);
         let sigBit = 0n;
         if (timeInForce === 'ioc') {
             sigBit = 1n;
@@ -1117,10 +1121,10 @@ export default class vertex extends Exchange {
             }
         }
         const now = this.nonce ();
-        const nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
-        let expiration = (BigInt (now) + 86400n);
-        if (sigBit > 0) {
-            expiration = expiration | (sigBit << 62n);
+        let nonce = ((BigInt (now) + 90000n) << 20n) + 1000n;
+        let expiration = (BigInt (now) + 86400n) | (sigBit << 62n);
+        if (isTrigger) {
+            nonce = nonce | (1n << 63n);
         }
         if (reduceOnly) {
             expiration = expiration | (1n << 61n);
@@ -1154,19 +1158,33 @@ export default class vertex extends Exchange {
                 'signature': this.buildCreateOrderSig (order, chainId, verifyingContractAddress),
             }
         };
-        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'postOnly' ]);
-        const response = await this.v1GatewayPostExecute (this.extend (request, params));
-        //
-        // {
-        //     "status": "success",
-        //     "signature": {signature},
-        //     "data": { 
-        //       "digest": {order digest} 
-        //     },
-        //     "request_type": "execute_place_order"
-        //     "id": 100
-        // }
-        //
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'postOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        let response = undefined;
+        if (isTrigger) {
+            const trigger = {};
+            if (stopLossPrice !== undefined) {
+                trigger['last_price_below'] = this.convertToX18 (stopLossPrice);
+            } else if (takeProfitPrice !== undefined) {
+                trigger['last_price_above'] = this.convertToX18 (takeProfitPrice);
+            }
+            request['place_order']['trigger'] = trigger;
+            response = await this.v1TriggerPostExecute (this.extend (request, params));
+            //
+            //
+        } else {
+            response = await this.v1GatewayPostExecute (this.extend (request, params));
+            //
+            // {
+            //     "status": "success",
+            //     "signature": {signature},
+            //     "data": { 
+            //       "digest": {order digest} 
+            //     },
+            //     "request_type": "execute_place_order"
+            //     "id": 100
+            // }
+            //
+        }
         const data = this.safeDict (response, 'data', {});
         return this.safeOrder ({
             'id': this.safeString (data, 'digest'),
