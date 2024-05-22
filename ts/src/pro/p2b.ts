@@ -72,7 +72,7 @@ export default class p2b extends p2bRest {
          * @returns {object} data from the websocket stream
          */
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'method': name,
             'params': request,
             'id': this.milliseconds (),
@@ -401,7 +401,7 @@ export default class p2b extends p2bRest {
             return;
         }
         const method = this.safeString (message, 'method');
-        const methods = {
+        const methods: Dict = {
             'depth.update': this.handleOrderBook,
             'price.update': this.handleTicker,
             'kline.update': this.handleOHLCV,

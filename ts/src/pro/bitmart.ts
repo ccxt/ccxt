@@ -356,7 +356,7 @@ export default class bitmart extends bitmartRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const ticker = await this.subscribeMultiple ('ticker', marketType, symbols, params);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
@@ -470,7 +470,7 @@ export default class bitmart extends bitmartRest {
         }
         const ordersLength = orders.length;
         const newOrders = [];
-        const symbols = {};
+        const symbols: Dict = {};
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
@@ -628,7 +628,7 @@ export default class bitmart extends bitmartRest {
     }
 
     parseWsOrderStatus (statusId) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'closed', // match deal
             '2': 'open', // submit order
             '3': 'canceled', // cancel order
@@ -643,7 +643,7 @@ export default class bitmart extends bitmartRest {
     }
 
     parseWsOrderSide (sideId) {
-        const sides = {
+        const sides: Dict = {
             '1': 'buy', // buy_open_long
             '2': 'buy', // buy_close_short
             '3': 'sell', // sell_close_long
@@ -1545,7 +1545,7 @@ export default class bitmart extends bitmartRest {
         if (!isDataUpdate) {
             const event = this.safeString2 (message, 'event', 'action');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     // 'info': this.handleSystemStatus,
                     'login': this.handleAuthenticate,
                     'access': this.handleAuthenticate,
@@ -1558,7 +1558,7 @@ export default class bitmart extends bitmartRest {
             }
         } else {
             const channel = this.safeString2 (message, 'table', 'group');
-            const methods = {
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,

@@ -81,7 +81,7 @@ export default class idex extends idexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'tickers';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
             'markets': [ market['id'] ],
         };
@@ -158,7 +158,7 @@ export default class idex extends idexRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'trades';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
             'markets': [ market['id'] ],
         };
@@ -218,7 +218,7 @@ export default class idex extends idexRest {
         const cost = this.safeString (trade, 'Q');
         const timestamp = this.safeInteger (trade, 't');
         const side = this.safeString (trade, 's');
-        const fee = {
+        const fee: Dict = {
             'currency': this.safeString (trade, 'a'),
             'cost': this.safeString (trade, 'f'),
         };
@@ -257,7 +257,7 @@ export default class idex extends idexRest {
         symbol = market['symbol'];
         const name = 'candles';
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
             'markets': [ market['id'] ],
             'interval': interval,
@@ -424,12 +424,12 @@ export default class idex extends idexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'l2orderbook';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
             'markets': [ market['id'] ],
         };
         const messageHash = name + ':' + market['id'];
-        const subscription = {
+        const subscription: Dict = {
             'fetchingOrderBookSnapshot': false,
             'numAttempts': 0,
             'startTime': undefined,
@@ -531,7 +531,7 @@ export default class idex extends idexRest {
          */
         await this.loadMarkets ();
         const name = 'orders';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
         };
         let messageHash = name;
@@ -606,7 +606,7 @@ export default class idex extends idexRest {
         const price = this.safeString (order, 'price', average);  // for market orders
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
         };
@@ -654,7 +654,7 @@ export default class idex extends idexRest {
     async watchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'balances';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
         };
         let messageHash = name;
@@ -684,7 +684,7 @@ export default class idex extends idexRest {
         const messageHash = type + ':' + currencyId;
         const code = this.safeCurrencyCode (currencyId);
         const address = this.safeString (data, 'w');
-        const transaction = {
+        const transaction: Dict = {
             'info': message,
             'id': undefined,
             'currency': code,
@@ -715,7 +715,7 @@ export default class idex extends idexRest {
 
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             'tickers': this.handleTicker,
             'trades': this.handleTrade,
             'subscriptions': this.handleSubscribeMessage,

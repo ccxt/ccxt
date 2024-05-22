@@ -384,7 +384,7 @@ export default class coinone extends coinoneRest {
         }
         if (type === 'DATA') {
             const topic = this.safeString (message, 'channel', '');
-            const methods = {
+            const methods: Dict = {
                 'ORDERBOOK': this.handleOrderBook,
                 'TICKER': this.handleTicker,
                 'TRADE': this.handleTrades,

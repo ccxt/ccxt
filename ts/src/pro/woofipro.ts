@@ -84,7 +84,7 @@ export default class woofipro extends woofiproRest {
         }
         const url = this.urls['api']['ws']['public'] + '/' + id;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -571,7 +571,7 @@ export default class woofipro extends woofiproRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -582,7 +582,7 @@ export default class woofipro extends woofiproRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
@@ -732,7 +732,7 @@ export default class woofipro extends woofiproRest {
         market = this.market (marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
-        const fee = {
+        const fee: Dict = {
             'cost': this.safeString (order, 'totalFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
@@ -1214,7 +1214,7 @@ export default class woofipro extends woofiproRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'ping': this.handlePing,
             'pong': this.handlePong,
             'subscribe': this.handleSubscribe,

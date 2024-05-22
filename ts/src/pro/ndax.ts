@@ -56,7 +56,7 @@ export default class ndax extends ndaxRest {
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
-        const payload = {
+        const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
@@ -126,7 +126,7 @@ export default class ndax extends ndaxRest {
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
-        const payload = {
+        const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
             'IncludeLastCount': 100, // the number of previous trades to retrieve in the immediate snapshot, 100 by default
@@ -167,7 +167,7 @@ export default class ndax extends ndaxRest {
         //     ]
         //
         const name = 'SubscribeTrades';
-        const updates = {};
+        const updates: Dict = {};
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade (payload[i]);
             const symbol = trade['symbol'];
@@ -210,7 +210,7 @@ export default class ndax extends ndaxRest {
         const messageHash = name + ':' + timeframe + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
-        const payload = {
+        const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
             'Interval': parseInt (this.safeString (this.timeframes, timeframe, timeframe)),
@@ -256,7 +256,7 @@ export default class ndax extends ndaxRest {
         //         ]
         //     ]
         //
-        const updates = {};
+        const updates: Dict = {};
         for (let i = 0; i < payload.length; i++) {
             const ohlcv = payload[i];
             const marketId = this.safeString (ohlcv, 8);
@@ -341,7 +341,7 @@ export default class ndax extends ndaxRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         limit = (limit === undefined) ? 100 : limit;
-        const payload = {
+        const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
@@ -353,7 +353,7 @@ export default class ndax extends ndaxRest {
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'name': name,
@@ -527,7 +527,7 @@ export default class ndax extends ndaxRest {
             return;
         }
         message['o'] = JSON.parse (payload);
-        const methods = {
+        const methods: Dict = {
             'SubscribeLevel2': this.handleSubscriptionStatus,
             'SubscribeLevel1': this.handleTicker,
             'Level2UpdateEvent': this.handleOrderBook,

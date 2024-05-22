@@ -229,7 +229,7 @@ export default class upbit extends upbitRest {
     }
 
     handleMessage (client: Client, message) {
-        const methods = {
+        const methods: Dict = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,
             'trade': this.handleTrades,

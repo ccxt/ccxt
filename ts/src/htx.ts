@@ -3520,7 +3520,7 @@ export default class htx extends Exchange {
         //
         // TODO add balance parsing for linear swap
         //
-        let result = { 'info': response } as any;
+        let result: Dict = { 'info': response } as any;
         const data = this.safeValue (response, 'data');
         if (spot || margin) {
             if (isolated) {

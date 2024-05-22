@@ -130,7 +130,7 @@ export default class okx extends okxRest {
         messageHash += '::' + symbols.join (',');
         for (let i = 0; i < symbols.length; i++) {
             const marketId = this.marketId (symbols[i]);
-            const arg = {
+            const arg: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
@@ -146,7 +146,7 @@ export default class okx extends okxRest {
     async subscribe (access, messageHash, channel, symbol, params = {}) {
         await this.loadMarkets ();
         const url = this.getUrl (channel, access);
-        const firstArgument = {
+        const firstArgument: Dict = {
             'channel': channel,
         };
         if (symbol !== undefined) {
@@ -201,7 +201,7 @@ export default class okx extends okxRest {
             const symbol = symbols[i];
             messageHashes.push (channel + ':' + symbol);
             const marketId = this.marketId (symbol);
-            const topic = {
+            const topic: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
@@ -290,7 +290,7 @@ export default class okx extends okxRest {
             const symbol = symbols[i];
             messageHashes.push (channel + ':' + symbol);
             const marketId = this.marketId (symbol);
-            const topic = {
+            const topic: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
@@ -304,7 +304,7 @@ export default class okx extends okxRest {
         const fundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const symbol = this.safeString (fundingRate, 'symbol');
-            const result = {};
+            const result: Dict = {};
             result[symbol] = fundingRate;
             return result;
         }
@@ -482,7 +482,7 @@ export default class okx extends okxRest {
             const marketId = this.marketId (sym);
             const interval = this.safeString (this.timeframes, tf, tf);
             const channel = 'candle' + interval;
-            const topic = {
+            const topic: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
@@ -625,7 +625,7 @@ export default class okx extends okxRest {
             const symbol = symbols[i];
             messageHashes.push (depth + ':' + symbol);
             const marketId = this.marketId (symbol);
-            const topic = {
+            const topic: Dict = {
                 'channel': depth,
                 'instId': marketId,
             };
@@ -809,7 +809,7 @@ export default class okx extends okxRest {
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const depths = {
+        const depths: Dict = {
             'bbo-tbt': 1,
             'books': 400,
             'books5': 5,
@@ -1049,12 +1049,12 @@ export default class okx extends okxRest {
         const channel = 'positions';
         let newPositions = undefined;
         if (symbols === undefined) {
-            const arg = {
+            const arg: Dict = {
                 'channel': 'positions',
                 'instType': 'ANY',
             };
             const args = [ arg ];
-            const nonSymbolRequest = {
+            const nonSymbolRequest: Dict = {
                 'op': 'subscribe',
                 'args': args,
             };
@@ -1375,7 +1375,7 @@ export default class okx extends okxRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const myTrades = this.myTrades;
-        const symbols = {};
+        const symbols: Dict = {};
         for (let i = 0; i < filteredOrders.length; i++) {
             const rawTrade = filteredOrders[i];
             const trade = this.orderToTrade (rawTrade);
@@ -1515,7 +1515,7 @@ export default class okx extends okxRest {
         const messageHash = this.nonce ().toString ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
-        const arg = {
+        const arg: Dict = {
             'instId': this.marketId (symbol),
         };
         if (clientOrderId !== undefined) {
@@ -1555,7 +1555,7 @@ export default class okx extends okxRest {
         const messageHash = this.nonce ().toString ();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
-            const arg = {
+            const arg: Dict = {
                 'instId': this.marketId (symbol),
                 'ordId': ids[i],
             };
@@ -1722,7 +1722,7 @@ export default class okx extends okxRest {
         // if (table === undefined) {
         const event = this.safeString2 (message, 'event', 'op');
         if (event !== undefined) {
-            const methods = {
+            const methods: Dict = {
                 // 'info': this.handleSystemStatus,
                 // 'book': 'handleOrderBook',
                 'login': this.handleAuthenticate,
@@ -1741,7 +1741,7 @@ export default class okx extends okxRest {
         } else {
             const arg = this.safeValue (message, 'arg', {});
             const channel = this.safeString (arg, 'channel');
-            const methods = {
+            const methods: Dict = {
                 'bbo-tbt': this.handleOrderBook, // newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
                 'books': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required
                 'books5': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms (vs. every 200ms now)

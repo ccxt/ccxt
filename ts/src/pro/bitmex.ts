@@ -104,7 +104,7 @@ export default class bitmex extends bitmexRest {
         };
         const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), rawSubscriptions);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
@@ -339,7 +339,7 @@ export default class bitmex extends bitmexRest {
         //     }
         //
         const data = this.safeList (message, 'data', []);
-        const tickers = {};
+        const tickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
             const marketId = this.safeString (update, 'symbol');
@@ -1023,7 +1023,7 @@ export default class bitmex extends bitmexRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const symbols = {};
+            const symbols: Dict = {};
             for (let i = 0; i < dataLength; i++) {
                 const currentOrder = data[i];
                 const orderId = this.safeString (currentOrder, 'orderID');
@@ -1148,7 +1148,7 @@ export default class bitmex extends bitmexRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.myTrades;
-        const symbols = {};
+        const symbols: Dict = {};
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             const symbol = trade['symbol'];
@@ -1359,7 +1359,7 @@ export default class bitmex extends bitmexRest {
         const timeframe = this.findTimeframe (interval);
         const duration = this.parseTimeframe (timeframe);
         const candles = this.safeValue (message, 'data', []);
-        const results = {};
+        const results: Dict = {};
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const marketId = this.safeString (candle, 'symbol');
@@ -1481,7 +1481,7 @@ export default class bitmex extends bitmexRest {
             const messageHash = table + ':' + symbol;
             client.resolve (orderbook, messageHash);
         } else {
-            const numUpdatesByMarketId = {};
+            const numUpdatesByMarketId: Dict = {};
             for (let i = 0; i < data.length; i++) {
                 const marketId = this.safeValue (data[i], 'symbol');
                 if (!(marketId in numUpdatesByMarketId)) {
@@ -1618,7 +1618,7 @@ export default class bitmex extends bitmexRest {
         //
         if (this.handleErrorMessage (client, message)) {
             const table = this.safeString (message, 'table');
-            const methods = {
+            const methods: Dict = {
                 'orderBookL2': this.handleOrderBook,
                 'orderBookL2_25': this.handleOrderBook,
                 'orderBook10': this.handleOrderBook,

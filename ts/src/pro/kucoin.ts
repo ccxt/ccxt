@@ -216,7 +216,7 @@ export default class kucoin extends kucoinRest {
             const symbolsTopic = method + ':' + marketIds.join (',');
             tickers = await this.subscribeMultiple (url, messageHashes, symbolsTopic, topics, params);
             if (this.newUpdates) {
-                const newDict = {};
+                const newDict: Dict = {};
                 newDict[tickers['symbol']] = tickers;
                 return newDict;
             }
@@ -300,7 +300,7 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
         // watchTickers
-        const allTickers = {};
+        const allTickers: Dict = {};
         allTickers[symbol] = ticker;
         client.resolve (allTickers, 'tickers');
     }
@@ -317,7 +317,7 @@ export default class kucoin extends kucoinRest {
          */
         const ticker = await this.watchMultiHelper ('watchBidsAsks', '/spotMarket/level1:', symbols, params);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
@@ -854,7 +854,7 @@ export default class kucoin extends kucoinRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'open': 'open',
             'filled': 'closed',
             'match': 'open',
@@ -1062,7 +1062,7 @@ export default class kucoin extends kucoinRest {
         const feeCurrency = market['quote'];
         const feeRate = this.safeString (trade, 'feeRate');
         const feeCost = this.safeString (trade, 'fee');
-        const fee = {
+        const fee: Dict = {
             'cost': feeCost,
             'rate': feeRate,
             'currency': feeCurrency,
@@ -1180,7 +1180,7 @@ export default class kucoin extends kucoinRest {
             return;
         }
         const subject = this.safeString (message, 'subject');
-        const methods = {
+        const methods: Dict = {
             'level1': this.handleBidAsk,
             'level2': this.handleOrderBook,
             'trade.l2update': this.handleOrderBook,
@@ -1237,7 +1237,7 @@ export default class kucoin extends kucoinRest {
 
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,
             'welcome': this.handleSystemStatus,
             'ack': this.handleSubscriptionStatus,

@@ -145,7 +145,7 @@ export default class poloniex extends poloniexRest {
          */
         const publicOrPrivate = isPrivate ? 'private' : 'public';
         const url = this.urls['api']['ws'][publicOrPrivate];
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'channel': [
                 name,
@@ -177,7 +177,7 @@ export default class poloniex extends poloniexRest {
          */
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
-        const subscribe = {
+        const subscribe: Dict = {
             'id': messageHash,
             'event': name,
             'params': params,
@@ -681,7 +681,7 @@ export default class poloniex extends poloniexRest {
     }
 
     parseStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -961,7 +961,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const newTickers = {};
+        const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString (item, 'symbol');
@@ -1127,7 +1127,7 @@ export default class poloniex extends poloniexRest {
         //
         const firstBalance = this.safeValue (response, 0, {});
         const timestamp = this.safeInteger (firstBalance, 'ts');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1172,7 +1172,7 @@ export default class poloniex extends poloniexRest {
         if (event === 'pong') {
             client.lastPong = this.milliseconds ();
         }
-        const methods = {
+        const methods: Dict = {
             'candles_minute_1': this.handleOHLCV,
             'candles_minute_5': this.handleOHLCV,
             'candles_minute_10': this.handleOHLCV,

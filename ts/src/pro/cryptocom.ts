@@ -939,7 +939,7 @@ export default class cryptocom extends cryptocomRest {
     }
 
     handleSubscribe (client: Client, message) {
-        const methods = {
+        const methods: Dict = {
             'candlestick': this.handleOHLCV,
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
@@ -1001,7 +1001,7 @@ export default class cryptocom extends cryptocomRest {
             return;
         }
         const method = this.safeString (message, 'method');
-        const methods = {
+        const methods: Dict = {
             '': this.handlePing,
             'public/heartbeat': this.handlePing,
             'public/auth': this.handleAuthenticate,

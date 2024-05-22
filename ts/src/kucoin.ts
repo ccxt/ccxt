@@ -1029,7 +1029,7 @@ export default class kucoin extends Exchange {
         const data = this.safeList (response, 'data');
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const fetchTickersFees = this.safeBool (options, 'fetchTickersFees', true);
-        let tickersResponse = {};
+        let tickersResponse: Dict = {};
         if (fetchTickersFees) {
             tickersResponse = await this.publicGetMarketAllTickers (params);
         }

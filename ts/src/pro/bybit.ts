@@ -360,7 +360,7 @@ export default class bybit extends bybitRest {
         }
         const ticker = await this.watchTopics (url, messageHashes, topics, params);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
@@ -952,7 +952,7 @@ export default class bybit extends bybitRest {
         }
         const url = this.getUrlByMarketType (symbol, true, method, params);
         await this.authenticate (url);
-        const topicByMarket = {
+        const topicByMarket: Dict = {
             'spot': 'ticketInfo',
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
@@ -1039,7 +1039,7 @@ export default class bybit extends bybitRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
-        const symbols = {};
+        const symbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
@@ -1239,7 +1239,7 @@ export default class bybit extends bybitRest {
         }
         const url = this.getUrlByMarketType (symbol, true, method, params);
         await this.authenticate (url);
-        const topicsByMarket = {
+        const topicsByMarket: Dict = {
             'spot': [ 'order', 'stopOrder' ],
             'unified': [ 'order' ],
             'usdc': [ 'user.openapi.perp.order' ],
@@ -1375,7 +1375,7 @@ export default class bybit extends bybitRest {
         if (!isSpot) {
             rawOrders = this.safeValue (rawOrders, 'result', rawOrders);
         }
-        const symbols = {};
+        const symbols: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
             let parsed = undefined;
             if (isSpot) {
@@ -1553,7 +1553,7 @@ export default class bybit extends bybitRest {
         const isUnifiedAccount = this.safeBool (unified, 1, false);
         const url = this.getUrlByMarketType (undefined, true, method, params);
         await this.authenticate (url);
-        const topicByMarket = {
+        const topicByMarket: Dict = {
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         };
@@ -1962,7 +1962,7 @@ export default class bybit extends bybitRest {
             return;
         }
         const topic = this.safeString2 (message, 'topic', 'op');
-        const methods = {
+        const methods: Dict = {
             'orderbook': this.handleOrderBook,
             'kline': this.handleOHLCV,
             'order': this.handleOrder,

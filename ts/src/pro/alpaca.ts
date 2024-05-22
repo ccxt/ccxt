@@ -647,7 +647,7 @@ export default class alpaca extends alpacaRest {
                 this.handleAuthenticate (client, data);
                 return;
             }
-            const methods = {
+            const methods: Dict = {
                 'error': this.handleErrorMessage,
                 'b': this.handleOHLCV,
                 'q': this.handleTicker,
@@ -663,7 +663,7 @@ export default class alpaca extends alpacaRest {
 
     handleTradingMessage (client: Client, message) {
         const stream = this.safeString (message, 'stream');
-        const methods = {
+        const methods: Dict = {
             'authorization': this.handleAuthenticate,
             'listening': this.handleSubscription,
             'trade_updates': this.handleTradeUpdate,

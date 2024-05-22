@@ -3976,7 +3976,7 @@ export default class phemex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response = {};
+        let response: Dict = {};
         if (!market['linear']) {
             response = await this.v1GetMdTicker24hr (this.extend (request, params));
         } else {

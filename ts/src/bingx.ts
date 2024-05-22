@@ -535,7 +535,7 @@ export default class bingx extends Exchange {
             let fee = undefined;
             let active = undefined;
             let withdrawEnabled = undefined;
-            let defaultLimits = {};
+            let defaultLimits: Dict = {};
             for (let j = 0; j < networkList.length; j++) {
                 const rawNetwork = networkList[j];
                 const network = this.safeString (rawNetwork, 'network');

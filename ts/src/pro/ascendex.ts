@@ -888,7 +888,7 @@ export default class ascendex extends ascendexRest {
         // }
         //
         const subject = this.safeString (message, 'm');
-        const methods = {
+        const methods: Dict = {
             'ping': this.handlePing,
             'auth': this.handleAuthenticate,
             'sub': this.handleSubscriptionStatus,

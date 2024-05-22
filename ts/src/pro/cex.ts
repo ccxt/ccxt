@@ -66,7 +66,7 @@ export default class cex extends cexRest {
         await this.authenticate (params);
         const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'e': 'get-balance',
             'data': {},
             'oid': this.requestId (),
@@ -99,7 +99,7 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const freeBalance = this.safeValue (data, 'balance', {});
         const usedBalance = this.safeValue (data, 'obalance', {});
-        const result = {
+        const result: Dict = {
             'info': data,
         };
         const currencyIds = Object.keys (freeBalance);
@@ -149,7 +149,7 @@ export default class cex extends cexRest {
                 }
             }
         }
-        const message = {
+        const message: Dict = {
             'e': 'subscribe',
             'rooms': [ 'pair-' + market['base'] + '-' + market['quote'] ],
         };
@@ -302,7 +302,7 @@ export default class cex extends cexRest {
         symbols = this.marketSymbols (symbols);
         const url = this.urls['api']['ws'];
         const messageHash = 'tickers';
-        const message = {
+        const message: Dict = {
             'e': 'subscribe',
             'rooms': [
                 'tickers',
@@ -315,7 +315,7 @@ export default class cex extends cexRest {
             return await this.watchTickers (symbols, params);
         }
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[tickerSymbol] = ticker;
             return result;
         }
@@ -478,7 +478,7 @@ export default class cex extends cexRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orders:' + symbol;
-        const message = {
+        const message: Dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -517,7 +517,7 @@ export default class cex extends cexRest {
         const market = this.market (symbol);
         const messageHash = 'myTrades:' + market['symbol'];
         const subscriptionHash = 'orders:' + market['symbol'];
-        const message = {
+        const message: Dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -635,7 +635,7 @@ export default class cex extends cexRest {
             symbol = quote + '/' + base;
             amount = Precise.stringDiv (amount, price); // due to rounding errors amount in not exact to trade
         }
-        const parsedTrade = {
+        const parsedTrade: Dict = {
             'id': this.safeString (trade, 'id'),
             'order': this.safeString (trade, 'order'),
             'info': trade,
@@ -854,7 +854,7 @@ export default class cex extends cexRest {
         } else if (isTransaction) {
             status = 'closed';
         }
-        const parsedOrder = {
+        const parsedOrder: Dict = {
             'id': this.safeString2 (order, 'id', 'order'),
             'clientOrderId': undefined,
             'info': order,
@@ -959,7 +959,7 @@ export default class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + symbol;
         const depth = (limit === undefined) ? 0 : limit;
-        const subscribe = {
+        const subscribe: Dict = {
             'e': 'order-book-subscribe',
             'data': {
                 'pair': [
@@ -1504,7 +1504,7 @@ export default class cex extends cexRest {
             return;
         }
         const event = this.safeString (message, 'e');
-        const handlers = {
+        const handlers: Dict = {
             'auth': this.handleAuthenticationMessage,
             'connected': this.handleConnected,
             'tick': this.handleTicker,

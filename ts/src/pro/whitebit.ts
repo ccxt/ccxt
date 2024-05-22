@@ -644,7 +644,7 @@ export default class whitebit extends whitebitRest {
     }
 
     parseWsOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
             '202': 'market',
@@ -740,7 +740,7 @@ export default class whitebit extends whitebitRest {
         let request = undefined;
         let marketIds = [];
         if (client === undefined) {
-            const subscription = {};
+            const subscription: Dict = {};
             const market = this.market (symbol);
             const marketId = market['id'];
             subscription[marketId] = true;
@@ -775,7 +775,7 @@ export default class whitebit extends whitebitRest {
                 if (isNested) {
                     marketIdsNew = [ marketIdsNew ];
                 }
-                const resubRequest = {
+                const resubRequest: Dict = {
                     'id': id,
                     'method': method,
                     'params': marketIdsNew,
@@ -826,7 +826,7 @@ export default class whitebit extends whitebitRest {
                     'public',
                 ],
             };
-            const subscription = {
+            const subscription: Dict = {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
@@ -897,7 +897,7 @@ export default class whitebit extends whitebitRest {
             this.handleSubscriptionStatus (client, message, id);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'market_update': this.handleTicker,
             'trades_update': this.handleTrades,
             'depth_update': this.handleOrderBook,

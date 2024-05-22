@@ -82,7 +82,7 @@ export default class bithumb extends bithumbRest {
         const message = this.extend (request, params);
         const newTicker = await this.watchMultiple (url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
             return result;
         }
@@ -387,7 +387,7 @@ export default class bithumb extends bithumbRest {
         }
         const topic = this.safeString (message, 'type');
         if (topic !== undefined) {
-            const methods = {
+            const methods: Dict = {
                 'ticker': this.handleTicker,
                 'orderbookdepth': this.handleOrderBook,
                 'transaction': this.handleTrades,

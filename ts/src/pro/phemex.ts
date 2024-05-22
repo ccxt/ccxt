@@ -119,7 +119,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -178,7 +178,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -528,7 +528,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const subscriptionHash = name + '.subscribe';
         const messageHash = 'ticker:' + symbol;
-        const subscribe = {
+        const subscribe: Dict = {
             'method': subscriptionHash,
             'id': requestId,
             'params': [],
@@ -561,7 +561,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'trade_p' : 'trade';
         const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -600,7 +600,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
         const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -637,7 +637,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'kline_p' : 'kline';
         const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -881,7 +881,7 @@ export default class phemex extends phemexRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
-        const marketIds = {};
+        const marketIds: Dict = {};
         let type = undefined;
         for (let i = 0; i < message.length; i++) {
             const rawTrade = message[i];
@@ -1131,7 +1131,7 @@ export default class phemex extends phemexRest {
         }
         this.handleMyTrades (client, trades);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        const marketIds = {};
+        const marketIds: Dict = {};
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }

@@ -557,7 +557,7 @@ export default class bitteam extends Exchange {
             const minDeposit = this.safeString (txLimits, 'minDeposit');
             let fee = undefined;
             const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {}) as any;
-            let feesByNetworkId = {};
+            let feesByNetworkId: Dict = {};
             const blockChain = this.safeString (currency, 'blockChain');
             // if only one blockChain
             if ((blockChain !== undefined) && (blockChain !== '')) {

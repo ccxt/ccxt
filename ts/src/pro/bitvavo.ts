@@ -303,7 +303,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const subscription = {
+        const subscription: Dict = {
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
@@ -1118,7 +1118,7 @@ export default class bitvavo extends bitvavoRest {
     }
 
     buildMessageHash (action, params = {}) {
-        const methods = {
+        const methods: Dict = {
             'privateCreateOrder': this.actionAndMarketMessageHash,
             'privateUpdateOrder': this.actionAndOrderIdMessageHash,
             'privateCancelOrder': this.actionAndOrderIdMessageHash,
@@ -1235,7 +1235,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const subscriptions = this.safeValue (message, 'subscriptions', {});
-        const methods = {
+        const methods: Dict = {
             'book': this.handleOrderBookSubscriptions,
         };
         const names = Object.keys (subscriptions);
@@ -1369,7 +1369,7 @@ export default class bitvavo extends bitvavoRest {
         if (error !== undefined) {
             this.handleErrorMessage (client, message);
         }
-        const methods = {
+        const methods: Dict = {
             'subscribed': this.handleSubscriptionStatus,
             'book': this.handleOrderBook,
             'getBook': this.handleOrderBookSnapshot,

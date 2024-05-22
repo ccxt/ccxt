@@ -135,7 +135,7 @@ export default class hitbtc extends hitbtcRest {
         if (symbols !== undefined) {
             messageHash = messageHash + '::' + symbols.join (',');
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'subscribe',
             'id': this.nonce (),
             'ch': name,
@@ -160,7 +160,7 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             messageHash = messageHash + '::' + symbol;
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'method': name,
             'params': params,
             'id': this.nonce (),
@@ -180,7 +180,7 @@ export default class hitbtc extends hitbtcRest {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
-        const subscribe = {
+        const subscribe: Dict = {
             'method': name,
             'params': params,
             'id': messageHash,
@@ -414,7 +414,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue (message, 'data', {});
         const marketIds = Object.keys (data);
-        const newTickers = {};
+        const newTickers: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -1238,7 +1238,7 @@ export default class hitbtc extends hitbtcRest {
         if (channel !== undefined) {
             const splitChannel = channel.split ('/');
             channel = this.safeString (splitChannel, 0);
-            const methods = {
+            const methods: Dict = {
                 'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,

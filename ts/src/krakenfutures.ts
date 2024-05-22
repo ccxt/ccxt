@@ -1185,7 +1185,7 @@ export default class krakenfutures extends Exchange {
         const response = await this.privatePostCancelorder (this.extend ({ 'order_id': id }, params));
         const status = this.safeString (this.safeValue (response, 'cancelStatus', {}), 'status');
         this.verifyOrderActionSuccess (status, 'cancelOrder');
-        let order = {};
+        let order: Dict = {};
         if ('cancelStatus' in response) {
             order = this.parseOrder (response['cancelStatus']);
         }

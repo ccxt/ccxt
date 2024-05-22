@@ -321,7 +321,7 @@ export default class currencycom extends currencycomRest {
         const messageHash = '/api/v1/account';
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ().toString ();
-        const payload = {
+        const payload: Dict = {
             'timestamp': this.milliseconds (),
             'apiKey': this.apiKey,
         };
@@ -549,7 +549,7 @@ export default class currencycom extends currencycomRest {
                 if (status === 'OK') {
                     const subscriptionDestination = this.safeString (subscription, 'destination');
                     if (subscriptionDestination !== undefined) {
-                        const methods = {
+                        const methods: Dict = {
                             '/api/v1/ticker/24hr': this.handleTicker,
                             '/api/v1/account': this.handleBalance,
                         };
@@ -566,7 +566,7 @@ export default class currencycom extends currencycomRest {
         }
         const destination = this.safeString (message, 'destination');
         if (destination !== undefined) {
-            const methods = {
+            const methods: Dict = {
                 'marketdepth.event': this.handleOrderBook,
                 'internal.trade': this.handleTrades,
                 'ohlc.event': this.handleOHLCV,

@@ -94,7 +94,7 @@ export default class deribit extends deribitRest {
             const currencyCode = currencies[i];
             channels.push ('user.portfolio.' + currencyCode);
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -182,7 +182,7 @@ export default class deribit extends deribitRest {
             await this.authenticate ();
         }
         const channel = 'ticker.' + market['id'] + '.' + interval;
-        const message = {
+        const message: Dict = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -344,7 +344,7 @@ export default class deribit extends deribitRest {
         const interval = this.safeString (params, 'interval', 'raw');
         params = this.omit (params, 'interval');
         const channel = 'user.trades.any.any.' + interval;
-        const message = {
+        const message: Dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -399,7 +399,7 @@ export default class deribit extends deribitRest {
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
         const parsed = this.parseTrades (trades);
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             cachedTrades.append (trade);
@@ -594,7 +594,7 @@ export default class deribit extends deribitRest {
         const kind = this.safeString (params, 'kind', 'any');
         params = this.omit (params, 'interval', 'currency', 'kind');
         const channel = 'user.orders.' + kind + '.' + currency + '.' + interval;
-        const message = {
+        const message: Dict = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -885,12 +885,12 @@ export default class deribit extends deribitRest {
         if (channel !== undefined) {
             const parts = channel.split ('.');
             const channelId = this.safeString (parts, 0);
-            const userHandlers = {
+            const userHandlers: Dict = {
                 'trades': this.handleMyTrades,
                 'portfolio': this.handleBalance,
                 'orders': this.handleOrders,
             };
-            const handlers = {
+            const handlers: Dict = {
                 'ticker': this.handleTicker,
                 'book': this.handleOrderBook,
                 'trades': this.handleTrades,

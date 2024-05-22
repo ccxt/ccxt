@@ -124,7 +124,7 @@ export default class bitget extends bitgetRest {
         const messageHash = 'ticker:' + symbol;
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': 'ticker',
             'instId': market['id'],
@@ -153,7 +153,7 @@ export default class bitget extends bitgetRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const marketInner = this.market (symbol);
-            const args = {
+            const args: Dict = {
                 'instType': instType,
                 'channel': 'ticker',
                 'instId': marketInner['id'],
@@ -163,7 +163,7 @@ export default class bitget extends bitgetRest {
         }
         const tickers = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[tickers['symbol']] = tickers;
             return result;
         }
@@ -336,7 +336,7 @@ export default class bitget extends bitgetRest {
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': 'candle' + interval,
             'instId': market['id'],
@@ -474,7 +474,7 @@ export default class bitget extends bitgetRest {
             const market = this.market (symbol);
             let instType = undefined;
             [ instType, params ] = this.getInstType (market, params);
-            const args = {
+            const args: Dict = {
                 'instType': instType,
                 'channel': channel,
                 'instId': market['id'],
@@ -642,7 +642,7 @@ export default class bitget extends bitgetRest {
             const market = this.market (symbol);
             let instType = undefined;
             [ instType, params ] = this.getInstType (market, params);
-            const args = {
+            const args: Dict = {
                 'instType': instType,
                 'channel': 'trade',
                 'instId': market['id'],
@@ -816,7 +816,7 @@ export default class bitget extends bitgetRest {
             [ instType, params ] = this.getInstType (market, params);
         }
         messageHash = instType + ':positions' + messageHash;
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': 'positions',
             'instId': 'default',
@@ -1027,7 +1027,7 @@ export default class bitget extends bitgetRest {
                 channel = 'orders-crossed';
             }
         }
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': channel,
             'instId': instId,
@@ -1094,7 +1094,7 @@ export default class bitget extends bitgetRest {
         const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
         const stored = isTrigger ? this.triggerOrders : this.orders;
         const messageHash = isTrigger ? 'triggerOrder' : 'order';
-        const marketSymbols = {};
+        const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
             const marketId = this.safeString (order, 'instId');
@@ -1321,7 +1321,7 @@ export default class bitget extends bitgetRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
@@ -1354,7 +1354,7 @@ export default class bitget extends bitgetRest {
         let instType = undefined;
         [ instType, params ] = this.getInstType (market, params);
         const subscriptionHash = 'fill:' + instType;
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': 'fill',
             'instId': 'default',
@@ -1491,7 +1491,7 @@ export default class bitget extends bitgetRest {
             instType = 'SPOT';
         }
         [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', instType);
-        const args = {
+        const args: Dict = {
             'instType': instType,
             'channel': channel,
             'coin': 'default',
@@ -1738,7 +1738,7 @@ export default class bitget extends bitgetRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
             'fill': this.handleMyTrades,

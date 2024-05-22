@@ -289,7 +289,7 @@ export default class bitstamp extends bitstampRest {
         symbol = market['symbol'];
         const channel = 'private-my_orders';
         const messageHash = channel + '_' + market['id'];
-        const subscription = {
+        const subscription: Dict = {
             'symbol': symbol,
             'limit': limit,
             'type': channel,
@@ -447,7 +447,7 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const methods = {
+        const methods: Dict = {
             'live_trades': this.handleTrade,
             'diff_order_book': this.handleOrderBook,
             'private-my_orders': this.handleOrders,

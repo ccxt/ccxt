@@ -389,7 +389,7 @@ export default class bitopro extends bitoproRest {
         });
         const payload = this.stringToBase64 (rawData);
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
-        const defaultOptions = {
+        const defaultOptions: Dict = {
             'ws': {
                 'options': {
                     'headers': {},
@@ -399,7 +399,7 @@ export default class bitopro extends bitoproRest {
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions (defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
-        const headers = {
+        const headers: Dict = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
@@ -450,7 +450,7 @@ export default class bitopro extends bitoproRest {
         const timestamp = this.safeInteger (message, 'timestamp');
         const datetime = this.safeString (message, 'datetime');
         const currencies = Object.keys (data);
-        const result = {
+        const result: Dict = {
             'info': data,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -470,7 +470,7 @@ export default class bitopro extends bitoproRest {
     }
 
     handleMessage (client: Client, message) {
-        const methods = {
+        const methods: Dict = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,
             'ORDER_BOOK': this.handleOrderBook,

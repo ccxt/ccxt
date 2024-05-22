@@ -1580,9 +1580,9 @@ export default class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const fees = this.safeValue (result, 'fees', []);
-        let perpetualFee = {};
-        let futureFee = {};
-        let optionFee = {};
+        let perpetualFee: Dict = {};
+        let futureFee: Dict = {};
+        let optionFee: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const instrumentType = this.safeString (fee, 'instrument_type');
@@ -1610,7 +1610,7 @@ export default class deribit extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            let fee = {
+            let fee: Dict = {
                 'info': market,
                 'symbol': symbol,
                 'percentage': true,

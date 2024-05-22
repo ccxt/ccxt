@@ -88,7 +88,7 @@ export default class mexc extends mexcRest {
             return await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.ticker';
-            const requestParams = {
+            const requestParams: Dict = {
                 'symbol': market['id'],
             };
             return await this.watchSwapPublic (channel, messageHash, requestParams, params);
@@ -234,7 +234,7 @@ export default class mexc extends mexcRest {
             ohlcv = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.kline';
-            const requestParams = {
+            const requestParams: Dict = {
                 'symbol': market['id'],
                 'interval': timeframeId,
             };
@@ -378,7 +378,7 @@ export default class mexc extends mexcRest {
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.depth';
-            const requestParams = {
+            const requestParams: Dict = {
                 'symbol': market['id'],
             };
             orderbook = await this.watchSwapPublic (channel, messageHash, requestParams, params);
@@ -552,7 +552,7 @@ export default class mexc extends mexcRest {
             trades = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.deal';
-            const requestParams = {
+            const requestParams: Dict = {
                 'symbol': market['id'],
             };
             trades = await this.watchSwapPublic (channel, messageHash, requestParams, params);
@@ -984,7 +984,7 @@ export default class mexc extends mexcRest {
     }
 
     parseWsOrderStatus (status, market = undefined) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'open',     // new order
             '2': 'closed',   // filled
             '3': 'open',     // partially filled
@@ -1000,7 +1000,7 @@ export default class mexc extends mexcRest {
     }
 
     parseWsOrderType (type) {
-        const types = {
+        const types: Dict = {
             '1': 'limit',   // LIMIT_ORDER
             '2': undefined, // POST_ONLY
             '3': undefined, // IMMEDIATE_OR_CANCEL
@@ -1012,7 +1012,7 @@ export default class mexc extends mexcRest {
     }
 
     parseWsTimeInForce (timeInForce) {
-        const timeInForceIds = {
+        const timeInForceIds: Dict = {
             '1': 'GTC',   // LIMIT_ORDER
             '2': 'PO', // POST_ONLY
             '3': 'IOC', // IMMEDIATE_OR_CANCEL
@@ -1156,7 +1156,7 @@ export default class mexc extends mexcRest {
         } else if (msg.indexOf ('@') > -1) {
             const parts = msg.split ('@');
             const channel = this.safeString (parts, 1);
-            const methods = {
+            const methods: Dict = {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
             };
             const method = this.safeValue (methods, channel);
@@ -1186,7 +1186,7 @@ export default class mexc extends mexcRest {
             const parts = c.split ('@');
             channel = this.safeString (parts, 1);
         }
-        const methods = {
+        const methods: Dict = {
             'public.deals.v3.api': this.handleTrades,
             'push.deal': this.handleTrades,
             'public.kline.v3.api': this.handleOHLCV,

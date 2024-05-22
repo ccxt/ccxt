@@ -785,7 +785,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         } else {
             data = [ this.safeValue (message, 2) ];
         }
-        const updatedTypes = {};
+        const updatedTypes: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
             const currencyId = this.safeString (rawBalance, 1);
@@ -971,7 +971,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        const symbolIds = {};
+        const symbolIds: Dict = {};
         if (messageType === 'os') {
             const snapshotLength = data.length;
             if (snapshotLength === 0) {
@@ -1002,7 +1002,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
@@ -1132,14 +1132,14 @@ export default class bitfinex2 extends bitfinex2Rest {
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
-            const publicMethods = {
+            const publicMethods: Dict = {
                 'book': this.handleOrderBook,
                 'cs': this.handleChecksum,
                 'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
             };
-            const privateMethods = {
+            const privateMethods: Dict = {
                 'os': this.handleOrders,
                 'ou': this.handleOrders,
                 'on': this.handleOrders,
@@ -1160,7 +1160,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         } else {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     'info': this.handleSystemStatus,
                     'subscribed': this.handleSubscriptionStatus,
                     'auth': this.handleAuthenticationMessage,

@@ -1772,7 +1772,7 @@ export default class bitstamp extends Exchange {
                 tag = addressParts[1];
             }
         }
-        let fee = {
+        let fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

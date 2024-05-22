@@ -503,7 +503,7 @@ export default class currencycom extends Exchange {
                 }
             }
             let precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision')));
-            let limitAmount = {
+            let limitAmount: Dict = {
                 'min': undefined,
                 'max': undefined,
             };
@@ -515,7 +515,7 @@ export default class currencycom extends Exchange {
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
-            let limitMarket = {
+            let limitMarket: Dict = {
                 'min': undefined,
                 'max': undefined,
             };

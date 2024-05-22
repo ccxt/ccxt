@@ -460,7 +460,7 @@ export default class kraken extends krakenRest {
         const messageHash = name + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'reqid': requestId,
             'pair': [
@@ -502,7 +502,7 @@ export default class kraken extends krakenRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const ticker = await this.watchMultiHelper ('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[ticker['symbol']] = ticker;
             return result;
         }
@@ -604,7 +604,7 @@ export default class kraken extends krakenRest {
         const messageHash = name + ':' + timeframe + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'reqid': requestId,
             'pair': [
@@ -719,7 +719,7 @@ export default class kraken extends krakenRest {
             // todo get depth from marketsByWsName
             this.orderbooks[symbol] = this.orderBook ({}, depth);
             const orderbook = this.orderbooks[symbol];
-            const sides = {
+            const sides: Dict = {
                 'as': 'asks',
                 'bs': 'bids',
             };
@@ -882,7 +882,7 @@ export default class kraken extends krakenRest {
         }
         const url = this.urls['api']['ws']['private'];
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'event': 'subscribe',
             'reqid': requestId,
             'subscription': {
@@ -959,7 +959,7 @@ export default class kraken extends krakenRest {
                 this.myTrades = new ArrayCache (limit);
             }
             const stored = this.myTrades;
-            const symbols = {};
+            const symbols: Dict = {};
             for (let i = 0; i < allTrades.length; i++) {
                 const trades = this.safeValue (allTrades, i, {});
                 const ids = Object.keys (trades);
@@ -1163,7 +1163,7 @@ export default class kraken extends krakenRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const symbols = {};
+            const symbols: Dict = {};
             for (let i = 0; i < allOrders.length; i++) {
                 const orders = this.safeValue (allOrders, i, {});
                 const ids = Object.keys (orders);
@@ -1445,7 +1445,7 @@ export default class kraken extends krakenRest {
             const messageLength = message.length;
             const channelName = this.safeString (message, messageLength - 2);
             const name = this.safeString (info, 'name');
-            const methods = {
+            const methods: Dict = {
                 // public
                 'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
@@ -1462,7 +1462,7 @@ export default class kraken extends krakenRest {
         } else {
             if (this.handleErrorMessage (client, message)) {
                 const event = this.safeString (message, 'event');
-                const methods = {
+                const methods: Dict = {
                     'heartbeat': this.handleHeartbeat,
                     'systemStatus': this.handleSystemStatus,
                     'subscriptionStatus': this.handleSubscriptionStatus,

@@ -158,7 +158,7 @@ export default class okcoin extends okcoinRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const marketIds = {};
+            const marketIds: Dict = {};
             const parsed = this.parseOrders (orders);
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
@@ -737,7 +737,7 @@ export default class okcoin extends okcoinRest {
         if (table === undefined) {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     // 'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
                     'login': this.handleAuthenticate,
@@ -751,7 +751,7 @@ export default class okcoin extends okcoinRest {
         } else {
             const parts = table.split ('/');
             const name = this.safeString (parts, 1);
-            const methods = {
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'depth5': this.handleOrderBook,
                 'depth_l2_tbt': this.handleOrderBook,

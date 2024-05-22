@@ -226,7 +226,7 @@ export default class bitfinex extends bitfinexRest {
         if ((last !== undefined) && (change !== undefined)) {
             open = Precise.stringSub (last, change);
         }
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -551,7 +551,7 @@ export default class bitfinex extends bitfinexRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
         };
@@ -639,7 +639,7 @@ export default class bitfinex extends bitfinexRest {
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
-            const methods = {
+            const methods: Dict = {
                 'book': this.handleOrderBook,
                 // 'ohlc': this.handleOHLCV,
                 'ticker': this.handleTicker,
@@ -664,7 +664,7 @@ export default class bitfinex extends bitfinexRest {
             //
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
                     'subscribed': this.handleSubscriptionStatus,

@@ -109,7 +109,7 @@ export default class hyperliquid extends hyperliquidRest {
         const market = this.market (marketId);
         const symbol = market['symbol'];
         const rawData = this.safeList (entry, 'levels', []);
-        const data = {
+        const data: Dict = {
             'bids': this.safeList (rawData, 0, []),
             'asks': this.safeList (rawData, 1, []),
         };
@@ -196,7 +196,7 @@ export default class hyperliquid extends hyperliquidRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
-        const symbols = {};
+        const symbols: Dict = {};
         const data = this.safeList (entry, 'fills', []);
         const dataLength = data.length;
         if (dataLength === 0) {
@@ -493,7 +493,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const stored = this.orders;
         const messageHash = 'order';
-        const marketSymbols = {};
+        const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const rawOrder = data[i];
             const order = this.parseOrder (rawOrder);
@@ -531,7 +531,7 @@ export default class hyperliquid extends hyperliquidRest {
             return;
         }
         const topic = this.safeString (message, 'channel', '');
-        const methods = {
+        const methods: Dict = {
             'pong': this.handlePong,
             'trades': this.handleTrades,
             'l2Book': this.handleOrderBook,

@@ -125,7 +125,7 @@ export default class coinbase extends coinbaseRest {
     }
 
     createWSAuth (name: string, productIds: string[]) {
-        const subscribe = {};
+        const subscribe: Dict = {};
         const timestamp = this.numberToString (this.seconds ());
         this.checkRequiredCredentials ();
         const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.startsWith ('-----BEGIN'));
@@ -695,7 +695,7 @@ export default class coinbase extends coinbaseRest {
 
     handleMessage (client, message) {
         const channel = this.safeString (message, 'channel');
-        const methods = {
+        const methods: Dict = {
             'subscriptions': this.handleSubscriptionStatus,
             'ticker': this.handleTickers,
             'ticker_batch': this.handleTickers,
