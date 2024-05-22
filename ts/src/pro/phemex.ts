@@ -5,7 +5,7 @@ import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
@@ -1524,7 +1524,7 @@ export default class phemex extends phemexRest {
             const payload = this.apiKey + expiration.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             const method = 'user.auth';
-            const request = {
+            const request: Dict = {
                 'method': method,
                 'params': [ 'API', this.apiKey, signature, expiration ],
                 'id': requestId,

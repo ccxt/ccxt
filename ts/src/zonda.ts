@@ -415,7 +415,7 @@ export default class zonda extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
         const items = this.safeList (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
@@ -485,7 +485,7 @@ export default class zonda extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (symbol) {
             const markets = [ this.marketId (symbol) ];
             symbol = this.symbol (symbol);
@@ -566,7 +566,7 @@ export default class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
@@ -680,7 +680,7 @@ export default class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const method = 'v1_01PublicGetTradingTickerSymbol';
@@ -1206,7 +1206,7 @@ export default class zonda extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
-        const request = {
+        const request: Dict = {
             'symbol': tradingSymbol,
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': 1574709092000, // unix timestamp in milliseconds, required
@@ -1334,7 +1334,7 @@ export default class zonda extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
-        const request = {
+        const request: Dict = {
             'symbol': tradingSymbol,
         };
         if (since !== undefined) {
@@ -1365,7 +1365,7 @@ export default class zonda extends Exchange {
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         amount = parseFloat (this.amountToPrecision (symbol, amount));
-        const request = {
+        const request: Dict = {
             'symbol': tradingSymbol,
             'offerType': side.toUpperCase (),
             'amount': amount,
@@ -1498,7 +1498,7 @@ export default class zonda extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
-        const request = {
+        const request: Dict = {
             'symbol': tradingSymbol,
             'id': id,
             'side': side,
@@ -1553,7 +1553,7 @@ export default class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (this.extend (request, params));
@@ -1619,7 +1619,7 @@ export default class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'source': fromAccount,
             'destination': toAccount,
             'currency': code,
@@ -1737,7 +1737,7 @@ export default class zonda extends Exchange {
         await this.loadMarkets ();
         let response = undefined;
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,

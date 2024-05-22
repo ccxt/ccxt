@@ -270,7 +270,7 @@ export default class independentreserve extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         };
@@ -338,7 +338,7 @@ export default class independentreserve extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         };
@@ -632,7 +632,7 @@ export default class independentreserve extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50, // max = 50
@@ -735,7 +735,7 @@ export default class independentreserve extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderGuid': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
@@ -753,7 +753,7 @@ export default class independentreserve extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'primaryCurrencyCode': currency['id'],
         };
         const response = await this.privatePostGetDigitalCurrencyDepositAddress (this.extend (request, params));

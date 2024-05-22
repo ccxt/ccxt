@@ -241,7 +241,7 @@ export default class exmo extends Exchange {
     async modifyMarginHelper (symbol: string, amount, type, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'position_id': market['id'],
             'quantity': amount,
         };
@@ -874,7 +874,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1031,7 +1031,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (limit !== undefined) {
@@ -1066,7 +1066,7 @@ export default class exmo extends Exchange {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
         }
-        const request = {
+        const request: Dict = {
             'pair': ids,
         };
         if (limit !== undefined) {
@@ -1285,7 +1285,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
@@ -1346,7 +1346,7 @@ export default class exmo extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        const request = {};
+        const request: Dict = {};
         if (isSpot) {
             request['pair'] = pair;
         } else {
@@ -1446,7 +1446,7 @@ export default class exmo extends Exchange {
         }
         const isSpot = (marginMode !== 'isolated');
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             // 'leverage': 2,
             'quantity': this.amountToPrecision (market['symbol'], amount),
@@ -1541,7 +1541,7 @@ export default class exmo extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const stop = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let marginMode = undefined;
@@ -1588,7 +1588,7 @@ export default class exmo extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id.toString (),
         };
         const response = await this.privatePostOrderTrades (this.extend (request, params));
@@ -1642,7 +1642,7 @@ export default class exmo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'order_id': id.toString (),
         };
         let response = undefined;
@@ -1989,7 +1989,7 @@ export default class exmo extends Exchange {
             const marketInner = this.market (symbol);
             symbol = marketInner['symbol'];
         }
-        const request = {
+        const request: Dict = {
             'limit': limit,
         };
         request['offset'] = (since !== undefined) ? limit : 0;
@@ -2089,7 +2089,7 @@ export default class exmo extends Exchange {
         }
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
-        const request = {
+        const request: Dict = {
             'order_id': id,  // id of the open order
         };
         if (amount !== undefined) {
@@ -2170,7 +2170,7 @@ export default class exmo extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'currency': currency['id'],
             'address': address,
@@ -2349,7 +2349,7 @@ export default class exmo extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['date'] = this.parseToInt (since / 1000);
         }
@@ -2405,7 +2405,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'type': 'withdraw',
         };
         if (limit !== undefined) {
@@ -2459,7 +2459,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'type': 'withdraw',
         };
@@ -2512,7 +2512,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'type': 'deposit',
         };
@@ -2566,7 +2566,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'type': 'deposit',
         };
         if (limit !== undefined) {

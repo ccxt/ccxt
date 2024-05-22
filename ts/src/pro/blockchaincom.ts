@@ -3,7 +3,7 @@
 import blockchaincomRest from '../blockchaincom.js';
 import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -777,7 +777,7 @@ export default class blockchaincom extends blockchaincomRest {
         const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
         if (isAuthenticated === undefined) {
             this.checkRequiredCredentials ();
-            const request = {
+            const request: Dict = {
                 'action': 'subscribe',
                 'channel': 'auth',
                 'token': this.secret,

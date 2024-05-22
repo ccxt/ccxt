@@ -5,7 +5,7 @@ import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -433,7 +433,7 @@ export default class currencycom extends currencycomRest {
         const destination = 'OHLCMarketData.subscribe';
         const messageHash = destination + ':' + timeframe;
         const timeframes = this.safeValue (this.options, 'timeframes');
-        const request = {
+        const request: Dict = {
             'destination': destination,
             'payload': {
                 'intervals': [

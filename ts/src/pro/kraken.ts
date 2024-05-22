@@ -217,7 +217,7 @@ export default class kraken extends krakenRest {
         const url = this.urls['api']['ws']['private'];
         const requestId = this.requestId ();
         const messageHash = requestId;
-        const request = {
+        const request: Dict = {
             'event': 'cancelOrder',
             'token': token,
             'reqid': requestId,
@@ -244,7 +244,7 @@ export default class kraken extends krakenRest {
         const messageHash = requestId;
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId', id);
         params = this.omit (params, [ 'userref', 'clientOrderId' ]);
-        const request = {
+        const request: Dict = {
             'event': 'cancelOrder',
             'token': token,
             'reqid': requestId,
@@ -284,7 +284,7 @@ export default class kraken extends krakenRest {
         const url = this.urls['api']['ws']['private'];
         const requestId = this.requestId ();
         const messageHash = requestId;
-        const request = {
+        const request: Dict = {
             'event': 'cancelAll',
             'token': token,
             'reqid': requestId,
@@ -570,7 +570,7 @@ export default class kraken extends krakenRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             if (this.inArray (limit, [ 10, 25, 100, 500, 1000 ])) {
                 request['subscription'] = {
@@ -1345,7 +1345,7 @@ export default class kraken extends krakenRest {
             const wsMarketId = this.safeString (markets[i]['info'], 'wsname');
             wsMarketIds.push (wsMarketId);
         }
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'reqid': this.requestId (),
             'pair': wsMarketIds,

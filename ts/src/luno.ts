@@ -371,7 +371,7 @@ export default class luno extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         let response = undefined;
@@ -478,7 +478,7 @@ export default class luno extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privateGetOrdersId (this.extend (request, params));
@@ -487,7 +487,7 @@ export default class luno extends Exchange {
 
     async fetchOrdersByState (state = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (state !== undefined) {
             request['state'] = state;
@@ -622,7 +622,7 @@ export default class luno extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -743,7 +743,7 @@ export default class luno extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (since !== undefined) {
@@ -782,7 +782,7 @@ export default class luno extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'duration': this.safeValue (this.timeframes, timeframe, timeframe),
             'pair': market['id'],
         };
@@ -849,7 +849,7 @@ export default class luno extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (since !== undefined) {
@@ -896,7 +896,7 @@ export default class luno extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.privateGetFeeInfo (this.extend (request, params));
@@ -934,7 +934,7 @@ export default class luno extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         let response = undefined;
@@ -971,7 +971,7 @@ export default class luno extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         return await this.privatePostStoporder (this.extend (request, params));
@@ -986,7 +986,7 @@ export default class luno extends Exchange {
             limit = 1;
         }
         const since = undefined;
-        const request = {
+        const request: Dict = {
             'min_row': entry,
             'max_row': this.sum (entry, limit),
         };
@@ -1039,7 +1039,7 @@ export default class luno extends Exchange {
         if (max_row - min_row > 1000) {
             throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
         }
-        const request = {
+        const request: Dict = {
             'id': id,
             'min_row': min_row,
             'max_row': max_row,

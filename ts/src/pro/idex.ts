@@ -5,7 +5,7 @@ import idexRest from '../idex.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ export default class idex extends idexRest {
 
     async subscribe (subscribeObject, messageHash, subscription = true) {
         const url = this.urls['test']['ws'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscriptions': [
                 subscribeObject,
@@ -59,7 +59,7 @@ export default class idex extends idexRest {
     async subscribePrivate (subscribeObject, messageHash) {
         const token = await this.authenticate ();
         const url = this.urls['test']['ws'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'token': token,
             'subscriptions': [
@@ -507,7 +507,7 @@ export default class idex extends idexRest {
         const time = this.seconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         if (time - lastAuthenticatedTime > 900) {
-            const request = {
+            const request: Dict = {
                 'wallet': this.walletAddress,
                 'nonce': this.uuidv1 (),
             };

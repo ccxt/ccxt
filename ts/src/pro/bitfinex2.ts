@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
         const messageHash = channel + ':' + marketId;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
@@ -94,7 +94,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const channel = 'candles';
         const key = 'trade:' + interval + ':' + market['id'];
         const messageHash = channel + ':' + interval + ':' + market['id'];
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
             'key': key,
@@ -546,7 +546,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
-        const request = {
+        const request: Dict = {
             'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         };
@@ -869,7 +869,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             const payload = 'AUTH' + nonce.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384, 'hex');
             const event = 'auth';
-            const request = {
+            const request: Dict = {
                 'apiKey': this.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,

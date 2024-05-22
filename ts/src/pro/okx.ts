@@ -5,7 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -136,7 +136,7 @@ export default class okx extends okxRest {
             };
             args.push (this.extend (arg, params));
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': args,
         };
@@ -154,7 +154,7 @@ export default class okx extends okxRest {
             messageHash += ':' + market['id'];
             firstArgument['instId'] = market['id'];
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [
                 this.deepExtend (firstArgument, params),
@@ -207,7 +207,7 @@ export default class okx extends okxRest {
             };
             topics.push (topic);
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -296,7 +296,7 @@ export default class okx extends okxRest {
             };
             topics.push (topic);
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -489,7 +489,7 @@ export default class okx extends okxRest {
             topics.push (topic);
             messageHashes.push ('multi:' + channel + ':' + sym);
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -631,7 +631,7 @@ export default class okx extends okxRest {
             };
             topics.push (topic);
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -869,7 +869,7 @@ export default class okx extends okxRest {
             const auth = timestamp + method + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             const operation = 'login';
-            const request = {
+            const request: Dict = {
                 'op': operation,
                 'args': [
                     {
@@ -1020,7 +1020,7 @@ export default class okx extends okxRest {
                 uppercaseType = 'MARGIN';
             }
         }
-        const request = {
+        const request: Dict = {
             'instType': uppercaseType,
         };
         const orders = await this.subscribe ('private', messageHash, channel, undefined, this.extend (request, params));
@@ -1043,7 +1043,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate (params);
         symbols = this.marketSymbols (symbols);
-        const request = {
+        const request: Dict = {
             'instType': 'ANY',
         };
         const channel = 'positions';
@@ -1203,7 +1203,7 @@ export default class okx extends okxRest {
                 uppercaseType = 'MARGIN';
             }
         }
-        const request = {
+        const request: Dict = {
             'instType': uppercaseType,
         };
         const channel = isStop ? 'orders-algo' : 'orders';
@@ -1421,7 +1421,7 @@ export default class okx extends okxRest {
         if ((op !== 'order') && (op !== 'batch-orders')) {
             throw new BadRequest (this.id + ' createOrderWs() does not support algo trading. this.options["createOrderWs"]["op"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo');
         }
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': op,
             'args': [ args ],
@@ -1486,7 +1486,7 @@ export default class okx extends okxRest {
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': op,
             'args': [ args ],
@@ -1523,7 +1523,7 @@ export default class okx extends okxRest {
         } else {
             arg['ordId'] = id;
         }
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': 'cancel-order',
             'args': [ this.extend (arg, params) ],
@@ -1561,7 +1561,7 @@ export default class okx extends okxRest {
             };
             args.push (arg);
         }
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': 'batch-cancel-orders',
             'args': args,
@@ -1590,7 +1590,7 @@ export default class okx extends okxRest {
         }
         const url = this.getUrl ('private', 'private');
         const messageHash = this.nonce ().toString ();
-        const request = {
+        const request: Dict = {
             'id': messageHash,
             'op': 'mass-cancel',
             'args': [ this.extend ({

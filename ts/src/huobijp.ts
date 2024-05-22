@@ -361,7 +361,7 @@ export default class huobijp extends Exchange {
     }
 
     async fetchTradingLimitsById (id: string, params = {}) {
-        const request = {
+        const request: Dict = {
             'symbol': id,
         };
         const response = await this.publicGetCommonExchange (this.extend (request, params));
@@ -629,7 +629,7 @@ export default class huobijp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'type': 'step0',
         };
@@ -679,7 +679,7 @@ export default class huobijp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.marketGetDetailMerged (this.extend (request, params));
@@ -833,7 +833,7 @@ export default class huobijp extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
@@ -853,7 +853,7 @@ export default class huobijp extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -882,7 +882,7 @@ export default class huobijp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -963,7 +963,7 @@ export default class huobijp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1008,7 +1008,7 @@ export default class huobijp extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const request = {
+        const request: Dict = {
             'language': this.options['language'],
         };
         const response = await this.publicGetSettingsCurrencys (this.extend (request, params));
@@ -1134,7 +1134,7 @@ export default class huobijp extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const method = this.options['fetchBalanceMethod'];
-        const request = {
+        const request: Dict = {
             'id': this.accounts[0]['id'],
         };
         const response = await this[method] (this.extend (request, params));
@@ -1143,7 +1143,7 @@ export default class huobijp extends Exchange {
 
     async fetchOrdersByStates (states, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'states': states,
         };
         let market = undefined;
@@ -1183,7 +1183,7 @@ export default class huobijp extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId (this.extend (request, params));
@@ -1243,7 +1243,7 @@ export default class huobijp extends Exchange {
 
     async fetchOpenOrdersV2 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1425,7 +1425,7 @@ export default class huobijp extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'account-id': this.accounts[0]['id'],
             'symbol': market['id'],
             'type': side + '-' + type,
@@ -1532,7 +1532,7 @@ export default class huobijp extends Exchange {
         await this.loadMarkets ();
         const clientOrderIds = this.safeValue2 (params, 'clientOrderIds', 'client-order-ids');
         params = this.omit (params, [ 'clientOrderIds', 'client-order-ids' ]);
-        const request = {};
+        const request: Dict = {};
         if (clientOrderIds === undefined) {
             request['order-ids'] = ids;
         } else {
@@ -1584,7 +1584,7 @@ export default class huobijp extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
             // 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
             // 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
@@ -1672,7 +1672,7 @@ export default class huobijp extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {
+        const request: Dict = {
             'type': 'deposit',
             'from': 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         };
@@ -1706,7 +1706,7 @@ export default class huobijp extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {
+        const request: Dict = {
             'type': 'withdraw',
             'from': 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         };
@@ -1842,7 +1842,7 @@ export default class huobijp extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
             'currency': currency['id'].toLowerCase (),

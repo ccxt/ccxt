@@ -5,7 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -267,7 +267,7 @@ export default class tradeogre extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.publicGetTickerMarket (this.extend (request, params));
@@ -335,7 +335,7 @@ export default class tradeogre extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.publicGetOrdersMarket (this.extend (request, params));
@@ -385,7 +385,7 @@ export default class tradeogre extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.publicGetHistoryMarket (this.extend (request, params));
@@ -473,7 +473,7 @@ export default class tradeogre extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'quantity': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
             'price': this.parseToNumeric (this.priceToPrecision (symbol, price)),
@@ -501,7 +501,7 @@ export default class tradeogre extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'uuid': id,
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
@@ -537,7 +537,7 @@ export default class tradeogre extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             request['market'] = market['id'];
         }
@@ -556,7 +556,7 @@ export default class tradeogre extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'uuid': id,
         };
         const response = await this.privateGetAccountOrderUuid (this.extend (request, params));

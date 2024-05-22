@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -81,7 +81,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            const request = {
+            const request: Dict = {
                 'event': 'challenge',
                 'api_key': this.apiKey,
             };
@@ -1504,7 +1504,7 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
         }
         const marketIds = this.marketIds (symbols);
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'feed': channelName,
             'product_ids': marketIds,

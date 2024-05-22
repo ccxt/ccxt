@@ -4,7 +4,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ export default class gemini extends geminiRest {
         const market = this.market (symbol);
         const messageHash = 'trades:' + market['symbol'];
         const marketId = market['id'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -279,7 +279,7 @@ export default class gemini extends geminiRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -371,7 +371,7 @@ export default class gemini extends geminiRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const marketId = market['id'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {

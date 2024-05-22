@@ -574,7 +574,7 @@ export default class latoken extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
@@ -661,7 +661,7 @@ export default class latoken extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'base': market['baseId'],
             'quote': market['quoteId'],
         };
@@ -826,7 +826,7 @@ export default class latoken extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
             // 'from': since.toString (), // milliseconds
@@ -873,7 +873,7 @@ export default class latoken extends Exchange {
     async fetchPublicTradingFee (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
@@ -899,7 +899,7 @@ export default class latoken extends Exchange {
     async fetchPrivateTradingFee (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
@@ -936,7 +936,7 @@ export default class latoken extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'currency': market['baseId'],
             // 'quote': market['quoteId'],
             // 'from': this.milliseconds (),
@@ -1132,7 +1132,7 @@ export default class latoken extends Exchange {
         params = this.omit (params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
@@ -1183,7 +1183,7 @@ export default class latoken extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'currency': market['baseId'],
             // 'quote': market['quoteId'],
             // 'from': this.milliseconds (),
@@ -1250,7 +1250,7 @@ export default class latoken extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -1307,7 +1307,7 @@ export default class latoken extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
             'side': side.toUpperCase (), // "BUY", "BID", "SELL", "ASK"
@@ -1360,7 +1360,7 @@ export default class latoken extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -1396,7 +1396,7 @@ export default class latoken extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'currency': market['baseId'],
             // 'quote': market['quoteId'],
         };
@@ -1443,7 +1443,7 @@ export default class latoken extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'page': '1',
             // 'size': 100,
         };
@@ -1630,7 +1630,7 @@ export default class latoken extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': this.currencyToPrecision (code, amount),

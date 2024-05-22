@@ -5,7 +5,7 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, Excha
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1585,7 +1585,7 @@ export default class bitget extends bitgetRest {
 
     async watchPublic (messageHash, args, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],
         };
@@ -1595,7 +1595,7 @@ export default class bitget extends bitgetRest {
 
     async watchPublicMultiple (messageHashes, argsArray, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': argsArray,
         };
@@ -1615,7 +1615,7 @@ export default class bitget extends bitgetRest {
             const auth = timestamp + 'GET' + '/user/verify';
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             const operation = 'login';
-            const request = {
+            const request: Dict = {
                 'op': operation,
                 'args': [
                     {
@@ -1635,7 +1635,7 @@ export default class bitget extends bitgetRest {
     async watchPrivate (messageHash, subscriptionHash, args, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],
         };

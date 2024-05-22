@@ -6052,7 +6052,7 @@ export default class Exchange {
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'mark',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
@@ -6074,7 +6074,7 @@ export default class Exchange {
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'index',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
@@ -6096,7 +6096,7 @@ export default class Exchange {
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
-            const request = {
+            const request: Dict = {
                 'price': 'premiumIndex',
             };
             return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));

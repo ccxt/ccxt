@@ -5,7 +5,7 @@ import mexcRest from '../mexc.js';
 import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -162,7 +162,7 @@ export default class mexc extends mexcRest {
 
     async watchSpotPublic (channel, messageHash, params = {}) {
         const url = this.urls['api']['ws']['spot'];
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIPTION',
             'params': [ channel ],
         };
@@ -173,7 +173,7 @@ export default class mexc extends mexcRest {
         this.checkRequiredCredentials ();
         const listenKey = await this.authenticate (channel);
         const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIPTION',
             'params': [ channel ],
         };
@@ -182,7 +182,7 @@ export default class mexc extends mexcRest {
 
     async watchSwapPublic (channel, messageHash, requestParams, params = {}) {
         const url = this.urls['api']['ws']['swap'];
-        const request = {
+        const request: Dict = {
             'method': channel,
             'param': requestParams,
         };
@@ -197,7 +197,7 @@ export default class mexc extends mexcRest {
         const timestamp = this.milliseconds ().toString ();
         const payload = this.apiKey + timestamp;
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
-        const request = {
+        const request: Dict = {
             'method': channel,
             'param': {
                 'apiKey': this.apiKey,
@@ -1121,7 +1121,7 @@ export default class mexc extends mexcRest {
         if (listenKey === undefined) {
             return;
         }
-        const request = {
+        const request: Dict = {
             'listenKey': listenKey,
         };
         try {

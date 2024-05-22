@@ -2,7 +2,7 @@
 
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -455,7 +455,7 @@ export default class bitrue extends bitrueRest {
 
     async keepAliveListenKey (params = {}) {
         const listenKey = this.safeString (this.options, 'listenKey');
-        const request = {
+        const request: Dict = {
             'listenKey': listenKey,
         };
         try {

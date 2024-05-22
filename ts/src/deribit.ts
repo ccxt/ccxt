@@ -748,7 +748,7 @@ export default class deribit extends Exchange {
             const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
             for (let i = 0; i < currenciesResult.length; i++) {
                 const currencyId = this.safeString (currenciesResult[i], 'currency');
-                const request = {
+                const request: Dict = {
                     'currency': currencyId,
                 };
                 const instrumentsResponse = await this.publicGetGetInstruments (this.extend (request, params));
@@ -961,7 +961,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const code = this.codeFromOptions ('fetchBalance', params);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateGetGetAccountSummary (this.extend (request, params));
@@ -1023,7 +1023,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateGetCreateDepositAddress (this.extend (request, params));
@@ -1062,7 +1062,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateGetGetCurrentDepositAddress (this.extend (request, params));
@@ -1183,7 +1183,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -1238,7 +1238,7 @@ export default class deribit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
         }
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, params));
@@ -1304,7 +1304,7 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000) as OHLCV[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1461,7 +1461,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'include_old': true,
         };
@@ -1524,7 +1524,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const code = this.codeFromOptions ('fetchTradingFees', params);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'extended': true,
         };
@@ -1643,7 +1643,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         if (limit !== undefined) {
@@ -1837,7 +1837,7 @@ export default class deribit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         let market = undefined;
@@ -1896,7 +1896,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'type': type, // limit, stop_limit, market, stop_market, default is limit
@@ -2070,7 +2070,7 @@ export default class deribit extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'amount': this.amountToPrecision (symbol, amount),
             // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
@@ -2108,7 +2108,7 @@ export default class deribit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetCancel (this.extend (request, params));
@@ -2128,7 +2128,7 @@ export default class deribit extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (symbol === undefined) {
             response = await this.privateGetCancelAll (this.extend (request, params));
@@ -2154,7 +2154,7 @@ export default class deribit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
@@ -2185,7 +2185,7 @@ export default class deribit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
@@ -2216,7 +2216,7 @@ export default class deribit extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetGetUserTradesByOrder (this.extend (request, params));
@@ -2273,7 +2273,7 @@ export default class deribit extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'include_old': true,
         };
         let market = undefined;
@@ -2356,7 +2356,7 @@ export default class deribit extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
@@ -2405,7 +2405,7 @@ export default class deribit extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
@@ -2598,7 +2598,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.privateGetGetPosition (this.extend (request, params));
@@ -2664,7 +2664,7 @@ export default class deribit extends Exchange {
             }
         }
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (kind !== undefined) {
@@ -2716,7 +2716,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
@@ -2784,7 +2784,7 @@ export default class deribit extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         if (limit !== undefined) {
@@ -2845,7 +2845,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'currency': currency['id'],
             'destination': toAccount,
@@ -2942,7 +2942,7 @@ export default class deribit extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'address': address, // must be in the address book
             'amount': amount,
@@ -3036,7 +3036,7 @@ export default class deribit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const time = this.milliseconds ();
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': time - (8 * 60 * 60 * 1000), // 8h ago,
             'end_timestamp': time,
@@ -3079,7 +3079,7 @@ export default class deribit extends Exchange {
         if (since === undefined) {
             since = time - month;
         }
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
             'end_timestamp': time,
@@ -3176,7 +3176,7 @@ export default class deribit extends Exchange {
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
         }
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
         };
@@ -3253,7 +3253,7 @@ export default class deribit extends Exchange {
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
         }
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'type': 'bankruptcy',
         };
@@ -3332,7 +3332,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -3465,7 +3465,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.publicGetGetBookSummaryByInstrument (this.extend (request, params));
@@ -3518,7 +3518,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'kind': 'option',
         };

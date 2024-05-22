@@ -762,7 +762,7 @@ export default class wavesexchange extends Exchange {
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16 (this.base58ToBinary (this.secret));
             const signature = this.axolotl (payload, hexKey, ed25519);
-            const request = {
+            const request: Dict = {
                 'grant_type': 'password',
                 'scope': 'general',
                 'username': this.apiKey,
@@ -867,7 +867,7 @@ export default class wavesexchange extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pairs': market['id'],
         };
         const response = await this.publicGetPairs (this.extend (request, params));
@@ -956,7 +956,7 @@ export default class wavesexchange extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
@@ -1134,7 +1134,7 @@ export default class wavesexchange extends Exchange {
         }
         let response = undefined;
         if (network === undefined) {
-            const request = {
+            const request: Dict = {
                 'currency': code,
             };
             response = await this.privateGetDepositAddressesCurrency (this.extend (request, params));
@@ -1145,7 +1145,7 @@ export default class wavesexchange extends Exchange {
                 throw new ExchangeError (this.id + ' ' + network + ' network ' + code + ' deposit address not supported. Network must be one of ' + supportedNetworkKeys.join (', '));
             }
             if (network === 'WAVES') {
-                const request = {
+                const request: Dict = {
                     'publicKey': this.apiKey,
                 };
                 const responseInner = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
@@ -1159,7 +1159,7 @@ export default class wavesexchange extends Exchange {
                     'info': responseInner,
                 };
             } else {
-                const request = {
+                const request: Dict = {
                     'currency': code,
                     'platform': network,
                 };
@@ -1560,7 +1560,7 @@ export default class wavesexchange extends Exchange {
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
         const signature = this.axolotl (this.binaryToBase16 (binary), hexSecret, ed25519);
-        const request = {
+        const request: Dict = {
             'Timestamp': timestamp.toString (),
             'Signature': signature,
             'publicKey': this.apiKey,
@@ -1596,7 +1596,7 @@ export default class wavesexchange extends Exchange {
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
         const signature = this.axolotl (this.binaryToBase16 (binary), hexSecret, ed25519);
-        const request = {
+        const request: Dict = {
             'Accept': 'application/json',
             'Timestamp': timestamp.toString (),
             'Signature': signature,
@@ -1641,7 +1641,7 @@ export default class wavesexchange extends Exchange {
             market = this.market (symbol);
         }
         const address = await this.getWavesAddress ();
-        const request = {
+        const request: Dict = {
             'address': address,
             'activeOnly': true,
         };
@@ -1667,7 +1667,7 @@ export default class wavesexchange extends Exchange {
             market = this.market (symbol);
         }
         const address = await this.getWavesAddress ();
-        const request = {
+        const request: Dict = {
             'address': address,
             'closedOnly': true,
         };
@@ -1846,7 +1846,7 @@ export default class wavesexchange extends Exchange {
     async getWavesAddress () {
         const cachedAddreess = this.safeString (this.options, 'wavesAddress');
         if (cachedAddreess === undefined) {
-            const request = {
+            const request: Dict = {
                 'publicKey': this.apiKey,
             };
             const response = await this.nodeGetAddressesPublicKeyPublicKey (request);
@@ -1875,7 +1875,7 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredKeys ();
         await this.loadMarkets ();
         const wavesAddress = await this.getWavesAddress ();
-        const request = {
+        const request: Dict = {
             'address': wavesAddress,
         };
         const totalBalance = await this.nodeGetAssetsBalanceAddress (request);
@@ -2021,7 +2021,7 @@ export default class wavesexchange extends Exchange {
          */
         await this.loadMarkets ();
         const address = await this.getWavesAddress ();
-        const request = {
+        const request: Dict = {
             'sender': address,
         };
         let market = undefined;
@@ -2114,7 +2114,7 @@ export default class wavesexchange extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
         };
@@ -2564,7 +2564,7 @@ export default class wavesexchange extends Exchange {
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
         const signature = this.axolotl (this.binaryToBase16 (binary), hexSecret, ed25519);
-        const request = {
+        const request: Dict = {
             'senderPublicKey': this.apiKey,
             'amount': amountInteger,
             'fee': fee,

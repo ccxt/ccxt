@@ -347,7 +347,7 @@ export default class ndax extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
         };
         const response = await this.publicGetGetProducts (this.extend (request, params));
@@ -418,7 +418,7 @@ export default class ndax extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
         };
         const response = await this.publicGetGetInstruments (this.extend (request, params));
@@ -584,7 +584,7 @@ export default class ndax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         limit = (limit === undefined) ? 100 : limit; // default 100
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
             'Depth': limit, // default 100
@@ -695,7 +695,7 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
         };
@@ -773,7 +773,7 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
             'Interval': this.safeString (this.timeframes, timeframe, timeframe),
@@ -986,7 +986,7 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
         };
@@ -1018,7 +1018,7 @@ export default class ndax extends Exchange {
         }
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         this.checkRequiredCredentials ();
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'UserId': this.uid,
             'UserName': this.login,
@@ -1075,7 +1075,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -1207,7 +1207,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -1380,7 +1380,7 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
-        const request = {
+        const request: Dict = {
             'InstrumentId': parseInt (market['id']),
             'omsId': omsId,
             'AccountId': accountId,
@@ -1429,7 +1429,7 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
-        const request = {
+        const request: Dict = {
             'OrderIdToReplace': parseInt (id),
             'InstrumentId': parseInt (market['id']),
             'omsId': omsId,
@@ -1485,7 +1485,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             // 'InstrumentId': market['id'],
@@ -1572,7 +1572,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -1613,7 +1613,7 @@ export default class ndax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             // 'AccountId': accountId,
         };
@@ -1654,7 +1654,7 @@ export default class ndax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -1730,7 +1730,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             // 'ClientOrderId': clientOrderId,
@@ -1828,7 +1828,7 @@ export default class ndax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'OrderId': parseInt (id),
@@ -1908,7 +1908,7 @@ export default class ndax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'OMSId': this.parseToInt (omsId),
             // 'AccountId': accountId,
             'OrderId': parseInt (id),
@@ -1985,7 +1985,7 @@ export default class ndax extends Exchange {
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -2052,7 +2052,7 @@ export default class ndax extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        const request = {
+        const request: Dict = {
             'GenerateNewKey': true,
         };
         return await this.fetchDepositAddress (code, this.extend (request, params));
@@ -2080,7 +2080,7 @@ export default class ndax extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -2141,7 +2141,7 @@ export default class ndax extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };

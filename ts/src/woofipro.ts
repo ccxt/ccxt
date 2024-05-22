@@ -9,7 +9,7 @@ import { ecdsa, eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -727,7 +727,7 @@ export default class woofipro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -805,7 +805,7 @@ export default class woofipro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.v1PublicGetPublicFundingRateSymbol (this.extend (request, params));
@@ -1002,7 +1002,7 @@ export default class woofipro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1058,7 +1058,7 @@ export default class woofipro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1262,7 +1262,7 @@ export default class woofipro extends Exchange {
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': orderSide,
         };
@@ -1441,7 +1441,7 @@ export default class woofipro extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const request = {
+        const request: Dict = {
             'orders': ordersRequests,
         };
         const response = await this.v1PrivatePostBatchOrder (this.extend (request, params));
@@ -1488,7 +1488,7 @@ export default class woofipro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const stopPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
@@ -1573,7 +1573,7 @@ export default class woofipro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
@@ -1643,7 +1643,7 @@ export default class woofipro extends Exchange {
         await this.loadMarkets ();
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (clientOrderIds) {
             request['client_order_ids'] = clientOrderIds.join (',');
@@ -1679,7 +1679,7 @@ export default class woofipro extends Exchange {
         await this.loadMarkets ();
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1726,7 +1726,7 @@ export default class woofipro extends Exchange {
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
-        const request = {};
+        const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
@@ -1932,7 +1932,7 @@ export default class woofipro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'oid': id,
         };
         const response = await this.v1PrivateGetOrderOidTrades (this.extend (request, params));
@@ -2077,7 +2077,7 @@ export default class woofipro extends Exchange {
 
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        const request = { };
+        const request: Dict = { };
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2232,7 +2232,7 @@ export default class woofipro extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'side': 'DEPOSIT',
         };
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
@@ -2250,7 +2250,7 @@ export default class woofipro extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'side': 'WITHDRAW',
         };
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
@@ -2268,7 +2268,7 @@ export default class woofipro extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {};
+        const request: Dict = {};
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         //
         //     {
@@ -2373,7 +2373,7 @@ export default class woofipro extends Exchange {
         };
         const msg = this.ethEncodeStructuredData (domain, messageTypes, withdrawRequest);
         const signature = this.signMessage (msg, this.privateKey);
-        const request = {
+        const request: Dict = {
             'signature': signature,
             'userAddress': address,
             'verifyingContract': verifyingContractAddress,
@@ -2463,7 +2463,7 @@ export default class woofipro extends Exchange {
         if ((leverage < 1) || (leverage > 50)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 50');
         }
-        const request = {
+        const request: Dict = {
             'leverage': leverage,
         };
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
@@ -2552,7 +2552,7 @@ export default class woofipro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));

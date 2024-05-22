@@ -410,7 +410,7 @@ export default class indodax extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['base'] + market['quote'],
         };
         const orderbook = await this.publicGetApiDepthPair (this.extend (request, params));
@@ -471,7 +471,7 @@ export default class indodax extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['base'] + market['quote'],
         };
         const response = await this.publicGetApiTickerPair (this.extend (request, params));
@@ -558,7 +558,7 @@ export default class indodax extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['base'] + market['quote'],
         };
         const response = await this.publicGetApiTradesPair (this.extend (request, params));
@@ -606,7 +606,7 @@ export default class indodax extends Exchange {
         const now = this.seconds ();
         const until = this.safeInteger (params, 'until', now);
         params = this.omit (params, [ 'until' ]);
-        const request = {
+        const request: Dict = {
             'to': until,
             'tf': selectedTimeframe,
             'symbol': market['base'] + market['quote'],
@@ -739,7 +739,7 @@ export default class indodax extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'order_id': id,
         };
@@ -764,7 +764,7 @@ export default class indodax extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -809,7 +809,7 @@ export default class indodax extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.privatePostOrderHistory (this.extend (request, params));
@@ -837,7 +837,7 @@ export default class indodax extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'type': side,
             'price': price,
@@ -878,7 +878,7 @@ export default class indodax extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'pair': market['id'],
             'type': side,
@@ -898,7 +898,7 @@ export default class indodax extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privatePostWithdrawFee (this.extend (request, params));
@@ -934,7 +934,7 @@ export default class indodax extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             const startTime = this.iso8601 (since).slice (0, 10);
             request['start'] = startTime;
@@ -1047,7 +1047,7 @@ export default class indodax extends Exchange {
         const requestId = this.milliseconds ();
         // Alternatively:
         // let requestId = this.uuid ();
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'withdraw_amount': amount,
             'withdraw_address': address,

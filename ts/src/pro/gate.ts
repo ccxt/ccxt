@@ -5,7 +5,7 @@ import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1300,7 +1300,7 @@ export default class gate extends gateRest {
     async subscribePublic (url, messageHash, payload, channel, params = {}, subscription = undefined) {
         const requestId = this.requestId ();
         const time = this.seconds ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1321,7 +1321,7 @@ export default class gate extends gateRest {
     async subscribePublicMultiple (url, messageHashes, payload, channel, params = {}) {
         const requestId = this.requestId ();
         const time = this.seconds ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'time': time,
             'channel': channel,
@@ -1356,7 +1356,7 @@ export default class gate extends gateRest {
             'SIGN': signature,
         };
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'time': time,
             'channel': channel,

@@ -637,7 +637,7 @@ export default class onetrading extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_code': market['id'],
         };
         const response = await this.publicGetMarketTickerInstrumentCode (this.extend (request, params));
@@ -715,7 +715,7 @@ export default class onetrading extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_code': market['id'],
             // level 1 means only the best bid and ask
             // level 2 is a compiled order book up to market precision
@@ -851,7 +851,7 @@ export default class onetrading extends Exchange {
         if (limit === undefined) {
             limit = 1500;
         }
-        const request = {
+        const request: Dict = {
             'instrument_code': market['id'],
             // 'from': this.iso8601 (since),
             // 'to': this.iso8601 (this.milliseconds ()),
@@ -972,7 +972,7 @@ export default class onetrading extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_code': market['id'],
             // 'from': this.iso8601 (since),
             // 'to': this.iso8601 (this.milliseconds ()),
@@ -1073,7 +1073,7 @@ export default class onetrading extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privatePostAccountDepositCrypto (this.extend (request, params));
@@ -1099,7 +1099,7 @@ export default class onetrading extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency_code': currency['id'],
         };
         const response = await this.privateGetAccountDepositCryptoCurrencyCode (this.extend (request, params));
@@ -1127,7 +1127,7 @@ export default class onetrading extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         };
         let currency = undefined;
@@ -1192,7 +1192,7 @@ export default class onetrading extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         };
         let currency = undefined;
@@ -1262,7 +1262,7 @@ export default class onetrading extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': code,
             'amount': this.currencyToPrecision (code, amount),
             // 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2', // fiat only
@@ -1539,7 +1539,7 @@ export default class onetrading extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'instrument_code': market['id'],
             'type': uppercaseType, // LIMIT, MARKET, STOP
             'side': side.toUpperCase (), // or SELL
@@ -1607,7 +1607,7 @@ export default class onetrading extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         let method = 'privateDeleteAccountOrdersOrderId';
-        const request = {};
+        const request: Dict = {};
         if (clientOrderId !== undefined) {
             method = 'privateDeleteAccountOrdersClientClientId';
             request['client_id'] = clientOrderId;
@@ -1631,7 +1631,7 @@ export default class onetrading extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['instrument_code'] = market['id'];
@@ -1656,7 +1656,7 @@ export default class onetrading extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'ids': ids.join (','),
         };
         const response = await this.privateDeleteAccountOrders (this.extend (request, params));
@@ -1678,7 +1678,7 @@ export default class onetrading extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
@@ -1738,7 +1738,7 @@ export default class onetrading extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'from': this.iso8601 (since),
             // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
             // 'instrument_code': market['id'],
@@ -1858,7 +1858,7 @@ export default class onetrading extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'with_cancelled_and_rejected': true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         };
         return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
@@ -1877,7 +1877,7 @@ export default class onetrading extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
             // 'max_page_size': 100,
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
@@ -1936,7 +1936,7 @@ export default class onetrading extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'from': this.iso8601 (since),
             // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
             // 'instrument_code': market['id'],

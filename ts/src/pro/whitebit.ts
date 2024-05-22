@@ -5,7 +5,7 @@ import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -723,7 +723,7 @@ export default class whitebit extends whitebitRest {
     async watchPublic (messageHash, method, reqParams = [], params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -793,7 +793,7 @@ export default class whitebit extends whitebitRest {
         await this.authenticate ();
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -818,7 +818,7 @@ export default class whitebit extends whitebitRest {
             //
             const token = this.safeString (authToken, 'websocket_token');
             const id = this.nonce ();
-            const request = {
+            const request: Dict = {
                 'id': id,
                 'method': 'authorize',
                 'params': [

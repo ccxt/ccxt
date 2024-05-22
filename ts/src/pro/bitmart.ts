@@ -5,7 +5,7 @@ import bitmartRest from '../bitmart.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Asks, Bids } from '../base/ws/OrderBookSide.js';
 
@@ -128,7 +128,7 @@ export default class bitmart extends bitmartRest {
         if ((type !== 'spot') && (channel === 'ticker')) {
             rawSubscriptions = [ channelType + '/' + channel ];
         }
-        const request = {
+        const request: Dict = {
             'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
@@ -671,7 +671,7 @@ export default class bitmart extends bitmartRest {
             messageHash += '::' + symbols.join (',');
         }
         const subscriptionHash = 'futures/position';
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'args': [ 'futures/position' ],
         };

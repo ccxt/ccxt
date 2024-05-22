@@ -5,7 +5,7 @@ import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -662,7 +662,7 @@ export default class exmo extends exmoRest {
             const requestId = this.requestId ();
             const signData = this.apiKey + time.toString ();
             const sign = this.hmac (this.encode (signData), this.encode (this.secret), sha512, 'base64');
-            const request = {
+            const request: Dict = {
                 'method': 'login',
                 'id': requestId,
                 'api_key': this.apiKey,

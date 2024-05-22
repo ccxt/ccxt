@@ -5,7 +5,7 @@ import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -456,7 +456,7 @@ export default class htx extends htxRest {
         const market = this.market (symbol);
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'req': messageHash,
             'id': requestId,
         };
@@ -2268,7 +2268,7 @@ export default class htx extends htxRest {
 
     async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };

@@ -647,7 +647,7 @@ export default class bitteam extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
+        const request: Dict = {
             'pairName': market['id'],
             'resolution': resolution,
         };
@@ -718,7 +718,7 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTradeApiCmcOrderbookPair (this.extend (request, params));
@@ -769,7 +769,7 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'all');
-        const request = {
+        const request: Dict = {
             'type': type,
         };
         let market = undefined;
@@ -880,7 +880,7 @@ export default class bitteam extends Exchange {
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         let market = undefined;
@@ -942,7 +942,7 @@ export default class bitteam extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'type': 'active',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -961,7 +961,7 @@ export default class bitteam extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'type': 'closed',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -980,7 +980,7 @@ export default class bitteam extends Exchange {
          * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'type': 'cancelled',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1002,7 +1002,7 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pairId': market['numericId'].toString (),
             'type': type,
             'side': side,
@@ -1055,7 +1055,7 @@ export default class bitteam extends Exchange {
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         const response = await this.privatePostTradeApiCcxtCancelorder (this.extend (request, params));
@@ -1083,7 +1083,7 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pairId'] = market['numericId'].toString ();
@@ -1347,7 +1347,7 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'name': market['id'],
         };
         const response = await this.publicGetTradeApiPairName (this.extend (request, params));
@@ -1681,7 +1681,7 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTradeApiCmcTradesPair (this.extend (request, params));
@@ -1722,7 +1722,7 @@ export default class bitteam extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2073,7 +2073,7 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['numericId'];

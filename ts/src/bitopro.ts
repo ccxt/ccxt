@@ -431,7 +431,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTickersPair (this.extend (request, params));
@@ -496,7 +496,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (limit !== undefined) {
@@ -627,7 +627,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetTradesPair (this.extend (request, params));
@@ -765,7 +765,7 @@ export default class bitopro extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'resolution': resolution,
         };
@@ -1021,7 +1021,7 @@ export default class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'type': type,
             'pair': market['id'],
             'action': side,
@@ -1082,7 +1082,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': id,
             'pair': market['id'],
         };
@@ -1116,7 +1116,7 @@ export default class bitopro extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['uppercaseId'];
-        const request = {};
+        const request: Dict = {};
         request[id] = ids;
         const response = await this.privatePutOrders (this.extend (request, params));
         //
@@ -1143,7 +1143,7 @@ export default class bitopro extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'pair': market['id'], // optional
         };
         let response = undefined;
@@ -1183,7 +1183,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'pair': market['id'],
         };
@@ -1231,7 +1231,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             // 'startTimestamp': 0,
             // 'endTimestamp': 0,
@@ -1279,7 +1279,7 @@ export default class bitopro extends Exchange {
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const request = {
+        const request: Dict = {
             'statusKind': 'OPEN',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1297,7 +1297,7 @@ export default class bitopro extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'statusKind': 'DONE',
         };
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1320,7 +1320,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.privateGetOrdersTradesPair (this.extend (request, params));
@@ -1462,7 +1462,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             // 'endTimestamp': 0,
             // 'id': '',
@@ -1515,7 +1515,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             // 'endTimestamp': 0,
             // 'id': '',
@@ -1566,7 +1566,7 @@ export default class bitopro extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'serial': id,
             'currency': currency['id'],
         };
@@ -1608,7 +1608,7 @@ export default class bitopro extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': this.numberToString (amount),
             'address': address,

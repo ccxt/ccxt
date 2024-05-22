@@ -499,7 +499,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -577,7 +577,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (since !== undefined) {
@@ -636,7 +636,7 @@ export default class coinmetro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         } else {
@@ -743,7 +743,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetExchangeBookPair (this.extend (request, params));
@@ -1018,7 +1018,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         } else {
@@ -1351,7 +1351,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderID': id,
         };
         const marginMode = undefined;
@@ -1404,7 +1404,7 @@ export default class coinmetro extends Exchange {
         if (orderId === undefined) {
             throw new ArgumentsRequired (this.id + ' closePosition() requires a orderId parameter');
         }
-        const request = {
+        const request: Dict = {
             'orderID': orderId,
         };
         const response = await this.privatePostExchangeOrdersCloseOrderID (this.extend (request, params));
@@ -1483,7 +1483,7 @@ export default class coinmetro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
         }
@@ -1503,7 +1503,7 @@ export default class coinmetro extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderID': id,
         };
         const response = await this.privateGetExchangeOrdersStatusOrderID (this.extend (request, params));
@@ -1848,7 +1848,7 @@ export default class coinmetro extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const currencyId = currency['id'];
-        const request = {};
+        const request: Dict = {};
         request[currencyId] = this.currencyToPrecision (code, amount);
         const response = await this.privatePutUsersMarginCollateral (this.extend (request, params));
         //

@@ -5,7 +5,7 @@ import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -98,7 +98,7 @@ export default class bitmex extends bitmexRest {
             rawSubscriptions.push (name);
             messageHashes.push ('alltickers');
         }
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': rawSubscriptions,
         };
@@ -370,7 +370,7 @@ export default class bitmex extends bitmexRest {
         await this.authenticate ();
         const messageHash = 'margin';
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [
                 messageHash,
@@ -593,7 +593,7 @@ export default class bitmex extends bitmexRest {
             const timestamp = this.milliseconds ();
             const payload = 'GET' + '/realtime' + timestamp.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
-            const request = {
+            const request: Dict = {
                 'op': 'authKeyExpires',
                 'args': [
                     this.apiKey,
@@ -641,7 +641,7 @@ export default class bitmex extends bitmexRest {
             messageHash = '::' + symbols.join (',');
         }
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -850,7 +850,7 @@ export default class bitmex extends bitmexRest {
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -1067,7 +1067,7 @@ export default class bitmex extends bitmexRest {
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [
                 subscriptionHash,
@@ -1211,7 +1211,7 @@ export default class bitmex extends bitmexRest {
             messageHashes.push (messageHash);
         }
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -1244,7 +1244,7 @@ export default class bitmex extends bitmexRest {
             messageHashes.push (messageHash);
         }
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': topics,
         };
@@ -1275,7 +1275,7 @@ export default class bitmex extends bitmexRest {
         const table = 'tradeBin' + this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = table + ':' + market['id'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [
                 messageHash,

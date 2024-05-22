@@ -1094,7 +1094,7 @@ export default class gate extends Exchange {
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
-            const request = {
+            const request: Dict = {
                 'settle': settleId,
             };
             const response = await this.publicFuturesGetSettleContracts (this.extend (request, params));
@@ -1105,7 +1105,7 @@ export default class gate extends Exchange {
         }
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
-            const request = {
+            const request: Dict = {
                 'settle': settleId,
             };
             const response = await this.publicDeliveryGetSettleContracts (this.extend (request, params));
@@ -1444,7 +1444,7 @@ export default class gate extends Exchange {
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
         // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
-        const request = {};
+        const request: Dict = {};
         if (market !== undefined) {
             if (market['contract']) {
                 request['contract'] = market['id'];
@@ -1479,7 +1479,7 @@ export default class gate extends Exchange {
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
         const [ marginMode, query ] = this.getMarginMode (stop, params);
-        const request = {};
+        const request: Dict = {};
         if (!stop) {
             if (market === undefined) {
                 throw new ArgumentsRequired (this.id + ' spotOrderPrepareRequest() requires a market argument for non-stop orders');
@@ -1502,7 +1502,7 @@ export default class gate extends Exchange {
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
         const [ marginMode, query ] = this.getMarginMode (stop, params);
-        const request = {
+        const request: Dict = {
             'account': marginMode,
         };
         if (market !== undefined) {
@@ -1873,7 +1873,7 @@ export default class gate extends Exchange {
     async fetchNetworkDepositAddress (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
@@ -1925,7 +1925,7 @@ export default class gate extends Exchange {
         const currency = this.currency (code);
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
-        const request = {
+        const request: Dict = {
             'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
@@ -2004,7 +2004,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency_pair': market['id'],
         };
         const response = await this.privateWalletGetFee (this.extend (request, params));
@@ -2342,7 +2342,7 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'currency_pair': market['id'],
         //         'interval': '0', // depth, 0 means no aggregation is applied, default to 0
         //         'limit': limit, // maximum number of order depth data in asks or bids
@@ -3090,7 +3090,7 @@ export default class gate extends Exchange {
         //
         // spot
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'currency_pair': market['id'],
         //         'limit': limit, // maximum number of records to be returned in a single list
         //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
@@ -3099,7 +3099,7 @@ export default class gate extends Exchange {
         //
         // swap, future
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'settle': market['settleId'],
         //         'contract': market['id'],
         //         'limit': limit, // maximum number of records to be returned in a single list
@@ -3599,7 +3599,7 @@ export default class gate extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'], // todo: currencies have network-junctions
             'address': address,
             'amount': this.currencyToPrecision (code, amount),
@@ -4209,7 +4209,7 @@ export default class gate extends Exchange {
                 throw new InvalidOrder (this.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets');
             }
         }
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'currency_pair': market['id'],
             'account': account,
@@ -5084,7 +5084,7 @@ export default class gate extends Exchange {
         const fromId = this.convertTypeToAccount (fromAccount);
         const toId = this.convertTypeToAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'], // todo: currencies have network-junctions
             'amount': truncated,
         };
@@ -5793,7 +5793,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
@@ -5823,7 +5823,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
@@ -5863,7 +5863,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
@@ -5909,7 +5909,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
@@ -6173,7 +6173,7 @@ export default class gate extends Exchange {
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports swap markets only');
         }
-        const request = {
+        const request: Dict = {
             'contract': market['id'],
             'settle': market['settleId'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
@@ -6263,7 +6263,7 @@ export default class gate extends Exchange {
         }
         const marketId = market['id'];
         const optionParts = marketId.split ('-');
-        const request = {
+        const request: Dict = {
             'underlying': this.safeString (optionParts, 0),
         };
         if (since !== undefined) {
@@ -6314,7 +6314,7 @@ export default class gate extends Exchange {
         }
         const marketId = market['id'];
         const optionParts = marketId.split ('-');
-        const request = {
+        const request: Dict = {
             'underlying': this.safeString (optionParts, 0),
             'contract': marketId,
         };
@@ -6787,7 +6787,7 @@ export default class gate extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'contract': market['id'],
         };
         let response = undefined;
@@ -6924,7 +6924,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'underlying': market['info']['underlying'],
         };
         const response = await this.publicOptionsGetTickers (this.extend (request, params));
@@ -7020,7 +7020,7 @@ export default class gate extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        const request = {
+        const request: Dict = {
             'close': true,
         };
         params = this.extend (request, params);
@@ -7049,7 +7049,7 @@ export default class gate extends Exchange {
             // unified account does not require a symbol
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         const isUnified = this.safeBool (params, 'unified');
         params = this.omit (params, 'unified');
@@ -7213,7 +7213,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'contract': market['id'],
         };
         const response = await this.publicOptionsGetContractsContract (this.extend (request, params));
@@ -7274,7 +7274,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
         };
         const response = await this.publicOptionsGetContracts (this.extend (request, params));

@@ -573,7 +573,7 @@ export default class bitvavo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.publicGetTicker24h (this.extend (request, params));
@@ -890,7 +890,7 @@ export default class bitvavo extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -1052,7 +1052,7 @@ export default class bitvavo extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
         };
         const response = await this.privateGetDeposit (this.extend (request, params));
@@ -1076,7 +1076,7 @@ export default class bitvavo extends Exchange {
 
     createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'side': side,
             'orderType': type,
@@ -1266,7 +1266,7 @@ export default class bitvavo extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -1311,7 +1311,7 @@ export default class bitvavo extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1343,7 +1343,7 @@ export default class bitvavo extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -1485,7 +1485,7 @@ export default class bitvavo extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // "market": market["id"], // rate limit 25 without a market, 1 with market specified
         };
         let market = undefined;
@@ -1725,7 +1725,7 @@ export default class bitvavo extends Exchange {
 
     withdrawRequest (code: Str, amount, address, tag = undefined, params = {}) {
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'address': address, // address or IBAN
@@ -1767,7 +1767,7 @@ export default class bitvavo extends Exchange {
     }
 
     fetchWithdrawalsRequest (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const request = {
+        const request: Dict = {
             // 'symbol': currency['id'],
             // 'limit': 500, // default 500, max 1000
             // 'start': since,
@@ -1824,7 +1824,7 @@ export default class bitvavo extends Exchange {
     }
 
     fetchDepositsRequest (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const request = {
+        const request: Dict = {
             // 'symbol': currency['id'],
             // 'limit': 500, // default 500, max 1000
             // 'start': since,

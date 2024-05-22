@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ export default class hyperliquid extends hyperliquidRest {
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
@@ -146,7 +146,7 @@ export default class hyperliquid extends hyperliquidRest {
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'userFills',
@@ -235,7 +235,7 @@ export default class hyperliquid extends hyperliquidRest {
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
@@ -368,7 +368,7 @@ export default class hyperliquid extends hyperliquidRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
@@ -446,7 +446,7 @@ export default class hyperliquid extends hyperliquidRest {
             messageHash = messageHash + ':' + symbol;
         }
         const url = this.urls['api']['ws']['public'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'orderUpdates',

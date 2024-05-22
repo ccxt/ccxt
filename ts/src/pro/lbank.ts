@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, OrderBook, Order, OHLCV, Ticker } from '../base/types.js';
+import type { Int, Str, Trade, OrderBook, Order, OHLCV, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -885,7 +885,7 @@ export default class lbank extends lbankRest {
         } else {
             const expires = this.safeInteger (authenticated, 'expires', 0);
             if (expires < now) {
-                const request = {
+                const request: Dict = {
                     'subscribeKey': authenticated['key'],
                 };
                 const response = await this.spotPrivatePostSubscribeRefreshKey (this.extend (request, params));

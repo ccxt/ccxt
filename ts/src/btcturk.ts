@@ -345,7 +345,7 @@ export default class btcturk extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pairSymbol': market['id'],
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
@@ -524,7 +524,7 @@ export default class btcturk extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // let maxCount = 50;
-        const request = {
+        const request: Dict = {
             'pairSymbol': market['id'],
         };
         if (limit !== undefined) {
@@ -589,7 +589,7 @@ export default class btcturk extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'resolution': this.safeValue (this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
@@ -692,7 +692,7 @@ export default class btcturk extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderType': side,
             'orderMethod': type,
             'pairSymbol': market['id'],
@@ -722,7 +722,7 @@ export default class btcturk extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         return await this.privateDeleteOrder (this.extend (request, params));
@@ -741,7 +741,7 @@ export default class btcturk extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -768,7 +768,7 @@ export default class btcturk extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pairSymbol': market['id'],
         };
         if (limit !== undefined) {

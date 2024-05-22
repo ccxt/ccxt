@@ -587,7 +587,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             let symbol = undefined;
             if (Array.isArray (symbols)) {
@@ -669,7 +669,7 @@ export default class cryptocom extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
         }
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -751,7 +751,7 @@ export default class cryptocom extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         if (since !== undefined) {
@@ -813,7 +813,7 @@ export default class cryptocom extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -868,7 +868,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         if (limit) {
@@ -989,7 +989,7 @@ export default class cryptocom extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.v1PrivatePostPrivateGetOrderDetail (this.extend (request, params));
@@ -1033,7 +1033,7 @@ export default class cryptocom extends Exchange {
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
@@ -1190,7 +1190,7 @@ export default class cryptocom extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const contigency = this.safeString (params, 'contingency_type', 'LIST');
-        const request = {
+        const request: Dict = {
             'contingency_type': contigency, // or OCO
             'order_list': ordersRequests,
         };
@@ -1252,7 +1252,7 @@ export default class cryptocom extends Exchange {
         // and market-buy orders need to send notional instead of quantity
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'side': side.toUpperCase (),
         };
@@ -1371,7 +1371,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -1395,7 +1395,7 @@ export default class cryptocom extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.v1PrivatePostPrivateCancelOrder (this.extend (request, params));
@@ -1440,7 +1440,7 @@ export default class cryptocom extends Exchange {
             };
             orderRequests.push (order);
         }
-        const request = {
+        const request: Dict = {
             'contingency_type': 'LIST',
             'order_list': orderRequests,
         };
@@ -1472,7 +1472,7 @@ export default class cryptocom extends Exchange {
             };
             orderRequests.push (orderItem);
         }
-        const request = {
+        const request: Dict = {
             'contingency_type': 'LIST',
             'order_list': orderRequests,
         };
@@ -1495,7 +1495,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -1563,7 +1563,7 @@ export default class cryptocom extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1645,7 +1645,7 @@ export default class cryptocom extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.safeCurrency (code); // for instance, USDC is not inferred from markets but it's still available
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1692,7 +1692,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.v1PrivatePostPrivateGetDepositAddress (this.extend (request, params));
@@ -1790,7 +1790,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.safeCurrency (code);
             request['currency'] = currency['id'];
@@ -1850,7 +1850,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.safeCurrency (code);
             request['currency'] = currency['id'];
@@ -2376,7 +2376,7 @@ export default class cryptocom extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.safeCurrency (code);
@@ -2614,7 +2614,7 @@ export default class cryptocom extends Exchange {
         if (type === 'option') {
             type = 'WARRANT';
         }
-        const request = {
+        const request: Dict = {
             'instrument_type': type.toUpperCase (),
         };
         const response = await this.v1PublicGetPublicGetExpiredSettlementPrice (this.extend (request, params));
@@ -2707,7 +2707,7 @@ export default class cryptocom extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'valuation_type': 'funding_hist',
         };
@@ -2770,7 +2770,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.v1PrivatePostPrivateGetPositions (this.extend (request, params));
@@ -2813,7 +2813,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbols !== undefined) {
             let symbol = undefined;
@@ -2967,7 +2967,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'type': 'MARKET',
         };

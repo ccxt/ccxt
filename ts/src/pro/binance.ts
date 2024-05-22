@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -275,7 +275,7 @@ export default class binance extends binanceRest {
         const messageHashesLength = messageHashes.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, messageHashesLength);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subParams,
             'id': requestId,
@@ -625,7 +625,7 @@ export default class binance extends binanceRest {
         const subParamsLength = subParams.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subParams,
             'id': requestId,
@@ -872,7 +872,7 @@ export default class binance extends binanceRest {
         }
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': [
                 messageHash,
@@ -1196,7 +1196,7 @@ export default class binance extends binanceRest {
         }
         const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
         const requestId = this.requestId (url);
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
             'id': requestId,
@@ -1548,7 +1548,7 @@ export default class binance extends binanceRest {
             // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
-        const request = {};
+        const request: Dict = {};
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, [ 'type', 'symbol' ]);
         const time = this.milliseconds ();

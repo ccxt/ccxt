@@ -701,7 +701,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
@@ -788,7 +788,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         const ticker = await this.publicGetTickerPair (this.extend (request, params));
@@ -1053,7 +1053,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'time': 'hour',
         };
@@ -1115,7 +1115,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'step': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1215,7 +1215,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_symbol': market['id'],
         };
         const response = await this.privatePostFeesTrading (this.extend (request, params));
@@ -1408,7 +1408,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
         };
@@ -1456,7 +1456,7 @@ export default class bitstamp extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
@@ -1475,7 +1475,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1500,7 +1500,7 @@ export default class bitstamp extends Exchange {
     async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
-        const request = {};
+        const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
@@ -1527,7 +1527,7 @@ export default class bitstamp extends Exchange {
             market = this.market (symbol);
         }
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
-        const request = {};
+        const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
@@ -1570,7 +1570,7 @@ export default class bitstamp extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let method = 'privatePostUserTransactions';
         let market = undefined;
         if (symbol !== undefined) {
@@ -1599,7 +1599,7 @@ export default class bitstamp extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -1651,7 +1651,7 @@ export default class bitstamp extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['timedelta'] = this.milliseconds () - since;
         } else {
@@ -2019,7 +2019,7 @@ export default class bitstamp extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2130,7 +2130,7 @@ export default class bitstamp extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
-        const request = {
+        const request: Dict = {
             'amount': amount,
         };
         let currency = undefined;
@@ -2174,7 +2174,7 @@ export default class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': this.parseToNumeric (this.currencyToPrecision (code, amount)),
             'currency': currency['id'].toUpperCase (),
         };

@@ -217,7 +217,7 @@ export default class hyperliquid extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const request = {
+        const request: Dict = {
             'type': 'meta',
         };
         const response = await this.publicPostInfo (this.extend (request, params));
@@ -288,7 +288,7 @@ export default class hyperliquid extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const request = {
+        const request: Dict = {
             'type': 'metaAndAssetCtxs',
         };
         const response = await this.publicPostInfo (this.extend (request, params));
@@ -347,7 +347,7 @@ export default class hyperliquid extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const request = {
+        const request: Dict = {
             'type': 'spotMetaAndAssetCtxs',
         };
         const response = await this.publicPostInfo (this.extend (request, params));
@@ -640,7 +640,7 @@ export default class hyperliquid extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const isSpot = (type === 'spot');
         const reqType = (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
-        const request = {
+        const request: Dict = {
             'type': reqType,
             'user': userAddress,
         };
@@ -722,7 +722,7 @@ export default class hyperliquid extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'type': 'l2Book',
             'coin': market['swap'] ? market['base'] : market['id'],
         };
@@ -782,7 +782,7 @@ export default class hyperliquid extends Exchange {
             limit = 500;
         }
         params = this.omit (params, [ 'until' ]);
-        const request = {
+        const request: Dict = {
             'type': 'candleSnapshot',
             'req': {
                 'coin': market['swap'] ? market['base'] : market['id'],
@@ -856,7 +856,7 @@ export default class hyperliquid extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchTrades', params);
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const request = {
+        const request: Dict = {
             'user': userAddress,
         };
         if (since !== undefined) {
@@ -1192,7 +1192,7 @@ export default class hyperliquid extends Exchange {
             orderAction['brokerCode'] = 1;
         }
         const signature = this.signL1Action (orderAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': orderAction,
             'nonce': nonce,
             'signature': signature,
@@ -1266,7 +1266,7 @@ export default class hyperliquid extends Exchange {
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
-        const request = {
+        const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
         };
@@ -1337,7 +1337,7 @@ export default class hyperliquid extends Exchange {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const nonce = this.milliseconds ();
-        const request = {
+        const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
         };
@@ -1410,7 +1410,7 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
-        const request = {
+        const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
         };
@@ -1536,7 +1536,7 @@ export default class hyperliquid extends Exchange {
         };
         const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (modifyAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': modifyAction,
             'nonce': nonce,
             'signature': signature,
@@ -1604,7 +1604,7 @@ export default class hyperliquid extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'type': 'fundingHistory',
             'coin': market['base'],
         };
@@ -1665,7 +1665,7 @@ export default class hyperliquid extends Exchange {
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const request = {
+        const request: Dict = {
             'type': method,
             'user': userAddress,
         };
@@ -1702,7 +1702,7 @@ export default class hyperliquid extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchClosedOrders', params);
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const request = {
+        const request: Dict = {
             'type': 'historicalOrders',
             'user': userAddress,
         };
@@ -1738,7 +1738,7 @@ export default class hyperliquid extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const request = {
+        const request: Dict = {
             'type': 'orderStatus',
             'oid': this.parseToNumeric (id),
             'user': userAddress,
@@ -1953,7 +1953,7 @@ export default class hyperliquid extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const request = {
+        const request: Dict = {
             'user': userAddress,
         };
         if (since !== undefined) {
@@ -2070,7 +2070,7 @@ export default class hyperliquid extends Exchange {
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
         symbols = this.marketSymbols (symbols);
-        const request = {
+        const request: Dict = {
             'type': 'clearinghouseState',
             'user': userAddress,
         };
@@ -2236,7 +2236,7 @@ export default class hyperliquid extends Exchange {
         }
         const extendedAction = this.extend (updateAction, params);
         const signature = this.signL1Action (extendedAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': extendedAction,
             'nonce': nonce,
             'signature': signature,
@@ -2286,7 +2286,7 @@ export default class hyperliquid extends Exchange {
         };
         const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': updateAction,
             'nonce': nonce,
             'signature': signature,
@@ -2353,7 +2353,7 @@ export default class hyperliquid extends Exchange {
         };
         const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': updateAction,
             'nonce': nonce,
             'signature': signature,
@@ -2456,7 +2456,7 @@ export default class hyperliquid extends Exchange {
             'time': nonce,
         };
         const sig = this.buildTransferSig (payload);
-        const request = {
+        const request: Dict = {
             'action': {
                 'chain': (isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
                 'payload': payload,
@@ -2499,7 +2499,7 @@ export default class hyperliquid extends Exchange {
             'time': nonce,
         };
         const sig = this.buildWithdrawSig (payload);
-        const request = {
+        const request: Dict = {
             'action': {
                 'chain': (isSandboxMode) ? 'ArbitrumTestnet' : 'Arbitrum',
                 'payload': payload,

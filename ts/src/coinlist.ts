@@ -504,7 +504,7 @@ export default class coinlist extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const tickers = await this.publicGetV1SymbolsSummary (this.extend (request, params));
         //
         //     {
@@ -543,7 +543,7 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetV1SymbolsSymbolSummary (this.extend (request, params));
@@ -637,7 +637,7 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetV1SymbolsSymbolBook (this.extend (request, params));
@@ -681,7 +681,7 @@ export default class coinlist extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const granularity = this.safeString (this.timeframes, timeframe);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'granularity': granularity,
         };
@@ -765,7 +765,7 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1170,7 +1170,7 @@ export default class coinlist extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1233,7 +1233,7 @@ export default class coinlist extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
@@ -1258,7 +1258,7 @@ export default class coinlist extends Exchange {
         if (status === undefined) {
             status = [ 'accepted', 'done', 'canceled', 'rejected', 'pending' ];
         }
-        const request = {
+        const request: Dict = {
             'status': status,
         };
         let market = undefined;
@@ -1320,7 +1320,7 @@ export default class coinlist extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateGetV1OrdersOrderId (this.extend (request, params));
@@ -1365,7 +1365,7 @@ export default class coinlist extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'status': 'accepted',
         };
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1385,7 +1385,7 @@ export default class coinlist extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'status': 'done',
         };
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1405,7 +1405,7 @@ export default class coinlist extends Exchange {
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'status': 'canceled',
         };
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1423,7 +1423,7 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1451,7 +1451,7 @@ export default class coinlist extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.privateDeleteV1OrdersOrderId (this.extend (request, params));
@@ -1501,7 +1501,7 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'type': type,
             'side': side,
@@ -1576,7 +1576,7 @@ export default class coinlist extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'type': type,
             'side': side,
@@ -1756,7 +1756,7 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
@@ -1809,7 +1809,7 @@ export default class coinlist extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {};
+        const request: Dict = {};
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
         }
@@ -1934,7 +1934,7 @@ export default class coinlist extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'trader_id': traderId,
         };
@@ -2006,7 +2006,7 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'destination_address': address,
@@ -2110,7 +2110,7 @@ export default class coinlist extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchLedger() requires a traderId argument in the params');
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'trader_id': traderId,
         };
         let currency = undefined;

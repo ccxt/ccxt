@@ -175,7 +175,7 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
@@ -223,7 +223,7 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
@@ -282,7 +282,7 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
@@ -318,7 +318,7 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'price': price,
             'type': side,
@@ -351,7 +351,7 @@ export default class btcbox extends Exchange {
             symbol = 'BTC/JPY';
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': id,
             'coin': market['baseId'],
         };
@@ -476,7 +476,7 @@ export default class btcbox extends Exchange {
             symbol = 'BTC/JPY';
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],
         };

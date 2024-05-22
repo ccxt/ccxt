@@ -2957,7 +2957,7 @@ export default class bingx extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3687,14 +3687,14 @@ export default class bingx extends Exchange {
     }
 
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        const request = {
+        const request: Dict = {
             'type': 1,
         };
         return await this.setMargin (symbol, amount, this.extend (request, params));
     }
 
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        const request = {
+        const request: Dict = {
             'type': 2,
         };
         return await this.setMargin (symbol, amount, this.extend (request, params));

@@ -198,7 +198,7 @@ export default class bitso extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -558,7 +558,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
@@ -624,7 +624,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -663,7 +663,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
             'time_bucket': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -847,7 +847,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
@@ -956,7 +956,7 @@ export default class bitso extends Exchange {
                 'marker': parseInt (params['marker']),
             });
         }
-        const request = {
+        const request: Dict = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100
             // 'sort': 'desc', // default = desc
@@ -982,7 +982,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
             'side': side,
             'type': type,
@@ -1011,7 +1011,7 @@ export default class bitso extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'oid': id,
         };
         return await this.privateDeleteOrdersOid (this.extend (request, params));
@@ -1036,7 +1036,7 @@ export default class bitso extends Exchange {
             market = this.market (symbol);
         }
         const oids = ids.join (',');
-        const request = {
+        const request: Dict = {
             'oids': oids,
         };
         const response = await this.privateDeleteOrders (this.extend (request, params));
@@ -1171,7 +1171,7 @@ export default class bitso extends Exchange {
                 'marker': parseInt (params['marker']),
             });
         }
-        const request = {
+        const request: Dict = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100
             // 'sort': 'desc', // default = desc
@@ -1221,7 +1221,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'oid': id,
         };
         const response = await this.privateGetOrderTradesOid (this.extend (request, params));
@@ -1240,7 +1240,7 @@ export default class bitso extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'fid': id,
         };
         const response = await this.privateGetFundingsFid (this.extend (request, params));
@@ -1328,7 +1328,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'fund_currency': currency['id'],
         };
         const response = await this.privateGetFundingDestination (this.extend (request, params));
@@ -1610,7 +1610,7 @@ export default class bitso extends Exchange {
         if (method === undefined) {
             throw new ExchangeError (this.id + ' not valid withdraw coin: ' + code);
         }
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'address': address,
             'destination_tag': tag,

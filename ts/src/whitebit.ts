@@ -760,7 +760,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.v1PublicGetTicker (this.extend (request, params));
@@ -888,7 +888,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -932,7 +932,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
@@ -965,7 +965,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         let market: Market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -1121,7 +1121,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1268,7 +1268,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'side': side,
         };
@@ -1370,7 +1370,7 @@ export default class whitebit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'market': market['id'],
         };
@@ -1425,7 +1425,7 @@ export default class whitebit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'orderId': parseInt (id),
         };
@@ -1446,7 +1446,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -1607,7 +1607,7 @@ export default class whitebit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -1650,7 +1650,7 @@ export default class whitebit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1819,7 +1819,7 @@ export default class whitebit extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderId': parseInt (id),
         };
         let market = undefined;
@@ -1867,7 +1867,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'ticker': currency['id'],
         };
         let response = undefined;
@@ -1948,7 +1948,7 @@ export default class whitebit extends Exchange {
         if ((leverage < 1) || (leverage > 20)) {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 20');
         }
-        const request = {
+        const request: Dict = {
             'leverage': leverage,
         };
         return await this.v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
@@ -1976,7 +1976,7 @@ export default class whitebit extends Exchange {
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
         const amountString = this.currencyToPrecision (code, amount);
-        const request = {
+        const request: Dict = {
             'ticker': currency['id'],
             'amount': amountString,
             'from': fromAccountId,
@@ -2021,7 +2021,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code); // check if it has canDeposit
-        const request = {
+        const request: Dict = {
             'ticker': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
@@ -2151,7 +2151,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'transactionMethod': 1,
             'uniqueId': id,
             'limit': 1,
@@ -2218,7 +2218,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             'transactionMethod': 1,
             'limit': 100,
             'offset': 0,
@@ -2286,7 +2286,7 @@ export default class whitebit extends Exchange {
          * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2513,7 +2513,7 @@ export default class whitebit extends Exchange {
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);

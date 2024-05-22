@@ -3,7 +3,7 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -147,7 +147,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async subscribe (url, messageHash, subscriptionHash, subscription, params = {}) {
         const requestId = this.requestId ().toString ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': subscriptionHash,
@@ -167,7 +167,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params = {}) {
         const requestId = this.requestId ().toString ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': topic,
@@ -282,7 +282,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketIds = this.marketIds (symbols);
         const joined = marketIds.join (',');
         const requestId = this.requestId ().toString ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': channelName + joined,
@@ -352,7 +352,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const url = await this.negotiate (true);
         const market = this.market (symbol);
         const topic = '/contract/position:' + market['id'];
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
         const messageHash = 'position:' + market['symbol'];
@@ -870,7 +870,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const url = await this.negotiate (true);
         const topic = '/contractMarket/tradeOrders';
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
         let messageHash = 'orders';
@@ -996,7 +996,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const url = await this.negotiate (true);
         const topic = '/contractAccount/wallet';
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
         const subscription = {

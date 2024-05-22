@@ -367,7 +367,7 @@ export default class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
         };
@@ -461,7 +461,7 @@ export default class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'duration': this.timeframes[timeframe],
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
@@ -619,7 +619,7 @@ export default class ace extends Exchange {
         const market = this.market (symbol);
         const orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'baseCurrencyId': market['baseId'],
             'quoteCurrencyId': market['quoteId'],
             'type': (orderType === 'LIMIT') ? 1 : 2,
@@ -654,7 +654,7 @@ export default class ace extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderNo': id,
         };
         const response = await this.privatePostV2OrderCancel (this.extend (request, params));
@@ -680,7 +680,7 @@ export default class ace extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderNo': id,
         };
         const response = await this.privatePostV2OrderShowOrderStatus (this.extend (request, params));
@@ -727,7 +727,7 @@ export default class ace extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
             // 'start': 0,
@@ -864,7 +864,7 @@ export default class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const request = {
+        const request: Dict = {
             'orderNo': id,
         };
         const response = await this.privatePostV2OrderShowOrderHistory (this.extend (request, params));
@@ -920,7 +920,7 @@ export default class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const request = {
+        const request: Dict = {
             // 'buyOrSell': 1,
             // 'start': 0,
         };

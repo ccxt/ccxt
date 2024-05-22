@@ -4,7 +4,7 @@
 import huobijpRest from '../huobijp.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -66,7 +66,7 @@ export default class huobijp extends huobijpRest {
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
@@ -132,7 +132,7 @@ export default class huobijp extends huobijpRest {
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
@@ -212,7 +212,7 @@ export default class huobijp extends huobijpRest {
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
@@ -290,7 +290,7 @@ export default class huobijp extends huobijpRest {
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
@@ -353,7 +353,7 @@ export default class huobijp extends huobijpRest {
             const hostname = { 'hostname': this.hostname };
             const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
             const requestId = this.requestId ();
-            const request = {
+            const request: Dict = {
                 'req': messageHash,
                 'id': requestId,
             };

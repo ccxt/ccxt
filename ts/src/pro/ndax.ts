@@ -3,7 +3,7 @@
 
 import ndaxRest from '../ndax.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -61,7 +61,7 @@ export default class ndax extends ndaxRest {
             'InstrumentId': parseInt (market['id']), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
         };
-        const request = {
+        const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -131,7 +131,7 @@ export default class ndax extends ndaxRest {
             'InstrumentId': parseInt (market['id']), // conditionally optional
             'IncludeLastCount': 100, // the number of previous trades to retrieve in the immediate snapshot, 100 by default
         };
-        const request = {
+        const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -216,7 +216,7 @@ export default class ndax extends ndaxRest {
             'Interval': parseInt (this.safeString (this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
-        const request = {
+        const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -347,7 +347,7 @@ export default class ndax extends ndaxRest {
             // 'Symbol': market['info']['symbol'], // conditionally optional
             'Depth': limit, // default 100
         };
-        const request = {
+        const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call

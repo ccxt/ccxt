@@ -780,7 +780,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -898,7 +898,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2Ticker24hr (this.extend (request, params));
@@ -994,7 +994,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1107,7 +1107,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'limit': 500, // default 500, max 1000
         };
@@ -1309,7 +1309,7 @@ export default class currencycom extends Exchange {
             }
         }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'type': type.toUpperCase (),
@@ -1395,7 +1395,7 @@ export default class currencycom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'symbol': market['id'],
         };
@@ -1439,7 +1439,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1489,7 +1489,7 @@ export default class currencycom extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue (params, 'origClientOrderId');
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'orderId': parseInt (id),
             // 'origClientOrderId': id,
@@ -1533,7 +1533,7 @@ export default class currencycom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1608,7 +1608,7 @@ export default class currencycom extends Exchange {
 
     async fetchTransactionsByMethod (method, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1729,7 +1729,7 @@ export default class currencycom extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1834,7 +1834,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
@@ -1870,7 +1870,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
         };
         const response = await this.privateGetV2DepositAddress (this.extend (request, params));

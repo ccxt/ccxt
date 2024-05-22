@@ -4,7 +4,7 @@ import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -799,7 +799,7 @@ export default class deribit extends deribitRest {
             rawSubscriptions.push (message);
             messageHashes.push (channelName + '|' + market['symbol'] + '|' + channelDescriptor);
         }
-        const request = {
+        const request: Dict = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -946,7 +946,7 @@ export default class deribit extends deribitRest {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
             const signature = this.hmac (this.encode (timeString + '\n' + nonce + '\n'), this.encode (this.secret), sha256);
-            const request = {
+            const request: Dict = {
                 'jsonrpc': '2.0',
                 'id': requestId,
                 'method': 'public/auth',

@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, Re
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { md5 } from '../static_dependencies/noble-hashes/md5.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1089,7 +1089,7 @@ export default class coinex extends coinexRest {
             };
             const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
             const hash = this.hash (this.encode (signData), md5);
-            const request = {
+            const request: Dict = {
                 'method': 'server.sign',
                 'params': [
                     this.apiKey,
@@ -1112,7 +1112,7 @@ export default class coinex extends coinexRest {
             };
             const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
             const hash = this.hash (this.encode (signData), sha256, 'hex');
-            const request = {
+            const request: Dict = {
                 'method': 'server.sign',
                 'params': [
                     this.apiKey,
